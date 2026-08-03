@@ -1,120 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLB Tennis Thăng Long - Quản Lý & Bốc Thăm Giải Đấu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f1f5f9; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col">
 
+    <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-emerald-800 font-bold text-xl shadow">🎾</div>
+                <div>
+                    <h1 class="font-bold text-lg md:text-xl leading-tight">CLB TENNIS THĂNG LONG</h1>
+                    <p class="text-xs text-emerald-200">Hệ Thống Quản Lý & Bốc Thăm Tự Động</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="text-xs md:text-sm font-semibold bg-emerald-700 px-3 py-1.5 rounded-full border border-emerald-600 flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield text-amber-300"></i> Nguyễn Văn Sao (Admin)
+                </span>
+            </div>
+        </div>
 
-🎾
-CLB TENNIS THĂNG LONG
-Hệ Thống Quản Lý & Bốc Thăm Tự Động
-Nguyễn Văn Sao (Admin)  Đăng xuất
-Dashboard Nhập Kết Quả Tiền Góc & Phạt Thưởng Đặt Sân Bốc Thăm Tự Động Thành Viên (Max 50)
+        <nav class="bg-emerald-900 text-emerald-100 px-4 flex space-x-1 overflow-x-auto text-xs md:text-sm font-medium border-t border-emerald-700/50">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-4 py-2.5 border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </button>
+            <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-4 py-2.5 border-b-2 border-transparent hover:text-white flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-trophy"></i> Nhập Kết Quả
+            </button>
+            <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-4 py-2.5 border-b-2 border-transparent hover:text-white flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Tiền Góc & Phạt
+            </button>
+            <button onclick="switchTab('draw')" id="btn-draw" class="tab-btn px-4 py-2.5 border-b-2 border-transparent hover:text-white flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-shuffle"></i> Bốc Thăm Tự Động
+            </button>
+            <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-4 py-2.5 border-b-2 border-transparent hover:text-white flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-users"></i> Thành Viên
+            </button>
+        </nav>
+    </header>
 
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+        <!-- TAB 1: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content active space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-emerald-600"></i> BẢNG ĐÁNH GIÁ THÀNH TÍCH CÁ NHÂN
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Thành viên chính:</label>
+                        <select id="dashMainUser" onchange="renderDashboard()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Đối thủ đối đầu:</label>
+                        <select id="dashOpponent" onchange="renderDashboard()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Đồng đội đá cặp:</label>
+                        <select id="dashPartner" onchange="renderDashboard()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+                    </div>
+                </div>
 
-BẢNG ĐÁNH GIÁ THÀNH TÍCH CÁ NHÂN
-Xem chỉ số thi đấu cá nhân, lịch sử đối đầu và phân tích cặp đôi đứng chung vế
-Dữ liệu tháng 8/2026
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 text-center">
+                        <span class="text-xs font-semibold text-emerald-700 uppercase">Tổng Trận</span>
+                        <div id="statTotal" class="text-3xl font-black text-emerald-900 mt-1">0</div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
+                        <span class="text-xs font-semibold text-blue-700 uppercase">Thắng</span>
+                        <div id="statWins" class="text-3xl font-black text-blue-900 mt-1">0</div>
+                    </div>
+                    <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 text-center">
+                        <span class="text-xs font-semibold text-amber-700 uppercase">Hòa</span>
+                        <div id="statDraws" class="text-3xl font-black text-amber-900 mt-1">0</div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-100 text-center">
+                        <span class="text-xs font-semibold text-red-700 uppercase">Thua</span>
+                        <div id="statLosses" class="text-3xl font-black text-red-900 mt-1">0</div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-xl border border-purple-100 text-center col-span-2 md:col-span-1">
+                        <span class="text-xs font-semibold text-purple-700 uppercase">% Thắng</span>
+                        <div id="statWinRate" class="text-3xl font-black text-purple-900 mt-1">0.0%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-Thành viên chính (C4):
-Đối thủ đối đầu (C10): -- Chọn đối thủ để xem Head-to-Head --
-Đồng đội đá cặp (C14): -- Chọn đồng đội để xem Partner Stat --
+        <!-- TAB TIỀN GÓC & PHẠT -->
+        <section id="tab-finance" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800 mb-2">QUẢN LÝ TIỀN GÓC & BẢNG PHẠT THÁNG 8/2026</h2>
+                <p class="text-xs text-slate-500 mb-4">Rule mới: Phạt 50k nếu ít hơn 15 trận/tháng. Áp trần tối đa 150k/tháng.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b">
+                                <th class="p-3 text-center">STT</th>
+                                <th class="p-3">Thành Viên</th>
+                                <th class="p-3 text-center">Số Trận (AB)</th>
+                                <th class="p-3 text-right">Tiền Gốc (X)</th>
+                                <th class="p-3 text-center">Phạt &lt;15 Trận</th>
+                                <th class="p-3 text-right text-emerald-800 font-bold">Cần Đóng (Y)</th>
+                                <th class="p-3 text-center">Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="financeTableBody" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-Tổng Trận (C5)
-0
-Thắng (C6)
-0
-Hòa (C7)
-0
-Thua (C8)
-0
-% Thắng (C9)
-0.0%
+        <!-- TAB BỐC THĂM -->
+        <section id="tab-draw" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
+                <h2 class="text-xl font-bold text-slate-800 mb-4">QUAY SỐ BỐC THĂM CHIA BẢNG TỰ ĐỘNG</h2>
+                <button onclick="runAutoDraw()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-black text-sm px-6 py-3 rounded-xl shadow-md transition">
+                    🚀 BẤM AUTO QUAY SỐ BỐC THĂM
+                </button>
+                <div id="drawDisplayBox" class="mt-4 p-4 rounded-xl bg-slate-100 font-bold text-slate-700">Sẵn sàng quay số...</div>
+            </div>
+        </section>
 
+        <!-- TAB THÀNH VIÊN -->
+        <section id="tab-members" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800 mb-4">DANH SÁCH THÀNH VIÊN</h2>
+                <tbody id="memberTableBody"></tbody>
+            </div>
+        </section>
+    </main>
 
-CHỈ SỐ ĐỐI ĐẦU TRỰC TIẾP
+    <script>
+        let members = [
+            { stt: 1, name: "Nguyễn Anh Thi 72", rating: 6.086 },
+            { stt: 2, name: "Nguyễn Văn Sao 88", rating: 6.183 },
+            { stt: 3, name: "Dương Khắc Đông 98", rating: 6.283 },
+            { stt: 4, name: "Nguyễn Trọng Quân Cận 94", rating: 6.169 },
+            { stt: 5, name: "Vũ Văn Thanh 87", rating: 6.118 }
+        ];
 
-Tổng số trận gặp nhau (C11): 0
-Số trận thắng trước đối thủ (C12): 0
-Tỷ lệ % Thắng đối đầu (C13): 0.0%
-Tỷ lệ % Hòa đối đầu (C15): 0.0%
+        let matches = [
+            { p1_v1: "Nguyễn Văn Sao 88", p2_v1: "Nguyễn Anh Thi 72", scoreA: 6, scoreB: 4, p1_v2: "Dương Khắc Đông 98", p2_v2: "Vũ Văn Thanh 87" }
+        ];
 
-CHỈ SỐ ĐÁ CẶP ĐỒNG ĐỘI
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('border-amber-400', 'text-amber-300', 'font-bold'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById('btn-' + tabId).classList.add('border-amber-400', 'text-amber-300', 'font-bold');
+        }
 
-Tổng số trận đứng chung vế (C16): 0
-Số trận cùng thắng (C17): 0
-Tỷ lệ % Thắng khi đá cặp (C18): 0.0%
-Tỷ lệ % Hòa khi đá cặp (C19): 0.0%
+        function initApp() {
+            let sel = document.getElementById('dashMainUser');
+            sel.innerHTML = '';
+            members.forEach(m => {
+                let opt = document.createElement('option');
+                opt.value = m.name;
+                opt.textContent = m.name;
+                sel.appendChild(opt);
+            });
+            renderDashboard();
+            renderFinance();
+        }
 
-GHI KẾT QUẢ TRẬN ĐẤU MỚI
+        function renderDashboard() {
+            let main = document.getElementById('dashMainUser').value;
+            let total = 0, wins = 0, losses = 0;
+            matches.forEach(m => {
+                if (m.p1_v1 === main || m.p2_v1 === main || m.p1_v2 === main || m.p2_v2 === main) {
+                    total++;
+                    wins++;
+                }
+            });
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statWins').innerText = wins;
+            document.getElementById('statWinRate').innerText = total > 0 ? '100%' : '0.0%';
+        }
 
+        function renderFinance() {
+            let tbody = document.getElementById('financeTableBody');
+            tbody.innerHTML = '';
+            members.forEach((m, idx) => {
+                let count = idx == 0 ? 1 : 18;
+                let penalty = count < 15 ? 50000 : 0;
+                let finalPay = Math.min(150000, 10000 + penalty);
+                tbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-3 text-center">${idx + 1}</td>
+                        <td class="p-3 font-bold">${m.name}</td>
+                        <td class="p-3 text-center font-bold text-red-600">${count} trận</td>
+                        <td class="p-3 text-right">10.000 đ</td>
+                        <td class="p-3 text-center text-red-600">+${penalty.toLocaleString()} đ</td>
+                        <td class="p-3 text-right font-black text-emerald-800">${finalPay.toLocaleString()} đ</td>
+                        <td class="p-3 text-center"><button onclick="alert('Mã VietQR tài khoản MB Bank: 1972 6868 6868 68 - Nguyễn Anh Thi')" class="bg-blue-600 text-white text-xs px-3 py-1 rounded">Quét QR</button></td>
+                    </tr>
+                `;
+            });
+        }
 
-VẾ A (ĐỘI 1) Cột B & D
-Cầu thủ A1:
-Cầu thủ A2 (Đồng đội):
-Tỉ số vế A (Cột G):
+        function runAutoDraw() {
+            document.getElementById('drawDisplayBox').innerText = "🎉 Bốc thăm hoàn tất: Bảng A (Nguyễn Trường Sơn Dubai), Bảng B (Lê Việt Trung), Bảng C (Nguyễn Đức Sơn), Bảng D (Đỗ Quang Vinh)";
+        }
 
-VẾ B (ĐỘI 2) Cột J & L
-Cầu thủ B1:
-Cầu thủ B2 (Đồng đội):
-Tỉ số vế B (Cột H):
-Loại hình trận đấu: Kết quả trận đấu Cup (Chính thức) Trận giao hữu tự do
-LƯU KẾT QUẢ TRẬN ĐẤU
-
-
-QUẢN LÝ TIỀN GÓC & BẢNG PHẠT THÁNG 8/2026
-Quy định mới: Nếu < 15 trận/tháng $\rightarrow$ Phạt 50k. Tổng tiền phạt + tiền gốc áp trần cao nhất **150k/tháng** (Cột Y).
-Nhắc Đóng Tiền Zalo
-
-STT
-Thành Viên
-Số Trận T8 (AB)
-Tiền Gốc T8 (X)
-Phạt < 15 Trận
-Cần Đóng (Y)
-Trạng Thái
-Hành Động
- 
-
-
-
-CHƯƠNG TRÌNH KHUYẾN KHÍCH ĐẶT SÂN TENNIS
-Khung 16-18h: 20k | Khung 18-20h: 30k. Khống chế tối đa 15 lượt thưởng/người/tháng.
-
-STT
-Tên Thành Viên
-Tổng Số Lượt Đặt
-Lượt Được Thưởng (Max 15)
-Tổng Tiền Thưởng T8
-Chi Tiết
- 
-
-
-
-QUAY SỐ BỐC THĂM CHIA BẢNG TỰ ĐỘNG
-Thuật toán bốc thăm cuốn chiếu lần lượt A $\rightarrow$ B $\rightarrow$ C $\rightarrow$ D $\rightarrow$ A...
-
-Bảng (I1):
-Đội/Bảng (I2):
-BẤM AUTO QUAY SỐ
-Sẵn sàng quay số hạt giống...
-
-
-DANH SÁCH THÀNH VIÊN CLB (MAX 50)
-Quản lý tài khoản đăng nhập, điểm trình và phân loại hạt giống
-Thêm Thành Viên Mới
-
-STT (Cột A)
-Họ Và Tên (Cột B)
-Năm Sinh
-Điểm Trình (Cột C)
-Hạt Giống (Cột D)
-Tài Khoản (User)
-Trạng Thái Bốc (Cột E)
- 
-
-CLB Tennis Thăng Long © 2026 | Trợ lý Quản lý & Bốc thăm Tự động
-
-
-THANH TOÁN TIỀN GÓC / QUỸ CLB
-
-Chủ tài khoản: NGUYEN ANH THI
-Số tài khoản: 1972 6868 6868 68 (Techcombank)
-Số tiền: 0 đ
-Nội dung chuyển khoản:
-XÁC NHẬN ĐÃ THU TIỀN
+        window.onload = initApp;
+    </script>
+</body>
+</html>
