@@ -27,10 +27,10 @@
                     <p class="text-xs text-emerald-200">Ghi nhận hoạt động đóng quỹ, đặt sân, tiền góc</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-3">
-                <span class="text-xs md:text-sm font-semibold bg-emerald-700 px-3 py-1.5 rounded-full border border-emerald-600 flex items-center gap-2">
-                    <i class="fa-solid fa-user-shield text-amber-300"></i> Nguyễn Văn Sao (Admin)
-                </span>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleAdminRole()" id="roleBadge" class="text-xs md:text-sm font-semibold bg-emerald-700 hover:bg-emerald-600 px-3 py-1.5 rounded-full border border-emerald-600 flex items-center gap-2 transition cursor-pointer">
+                    <i class="fa-solid fa-user-shield text-amber-300"></i> <span id="roleText">Nguyễn Văn Sao (Admin)</span>
+                </button>
             </div>
         </div>
 
@@ -74,7 +74,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 bg-slate-50 p-5 rounded-2xl border border-slate-200">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-2">1. CHỌN TÊN MÌNH (*):</label>
-                        <select id="dashMainUser" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+                        <select id="dashMainUser" onchange="renderDashboard()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"></select>
                     </div>
 
                     <div>
@@ -87,14 +87,13 @@
                             <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="actType" value="quy" class="w-4 h-4 text-emerald-600"> Đóng tiền quỹ (600k)</label>
                         </div>
 
-                        <!-- NÚT SUBMIT THEO YÊU CẦU MỚI -->
                         <button onclick="handleDashboardSubmit()" class="mt-4 w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs py-2.5 rounded-xl shadow transition flex items-center justify-center gap-2">
                             <i class="fa-solid fa-circle-check"></i> XÁC NHẬN (SUBMIT)
                         </button>
                     </div>
                 </div>
 
-                <!-- CARDS KẾT QUẢ THỐNG KÊ -->
+                <!-- CARDS THỐNG KÊ -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 text-center">
                         <span class="text-xs font-semibold text-emerald-700 uppercase">TỔNG SỐ TRẬN</span>
@@ -114,18 +113,17 @@
                     </div>
                 </div>
 
-                <!-- TÀI CHÍNH CÁ NHÂN & ĐỔI TÊN MỤC TỰ NHẬP TIỀN GÓC -->
+                <!-- TÀI CHÍNH CÁ NHÂN REALTIME BAO GỒM KÈO ĐẶC BIỆT -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-emerald-50/60 p-5 rounded-2xl border border-emerald-200">
                     <div>
                         <span class="text-xs font-bold text-slate-600 uppercase">THƯỞNG ĐẶT SÂN TÍCH LŨY:</span>
                         <div id="statReward" class="text-xl font-black text-emerald-700 mt-1">0 đ</div>
                     </div>
                     <div>
-                        <span class="text-xs font-bold text-slate-600 uppercase">GÓC TÍCH LŨY + NỢ THÁNG TRƯỚC:</span>
+                        <span class="text-xs font-bold text-slate-600 uppercase">GÓC TÍCH LŨY + NỢ THÁNG TRƯỚC (REALTIME):</span>
                         <div id="statDebt" class="text-xl font-black text-red-600 mt-1">0 đ</div>
                     </div>
                     <div class="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm">
-                        <!-- ĐỔI TÊN THÀNH "Tự nhập tiền GÓC đã chuyển khoản" -->
                         <label class="block text-xs font-extrabold text-emerald-900 uppercase mb-1">Tự nhập tiền GÓC đã chuyển khoản:</label>
                         <div class="flex gap-2">
                             <input type="number" id="userPaidInput" placeholder="Nhập tiền góc vừa chuyển" class="w-full border rounded-lg p-1.5 text-sm font-bold text-slate-900">
@@ -217,11 +215,11 @@
             </div>
         </section>
 
-        <!-- TAB 3: TIỀN GÓC & PHẠT -->
+        <!-- TAB 3: TIỀN GÓC & PHẠT (CÓ CHỨC NĂNG EDIT SỐ LIỆU TỰ ĐỒNG BỘ) -->
         <section id="tab-finance" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <h2 class="text-xl font-bold text-slate-800 mb-2">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THÁNG 8/2026</h2>
-                <p class="text-xs text-slate-500 mb-4">Rule mới: Phạt 50k nếu ít hơn 15 trận/tháng. Áp trần tối đa 150k/tháng.</p>
+                <p class="text-xs text-slate-500 mb-4">Rule mới: Phạt 50k nếu ít hơn 15 trận/tháng. Áp trần tối đa 150k/tháng. Admin có quyền Edit Thực Đóng & Góc Tích Lũy.</p>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
@@ -237,7 +235,7 @@
                                 <th class="p-2.5 text-right">Thực Đóng</th>
                                 <th class="p-2.5 text-right">Nợ Tháng Trước</th>
                                 <th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50">TỔNG CẦN ĐÓNG</th>
-                                <th class="p-2.5 text-center">Thanh Toán</th>
+                                <th class="p-2.5 text-center">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody id="financeTableBody" class="divide-y divide-slate-200"></tbody>
@@ -246,13 +244,13 @@
             </div>
         </section>
 
-        <!-- TAB MỚI: THƯỞNG ĐẶT SÂN LIST TỰ TRA CỨU -->
+        <!-- TAB 4: THƯỞNG ĐẶT SÂN (CÓ EDIT & DELETE CHO ADMIN) -->
         <section id="tab-booking" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <h2 class="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN
+                    <i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN
                 </h2>
-                <p class="text-xs text-slate-500 mb-4">Liệt kê danh sách thời gian ghi nhận, số lần ghi nhận và số tiền thưởng đặt sân</p>
+                <p class="text-xs text-slate-500 mb-4">Liệt kê danh sách thời gian ghi nhận, số lần ghi nhận và số tiền thưởng đặt sân (Admin có quyền Edit/Xóa)</p>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
@@ -262,6 +260,7 @@
                                 <th class="p-3">Tên Thành Viên</th>
                                 <th class="p-3 text-center">Khung Giờ</th>
                                 <th class="p-3 text-right">Số Tiền Thưởng</th>
+                                <th class="p-3 text-center admin-only">Thao Tác Admin</th>
                             </tr>
                         </thead>
                         <tbody id="bookingLogTableBody" class="divide-y divide-slate-200"></tbody>
@@ -302,13 +301,13 @@
             </div>
         </section>
 
-        <!-- TAB 6: SỔ THU - CHI CLB VỚI FORM NHẬP CHO ADMIN -->
+        <!-- TAB 6: SỔ THU - CHI CLB (CLICK ĐẦU MỤC XEM LỊCH SỬ THU CHI) -->
         <section id="tab-cashbook" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-100 gap-3">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">SỔ THU - CHI CLB TENNIS THĂNG LONG (NĂM 2026)</h2>
-                        <p class="text-xs text-slate-500">Tự động liên kết dữ liệu thu tiền quỹ, tiền góc và ghi nhận các đầu mục thu/chi</p>
+                        <p class="text-xs text-slate-500">Bấm vào bất kỳ đầu mục nào bên dưới để xem chi tiết Lịch sử Thu / Chi</p>
                     </div>
                     <div class="bg-purple-100 text-purple-900 px-6 py-2 rounded-xl border border-purple-200 text-center">
                         <span class="text-xs font-bold uppercase">DƯ QUỸ HIỆN TẠI</span>
@@ -316,8 +315,8 @@
                     </div>
                 </div>
 
-                <!-- FORM NHẬP THU/CHI CHO ADMIN -->
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
+                <!-- FORM NHẬP DÀNH CHO ADMIN -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 admin-only">
                     <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3">NHẬP KHOẢN THU / CHI MỚI (DÀNH CHO ADMIN)</h3>
                     <form onsubmit="addCashbookEntry(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
                         <select id="cbCategory" required class="p-2 border rounded-lg font-bold text-slate-800">
@@ -335,48 +334,67 @@
                             </optgroup>
                         </select>
                         <input type="number" id="cbAmount" placeholder="Số tiền (đ)" required class="p-2 border rounded-lg font-bold">
-                        <input type="text" id="cbNote" placeholder="Ghi chú nội dung" class="p-2 border rounded-lg">
+                        <input type="text" id="cbNote" placeholder="Ghi chú nội dung (VD: Tháng 9)" class="p-2 border rounded-lg">
                         <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg p-2 transition">
                             + GỬI KHOẢN THU/CHI
                         </button>
                     </form>
                 </div>
 
+                <!-- DANH SÁCH CLICKABLE BẢNG THU CHI -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- KHOẢN THU LINK TỰ ĐỘNG -->
                     <div class="bg-emerald-50/60 p-5 rounded-2xl border border-emerald-200">
                         <div class="flex justify-between items-center mb-4 pb-2 border-b border-emerald-200">
-                            <h3 class="font-bold text-emerald-900 text-sm uppercase">CÁC KHOẢN THU (LINK TỰ ĐỘNG)</h3>
+                            <h3 class="font-bold text-emerald-900 text-sm uppercase">CÁC KHOẢN THU</h3>
                             <span id="totalThuDisplay" class="font-black text-emerald-800 text-base">0 đ</span>
                         </div>
                         <div class="space-y-2 text-xs font-semibold text-slate-700">
-                            <div class="flex justify-between py-1 border-b"><span>Tiền quỹ QUÝ (Link tự động):</span><span id="thuQuyDisplay" class="font-bold text-slate-900">0 đ</span></div>
-                            <div class="flex justify-between py-1 border-b"><span>Tiền góc thực thu (Link tự động):</span><span id="thuGocDisplay" class="font-bold text-slate-900">0 đ</span></div>
-                            <div class="flex justify-between py-1 border-b"><span>Tiền bán sân:</span><span id="thuBanSanDisplay" class="font-bold text-slate-900">350,000 đ</span></div>
-                            <div class="flex justify-between py-1"><span>Tiền ủng hộ / Tài trợ:</span><span id="thuUngHoDisplay" class="font-bold text-slate-900">300,000 đ</span></div>
+                            <div onclick="openHistoryModal('Tiền quỹ QUÝ')" class="flex justify-between py-2 border-b hover:bg-emerald-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền quỹ QUÝ (Link tự động):</span><span id="thuQuyDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
+                            <div onclick="openHistoryModal('Tiền góc thực thu')" class="flex justify-between py-2 border-b hover:bg-emerald-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền góc thực thu (Link tự động):</span><span id="thuGocDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
+                            <div onclick="openHistoryModal('Tiền bán sân')" class="flex justify-between py-2 border-b hover:bg-emerald-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền bán sân:</span><span id="thuBanSanDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
+                            <div onclick="openHistoryModal('Tiền ủng hộ / Tài trợ')" class="flex justify-between py-2 hover:bg-emerald-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền ủng hộ / Tài trợ:</span><span id="thuUngHoDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- KHOẢN CHI -->
                     <div class="bg-red-50/60 p-5 rounded-2xl border border-red-200">
                         <div class="flex justify-between items-center mb-4 pb-2 border-b border-red-200">
                             <h3 class="font-bold text-red-900 text-sm uppercase">CÁC KHOẢN CHI</h3>
                             <span id="totalChiDisplay" class="font-black text-red-800 text-base">0 đ</span>
                         </div>
                         <div class="space-y-2 text-xs font-semibold text-slate-700">
-                            <div class="flex justify-between py-1 border-b"><span>Tiền app sân:</span><span id="chiAppDisplay" class="font-bold text-slate-900">8,100,000 đ</span></div>
-                            <div class="flex justify-between py-1 border-b"><span>Tiền mua bóng:</span><span id="chiBongDisplay" class="font-bold text-slate-900">15,000,000 đ</span></div>
-                            <div class="flex justify-between py-1 border-b"><span>Tiền thưởng đặt sân:</span><span id="chiThuongDisplay" class="font-bold text-slate-900">3,620,000 đ</span></div>
-                            <div class="flex justify-between py-1 border-b"><span>Tiền mua sân:</span><span id="chiMuaSanDisplay" class="font-bold text-slate-900">100,000 đ</span></div>
-                            <div class="flex justify-between py-1 border-b"><span>Tiền chi liên hoan ăn nhậu:</span><span id="chiLienHoanDisplay" class="font-bold text-slate-900">3,583,840 đ</span></div>
-                            <div class="flex justify-between py-1"><span>Tiền chi khác (hiếu, hỷ...):</span><span id="chiKhacDisplay" class="font-bold text-slate-900">0 đ</span></div>
+                            <div onclick="openHistoryModal('Tiền app sân')" class="flex justify-between py-2 border-b hover:bg-red-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền app sân:</span><span id="chiAppDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
+                            <div onclick="openHistoryModal('Tiền mua bóng')" class="flex justify-between py-2 border-b hover:bg-red-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền mua bóng:</span><span id="chiBongDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
+                            <div onclick="openHistoryModal('Tiền thưởng đặt sân')" class="flex justify-between py-2 border-b hover:bg-red-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền thưởng đặt sân:</span><span id="chiThuongDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
+                            <div onclick="openHistoryModal('Tiền mua sân')" class="flex justify-between py-2 border-b hover:bg-red-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền mua sân:</span><span id="chiMuaSanDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
+                            <div onclick="openHistoryModal('Tiền chi liên hoan ăn nhậu')" class="flex justify-between py-2 border-b hover:bg-red-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền chi liên hoan ăn nhậu:</span><span id="chiLienHoanDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
+                            <div onclick="openHistoryModal('Tiền chi khác (hiếu, hỷ...)')" class="flex justify-between py-2 hover:bg-red-100/50 p-1.5 rounded cursor-pointer transition">
+                                <span>Tiền chi khác (hiếu, hỷ...):</span><span id="chiKhacDisplay" class="font-bold text-slate-900">0 đ</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- TAB 7: DANH SÁCH 35 THÀNH VIÊN -->
+        <!-- TAB 7: DANH SÁCH THÀNH VIÊN -->
         <section id="tab-members" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
@@ -397,7 +415,6 @@
                                 <th class="p-3">Tên Thành Viên</th>
                                 <th class="p-3 text-center">Trạng Thái</th>
                                 <th class="p-3 text-center bg-amber-50">Điểm Base</th>
-                                <th class="p-3 text-center">Tài Khoản (User)</th>
                                 <th class="p-3 text-center">Thao Tác</th>
                             </tr>
                         </thead>
@@ -408,6 +425,52 @@
         </section>
 
     </main>
+
+    <!-- MODAL XEM LỊCH SỬ THU CHI TỪNG ĐẦU MỤC -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeHistoryModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 id="historyModalTitle" class="font-bold text-slate-800 text-base border-b pb-2 uppercase text-emerald-800">LỊCH SỬ GIAO DỊCH</h3>
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
+                            <th class="p-2.5 text-center">STT</th>
+                            <th class="p-2.5">Thời Gian</th>
+                            <th class="p-2.5">Nội Dung / Ghi Chú</th>
+                            <th class="p-2.5 text-right">Số Tiền</th>
+                            <th class="p-2.5 text-center admin-only">Sửa/Xóa Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="divide-y divide-slate-200"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT SỐ LIỆU TỰ ĐỒNG BỘ CHO ADMIN -->
+    <div id="editFinanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeEditFinanceModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="font-bold text-slate-800 text-base border-b pb-2 uppercase text-emerald-800">SỬA SỐ LIỆU ĐỒNG BỘ</h3>
+            <form onsubmit="saveFinanceData(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="efMemberIdx">
+                <div>
+                    <label class="block mb-1">Thành viên:</label>
+                    <input type="text" id="efMemberName" disabled class="w-full p-2.5 border rounded-lg text-sm font-bold bg-slate-100">
+                </div>
+                <div>
+                    <label class="block mb-1">Số tiền "Thực Đóng" (đ):</label>
+                    <input type="number" id="efPaid" required class="w-full p-2.5 border rounded-lg text-sm font-bold text-emerald-700">
+                </div>
+                <div>
+                    <label class="block mb-1">Nợ tháng trước / Góc tích lũy (đ):</label>
+                    <input type="number" id="efNoOld" required class="w-full p-2.5 border rounded-lg text-sm font-bold text-red-600">
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU CẬP NHẬT</button>
+            </form>
+        </div>
+    </div>
 
     <!-- MODAL THÊM/SỬA THÀNH VIÊN -->
     <div id="memberModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
@@ -456,7 +519,8 @@
     </div>
 
     <script>
-        // DANH SÁCH 35 THÀNH VIÊN THỰC TẾ
+        let isAdmin = true; // TRẠNG THÁI QUYỀN ADMIN / USER
+
         let members = [
             { stt: 1, name: "Nguyễn Anh Thi 72", status: "Đang tham gia", base: 6.2, quy2: 600000, quy3: 600000, statusQuy: "OK", noteQuy: "", paidUser: 170000, noOld: 0 },
             { stt: 2, name: "Nguyễn Văn Sao 88", status: "Đang tham gia", base: 6.2, quy2: 600000, quy3: 600000, statusQuy: "OK", noteQuy: "", paidUser: 150000, noOld: 0 },
@@ -501,20 +565,35 @@
         ];
 
         let bookingLogs = [
-            { time: "03/08/2026 16:30", name: "Hoàng Văn Thái 94", frame: "16h-18h", reward: 20000 },
-            { time: "03/08/2026 18:15", name: "Nguyễn Văn Sao 88", frame: "18h-20h", reward: 30000 }
+            { id: 1, time: "03/08/2026 16:30", name: "Hoàng Văn Thái 94", frame: "16h-18h", reward: 20000 },
+            { id: 2, time: "03/08/2026 18:15", name: "Nguyễn Văn Sao 88", frame: "18h-20h", reward: 30000 }
         ];
 
-        let cashbookData = {
-            banSan: 350000,
-            ungHo: 300000,
-            appSan: 8100000,
-            bong: 15000000,
-            thuongSan: 3620000,
-            muaSan: 100000,
-            lienHoan: 3583840,
-            khac: 0
-        };
+        let cashbookLogs = [
+            { id: 1, category: "Tiền bán sân", amount: 400000, note: "Tháng 8", time: "01/08/2026" },
+            { id: 2, category: "Tiền ủng hộ / Tài trợ", amount: 350000, note: "Tài trợ mini game", time: "02/08/2026" },
+            { id: 3, category: "Tiền app sân", amount: 9100000, note: "Tháng 9", time: "03/08/2026" },
+            { id: 4, category: "Tiền mua bóng", amount: 15000000, note: "Đợt 1", time: "01/08/2026" },
+            { id: 5, category: "Tiền thưởng đặt sân", amount: 3620000, note: "Tổng tháng 7", time: "31/07/2026" },
+            { id: 6, category: "Tiền mua sân", amount: 100000, note: "Sân phụ", time: "02/08/2026" },
+            { id: 7, category: "Tiền chi liên hoan ăn nhậu", amount: 3583840, note: "Tổng kết tháng", time: "01/08/2026" }
+        ];
+
+        function toggleAdminRole() {
+            isAdmin = !isAdmin;
+            let text = isAdmin ? "Nguyễn Văn Sao (Admin)" : "Nguyễn Văn Sao (Member)";
+            document.getElementById('roleText').innerText = text;
+            applyAdminVisibility();
+            renderFinance();
+            renderBookingLogs();
+        }
+
+        function applyAdminVisibility() {
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if (isAdmin) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -532,6 +611,7 @@
             renderQuyTable();
             renderCashbook();
             renderMemberList();
+            applyAdminVisibility();
         }
 
         function populateSelectors() {
@@ -548,7 +628,6 @@
             });
         }
 
-        // XỬ LÝ NÚT SUBMIT DASHBOARD THEO LOGIC MỚI
         function handleDashboardSubmit() {
             let main = document.getElementById('dashMainUser').value;
             let actType = document.querySelector('input[name="actType"]:checked').value;
@@ -561,12 +640,12 @@
                 switchTab('matches');
                 document.getElementById('matchP1A').value = main;
             } else if (actType === "dat16") {
-                bookingLogs.push({ time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: 20000 });
+                bookingLogs.push({ id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: 20000 });
                 renderBookingLogs();
                 switchTab('booking');
                 alert("Đã ghi nhận thưởng đặt sân 16h (20.000đ) cho " + main);
             } else if (actType === "dat18") {
-                bookingLogs.push({ time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h", reward: 30000 });
+                bookingLogs.push({ id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h", reward: 30000 });
                 renderBookingLogs();
                 switchTab('booking');
                 alert("Đã ghi nhận thưởng đặt sân 18h (30.000đ) cho " + main);
@@ -580,10 +659,12 @@
             }
         }
 
+        // TÍNH TOÁN REALTIME DỮ LIỆU DASHBOARD KÈM KÈO ĐẶC BIỆT
         function renderDashboard() {
             let main = document.getElementById('dashMainUser').value;
             let total = 0, wins = 0, draws = 0, losses = 0;
             let regularFee = 0;
+            let specialBetFee = 0;
 
             matches.forEach(m => {
                 let isV1 = (m.p1_v1 === main || m.p2_v1 === main);
@@ -598,6 +679,7 @@
                     } else {
                         losses++;
                         regularFee += 10000;
+                        if (m.specialBet > 0) specialBetFee += m.specialBet;
                     }
                 }
             });
@@ -612,8 +694,12 @@
             let totalReward = bookingLogs.filter(b => b.name === main).reduce((sum, b) => sum + b.reward, 0);
             document.getElementById('statReward').innerText = totalReward.toLocaleString() + " đ";
 
-            let totalDebt = regularFee + (m.noOld || 0);
-            document.getElementById('statDebt').innerText = totalDebt.toLocaleString() + " đ";
+            // SỐ TIỀN REALTIME TỰ ĐỘNG BAO GỒM KÈO GÓC ĐẶC BIỆT
+            let penalty15 = total < 15 ? 50000 : 0;
+            let cappedBaseFee = Math.min(150000, regularFee + penalty15);
+            let realtimeTotalDebt = cappedBaseFee + specialBetFee + (m.noOld || 0);
+
+            document.getElementById('statDebt').innerText = realtimeTotalDebt.toLocaleString() + " đ";
             document.getElementById('statPaidDisplay').innerText = (m.paidUser || 0).toLocaleString() + " đ";
         }
 
@@ -636,6 +722,7 @@
             members.forEach((m, idx) => {
                 let wins = 0, losses = 0, draws = 0, matchCount = 0;
                 let regularFee = 0;
+                let specialBetFee = 0;
 
                 matches.forEach(match => {
                     let isV1 = (match.p1_v1 === m.name || match.p2_v1 === m.name);
@@ -650,6 +737,7 @@
                         } else {
                             losses++;
                             regularFee += 10000;
+                            if (match.specialBet > 0) specialBetFee += match.specialBet;
                         }
                     }
                 });
@@ -657,7 +745,7 @@
                 let winRate = matchCount > 0 ? ((wins / matchCount) * 100).toFixed(0) + '%' : '0%';
                 let penalty15 = matchCount < 15 ? 50000 : 0;
                 let cappedBaseFee = Math.min(150000, regularFee + penalty15);
-                let totalPay = cappedBaseFee + (m.noOld || 0) - (m.paidUser || 0);
+                let totalPay = cappedBaseFee + specialBetFee + (m.noOld || 0) - (m.paidUser || 0);
 
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
@@ -672,14 +760,45 @@
                         <td class="p-2.5 text-right text-emerald-700 font-bold">${(m.paidUser || 0).toLocaleString()} đ</td>
                         <td class="p-2.5 text-right font-bold ${m.noOld > 0 ? 'text-red-600' : 'text-slate-500'}">${(m.noOld || 0).toLocaleString()} đ</td>
                         <td class="p-2.5 text-right font-black text-emerald-800 text-sm bg-emerald-50">${Math.max(0, totalPay).toLocaleString()} đ</td>
-                        <td class="p-2.5 text-center">
-                            <button onclick="openQRModal('${m.name}', ${Math.max(0, totalPay)})" class="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow hover:bg-blue-700">Quét QR</button>
+                        <td class="p-2.5 text-center space-x-1">
+                            <button onclick="openQRModal('${m.name}', ${Math.max(0, totalPay)})" class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-blue-700">QR</button>
+                            ${isAdmin ? `<button onclick="openEditFinanceModal(${idx})" class="bg-amber-500 text-slate-900 text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-amber-600">Sửa</button>` : ''}
                         </td>
                     </tr>
                 `;
             });
         }
 
+        // CHỨC NĂNG EDIT SỐ LIỆU CHO ADMIN
+        function openEditFinanceModal(idx) {
+            let m = members[idx];
+            document.getElementById('efMemberIdx').value = idx;
+            document.getElementById('efMemberName').value = m.name;
+            document.getElementById('efPaid').value = m.paidUser || 0;
+            document.getElementById('efNoOld').value = m.noOld || 0;
+            document.getElementById('editFinanceModal').classList.remove('hidden');
+            document.getElementById('editFinanceModal').classList.add('flex');
+        }
+
+        function closeEditFinanceModal() {
+            document.getElementById('editFinanceModal').classList.add('hidden');
+            document.getElementById('editFinanceModal').classList.remove('flex');
+        }
+
+        function saveFinanceData(e) {
+            e.preventDefault();
+            let idx = parseInt(document.getElementById('efMemberIdx').value);
+            members[idx].paidUser = parseInt(document.getElementById('efPaid').value) || 0;
+            members[idx].noOld = parseInt(document.getElementById('efNoOld').value) || 0;
+
+            closeEditFinanceModal();
+            renderFinance();
+            renderDashboard();
+            renderCashbook();
+            alert("Đã cập nhật số liệu đồng bộ cho " + members[idx].name + "!");
+        }
+
+        // NHẬT KÝ ĐẶT SÂN KÈM SỬA/XÓA CHO ADMIN
         function renderBookingLogs() {
             let tbody = document.getElementById('bookingLogTableBody');
             tbody.innerHTML = '';
@@ -691,9 +810,33 @@
                         <td class="p-3 font-bold text-slate-900">${b.name}</td>
                         <td class="p-3 text-center font-bold text-amber-700">${b.frame}</td>
                         <td class="p-3 text-right font-black text-emerald-700">${b.reward.toLocaleString()} đ</td>
+                        <td class="p-3 text-center space-x-2 admin-only ${isAdmin ? '' : 'hidden'}">
+                            <button onclick="editBookingLog(${b.id})" class="text-blue-600 hover:text-blue-800 font-bold"><i class="fa-solid fa-pen"></i> Sửa</button>
+                            <button onclick="deleteBookingLog(${b.id})" class="text-red-600 hover:text-red-800 font-bold"><i class="fa-solid fa-trash"></i> Xóa</button>
+                        </td>
                     </tr>
                 `;
             });
+        }
+
+        function editBookingLog(id) {
+            let log = bookingLogs.find(item => item.id === id);
+            if (log) {
+                let newReward = prompt("Nhập số tiền thưởng đặt sân mới (đ):", log.reward);
+                if (newReward !== null) {
+                    log.reward = parseInt(newReward) || 0;
+                    renderBookingLogs();
+                    renderDashboard();
+                }
+            }
+        }
+
+        function deleteBookingLog(id) {
+            if (confirm("Bạn có chắc chắn muốn xóa lượt thưởng đặt sân này?")) {
+                bookingLogs = bookingLogs.filter(item => item.id !== id);
+                renderBookingLogs();
+                renderDashboard();
+            }
         }
 
         function renderQuyTable() {
@@ -717,25 +860,103 @@
             });
         }
 
-        // TÍNH TOÁN CÁC KHOẢN THU/CHI DYNAMIC VÀO SỔ THU CHI
+        // LỊCH SỬ THU CHI THEO CÁC ĐẦU MỤC
+        function openHistoryModal(category) {
+            document.getElementById('historyModalTitle').innerText = "LỊCH SỬ GIAO DỊCH: " + category;
+            let tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+
+            if (category === 'Tiền quỹ QUÝ') {
+                members.filter(m => m.quy2 > 0 || m.quy3 > 0).forEach((m, idx) => {
+                    let totalQ = (m.quy2 || 0) + (m.quy3 || 0);
+                    tbody.innerHTML += `
+                        <tr class="border-b"><td class="p-2.5 text-center font-bold">${idx+1}</td><td class="p-2.5">Quý 2,3/2026</td><td class="p-2.5 font-bold">${m.name}</td><td class="p-2.5 text-right font-bold text-emerald-700">${totalQ.toLocaleString()} đ</td><td class="p-2.5 text-center admin-only ${isAdmin?'':'hidden'}">-</td></tr>
+                    `;
+                });
+            } else if (category === 'Tiền góc thực thu') {
+                members.filter(m => m.paidUser > 0).forEach((m, idx) => {
+                    tbody.innerHTML += `
+                        <tr class="border-b"><td class="p-2.5 text-center font-bold">${idx+1}</td><td class="p-2.5">Tháng 8/2026</td><td class="p-2.5 font-bold">${m.name}</td><td class="p-2.5 text-right font-bold text-emerald-700">${m.paidUser.toLocaleString()} đ</td><td class="p-2.5 text-center admin-only ${isAdmin?'':'hidden'}">-</td></tr>
+                    `;
+                });
+            } else {
+                let filtered = cashbookLogs.filter(item => item.category === category);
+                filtered.forEach((log, idx) => {
+                    tbody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2.5 text-center font-bold">${idx+1}</td>
+                            <td class="p-2.5">${log.time}</td>
+                            <td class="p-2.5 font-bold">${log.note || category}</td>
+                            <td class="p-2.5 text-right font-bold text-slate-900">${log.amount.toLocaleString()} đ</td>
+                            <td class="p-2.5 text-center space-x-2 admin-only ${isAdmin ? '' : 'hidden'}">
+                                <button onclick="editCashbookLog(${log.id})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteCashbookLog(${log.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('historyModal').classList.remove('hidden');
+            document.getElementById('historyModal').classList.add('flex');
+            applyAdminVisibility();
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.add('hidden');
+            document.getElementById('historyModal').classList.remove('flex');
+        }
+
+        function editCashbookLog(id) {
+            let log = cashbookLogs.find(item => item.id === id);
+            if (log) {
+                let newAmount = prompt("Nhập số tiền mới (đ):", log.amount);
+                if (newAmount !== null) {
+                    log.amount = parseInt(newAmount) || 0;
+                    renderCashbook();
+                    openHistoryModal(log.category);
+                }
+            }
+        }
+
+        function deleteCashbookLog(id) {
+            let log = cashbookLogs.find(item => item.id === id);
+            if (log && confirm("Bạn có chắc muốn xóa giao dịch này?")) {
+                let cat = log.category;
+                cashbookLogs = cashbookLogs.filter(item => item.id !== id);
+                renderCashbook();
+                openHistoryModal(cat);
+            }
+        }
+
         function renderCashbook() {
             let totalQuyThu = members.reduce((sum, m) => sum + (m.quy2 || 0) + (m.quy3 || 0), 0);
             let totalGocThu = members.reduce((sum, m) => sum + (m.paidUser || 0), 0);
 
+            let banSan = cashbookLogs.filter(c => c.category === "Tiền bán sân").reduce((s, c) => s + c.amount, 0);
+            let ungHo = cashbookLogs.filter(c => c.category === "Tiền ủng hộ / Tài trợ").reduce((s, c) => s + c.amount, 0);
+
+            let appSan = cashbookLogs.filter(c => c.category === "Tiền app sân").reduce((s, c) => s + c.amount, 0);
+            let bong = cashbookLogs.filter(c => c.category === "Tiền mua bóng").reduce((s, c) => s + c.amount, 0);
+            let thuongSan = cashbookLogs.filter(c => c.category === "Tiền thưởng đặt sân").reduce((s, c) => s + c.amount, 0);
+            let muaSan = cashbookLogs.filter(c => c.category === "Tiền mua sân").reduce((s, c) => s + c.amount, 0);
+            let lienHoan = cashbookLogs.filter(c => c.category === "Tiền chi liên hoan ăn nhậu").reduce((s, c) => s + c.amount, 0);
+            let khac = cashbookLogs.filter(c => c.category === "Tiền chi khác (hiếu, hỷ...)").reduce((s, c) => s + c.amount, 0);
+
             document.getElementById('thuQuyDisplay').innerText = totalQuyThu.toLocaleString() + " đ";
             document.getElementById('thuGocDisplay').innerText = totalGocThu.toLocaleString() + " đ";
-            document.getElementById('thuBanSanDisplay').innerText = cashbookData.banSan.toLocaleString() + " đ";
-            document.getElementById('thuUngHoDisplay').innerText = cashbookData.ungHo.toLocaleString() + " đ";
+            document.getElementById('thuBanSanDisplay').innerText = banSan.toLocaleString() + " đ";
+            document.getElementById('thuUngHoDisplay').innerText = ungHo.toLocaleString() + " đ";
 
-            document.getElementById('chiAppDisplay').innerText = cashbookData.appSan.toLocaleString() + " đ";
-            document.getElementById('chiBongDisplay').innerText = cashbookData.bong.toLocaleString() + " đ";
-            document.getElementById('chiThuongDisplay').innerText = cashbookData.thuongSan.toLocaleString() + " đ";
-            document.getElementById('chiMuaSanDisplay').innerText = cashbookData.muaSan.toLocaleString() + " đ";
-            document.getElementById('chiLienHoanDisplay').innerText = cashbookData.lienHoan.toLocaleString() + " đ";
-            document.getElementById('chiKhacDisplay').innerText = cashbookData.khac.toLocaleString() + " đ";
+            document.getElementById('chiAppDisplay').innerText = appSan.toLocaleString() + " đ";
+            document.getElementById('chiBongDisplay').innerText = bong.toLocaleString() + " đ";
+            document.getElementById('chiThuongDisplay').innerText = thuongSan.toLocaleString() + " đ";
+            document.getElementById('chiMuaSanDisplay').innerText = muaSan.toLocaleString() + " đ";
+            document.getElementById('chiLienHoanDisplay').innerText = lienHoan.toLocaleString() + " đ";
+            document.getElementById('chiKhacDisplay').innerText = khac.toLocaleString() + " đ";
 
-            let totalThu = totalQuyThu + totalGocThu + cashbookData.banSan + cashbookData.ungHo;
-            let totalChi = cashbookData.appSan + cashbookData.bong + cashbookData.thuongSan + cashbookData.muaSan + cashbookData.lienHoan + cashbookData.khac;
+            let totalThu = totalQuyThu + totalGocThu + banSan + ungHo;
+            let totalChi = appSan + bong + thuongSan + muaSan + lienHoan + khac;
             let balance = totalThu - totalChi;
 
             document.getElementById('totalThuDisplay').innerText = totalThu.toLocaleString() + " đ";
@@ -747,18 +968,18 @@
             e.preventDefault();
             let category = document.getElementById('cbCategory').value;
             let amount = parseInt(document.getElementById('cbAmount').value) || 0;
+            let note = document.getElementById('cbNote').value || category;
 
-            if (category === "Tiền bán sân") cashbookData.banSan += amount;
-            else if (category === "Tiền ủng hộ / Tài trợ") cashbookData.ungHo += amount;
-            else if (category === "Tiền app sân") cashbookData.appSan += amount;
-            else if (category === "Tiền mua bóng") cashbookData.bong += amount;
-            else if (category === "Tiền thưởng đặt sân") cashbookData.thuongSan += amount;
-            else if (category === "Tiền mua sân") cashbookData.muaSan += amount;
-            else if (category === "Tiền chi liên hoan ăn nhậu") cashbookData.lienHoan += amount;
-            else if (category === "Tiền chi khác (hiếu, hỷ...)") cashbookData.khac += amount;
+            cashbookLogs.push({
+                id: Date.now(),
+                category,
+                amount,
+                note,
+                time: new Date().toLocaleDateString('vi-VN')
+            });
 
             renderCashbook();
-            alert("Đã cập nhật khoản " + category + ": " + amount.toLocaleString() + "đ vào Sổ Thu Chi!");
+            alert("Đã ghi nhận khoản " + category + ": " + amount.toLocaleString() + "đ!");
         }
 
         function renderMemberList() {
@@ -772,7 +993,6 @@
                         <td class="p-3 font-bold text-slate-900">${m.name}</td>
                         <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">${m.status}</span></td>
                         <td class="p-3 text-center font-extrabold text-amber-700 bg-amber-50">${m.base}</td>
-                        <td class="p-3 text-center font-mono text-slate-600">user_${idx + 1}</td>
                         <td class="p-3 text-center space-x-2">
                             <button onclick="editMember(${idx})" class="text-blue-600 hover:text-blue-800 text-xs font-bold"><i class="fa-solid fa-pen"></i> Sửa</button>
                         </td>
