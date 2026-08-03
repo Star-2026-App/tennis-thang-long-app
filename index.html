@@ -45,6 +45,9 @@
             <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-4 py-2.5 border-b-2 border-transparent hover:text-white flex items-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-file-invoice-dollar"></i> Tiền Góc & Phạt
             </button>
+            <button onclick="switchTab('booking')" id="btn-booking" class="tab-btn px-4 py-2.5 border-b-2 border-transparent hover:text-white flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-calendar-check"></i> Khai Thưởng Đặt Sân
+            </button>
             <button onclick="switchTab('draw')" id="btn-draw" class="tab-btn px-4 py-2.5 border-b-2 border-transparent hover:text-white flex items-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-shuffle"></i> Bốc Thăm Tự Động
             </button>
@@ -103,14 +106,15 @@
             </div>
         </section>
 
-        <!-- TAB 2: NHẬP KẾT QUẢ -->
+        <!-- TAB 2: NHẬP KẾT QUẢ (TỈ SỐ 0-6 KHANH & KÈO ĐẶC BIỆT) -->
         <section id="tab-matches" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 max-w-3xl mx-auto">
                 <h2 class="text-xl font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square text-emerald-600"></i> GHI KẾT QUẢ TRẬN ĐẤU MỚI
                 </h2>
-                <form id="matchForm" onsubmit="addMatch(event)" class="space-y-5">
+                <form id="matchForm" onsubmit="addMatch(event)" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- VẾ A -->
                         <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3">
                             <h3 class="font-bold text-emerald-800 text-sm uppercase">VẾ A (ĐỘI 1)</h3>
                             <div>
@@ -121,12 +125,9 @@
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ A2:</label>
                                 <select id="matchP2A" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm"></select>
                             </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Tỉ số vế A:</label>
-                                <input type="number" id="matchScoreA" min="0" max="10" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm font-bold text-center">
-                            </div>
                         </div>
 
+                        <!-- VẾ B -->
                         <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3">
                             <h3 class="font-bold text-blue-800 text-sm uppercase">VẾ B (ĐỘI 2)</h3>
                             <div>
@@ -137,12 +138,55 @@
                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ B2:</label>
                                 <select id="matchP2B" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm"></select>
                             </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Tỉ số vế B:</label>
-                                <input type="number" id="matchScoreB" min="0" max="10" required class="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm font-bold text-center">
+                        </div>
+                    </div>
+
+                    <!-- CHỌN ĐIỂM BẰNG RADIO 0-6 -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">ĐIỂM VẾ A (ĐỘI 1) *</label>
+                            <div class="flex justify-between max-w-md mx-auto">
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">0</span><input type="radio" name="scoreA" value="0" class="w-5 h-5 text-emerald-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">1</span><input type="radio" name="scoreA" value="1" class="w-5 h-5 text-emerald-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">2</span><input type="radio" name="scoreA" value="2" class="w-5 h-5 text-emerald-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">3</span><input type="radio" name="scoreA" value="3" class="w-5 h-5 text-emerald-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">4</span><input type="radio" name="scoreA" value="4" class="w-5 h-5 text-emerald-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">5</span><input type="radio" name="scoreA" value="5" class="w-5 h-5 text-emerald-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">6</span><input type="radio" name="scoreA" value="6" checked class="w-5 h-5 text-emerald-600"></label>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">ĐIỂM VẾ B (ĐỘI 2) *</label>
+                            <div class="flex justify-between max-w-md mx-auto">
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">0</span><input type="radio" name="scoreB" value="0" class="w-5 h-5 text-blue-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">1</span><input type="radio" name="scoreB" value="1" class="w-5 h-5 text-blue-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">2</span><input type="radio" name="scoreB" value="2" class="w-5 h-5 text-blue-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">3</span><input type="radio" name="scoreB" value="3" checked class="w-5 h-5 text-blue-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">4</span><input type="radio" name="scoreB" value="4" class="w-5 h-5 text-blue-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">5</span><input type="radio" name="scoreB" value="5" class="w-5 h-5 text-blue-600"></label>
+                                <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">6</span><input type="radio" name="scoreB" value="6" class="w-5 h-5 text-blue-600"></label>
                             </div>
                         </div>
                     </div>
+
+                    <!-- KÈO GÓC ĐẶC BIỆT -->
+                    <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200">
+                        <label class="block text-xs font-extrabold text-amber-900 uppercase mb-2">
+                            🔥 KÈO GÓC ĐẶC BIỆT (Không khống chế trần 150k):
+                        </label>
+                        <select id="specialBet" class="w-full bg-white border border-amber-300 rounded-lg p-2.5 text-sm font-bold text-amber-900">
+                            <option value="0">Không có kèo đặc biệt (Thường: 10k/trận thua hoặc hòa)</option>
+                            <option value="50000">Kèo đặc biệt 50.000 đ</option>
+                            <option value="100000">Kèo đặc biệt 100.000 đ</option>
+                            <option value="200000">Kèo đặc biệt 200.000 đ</option>
+                            <option value="500000">Kèo đặc biệt 500.000 đ</option>
+                            <option value="1000000">Kèo đặc biệt 1.000.000 đ</option>
+                        </select>
+                    </div>
+
                     <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow transition">
                         LƯU KẾT QUẢ TRẬN ĐẤU
                     </button>
@@ -150,22 +194,28 @@
             </div>
         </section>
 
-        <!-- TAB 3: TIỀN GÓC & PHẠT -->
+        <!-- TAB 3: TIỀN GÓC VÀ BẢNG THỐNG KÊ CHI TIẾT (FULL CỘT ĐẦY ĐỦ) -->
         <section id="tab-finance" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h2 class="text-xl font-bold text-slate-800 mb-2">QUẢN LÝ TIỀN GÓC & BẢNG PHẠT THÁNG 8/2026</h2>
-                <p class="text-xs text-slate-500 mb-4">Rule mới: Phạt 50k nếu ít hơn 15 trận/tháng. Áp trần tối đa 150k/tháng.</p>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THÁNG 8/2026</h2>
+                <p class="text-xs text-slate-500 mb-4">Mọi dữ liệu thắng/thua/hòa, tiền gốc, phạt &lt;15 trận (áp trần 150k) + Kèo đặc biệt (ngoài trần) được tự động tính toán động.</p>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm border-collapse">
+                    <table class="w-full text-left text-xs border-collapse">
                         <thead>
-                            <tr class="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b">
-                                <th class="p-3 text-center">STT</th>
-                                <th class="p-3">Thành Viên</th>
-                                <th class="p-3 text-center">Số Trận (AB)</th>
-                                <th class="p-3 text-right">Tiền Gốc (X)</th>
-                                <th class="p-3 text-center">Phạt &lt;15 Trận</th>
-                                <th class="p-3 text-right text-emerald-800 font-bold">Cần Đóng (Y)</th>
-                                <th class="p-3 text-center">Hành Động</th>
+                            <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b text-[11px]">
+                                <th class="p-2.5 text-center">STT</th>
+                                <th class="p-2.5">Tên Thành Viên</th>
+                                <th class="p-2.5 text-center">Thắng</th>
+                                <th class="p-2.5 text-center">Thua</th>
+                                <th class="p-2.5 text-center">Hòa</th>
+                                <th class="p-2.5 text-center">Số Trận</th>
+                                <th class="p-2.5 text-center">Tỷ Lệ %</th>
+                                <th class="p-2.5 text-right">Góc Tích Lũy</th>
+                                <th class="p-2.5 text-right">Nộp T7</th>
+                                <th class="p-2.5 text-right">Tiền Nợ</th>
+                                <th class="p-2.5 text-right">Góc Cần Đóng T8</th>
+                                <th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50/80">TỔNG CẦN ĐÓNG</th>
+                                <th class="p-2.5 text-center">Thanh Toán</th>
                             </tr>
                         </thead>
                         <tbody id="financeTableBody" class="divide-y divide-slate-200"></tbody>
@@ -174,7 +224,38 @@
             </div>
         </section>
 
-        <!-- TAB 4: BỐC THĂM -->
+        <!-- TAB 4: THỰC TẾ KHAI THƯỞNG ĐẶT SÂN -->
+        <section id="tab-booking" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">THÀNH VIÊN KHAI THƯỞNG ĐẶT SÂN</h2>
+                        <p class="text-xs text-slate-500">Khung 16-18h: Thưởng 20k | Khung 18-20h: Thưởng 30k. Tối đa 15 lượt thưởng/tháng.</p>
+                    </div>
+                    <button onclick="openBookingModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">
+                        ➕ Khai Lượt Đặt Sân Mới
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b">
+                                <th class="p-3 text-center">STT</th>
+                                <th class="p-3">Thành Viên</th>
+                                <th class="p-3 text-center">Lượt 16-18h (20k)</th>
+                                <th class="p-3 text-center">Lượt 18-20h (30k)</th>
+                                <th class="p-3 text-center">Lượt Được Tính (Max 15)</th>
+                                <th class="p-3 text-right text-emerald-700 font-bold">Tổng Tiền Thưởng Được Trừ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingTableBody" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: BỐC THĂM -->
         <section id="tab-draw" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
                 <h2 class="text-xl font-bold text-slate-800 mb-4">QUAY SỐ BỐC THĂM CHIA BẢNG TỰ ĐỘNG</h2>
@@ -185,13 +266,13 @@
             </div>
         </section>
 
-        <!-- TAB 5: QUẢN LÝ THÀNH VIÊN (ĐÃ BẬT NÚT THÊM & BẢNG DỮ LIỆU) -->
+        <!-- TAB 6: QUẢN LÝ THÀNH VIÊN (CÓ EDIT & PHÂN QUYỀN) -->
         <section id="tab-members" class="tab-content space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-100 gap-3">
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB (MAX 50)</h2>
-                        <p class="text-xs text-slate-500">Quản lý danh sách, điểm trình và tài khoản đăng nhập</p>
+                        <p class="text-xs text-slate-500">Cho phép Chỉnh sửa (Edit) thông tin và Phân quyền Admin / Member</p>
                     </div>
                     <button onclick="openMemberModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2">
                         <i class="fa-solid fa-user-plus"></i> THÊM THÀNH VIÊN MỚI
@@ -206,8 +287,8 @@
                                 <th class="p-3">Họ Và Tên</th>
                                 <th class="p-3 text-center">Năm Sinh</th>
                                 <th class="p-3 text-center">Điểm Trình</th>
+                                <th class="p-3 text-center">Quyền Hạn</th>
                                 <th class="p-3 text-center">Tài Khoản (User)</th>
-                                <th class="p-3 text-center">Mật Khẩu</th>
                                 <th class="p-3 text-center">Thao Tác</th>
                             </tr>
                         </thead>
@@ -219,14 +300,42 @@
 
     </main>
 
-    <!-- MODAL THÊM THÀNH VIÊN -->
+    <!-- MODAL KHAI THƯỞNG ĐẶT SÂN -->
+    <div id="bookingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeBookingModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h3 class="font-bold text-slate-800 text-lg border-b pb-2">KHAI THƯỞNG ĐẶT SÂN TENNIS</h3>
+            <form onsubmit="saveBooking(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <div>
+                    <label class="block mb-1">Chọn Thành Viên:</label>
+                    <select id="bMember" class="w-full p-2.5 border rounded-lg text-sm text-slate-900 font-bold"></select>
+                </div>
+                <div>
+                    <label class="block mb-1">Số lượt khung 16-18h (20k/lượt):</label>
+                    <input type="number" id="b1618" value="0" min="0" class="w-full p-2.5 border rounded-lg text-sm text-slate-900">
+                </div>
+                <div>
+                    <label class="block mb-1">Số lượt khung 18-20h (30k/lượt):</label>
+                    <input type="number" id="b1820" value="0" min="0" class="w-full p-2.5 border rounded-lg text-sm text-slate-900">
+                </div>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 rounded-xl shadow transition text-sm mt-2">
+                    LƯU KHAI THƯỞNG
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM / SỬA THÀNH VIÊN -->
     <div id="memberModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
             <button onclick="closeMemberModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-xl"></i>
             </button>
-            <h3 class="font-bold text-slate-800 text-lg border-b pb-2">THÊM THÀNH VIÊN MỚI</h3>
+            <h3 id="modalTitle" class="font-bold text-slate-800 text-lg border-b pb-2">THÊM THÀNH VIÊN MỚI</h3>
             <form onsubmit="saveMember(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="editIdx" value="-1">
                 <div>
                     <label class="block mb-1">Tên đầy đủ (*):</label>
                     <input type="text" id="mName" required placeholder="Ví dụ: Nguyễn Văn Sao 88" class="w-full p-2.5 border rounded-lg text-sm text-slate-900">
@@ -241,6 +350,13 @@
                         <input type="number" step="0.001" id="mRating" value="6.183" required class="w-full p-2.5 border rounded-lg text-sm text-slate-900 font-bold">
                     </div>
                 </div>
+                <div>
+                    <label class="block mb-1">Phân quyền tài khoản:</label>
+                    <select id="mRole" class="w-full p-2.5 border rounded-lg text-sm text-slate-900 font-bold">
+                        <option value="Member">Member (Thành viên xem cá nhân)</option>
+                        <option value="Admin">Admin (Quản trị viên toàn quyền)</option>
+                    </select>
+                </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block mb-1">Tài khoản (User) (*):</label>
@@ -252,23 +368,53 @@
                     </div>
                 </div>
                 <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow transition text-sm mt-2">
-                    LƯU THÀNH VIÊN
+                    LƯU THÔNG TIN
                 </button>
             </form>
         </div>
     </div>
 
+    <!-- MODAL VIETQR -->
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
+            <button onclick="closeQRModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="font-bold text-slate-800 text-base">THANH TOÁN TIỀN GÓC / QUỸ CLB</h3>
+            <div class="bg-slate-50 p-3 rounded-xl border flex justify-center">
+                <img id="qrImage" src="" alt="VietQR" class="w-64 h-64 object-contain">
+            </div>
+            <div class="text-xs text-slate-600 space-y-1">
+                <p>Chủ TK: <strong class="text-slate-900">NGUYEN ANH THI</strong></p>
+                <p>Số TK: <strong class="text-red-600 text-sm font-extrabold">1972 6868 6868 68</strong> (Techcombank)</p>
+                <p>Số tiền: <strong id="qrAmountDisplay" class="text-emerald-700 font-bold text-sm">0 đ</strong></p>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // DỮ LIỆU CHUẨN TỪ FILE THĂNG LONG TENNIS CLUB
         let members = [
-            { stt: 1, name: "Nguyễn Văn Sao 88", birth: 1988, rating: 6.183, user: "saonv88", pass: "123456" },
-            { stt: 2, name: "Nguyễn Anh Thi 72", birth: 1972, rating: 6.086, user: "anhthi72", pass: "123456" },
-            { stt: 3, name: "Dương Khắc Đông 98", birth: 1998, rating: 6.283, user: "dongdk98", pass: "123456" },
-            { stt: 4, name: "Nguyễn Trọng Quân Cận 94", birth: 1994, rating: 6.169, user: "quancan94", pass: "123456" },
-            { stt: 5, name: "Vũ Văn Thanh 87", birth: 1987, rating: 6.118, user: "thanhvv87", pass: "123456" }
+            { name: "Nguyễn Anh Thi 72", birth: 1972, rating: 6.086, role: "Admin", user: "anhthi72", pass: "123456", nopT7: 170000, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Nguyễn Văn Sao 88", birth: 1988, rating: 6.183, role: "Admin", user: "saonv88", pass: "123456", nopT7: 150000, noOld: 0, booking16: 1, booking18: 0 },
+            { name: "Đỗ Quang Vinh Trọc 77", birth: 1977, rating: 6.319, role: "Member", user: "vinhtroc77", pass: "123456", nopT7: 40000, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Phạm Quang Vinh Già 71", birth: 1971, rating: 6.280, role: "Member", user: "vinhgia71", pass: "123456", nopT7: 0, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Trần Đại An 85", birth: 1985, rating: 6.137, role: "Member", user: "anta85", pass: "123456", nopT7: 120000, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Dương Khắc Đông 98", birth: 1998, rating: 6.283, role: "Member", user: "dongdk98", pass: "123456", nopT7: 0, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Trần Quang Báo 85", birth: 1985, rating: 6.215, role: "Member", user: "baotq85", pass: "123456", nopT7: 240000, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Nguyễn Trọng Hùng Lốp 98", birth: 1998, rating: 6.321, role: "Member", user: "hunglop98", pass: "123456", nopT7: 0, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Thế Vinh 94", birth: 1994, rating: 6.108, role: "Member", user: "vinhth94", pass: "123456", nopT7: 140000, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Nguyễn Tiến Tùng 83", birth: 1983, rating: 6.259, role: "Member", user: "tungnt83", pass: "123456", nopT7: 0, noOld: 60000, booking16: 0, booking18: 0 },
+            { name: "Nguyễn Văn Long 84", birth: 1984, rating: 6.142, role: "Member", user: "longnv84", pass: "123456", nopT7: 110000, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Hoàng Long Trọc 80", birth: 1980, rating: 6.290, role: "Member", user: "longtroc80", pass: "123456", nopT7: 0, noOld: -270000, booking16: 0, booking18: 0 },
+            { name: "Nguyễn Trọng Quân Cận 94", birth: 1994, rating: 6.169, role: "Member", user: "quancan94", pass: "123456", nopT7: 0, noOld: 150000, booking16: 0, booking18: 0 },
+            { name: "Vũ Văn Thanh 87", birth: 1987, rating: 6.118, role: "Member", user: "thanhvv87", pass: "123456", nopT7: 0, noOld: 130000, booking16: 0, booking18: 0 },
+            { name: "Nguyễn Anh Tài 2K", birth: 2000, rating: 6.200, role: "Member", user: "taina2k", pass: "123456", nopT7: 0, noOld: 100000, booking16: 0, booking18: 0 },
+            { name: "Phạm Quốc Việt 97", birth: 1997, rating: 6.300, role: "Member", user: "vietpq97", pass: "123456", nopT7: 0, noOld: 0, booking16: 0, booking18: 0 },
+            { name: "Hồ Tuấn Nha 80", birth: 1980, rating: 6.300, role: "Member", user: "nhaht80", pass: "123456", nopT7: 0, noOld: 20000, booking16: 0, booking18: 0 }
         ];
 
         let matches = [
-            { p1_v1: "Nguyễn Văn Sao 88", p2_v1: "Nguyễn Anh Thi 72", scoreA: 6, scoreB: 4, p1_v2: "Dương Khắc Đông 98", p2_v2: "Vũ Văn Thanh 87" }
+            { p1_v1: "Nguyễn Văn Sao 88", p2_v1: "Nguyễn Anh Thi 72", scoreA: 6, scoreB: 4, p1_v2: "Dương Khắc Đông 98", p2_v2: "Vũ Văn Thanh 87", specialBet: 0 },
+            { p1_v1: "Nguyễn Trọng Quân Cận 94", p2_v1: "Nguyễn Anh Tài 2K", scoreA: 2, scoreB: 6, p1_v2: "Dương Khắc Đông 98", p2_v2: "Phạm Quốc Việt 97", specialBet: 50000 }
         ];
 
         function switchTab(tabId) {
@@ -282,11 +428,12 @@
             populateSelectors();
             renderDashboard();
             renderFinance();
+            renderBookingTable();
             renderMemberList();
         }
 
         function populateSelectors() {
-            ['dashMainUser', 'dashOpponent', 'dashPartner', 'matchP1A', 'matchP2A', 'matchP1B', 'matchP2B'].forEach(id => {
+            ['dashMainUser', 'dashOpponent', 'dashPartner', 'matchP1A', 'matchP2A', 'matchP1B', 'matchP2B', 'bMember'].forEach(id => {
                 let sel = document.getElementById(id);
                 if (!sel) return;
                 sel.innerHTML = (id === 'dashOpponent' || id === 'dashPartner') ? '<option value="">-- Chọn thành viên --</option>' : '';
@@ -301,17 +448,20 @@
 
         function renderDashboard() {
             let main = document.getElementById('dashMainUser').value;
-            let total = 0, wins = 0, losses = 0;
+            let total = 0, wins = 0, draws = 0, losses = 0;
             matches.forEach(m => {
-                if (m.p1_v1 === main || m.p2_v1 === main || m.p1_v2 === main || m.p2_v2 === main) {
+                let isV1 = (m.p1_v1 === main || m.p2_v1 === main);
+                let isV2 = (m.p1_v2 === main || m.p2_v2 === main);
+                if (isV1 || isV2) {
                     total++;
-                    let isV1 = (m.p1_v1 === main || m.p2_v1 === main);
-                    if ((isV1 && m.scoreA > m.scoreB) || (!isV1 && m.scoreB > m.scoreA)) wins++;
+                    if (m.scoreA === m.scoreB) draws++;
+                    else if ((isV1 && m.scoreA > m.scoreB) || (isV2 && m.scoreB > m.scoreA)) wins++;
                     else losses++;
                 }
             });
             document.getElementById('statTotal').innerText = total;
             document.getElementById('statWins').innerText = wins;
+            document.getElementById('statDraws').innerText = draws;
             document.getElementById('statLosses').innerText = losses;
             document.getElementById('statWinRate').innerText = total > 0 ? ((wins / total) * 100).toFixed(1) + '%' : '0.0%';
         }
@@ -320,21 +470,83 @@
             let tbody = document.getElementById('financeTableBody');
             tbody.innerHTML = '';
             members.forEach((m, idx) => {
-                let matchCount = 0;
+                let wins = 0, losses = 0, draws = 0, matchCount = 0;
+                let regularLossFee = 0;
+                let specialBetFee = 0;
+
                 matches.forEach(match => {
-                    if (match.p1_v1 === m.name || match.p2_v1 === m.name || match.p1_v2 === m.name || match.p2_v2 === m.name) matchCount++;
+                    let isV1 = (match.p1_v1 === m.name || match.p2_v1 === m.name);
+                    let isV2 = (match.p1_v2 === m.name || match.p2_v2 === m.name);
+                    if (isV1 || isV2) {
+                        matchCount++;
+                        if (match.scoreA === match.scoreB) {
+                            draws++;
+                            regularLossFee += 10000;
+                        } else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) {
+                            wins++;
+                        } else {
+                            losses++;
+                            regularLossFee += 10000;
+                            if (match.specialBet > 0) specialBetFee += match.specialBet;
+                        }
+                    }
                 });
-                let penalty = matchCount < 15 ? 50000 : 0;
-                let finalPay = Math.min(150000, 10000 + penalty);
+
+                let winRate = matchCount > 0 ? ((wins / matchCount) * 100).toFixed(0) + '%' : '0%';
+                
+                // CÔNG THỨC CHUẨN RULE MỚI: 
+                // Tiền phạt < 15 trận = 50k
+                // Tiền gốc cơ bản (phạt + thua thường) KHỐNG CHẾ TRẦN 150k
+                let penalty15 = matchCount < 15 ? 50000 : 0;
+                let cappedBaseFee = Math.min(150000, regularLossFee + penalty15);
+
+                // Thưởng đặt sân (tối đa 15 lượt)
+                let totalRewardSlots = Math.min(15, (m.booking16 || 0) + (m.booking18 || 0));
+                let rewardMoney = ((m.booking16 || 0) * 20000) + ((m.booking18 || 0) * 30000);
+
+                // TỔNG TIỀN CẦN ĐÓNG = (Tiền gốc áp trần 150k) + (Kèo đặc biệt) + (Tiền nợ cũ) - (Thưởng đặt sân)
+                let accumFee = cappedBaseFee + specialBetFee;
+                let totalPay = accumFee + (m.noOld || 0) - rewardMoney;
+
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
-                        <td class="p-3 text-center">${idx + 1}</td>
-                        <td class="p-3 font-bold">${m.name}</td>
-                        <td class="p-3 text-center font-bold ${matchCount < 15 ? 'text-red-600' : 'text-emerald-600'}">${matchCount} trận</td>
-                        <td class="p-3 text-right">10.000 đ</td>
-                        <td class="p-3 text-center text-red-600 font-semibold">+${penalty.toLocaleString()} đ</td>
-                        <td class="p-3 text-right font-black text-emerald-800 text-base">${finalPay.toLocaleString()} đ</td>
-                        <td class="p-3 text-center"><button onclick="alert('Thanh toán TCB Bank 1972 6868 6868 68 - Nguyễn Anh Thi')" class="bg-blue-600 text-white text-xs px-3 py-1 rounded shadow">Quét QR</button></td>
+                        <td class="p-2.5 text-center font-bold text-slate-500">${idx + 1}</td>
+                        <td class="p-2.5 font-bold text-slate-900">${m.name}</td>
+                        <td class="p-2.5 text-center font-bold text-blue-600">${wins}</td>
+                        <td class="p-2.5 text-center font-bold text-red-600">${losses}</td>
+                        <td class="p-2.5 text-center font-bold text-amber-600">${draws}</td>
+                        <td class="p-2.5 text-center font-black ${matchCount < 15 ? 'text-red-600 bg-red-50' : 'text-emerald-700'}">${matchCount}</td>
+                        <td class="p-2.5 text-center font-bold">${winRate}</td>
+                        <td class="p-2.5 text-right font-semibold">${(accumFee + 100000).toLocaleString()} đ</td>
+                        <td class="p-2.5 text-right text-slate-600">${(m.nopT7 || 0).toLocaleString()} đ</td>
+                        <td class="p-2.5 text-right font-bold ${m.noOld > 0 ? 'text-red-600' : 'text-slate-500'}">${(m.noOld || 0).toLocaleString()} đ</td>
+                        <td class="p-2.5 text-right font-bold text-slate-800">${cappedBaseFee.toLocaleString()} đ</td>
+                        <td class="p-2.5 text-right font-black text-emerald-800 text-sm bg-emerald-50">${Math.max(0, totalPay).toLocaleString()} đ</td>
+                        <td class="p-2.5 text-center">
+                            <button onclick="openQRModal('${m.name}', ${Math.max(0, totalPay)})" class="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow hover:bg-blue-700">QR BẢNG</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderBookingTable() {
+            let tbody = document.getElementById('bookingTableBody');
+            tbody.innerHTML = '';
+            members.forEach((m, idx) => {
+                let b16 = m.booking16 || 0;
+                let b18 = m.booking18 || 0;
+                let totalSlots = Math.min(15, b16 + b18);
+                let totalRewardMoney = (b16 * 20000) + (b18 * 30000);
+
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
+                        <td class="p-3 font-bold text-slate-900">${m.name}</td>
+                        <td class="p-3 text-center font-bold text-slate-700">${b16} lượt</td>
+                        <td class="p-3 text-center font-bold text-slate-700">${b18} lượt</td>
+                        <td class="p-3 text-center font-extrabold text-emerald-700">${totalSlots} lượt (Max 15)</td>
+                        <td class="p-3 text-right font-black text-emerald-800">${totalRewardMoney.toLocaleString()} đ</td>
                     </tr>
                 `;
             });
@@ -351,16 +563,65 @@
                         <td class="p-3 font-bold text-slate-900">${m.name}</td>
                         <td class="p-3 text-center text-slate-600">${m.birth}</td>
                         <td class="p-3 text-center font-extrabold text-blue-700">${m.rating}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold ${m.role === 'Admin' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}">${m.role}</span></td>
                         <td class="p-3 text-center font-mono text-emerald-700">${m.user}</td>
-                        <td class="p-3 text-center font-mono text-slate-400">******</td>
-                        <td class="p-3 text-center"><button onclick="deleteMember(${idx})" class="text-red-600 hover:text-red-800 text-xs font-semibold"><i class="fa-solid fa-trash"></i> Xóa</button></td>
+                        <td class="p-3 text-center space-x-2">
+                            <button onclick="editMember(${idx})" class="text-blue-600 hover:text-blue-800 text-xs font-bold"><i class="fa-solid fa-pen"></i> Sửa</button>
+                            <button onclick="deleteMember(${idx})" class="text-red-600 hover:text-red-800 text-xs font-semibold"><i class="fa-solid fa-trash"></i> Xóa</button>
+                        </td>
                     </tr>
                 `;
             });
         }
 
+        // ================= XỬ LÝ KHAI THƯỞNG ĐẶT SÂN =================
+        function openBookingModal() {
+            document.getElementById('bookingModal').classList.remove('hidden');
+            document.getElementById('bookingModal').classList.add('flex');
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.add('hidden');
+            document.getElementById('bookingModal').classList.remove('flex');
+        }
+
+        function saveBooking(e) {
+            e.preventDefault();
+            let name = document.getElementById('bMember').value;
+            let b16 = parseInt(document.getElementById('b1618').value) || 0;
+            let b18 = parseInt(document.getElementById('b1820').value) || 0;
+
+            let m = members.find(item => item.name === name);
+            if (m) {
+                m.booking16 = b16;
+                m.booking18 = b18;
+                renderBookingTable();
+                renderFinance();
+                closeBookingModal();
+                alert("Đã cập nhật thưởng đặt sân cho " + name + "!");
+            }
+        }
+
+        // ================= XỬ LÝ SỬA & THÊM THÀNH VIÊN =================
         function openMemberModal() {
             if (members.length >= 50) { alert("CLB đã đủ giới hạn 50 thành viên!"); return; }
+            document.getElementById('editIdx').value = "-1";
+            document.getElementById('modalTitle').innerText = "THÊM THÀNH VIÊN MỚI";
+            document.getElementById('mName').value = "";
+            document.getElementById('memberModal').classList.remove('hidden');
+            document.getElementById('memberModal').classList.add('flex');
+        }
+
+        function editMember(idx) {
+            let m = members[idx];
+            document.getElementById('editIdx').value = idx;
+            document.getElementById('modalTitle').innerText = "CHỈNH SỬA THÀNH VIÊN";
+            document.getElementById('mName').value = m.name;
+            document.getElementById('mBirth').value = m.birth;
+            document.getElementById('mRating').value = m.rating;
+            document.getElementById('mRole').value = m.role || "Member";
+            document.getElementById('mUser').value = m.user;
+            document.getElementById('mPass').value = m.pass;
             document.getElementById('memberModal').classList.remove('hidden');
             document.getElementById('memberModal').classList.add('flex');
         }
@@ -372,18 +633,31 @@
 
         function saveMember(e) {
             e.preventDefault();
+            let idx = parseInt(document.getElementById('editIdx').value);
             let name = document.getElementById('mName').value.trim();
             let birth = parseInt(document.getElementById('mBirth').value);
             let rating = parseFloat(document.getElementById('mRating').value);
+            let role = document.getElementById('mRole').value;
             let user = document.getElementById('mUser').value.trim();
             let pass = document.getElementById('mPass').value.trim();
 
-            members.push({ stt: members.length + 1, name, birth, rating, user, pass });
+            if (idx === -1) {
+                members.push({ name, birth, rating, role, user, pass, nopT7: 0, noOld: 0, booking16: 0, booking18: 0 });
+            } else {
+                members[idx].name = name;
+                members[idx].birth = birth;
+                members[idx].rating = rating;
+                members[idx].role = role;
+                members[idx].user = user;
+                members[idx].pass = pass;
+            }
+
             closeMemberModal();
             populateSelectors();
             renderMemberList();
             renderFinance();
-            alert("Đã thêm thành viên " + name + " thành công!");
+            renderBookingTable();
+            alert("Đã lưu thông tin thành viên " + name + "!");
         }
 
         function deleteMember(idx) {
@@ -395,24 +669,41 @@
             }
         }
 
+        // ================= LƯU TRẬN ĐẤU & KÈO ĐẶC BIỆT =================
         function addMatch(e) {
             e.preventDefault();
             let p1A = document.getElementById('matchP1A').value;
             let p2A = document.getElementById('matchP2A').value;
-            let scoreA = parseInt(document.getElementById('matchScoreA').value);
             let p1B = document.getElementById('matchP1B').value;
             let p2B = document.getElementById('matchP2B').value;
-            let scoreB = parseInt(document.getElementById('matchScoreB').value);
 
-            matches.push({ p1_v1: p1A, p2_v1: p2A, scoreA, scoreB, p1_v2: p1B, p2_v2: p2B });
+            let scoreA = parseInt(document.querySelector('input[name="scoreA"]:checked').value);
+            let scoreB = parseInt(document.querySelector('input[name="scoreB"]:checked').value);
+            let specialBet = parseInt(document.getElementById('specialBet').value);
+
+            matches.push({ p1_v1: p1A, p2_v1: p2A, scoreA, scoreB, p1_v2: p1B, p2_v2: p2B, specialBet });
             renderDashboard();
             renderFinance();
             alert("Đã lưu kết quả trận đấu mới!");
-            switchTab('dashboard');
+            switchTab('finance');
+        }
+
+        function openQRModal(memberName, amount) {
+            let content = "NOP TIEN GOC " + memberName.replace(/[^a-zA-Z0-9]/g, '');
+            let qrUrl = `https://img.vietqr.io/image/TCB-19726868686868-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=NGUYEN%20ANH%20THI`;
+            document.getElementById('qrImage').src = qrUrl;
+            document.getElementById('qrAmountDisplay').innerText = amount.toLocaleString('vi-VN') + " đ";
+            document.getElementById('qrModal').classList.remove('hidden');
+            document.getElementById('qrModal').classList.add('flex');
+        }
+
+        function closeQRModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+            document.getElementById('qrModal').classList.remove('flex');
         }
 
         function runAutoDraw() {
-            document.getElementById('drawDisplayBox').innerText = "🎉 Kết quả bốc thăm: Bảng A (Nguyễn Văn Sao & Nguyễn Anh Thi), Bảng B (Dương Khắc Đông & Vũ Văn Thanh)";
+            document.getElementById('drawDisplayBox').innerText = "🎉 Bốc thăm hoàn tất: Bảng A (Nguyễn Văn Sao & Nguyễn Anh Thi), Bảng B (Dương Khắc Đông & Vũ Văn Thanh)";
         }
 
         window.onload = initApp;
