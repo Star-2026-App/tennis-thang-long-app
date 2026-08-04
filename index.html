@@ -1112,33 +1112,59 @@
             XLSX.writeFile(wb, "CLB_Tennis_Thang_Long_Backup.xlsx");
         }
 
-        function sendSingleAction(actionName, payload) {
-            if (!GOOGLE_SCRIPT_URL) return;
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            document.getElementById('loadingOverlay').classList.add('flex');
+        // BỔ SUNG THÔNG BÁO MẮT CÁO TOAST THAY CHO OVERLAY LÀM CHẬM
+function showToast(msg) {
+    let toast = document.getElementById('appToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'appToast';
+        toast.className = 'fixed bottom-4 right-4 bg-slate-900/90 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-2xl z-[200] transition-all duration-300 transform translate-y-10 opacity-0 flex items-center gap-2';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-emerald-400"></i> ${msg}`;
+    toast.classList.remove('translate-y-10', 'opacity-0');
+    setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0');
+    }, 2500);
+}
 
-            payload.action = actionName;
+// HÀM GỬI DỮ LIỆU TỐI ƯU TỐC ĐỘ < 0.1s
+function sendSingleAction(actionName, payload) {
+    // 1. CẬP NHẬT TRỰC TIẾP VÀO LOCAL BỘ NHỚ TRƯỚC (OPTIMISTIC UI)
+    if (actionName === "addMatch" && payload.match) {
+        matches.unshift(payload.match);
+    } else if (actionName === "addGocLog" && payload.gocLog) {
+        gocLogs.unshift(payload.gocLog);
+    } else if (actionName === "addBooking" && payload.booking) {
+        bookingLogs.unshift(payload.booking);
+    } else if (actionName === "addCashbook" && payload.cashbook) {
+        cashbookLogs.unshift(payload.cashbook);
+    } else if (actionName === "deleteItem") {
+        let id = payload.id;
+        if (payload.sheetName === "Matches") matches = matches.filter(x => x.id != id);
+        if (payload.sheetName === "Bookings") bookingLogs = bookingLogs.filter(x => x.id != id);
+        if (payload.sheetName === "Cashbook") cashbookLogs = cashbookLogs.filter(x => x.id != id);
+        if (payload.sheetName === "GocLogs") gocLogs = gocLogs.filter(x => x.id != id);
+    }
 
-            fetch(GOOGLE_SCRIPT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(res => {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                document.getElementById('loadingOverlay').classList.remove('flex');
-                if (res.status === "SUCCESS") {
-                    updateStateFromCloud(res.data);
-                }
-            })
-            .catch(err => {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                document.getElementById('loadingOverlay').classList.remove('flex');
-                console.log("Lỗi gửi dữ liệu: ", err);
-            });
-        }
+    // 2. VẼ LẠI MÀN HÌNH TỨC THÌ (KHÔNG ĐỢI RESPONSE)
+    saveLocalData();
+    initApp();
+    showToast("Đã lưu tác vụ! Đang đồng bộ Google Sheet ngầm...");
 
+    // 3. GỬI API CHẠY NGẦM DƯỚI NỀN
+    if (!GOOGLE_SCRIPT_URL) return;
+    payload.action = actionName;
+
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+    })
+    .catch(err => {
+        console.log("Lỗi đồng bộ ngầm: ", err);
+    });
+}
         function fetchCloudData(showSpinner) {
             if (!GOOGLE_SCRIPT_URL) return;
             if (showSpinner) {
