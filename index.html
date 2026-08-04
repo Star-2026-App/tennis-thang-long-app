@@ -214,7 +214,7 @@
                                     <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">3</span><input type="radio" name="scoreA" value="3" class="w-5 h-5 text-emerald-600"></label>
                                     <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">4</span><input type="radio" name="scoreA" value="4" class="w-5 h-5 text-emerald-600"></label>
                                     <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">5</span><input type="radio" name="scoreA" value="5" class="w-5 h-5 text-emerald-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">6</span><input type="radio" name="scoreA" value="6" checked class="w-5 h-5 text-emerald-600"></label>
+                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">6</span><input type="radio" name="scoreA" value="6" class="w-5 h-5 text-emerald-600"></label>
                                 </div>
                             </div>
                             <hr>
@@ -224,7 +224,7 @@
                                     <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">0</span><input type="radio" name="scoreB" value="0" class="w-5 h-5 text-blue-600"></label>
                                     <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">1</span><input type="radio" name="scoreB" value="1" class="w-5 h-5 text-blue-600"></label>
                                     <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">2</span><input type="radio" name="scoreB" value="2" class="w-5 h-5 text-blue-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">3</span><input type="radio" name="scoreB" value="3" checked class="w-5 h-5 text-blue-600"></label>
+                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">3</span><input type="radio" name="scoreB" value="3" class="w-5 h-5 text-blue-600"></label>
                                     <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">4</span><input type="radio" name="scoreB" value="4" class="w-5 h-5 text-blue-600"></label>
                                     <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">5</span><input type="radio" name="scoreB" value="5" class="w-5 h-5 text-blue-600"></label>
                                     <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">6</span><input type="radio" name="scoreB" value="6" class="w-5 h-5 text-blue-600"></label>
@@ -310,7 +310,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THEO THÁNG</h2>
-                            <p class="text-xs text-slate-500">Rule mới: Phạt 50k nếu < 15 trận/tháng. Áp trần 150k/tháng. Giữ nguyên lịch sử tổng trọn đời.</p>
+                            <p class="text-xs text-slate-500">Click vào tiêu đề cột để sắp xếp (vinh danh, lọc dữ liệu như Excel). Phạt 50k nếu < 15 trận/tháng.</p>
                         </div>
                         <div class="flex gap-2 items-center">
                             <label class="text-xs font-bold text-slate-700 uppercase">THỜI GIAN:</label>
@@ -347,7 +347,19 @@
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b text-[11px]">
-                                    <th class="p-2.5 text-center">STT</th><th class="p-2.5">Tên Thành Viên</th><th class="p-2.5 text-center">Thắng (Tổng)</th><th class="p-2.5 text-center">Thua (Tổng)</th><th class="p-2.5 text-center">Hòa (Tổng)</th><th class="p-2.5 text-center bg-amber-50">Số Trận (Tháng)</th><th class="p-2.5 text-center">Tỷ Lệ % (Tổng)</th><th class="p-2.5 text-right">Góc Cơ Bản (Tháng)</th><th class="p-2.5 text-right">Kèo Đặc Biệt (Tháng)</th><th class="p-2.5 text-right font-bold text-emerald-700">Thực Đóng (Dồn)</th><th class="p-2.5 text-right">Nợ Tháng Trước</th><th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50">TỔNG CẦN ĐÓNG</th><th class="p-2.5 text-center">Thanh Toán</th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('stt')">STT <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('name')">Tên Thành Viên <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('wins')">Thắng (Tổng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('losses')">Thua (Tổng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('draws')">Hòa (Tổng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-center bg-amber-50 cursor-pointer hover:bg-amber-100" onclick="sortFinanceTable('monthMatches')">Số Trận (Tháng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('winRate')">Tỷ Lệ % (Tổng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('baseFee')">Góc Cơ Bản <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('specialFee')">Kèo Đặc Biệt <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-right font-bold text-emerald-700 cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('paid')">Thực Đóng <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('noOld')">Nợ Cũ <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50 cursor-pointer hover:bg-emerald-100" onclick="sortFinanceTable('totalPay')">TỔNG CẦN ĐÓNG <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-center">Thanh Toán</th>
                                 </tr>
                             </thead>
                             <tbody id="financeTableBody" class="divide-y divide-slate-200"></tbody>
@@ -631,7 +643,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_ln8Ue7ZwaFiDOjzYNtbtd_z8JlC43oCF4EMHyA7qJbPT9VsMB-8jOiDd11JJV9YShw/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDpfeqtQrpIFcp8mVrR_y69obeIrXVUin0-8eNjQqhXgWnM0XeRTQHudOc8umF6bikmA/exec";
 
         let currentUserRole = "member";
         let openingBalance = 18706160;
@@ -645,7 +657,9 @@
         let syncQueue = [];
         let isSyncing = false;
 
-        // Tự động set mặc định tháng và năm hiện tại khi vừa mở trang
+        let financeSortField = 'stt';
+        let financeSortAsc = true;
+
         window.addEventListener('DOMContentLoaded', () => {
             let now = new Date();
             let curMonth = now.getMonth() + 1;
@@ -994,25 +1008,67 @@
             applyRolePermissions();
         }
 
+        function sortFinanceTable(field) {
+            if (financeSortField === field) {
+                financeSortAsc = !financeSortAsc;
+            } else {
+                financeSortField = field;
+                financeSortAsc = true;
+            }
+            renderFinance();
+        }
+
         function renderFinance() {
             let mSel = document.getElementById('selectFinanceMonth').value;
             let ySel = document.getElementById('selectFinanceYear').value;
             let tbody = document.getElementById('financeTableBody');
             tbody.innerHTML = '';
             
-            members.forEach((m, idx) => {
+            let dataList = members.map((m, originalIdx) => {
                 let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
-                let winRate = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
+                let winRateVal = f.totalMatchCount > 0 ? (f.totalWins / f.totalMatchCount) : 0;
+                return {
+                    originalIdx: originalIdx + 1,
+                    m, f, winRateVal
+                };
+            });
+
+            dataList.sort((a, b) => {
+                let valA, valB;
+                if (financeSortField === 'stt') { valA = a.originalIdx; valB = b.originalIdx; }
+                else if (financeSortField === 'name') { valA = a.m.name; valB = b.m.name; }
+                else if (financeSortField === 'wins') { valA = a.f.totalWins; valB = b.f.totalWins; }
+                else if (financeSortField === 'losses') { valA = a.f.totalLosses; valB = b.f.totalLosses; }
+                else if (financeSortField === 'draws') { valA = a.f.totalDraws; valB = b.f.totalDraws; }
+                else if (financeSortField === 'monthMatches') { valA = a.f.monthMatchCount; valB = b.f.monthMatchCount; }
+                else if (financeSortField === 'winRate') { valA = a.winRateVal; valB = b.winRateVal; }
+                else if (financeSortField === 'baseFee') { valA = a.f.cappedBaseFee; valB = b.f.cappedBaseFee; }
+                else if (financeSortField === 'specialFee') { valA = a.f.monthSpecialBetFee; valB = b.f.monthSpecialBetFee; }
+                else if (financeSortField === 'paid') { valA = a.m.paidUser || 0; valB = b.m.paidUser || 0; }
+                else if (financeSortField === 'noOld') { valA = a.m.noOld || 0; valB = b.m.noOld || 0; }
+                else if (financeSortField === 'totalPay') { valA = a.f.totalPay; valB = b.f.totalPay; }
+
+                if (typeof valA === 'string') {
+                    return financeSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else {
+                    return financeSortAsc ? (valA - valB) : (valB - valA);
+                }
+            });
+
+            dataList.forEach((item, idx) => {
+                let m = item.m;
+                let f = item.f;
+                let winRateStr = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
 
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
-                        <td class="p-2.5 text-center font-bold text-slate-500">${idx + 1}</td>
+                        <td class="p-2.5 text-center font-bold text-slate-500">${item.originalIdx}</td>
                         <td class="p-2.5 font-bold text-slate-900">${m.name}</td>
                         <td class="p-2.5 text-center font-bold text-blue-600">${f.totalWins}</td>
                         <td class="p-2.5 text-center font-bold text-red-600">${f.totalLosses}</td>
                         <td class="p-2.5 text-center font-bold text-amber-600">${f.totalDraws}</td>
                         <td class="p-2.5 text-center font-black ${f.monthMatchCount < 15 ? 'text-red-600 bg-red-50' : 'text-emerald-700'}">${f.monthMatchCount}</td>
-                        <td class="p-2.5 text-center font-bold">${winRate}</td>
+                        <td class="p-2.5 text-center font-bold">${winRateStr}</td>
                         <td class="p-2.5 text-right font-semibold">${f.cappedBaseFee.toLocaleString()} đ</td>
                         <td class="p-2.5 text-right font-bold text-amber-800">${f.monthSpecialBetFee.toLocaleString()} đ</td>
                         <td class="p-2.5 text-right text-emerald-700 font-black">${(m.paidUser || 0).toLocaleString()} đ</td>
@@ -1020,7 +1076,7 @@
                         <td class="p-2.5 text-right font-black text-emerald-800 text-sm bg-emerald-50">${f.totalPay.toLocaleString()} đ</td>
                         <td class="p-2.5 text-center space-x-1">
                             <button onclick="openQRModal('${m.name}', ${f.totalPay})" class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-blue-700">QR</button>
-                            ${currentUserRole === 'admin' ? `<button onclick="openEditFinanceModal(${idx})" class="bg-amber-500 text-slate-900 text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-amber-600">Sửa Nợ</button>` : ''}
+                            ${currentUserRole === 'admin' ? `<button onclick="openEditFinanceModal(${members.indexOf(m)})" class="bg-amber-500 text-slate-900 text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-amber-600">Sửa Nợ</button>` : ''}
                         </td>
                     </tr>
                 `;
@@ -1393,8 +1449,12 @@
             let p2A = document.getElementById('matchP2A').value;
             let p1B = document.getElementById('matchP1B').value;
             let p2B = document.getElementById('matchP2B').value;
-            let scoreA = parseInt(document.querySelector('input[name="scoreA"]:checked').value);
-            let scoreB = parseInt(document.querySelector('input[name="scoreB"]:checked').value);
+            
+            let checkedScoreA = document.querySelector('input[name="scoreA"]:checked');
+            let checkedScoreB = document.querySelector('input[name="scoreB"]:checked');
+
+            let scoreA = checkedScoreA ? parseInt(checkedScoreA.value) : 0;
+            let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
             let specialBet = parseInt(document.getElementById('specialBet').value);
 
             let newMatch = {
@@ -1406,10 +1466,10 @@
 
             enqueueAction("addMatch", { match: newMatch });
 
-            // Reset form input tránh bấm trùng 2 lần
+            // Reset form hoàn toàn và uncheck sạch các nút radio tỷ số
             document.getElementById('matchForm').reset();
-            document.querySelector('input[name="scoreA"][value="6"]').checked = true;
-            document.querySelector('input[name="scoreB"][value="3"]').checked = true;
+            document.querySelectorAll('input[name="scoreA"]').forEach(el => el.checked = false);
+            document.querySelectorAll('input[name="scoreB"]').forEach(el => el.checked = false);
             document.getElementById('specialBet').value = "0";
         }
 
