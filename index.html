@@ -313,21 +313,33 @@
                             <p class="text-xs text-slate-500">Rule mới: Phạt 50k nếu < 15 trận/tháng. Áp trần 150k/tháng. Giữ nguyên lịch sử tổng trọn đời.</p>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <label class="text-xs font-bold text-slate-700 uppercase">CHỌN THÁNG:</label>
+                            <label class="text-xs font-bold text-slate-700 uppercase">THỜI GIAN:</label>
                             <select id="selectFinanceMonth" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
-                                <option value="8/2026" selected>Tháng 8/2026</option>
-                                <option value="9/2026">Tháng 9/2026</option>
-                                <option value="10/2026">Tháng 10/2026</option>
-                                <option value="11/2026">Tháng 11/2026</option>
-                                <option value="12/2026">Tháng 12/2026</option>
-                                <option value="1/2027">Tháng 1/2027</option>
-                                <option value="2/2027">Tháng 2/2027</option>
-                                <option value="3/2027">Tháng 3/2027</option>
-                                <option value="4/2027">Tháng 4/2027</option>
-                                <option value="5/2027">Tháng 5/2027</option>
-                                <option value="6/2027">Tháng 6/2027</option>
-                                <option value="7/2027">Tháng 7/2027</option>
-                                <option value="8/2027">Tháng 8/2027</option>
+                                <option value="1">Tháng 1</option>
+                                <option value="2">Tháng 2</option>
+                                <option value="3">Tháng 3</option>
+                                <option value="4">Tháng 4</option>
+                                <option value="5">Tháng 5</option>
+                                <option value="6">Tháng 6</option>
+                                <option value="7">Tháng 7</option>
+                                <option value="8" selected>Tháng 8</option>
+                                <option value="9">Tháng 9</option>
+                                <option value="10">Tháng 10</option>
+                                <option value="11">Tháng 11</option>
+                                <option value="12">Tháng 12</option>
+                            </select>
+                            <select id="selectFinanceYear" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
+                                <option value="2026" selected>Năm 2026</option>
+                                <option value="2027">Năm 2027</option>
+                                <option value="2028">Năm 2028</option>
+                                <option value="2029">Năm 2029</option>
+                                <option value="2030">Năm 2030</option>
+                                <option value="2031">Năm 2031</option>
+                                <option value="2032">Năm 2032</option>
+                                <option value="2033">Năm 2033</option>
+                                <option value="2034">Năm 2034</option>
+                                <option value="2035">Năm 2035</option>
+                                <option value="2036">Năm 2036</option>
                             </select>
                         </div>
                     </div>
@@ -402,8 +414,9 @@
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
                                     <th class="p-3 text-center">STT</th>
                                     <th class="p-3">Tên Thành Viên</th>
-                                    <th id="thQuyTitle" class="p-3 text-right">Số Tiền Quý 3/2026</th>
                                     <th class="p-3 text-center">Trạng Thái</th>
+                                    <th id="thQuyTitle" class="p-3 text-right">Số Tiền Quý 3/2026</th>
+                                    <th class="p-3 text-center">Kết Quả Quỹ</th>
                                     <th class="p-3 text-center admin-only">Thao Tác Admin</th>
                                 </tr>
                             </thead>
@@ -618,7 +631,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9a5bTRime01DHTPVjPDb5w1qXIAHHrsm2oTF28oq17Aw-0wwhkqlYOY31j5546Jj2/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_ln8Ue7ZwaFiDOjzYNtbtd_z8JlC43oCF4EMHyA7qJbPT9VsMB-8jOiDd11JJV9YShw/exec";
 
         let currentUserRole = "member";
         let openingBalance = 18706160;
@@ -631,6 +644,20 @@
 
         let syncQueue = [];
         let isSyncing = false;
+
+        // Tự động set mặc định tháng và năm hiện tại khi vừa mở trang
+        window.addEventListener('DOMContentLoaded', () => {
+            let now = new Date();
+            let curMonth = now.getMonth() + 1;
+            let curYear = now.getFullYear();
+            
+            if (document.getElementById('selectFinanceMonth')) {
+                document.getElementById('selectFinanceMonth').value = curMonth;
+            }
+            if (document.getElementById('selectFinanceYear')) {
+                document.getElementById('selectFinanceYear').value = curYear;
+            }
+        });
 
         function showToast(msg) {
             let toast = document.getElementById('appToast');
@@ -811,8 +838,7 @@
             }
         }
 
-        // TÍNH TOÁN TÀI CHÍNH THEO THÁNG ĐƯỢC CHỌN (HỖ TRỢ LỊCH SỬ TRỌN ĐỜI + LỌC SỐ TRẬN THEO THÁNG)
-        function calculateUserFinanceForMonth(memberName, selectedMonthStr) {
+        function calculateUserFinanceForMonth(memberName, targetMonth, targetYear) {
             let totalWins = 0, totalLosses = 0, totalDraws = 0, totalMatchCount = 0;
             let monthMatchCount = 0, monthRegularFee = 0, monthSpecialBetFee = 0;
 
@@ -826,9 +852,15 @@
                     else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) totalWins++;
                     else totalLosses++;
 
-                    // Kiểm tra xem trận đấu có thuộc tháng được chọn hay không (dựa vào chuỗi time dd/mm/yyyy hoặc mm/yyyy)
                     let mTime = match.time || "";
-                    if (mTime.includes(selectedMonthStr) || (selectedMonthStr === "8/2026" && (!mTime || mTime.includes("4/8/2026") || mTime.includes("2026")))) {
+                    let isTargetTime = false;
+                    if (mTime.includes(`/${targetMonth}/${targetYear}`) || mTime.includes(` ${targetMonth}/${targetYear}`)) {
+                        isTargetTime = true;
+                    } else if (targetMonth == 8 && targetYear == 2026 && (!mTime || mTime.includes("4/8/2026") || mTime.includes("2026"))) {
+                        isTargetTime = true;
+                    }
+
+                    if (isTargetTime) {
                         monthMatchCount++;
                         if (match.scoreA === match.scoreB) {
                             monthRegularFee += 10000;
@@ -842,7 +874,6 @@
                 }
             });
 
-            // Rule trần & phạt tháng: Dưới 15 trận phạt 50k, trần tối đa 150k tiền góc cơ bản
             let penalty50 = monthMatchCount < 15 ? 50000 : 0;
             let cappedBaseFee = Math.min(150000, monthRegularFee + penalty50);
 
@@ -857,8 +888,9 @@
         }
 
         function calculateUserFinance(memberName) {
-            let defaultMonth = document.getElementById('selectFinanceMonth') ? document.getElementById('selectFinanceMonth').value : "8/2026";
-            return calculateUserFinanceForMonth(memberName, defaultMonth);
+            let mSel = document.getElementById('selectFinanceMonth') ? document.getElementById('selectFinanceMonth').value : "8";
+            let ySel = document.getElementById('selectFinanceYear') ? document.getElementById('selectFinanceYear').value : "2026";
+            return calculateUserFinanceForMonth(memberName, mSel, ySel);
         }
 
         function renderDashboard() {
@@ -963,12 +995,13 @@
         }
 
         function renderFinance() {
-            let selectedMonth = document.getElementById('selectFinanceMonth').value;
+            let mSel = document.getElementById('selectFinanceMonth').value;
+            let ySel = document.getElementById('selectFinanceYear').value;
             let tbody = document.getElementById('financeTableBody');
             tbody.innerHTML = '';
             
             members.forEach((m, idx) => {
-                let f = calculateUserFinanceForMonth(m.name, selectedMonth);
+                let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
                 let winRate = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
 
                 tbody.innerHTML += `
@@ -1102,11 +1135,13 @@
                 }
 
                 let isOk = paidAmount >= 600000;
+                let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800');
 
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
                         <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
                         <td class="p-3 font-bold text-slate-900">${m.name}</td>
+                        <td class="p-3 text-center"><span class="px-2.5 py-0.5 rounded text-xs font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
                         <td class="p-3 text-right font-bold ${isOk ? 'text-emerald-700' : 'text-slate-400'}">${paidAmount.toLocaleString()} đ</td>
                         <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${isOk ? 'bg-cyan-100 text-cyan-800' : 'bg-red-100 text-red-800'}">${isOk ? 'OK' : 'Chưa đóng'}</span></td>
                         <td class="p-3 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
@@ -1352,7 +1387,6 @@
             enqueueAction("updateMember", { members: members });
         }
 
-        // TỰ ĐỘNG RESET FORM SAU KHI LƯU TRẬN ĐẤU THÀNH CÔNG
         function addMatch(e) {
             e.preventDefault();
             let p1A = document.getElementById('matchP1A').value;
@@ -1372,9 +1406,8 @@
 
             enqueueAction("addMatch", { match: newMatch });
 
-            // Reset form input
+            // Reset form input tránh bấm trùng 2 lần
             document.getElementById('matchForm').reset();
-            // Đặt lại mặc định điểm 6-3 cho tiện nhập trận tiếp theo
             document.querySelector('input[name="scoreA"][value="6"]').checked = true;
             document.querySelector('input[name="scoreB"][value="3"]').checked = true;
             document.getElementById('specialBet').value = "0";
