@@ -1195,3 +1195,31 @@
     </script>
 </body>
 </html>
+function updateStateFromCloud(data) {
+    // Chỉ ghi nhận khi dữ liệu trả về từ Cloud có dữ liệu thành viên thực sự
+    if (data.members && data.members.length > 0) {
+        members = data.members.map(m => {
+            let qH = {};
+            try { qH = JSON.parse(m.quyHistoryJson || '{}'); } catch(e){}
+            return {
+                stt: parseInt(m.stt) || 1,
+                name: m.name || "Cầu thủ",
+                status: m.status || "Đang tham gia",
+                base: parseFloat(m.base) || 6.2,
+                paidUser: parseInt(m.paidUser || 0),
+                noOld: parseInt(m.noOld || 0),
+                quyHistory: qH
+            };
+        });
+    }
+
+    if (data.matches && data.matches.length > 0) {
+        matches = data.matches.map(m => ({...m, specialBet: parseInt(m.specialBet||0)}));
+    }
+    if (data.bookingLogs && data.bookingLogs.length > 0) bookingLogs = data.bookingLogs;
+    if (data.cashbookLogs && data.cashbookLogs.length > 0) cashbookLogs = data.cashbookLogs;
+    if (data.gocLogs && data.gocLogs.length > 0) gocLogs = data.gocLogs;
+
+    saveLocalData();
+    initApp();
+}
