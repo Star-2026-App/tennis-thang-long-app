@@ -256,7 +256,7 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-3 text-center">STT</th><th class="p-3">Đội A</th><th class="p-3">Đội B</th><th class="p-3 text-center">Tỉ Số</th><th class="p-3 text-right">Kèo Đặc Biệt</th><th class="p-3 text-center admin-only">Sửa/Xóa Admin</th></tr>
+                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-3 text-center">STT</th><th class="p-3">Thời Gian</th><th class="p-3">Đội A</th><th class="p-3">Đội B</th><th class="p-3 text-center">Tỉ Số</th><th class="p-3 text-right">Kèo Đặc Biệt</th><th class="p-3 text-center admin-only">Sửa/Xóa Admin</th></tr>
                             </thead>
                             <tbody id="allMatchTableBody" class="divide-y divide-slate-200"></tbody>
                         </table>
@@ -272,11 +272,17 @@
                             <h2 class="text-xl font-bold text-slate-800 uppercase flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i> NHẬT KÝ NỘP TIỀN GÓC CỦA THÀNH VIÊN</h2>
                             <p class="text-xs text-slate-500">Toàn bộ lịch sử nộp tiền chuyển khoản đều được tự động cộng dồn và lưu vết cụ thể</p>
                         </div>
-                        <div class="w-full md:w-64">
-                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">LỌC THEO THÀNH VIÊN:</label>
-                            <select id="filterGocUser" onchange="renderGocLogsTab()" class="w-full bg-emerald-50 border border-emerald-300 rounded-xl p-2 text-xs font-bold text-emerald-900 outline-none">
-                                <option value="ALL">-- Tất cả thành viên --</option>
-                            </select>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-300 text-right">
+                                <span class="text-[10px] font-bold text-emerald-800 block uppercase">Tổng tiền góc đã nộp:</span>
+                                <div id="totalGocCollectedDisplay" class="text-base font-black text-emerald-700">0 đ</div>
+                            </div>
+                            <div class="w-64">
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">LỌC THEO THÀNH VIÊN:</label>
+                                <select id="filterGocUser" onchange="renderGocLogsTab()" class="w-full bg-emerald-50 border border-emerald-300 rounded-xl p-2 text-xs font-bold text-emerald-900 outline-none">
+                                    <option value="ALL">-- Tất cả thành viên --</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -301,13 +307,35 @@
             <!-- TAB 4: TIỀN GÓC & PHẠT -->
             <section id="tab-finance" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h2 class="text-xl font-bold text-slate-800 mb-2">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THÁNG 8/2026</h2>
-                    <p class="text-xs text-slate-500 mb-4">Rule mới: Phạt 50k nếu ít hơn 15 trận/tháng. Áp trần tối đa 150k/tháng. Kèo đặc biệt cộng riêng không giới hạn trần.</p>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THEO THÁNG</h2>
+                            <p class="text-xs text-slate-500">Rule mới: Phạt 50k nếu < 15 trận/tháng. Áp trần 150k/tháng. Giữ nguyên lịch sử tổng trọn đời.</p>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <label class="text-xs font-bold text-slate-700 uppercase">CHỌN THÁNG:</label>
+                            <select id="selectFinanceMonth" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
+                                <option value="8/2026" selected>Tháng 8/2026</option>
+                                <option value="9/2026">Tháng 9/2026</option>
+                                <option value="10/2026">Tháng 10/2026</option>
+                                <option value="11/2026">Tháng 11/2026</option>
+                                <option value="12/2026">Tháng 12/2026</option>
+                                <option value="1/2027">Tháng 1/2027</option>
+                                <option value="2/2027">Tháng 2/2027</option>
+                                <option value="3/2027">Tháng 3/2027</option>
+                                <option value="4/2027">Tháng 4/2027</option>
+                                <option value="5/2027">Tháng 5/2027</option>
+                                <option value="6/2027">Tháng 6/2027</option>
+                                <option value="7/2027">Tháng 7/2027</option>
+                                <option value="8/2027">Tháng 8/2027</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b text-[11px]">
-                                    <th class="p-2.5 text-center">STT</th><th class="p-2.5">Tên Thành Viên</th><th class="p-2.5 text-center">Thắng</th><th class="p-2.5 text-center">Thua</th><th class="p-2.5 text-center">Hòa</th><th class="p-2.5 text-center">Số Trận</th><th class="p-2.5 text-center">Tỷ Lệ %</th><th class="p-2.5 text-right">Góc Cơ Bản</th><th class="p-2.5 text-right">Kèo Đặc Biệt</th><th class="p-2.5 text-right font-bold text-emerald-700">Thực Đóng (Dồn)</th><th class="p-2.5 text-right">Nợ Tháng Trước</th><th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50">TỔNG CẦN ĐÓNG</th><th class="p-2.5 text-center">Thanh Toán</th>
+                                    <th class="p-2.5 text-center">STT</th><th class="p-2.5">Tên Thành Viên</th><th class="p-2.5 text-center">Thắng (Tổng)</th><th class="p-2.5 text-center">Thua (Tổng)</th><th class="p-2.5 text-center">Hòa (Tổng)</th><th class="p-2.5 text-center bg-amber-50">Số Trận (Tháng)</th><th class="p-2.5 text-center">Tỷ Lệ % (Tổng)</th><th class="p-2.5 text-right">Góc Cơ Bản (Tháng)</th><th class="p-2.5 text-right">Kèo Đặc Biệt (Tháng)</th><th class="p-2.5 text-right font-bold text-emerald-700">Thực Đóng (Dồn)</th><th class="p-2.5 text-right">Nợ Tháng Trước</th><th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50">TỔNG CẦN ĐÓNG</th><th class="p-2.5 text-center">Thanh Toán</th>
                                 </tr>
                             </thead>
                             <tbody id="financeTableBody" class="divide-y divide-slate-200"></tbody>
@@ -319,7 +347,13 @@
             <!-- TAB 5: THƯỞNG ĐẶT SÂN -->
             <section id="tab-booking" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h2 class="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN</h2>
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN</h2>
+                        <div class="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-300 text-right">
+                            <span class="text-[10px] font-bold text-emerald-800 block uppercase">Tổng tiền thưởng đặt sân:</span>
+                            <div id="totalBookingRewardDisplay" class="text-base font-black text-emerald-700">0 đ</div>
+                        </div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
@@ -435,7 +469,12 @@
                         </div>
 
                         <div class="md:col-span-2 bg-slate-50 p-4 rounded-xl border space-y-4">
-                            <h3 id="selectedCatTitle" class="font-black text-sm text-slate-800 uppercase border-b pb-2">LỊCH SỬ DỮ LIỆU: TIỀN GÓC THỰC THU</h3>
+                            <div class="flex justify-between items-center border-b pb-2">
+                                <h3 id="selectedCatTitle" class="font-black text-sm text-slate-800 uppercase">LỊCH SỬ DỮ LIỆU: TIỀN GÓC THỰC THU</h3>
+                                <div class="bg-emerald-100 text-emerald-900 px-3 py-1 rounded-lg text-xs font-black">
+                                    Tổng danh mục: <span id="selectedCatTotal">0 đ</span>
+                                </div>
+                            </div>
                             <div class="overflow-x-auto max-h-72">
                                 <table class="w-full text-left text-xs border-collapse">
                                     <thead><tr class="bg-slate-200"><th class="p-2">Thời Gian</th><th class="p-2">Nội Dung</th><th class="p-2 text-right">Số Tiền</th><th class="p-2 text-center admin-only">Thao Tác Admin</th></tr></thead>
@@ -453,7 +492,7 @@
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB</h2>
-                            <p class="text-xs text-slate-500">Quản lý danh sách, điểm Base và sao lưu dữ liệu Excel</p>
+                            <p class="text-xs text-slate-500">Quản lý danh sách, điểm Base và trạng thái thành viên</p>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-xl shadow flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
@@ -513,12 +552,20 @@
             <form onsubmit="saveNewMember(event)" class="space-y-3 text-xs font-semibold text-slate-600">
                 <div><label class="block mb-1">Tên Thành Viên (*):</label><input type="text" id="newMemName" required placeholder="Ví dụ: Nguyễn Văn A 90" class="w-full p-2.5 border rounded-lg font-bold text-slate-900"></div>
                 <div><label class="block mb-1">Điểm Base (*):</label><input type="number" step="0.05" id="newMemBase" value="6.2" required class="w-full p-2.5 border rounded-lg font-bold text-amber-700"></div>
+                <div>
+                    <label class="block mb-1">Trạng Thái:</label>
+                    <select id="newMemStatus" class="w-full p-2.5 border rounded-lg font-bold text-slate-800">
+                        <option value="Đang tham gia" selected>Đang tham gia</option>
+                        <option value="Bận tạm nghỉ">Bận tạm nghỉ</option>
+                        <option value="Nghỉ">Nghỉ</option>
+                    </select>
+                </div>
                 <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">+ LƯU VÀO DANH SÁCH</button>
             </form>
         </div>
     </div>
 
-    <!-- MODAL EDIT TÊN VÀ ĐIỂM BASE -->
+    <!-- MODAL EDIT TÊN, ĐIỂM BASE & TRẠNG THÁI -->
     <div id="editMemberModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
             <button onclick="closeEditMemberModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -527,6 +574,14 @@
                 <input type="hidden" id="editMemIdx">
                 <div><label class="block mb-1">Tên Thành Viên (*):</label><input type="text" id="editMemName" required class="w-full p-2.5 border rounded-lg font-bold text-slate-900"></div>
                 <div><label class="block mb-1">Điểm Base (*):</label><input type="number" step="0.05" id="editMemBase" required class="w-full p-2.5 border rounded-lg font-bold text-amber-700"></div>
+                <div>
+                    <label class="block mb-1">Trạng Thái (*):</label>
+                    <select id="editMemStatus" class="w-full p-2.5 border rounded-lg font-bold text-slate-800">
+                        <option value="Đang tham gia">Đang tham gia</option>
+                        <option value="Bận tạm nghỉ">Bận tạm nghỉ</option>
+                        <option value="Nghỉ">Nghỉ</option>
+                    </select>
+                </div>
                 <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU THAY ĐỔI</button>
             </form>
         </div>
@@ -563,7 +618,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxnFF2B09cgqCBCvSf3jGgr6bHAsZ1oPO3D62JTLBGthXayajPRqT3qeXJNw5ThTBEj0A/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9a5bTRime01DHTPVjPDb5w1qXIAHHrsm2oTF28oq17Aw-0wwhkqlYOY31j5546Jj2/exec";
 
         let currentUserRole = "member";
         let openingBalance = 18706160;
@@ -574,7 +629,6 @@
         let cashbookLogs = [];
         let gocLogs = [];
 
-        // HÀNG ĐỢI ĐỒNG BỘ NGẦM (BACKGROUND QUEUE)
         let syncQueue = [];
         let isSyncing = false;
 
@@ -609,12 +663,10 @@
             syncQueue = JSON.parse(localStorage.getItem('clb_syncQueue')) || [];
         }
 
-        // CƠ CHẾ ĐỒNG BỘ NGẦM TỰ ĐỘNG KHÔNG LÀM GIẬT GIỜ MÀN HÌNH (0.05 SEC RESPONSE)
         function enqueueAction(actionName, payload) {
             payload.action = actionName;
             syncQueue.push(payload);
 
-            // 1. Cập nhật Local state ngay lập tức
             if (actionName === "addMatch" && payload.match) matches.unshift(payload.match);
             else if (actionName === "addGocLog" && payload.gocLog) gocLogs.unshift(payload.gocLog);
             else if (actionName === "addBooking" && payload.booking) bookingLogs.unshift(payload.booking);
@@ -627,19 +679,15 @@
                 if (payload.sheetName === "GocLogs") gocLogs = gocLogs.filter(x => x.id != id);
             }
 
-            // 2. Render lại giao diện tức thì
             saveLocalData();
             initApp();
             showToast("Đã lưu tức thì! Đang chạy đồng bộ ngầm...");
-
-            // 3. Kích hoạt luồng gửi ngầm
             processQueue();
         }
 
         function processQueue() {
             if (isSyncing || syncQueue.length === 0 || !GOOGLE_SCRIPT_URL) return;
             isSyncing = true;
-
             let item = syncQueue[0];
 
             fetch(GOOGLE_SCRIPT_URL, {
@@ -763,31 +811,54 @@
             }
         }
 
-        function calculateUserFinance(memberName) {
-            let wins = 0, losses = 0, draws = 0, matchCount = 0;
-            let regularFee = 0, specialBetFee = 0;
+        // TÍNH TOÁN TÀI CHÍNH THEO THÁNG ĐƯỢC CHỌN (HỖ TRỢ LỊCH SỬ TRỌN ĐỜI + LỌC SỐ TRẬN THEO THÁNG)
+        function calculateUserFinanceForMonth(memberName, selectedMonthStr) {
+            let totalWins = 0, totalLosses = 0, totalDraws = 0, totalMatchCount = 0;
+            let monthMatchCount = 0, monthRegularFee = 0, monthSpecialBetFee = 0;
 
             matches.forEach(match => {
                 let isV1 = (match.p1_v1 === memberName || match.p2_v1 === memberName);
                 let isV2 = (match.p1_v2 === memberName || match.p2_v2 === memberName);
+                
                 if (isV1 || isV2) {
-                    matchCount++;
-                    if (match.scoreA === match.scoreB) { draws++; regularFee += 10000; }
-                    else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) wins++;
-                    else { losses++; regularFee += 10000; if (match.specialBet > 0) specialBetFee += parseInt(match.specialBet); }
+                    totalMatchCount++;
+                    if (match.scoreA === match.scoreB) totalDraws++;
+                    else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) totalWins++;
+                    else totalLosses++;
+
+                    // Kiểm tra xem trận đấu có thuộc tháng được chọn hay không (dựa vào chuỗi time dd/mm/yyyy hoặc mm/yyyy)
+                    let mTime = match.time || "";
+                    if (mTime.includes(selectedMonthStr) || (selectedMonthStr === "8/2026" && (!mTime || mTime.includes("4/8/2026") || mTime.includes("2026")))) {
+                        monthMatchCount++;
+                        if (match.scoreA === match.scoreB) {
+                            monthRegularFee += 10000;
+                        } else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) {
+                            // Thắng không mất góc
+                        } else {
+                            monthRegularFee += 10000;
+                            if (match.specialBet > 0) monthSpecialBetFee += parseInt(match.specialBet);
+                        }
+                    }
                 }
             });
 
-            let penalty15 = matchCount < 15 ? 50000 : 0;
-            let cappedBaseFee = Math.min(150000, regularFee + penalty15);
+            // Rule trần & phạt tháng: Dưới 15 trận phạt 50k, trần tối đa 150k tiền góc cơ bản
+            let penalty50 = monthMatchCount < 15 ? 50000 : 0;
+            let cappedBaseFee = Math.min(150000, monthRegularFee + penalty50);
+
             let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0 };
-            let totalPay = cappedBaseFee + specialBetFee + (m.noOld || 0) - (m.paidUser || 0);
+            let totalPay = cappedBaseFee + monthSpecialBetFee + (m.noOld || 0) - (m.paidUser || 0);
 
             return {
-                matchCount, wins, losses, draws,
-                regularFee, specialBetFee, cappedBaseFee,
+                totalMatchCount, totalWins, totalLosses, totalDraws,
+                monthMatchCount, monthRegularFee, monthSpecialBetFee, cappedBaseFee,
                 totalPay: Math.max(0, totalPay)
             };
+        }
+
+        function calculateUserFinance(memberName) {
+            let defaultMonth = document.getElementById('selectFinanceMonth') ? document.getElementById('selectFinanceMonth').value : "8/2026";
+            return calculateUserFinanceForMonth(memberName, defaultMonth);
         }
 
         function renderDashboard() {
@@ -798,11 +869,11 @@
             let f = calculateUserFinance(main);
             let m = members.find(item => item.name === main) || members[0];
 
-            document.getElementById('statTotal').innerText = f.matchCount;
-            let winRate = f.matchCount > 0 ? ((f.wins / f.matchCount) * 100).toFixed(0) + '%' : '0%';
-            document.getElementById('statWins').innerText = f.wins + " (" + winRate + ")";
-            document.getElementById('statDraws').innerText = f.draws;
-            document.getElementById('statLosses').innerText = f.losses;
+            document.getElementById('statTotal').innerText = f.totalMatchCount;
+            let winRate = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
+            document.getElementById('statWins').innerText = f.totalWins + " (" + winRate + ")";
+            document.getElementById('statDraws').innerText = f.totalDraws;
+            document.getElementById('statLosses').innerText = f.totalLosses;
 
             let totalReward = bookingLogs.filter(b => b.name === main).reduce((sum, b) => sum + parseInt(b.reward), 0);
             document.getElementById('statReward').innerText = totalReward.toLocaleString() + " đ";
@@ -810,7 +881,6 @@
             document.getElementById('statDebt').innerText = f.totalPay.toLocaleString() + " đ";
             document.getElementById('statPaidDisplay').innerText = (m.paidUser || 0).toLocaleString() + " đ";
 
-            // 1. NHẬT KÝ THI ĐẤU CÁ NHÂN
             let matchBody = document.getElementById('userMatchHistoryBody');
             matchBody.innerHTML = '';
             matches.filter(m => (m.p1_v1 === main || m.p2_v1 === main || m.p1_v2 === main || m.p2_v2 === main)).forEach((m, idx) => {
@@ -820,14 +890,12 @@
                 matchBody.innerHTML += `<tr class="border-b"><td class="p-2 font-bold">${idx+1}</td><td class="p-2">${teammate}</td><td class="p-2">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${m.scoreA}-${m.scoreB}</td><td class="p-2 text-right font-bold text-amber-800">${m.specialBet > 0 ? parseInt(m.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
             });
 
-            // 2. NHẬT KÝ THƯỞNG ĐẶT SÂN CÁ NHÂN
             let rewardBody = document.getElementById('userRewardHistoryBody');
             rewardBody.innerHTML = '';
             bookingLogs.filter(b => b.name === main).forEach(b => {
                 rewardBody.innerHTML += `<tr class="border-b"><td class="p-2">${b.time}</td><td class="p-2 text-center font-bold text-amber-700">${b.frame}</td><td class="p-2 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td></tr>`;
             });
 
-            // 3. NHẬT KÝ ĐÓNG TIỀN GÓC CỦA THÀNH VIÊN ĐƯỢC CHỌN
             let gocBody = document.getElementById('userGocHistoryBody');
             gocBody.innerHTML = '';
             let userGocs = gocLogs.filter(g => g.name === main);
@@ -873,6 +941,9 @@
                 logsToDisplay = gocLogs.filter(g => g.name === filterUser);
             }
 
+            let totalFiltered = logsToDisplay.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
+            document.getElementById('totalGocCollectedDisplay').innerText = totalFiltered.toLocaleString('vi-VN') + " đ";
+
             logsToDisplay.forEach((g, idx) => {
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
@@ -892,23 +963,25 @@
         }
 
         function renderFinance() {
+            let selectedMonth = document.getElementById('selectFinanceMonth').value;
             let tbody = document.getElementById('financeTableBody');
             tbody.innerHTML = '';
+            
             members.forEach((m, idx) => {
-                let f = calculateUserFinance(m.name);
-                let winRate = f.matchCount > 0 ? ((f.wins / f.matchCount) * 100).toFixed(0) + '%' : '0%';
+                let f = calculateUserFinanceForMonth(m.name, selectedMonth);
+                let winRate = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
 
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
                         <td class="p-2.5 text-center font-bold text-slate-500">${idx + 1}</td>
                         <td class="p-2.5 font-bold text-slate-900">${m.name}</td>
-                        <td class="p-2.5 text-center font-bold text-blue-600">${f.wins}</td>
-                        <td class="p-2.5 text-center font-bold text-red-600">${f.losses}</td>
-                        <td class="p-2.5 text-center font-bold text-amber-600">${f.draws}</td>
-                        <td class="p-2.5 text-center font-black ${f.matchCount < 15 ? 'text-red-600 bg-red-50' : 'text-emerald-700'}">${f.matchCount}</td>
+                        <td class="p-2.5 text-center font-bold text-blue-600">${f.totalWins}</td>
+                        <td class="p-2.5 text-center font-bold text-red-600">${f.totalLosses}</td>
+                        <td class="p-2.5 text-center font-bold text-amber-600">${f.totalDraws}</td>
+                        <td class="p-2.5 text-center font-black ${f.monthMatchCount < 15 ? 'text-red-600 bg-red-50' : 'text-emerald-700'}">${f.monthMatchCount}</td>
                         <td class="p-2.5 text-center font-bold">${winRate}</td>
                         <td class="p-2.5 text-right font-semibold">${f.cappedBaseFee.toLocaleString()} đ</td>
-                        <td class="p-2.5 text-right font-bold text-amber-800">${f.specialBetFee.toLocaleString()} đ</td>
+                        <td class="p-2.5 text-right font-bold text-amber-800">${f.monthSpecialBetFee.toLocaleString()} đ</td>
                         <td class="p-2.5 text-right text-emerald-700 font-black">${(m.paidUser || 0).toLocaleString()} đ</td>
                         <td class="p-2.5 text-right font-bold ${m.noOld > 0 ? 'text-red-600' : 'text-slate-500'}">${(m.noOld || 0).toLocaleString()} đ</td>
                         <td class="p-2.5 text-right font-black text-emerald-800 text-sm bg-emerald-50">${f.totalPay.toLocaleString()} đ</td>
@@ -965,6 +1038,7 @@
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
                         <td class="p-3 text-center font-bold text-slate-500">${idx+1}</td>
+                        <td class="p-3 text-slate-600">${m.time || '-'}</td>
                         <td class="p-3 font-semibold text-slate-900">${m.p1_v1} & ${m.p2_v1}</td>
                         <td class="p-3 font-semibold text-slate-900">${m.p1_v2} & ${m.p2_v2}</td>
                         <td class="p-3 text-center font-black text-emerald-800 text-sm">${m.scoreA} - ${m.scoreB}</td>
@@ -986,6 +1060,9 @@
         function renderBookingLogs() {
             let tbody = document.getElementById('bookingLogTableBody');
             tbody.innerHTML = '';
+            let totalRewardSum = bookingLogs.reduce((sum, b) => sum + parseInt(b.reward || 0), 0);
+            document.getElementById('totalBookingRewardDisplay').innerText = totalRewardSum.toLocaleString('vi-VN') + " đ";
+
             bookingLogs.forEach((b, idx) => {
                 tbody.innerHTML += `
                     <tr class="border-b">
@@ -1141,6 +1218,7 @@
             document.getElementById('selectedCatTitle').innerText = "LỊCH SỬ DỮ LIỆU: " + cat;
             let tbody = document.getElementById('categoryLogBody');
             tbody.innerHTML = '';
+            let catTotal = 0;
 
             if (cat === 'Tiền quỹ QUÝ') {
                 members.forEach(m => {
@@ -1149,11 +1227,13 @@
                         Object.values(m.quyHistory).forEach(val => totalQuy += parseInt(val));
                     }
                     if (totalQuy > 0) {
+                        catTotal += totalQuy;
                         tbody.innerHTML += `<tr class="border-b"><td class="p-2">Tất cả các Quý</td><td class="p-2 font-bold">${m.name}</td><td class="p-2 text-right font-bold text-emerald-700">${totalQuy.toLocaleString()} đ</td><td class="p-2 text-center">-</td></tr>`;
                     }
                 });
             } else if (cat === 'Tiền góc thực thu') {
                 gocLogs.forEach(g => {
+                    catTotal += parseInt(g.amount || 0);
                     tbody.innerHTML += `
                         <tr class="border-b">
                             <td class="p-2">${g.time}</td>
@@ -1167,10 +1247,13 @@
                     `;
                 });
             } else {
-                cashbookLogs.filter(c => c.category === cat).forEach(c => {
+                let filtered = cashbookLogs.filter(c => c.category === cat);
+                filtered.forEach(c => {
+                    catTotal += parseInt(c.amount || 0);
                     tbody.innerHTML += `<tr class="border-b"><td class="p-2">${c.time}</td><td class="p-2 font-bold">${c.note}</td><td class="p-2 text-right font-bold">${parseInt(c.amount).toLocaleString()} đ</td><td class="p-2 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}"><button onclick="deleteCashbookLog(${c.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button></td></tr>`;
                 });
             }
+            document.getElementById('selectedCatTotal').innerText = catTotal.toLocaleString('vi-VN') + " đ";
             applyRolePermissions();
         }
 
@@ -1198,11 +1281,12 @@
             let tbody = document.getElementById('memberTableBody');
             tbody.innerHTML = '';
             members.forEach((m, idx) => {
+                let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800');
                 tbody.innerHTML += `
                     <tr class="border-b">
                         <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
                         <td class="p-3 font-bold text-slate-900">${m.name}</td>
-                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">${m.status}</span></td>
+                        <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
                         <td class="p-3 text-center font-extrabold text-amber-700 bg-amber-50">${m.base}</td>
                         <td class="p-3 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}"><button onclick="openEditMemberModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i> Sửa</button></td>
                     </tr>
@@ -1225,11 +1309,12 @@
             e.preventDefault();
             let name = document.getElementById('newMemName').value.trim();
             let base = parseFloat(document.getElementById('newMemBase').value) || 6.2;
+            let status = document.getElementById('newMemStatus').value;
 
             members.push({
                 stt: members.length + 1,
                 name: name,
-                status: "Đang tham gia",
+                status: status,
                 base: base,
                 quyHistory: {},
                 paidUser: 0,
@@ -1246,6 +1331,7 @@
             document.getElementById('editMemIdx').value = idx;
             document.getElementById('editMemName').value = m.name;
             document.getElementById('editMemBase').value = m.base;
+            document.getElementById('editMemStatus').value = m.status || 'Đang tham gia';
             document.getElementById('editMemberModal').classList.remove('hidden');
             document.getElementById('editMemberModal').classList.add('flex');
         }
@@ -1258,16 +1344,15 @@
         function saveMemberInfo(e) {
             e.preventDefault();
             let idx = parseInt(document.getElementById('editMemIdx').value);
-            let newName = document.getElementById('editMemName').value.trim();
-            let newBase = parseFloat(document.getElementById('editMemBase').value) || 6.2;
-
-            members[idx].name = newName;
-            members[idx].base = newBase;
+            members[idx].name = document.getElementById('editMemName').value.trim();
+            members[idx].base = parseFloat(document.getElementById('editMemBase').value) || 6.2;
+            members[idx].status = document.getElementById('editMemStatus').value;
 
             closeEditMemberModal();
             enqueueAction("updateMember", { members: members });
         }
 
+        // TỰ ĐỘNG RESET FORM SAU KHI LƯU TRẬN ĐẤU THÀNH CÔNG
         function addMatch(e) {
             e.preventDefault();
             let p1A = document.getElementById('matchP1A').value;
@@ -1278,8 +1363,21 @@
             let scoreB = parseInt(document.querySelector('input[name="scoreB"]:checked').value);
             let specialBet = parseInt(document.getElementById('specialBet').value);
 
-            let newMatch = { id: Date.now(), p1_v1: p1A, p2_v1: p2A, scoreA, scoreB, p1_v2: p1B, p2_v2: p2B, specialBet };
+            let newMatch = {
+                id: Date.now(),
+                time: new Date().toLocaleString('vi-VN'),
+                p1_v1: p1A, p2_v1: p2A, scoreA, scoreB,
+                p1_v2: p1B, p2_v2: p2B, specialBet
+            };
+
             enqueueAction("addMatch", { match: newMatch });
+
+            // Reset form input
+            document.getElementById('matchForm').reset();
+            // Đặt lại mặc định điểm 6-3 cho tiện nhập trận tiếp theo
+            document.querySelector('input[name="scoreA"][value="6"]').checked = true;
+            document.querySelector('input[name="scoreB"][value="3"]').checked = true;
+            document.getElementById('specialBet').value = "0";
         }
 
         function exportToExcel() {
