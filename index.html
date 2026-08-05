@@ -14,7 +14,10 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        /* Ghim cố định cột Tên thành viên và ô tiêu đề tương ứng */
         .sticky-col { position: sticky; left: 0; background-color: white; z-index: 10; }
+        thead th.sticky-col { z-index: 30; background-color: #f1f5f9; }
         thead th { position: sticky; top: 0; z-index: 20; background-color: #f1f5f9; }
     </style>
 </head>
@@ -110,7 +113,7 @@
                             <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl animate-bounce"></i>
                             <div>
                                 <h4 class="font-black text-sm uppercase">THÔNG BÁO NHẮC NỢ / QUỸ QUÝ</h4>
-                                <p id="quyWarningText" class="text-xs font-semibold text-amber-800">Thành viên này có khoản nợ hoặc chưa đóng quỹ quý. Vui lòng hoàn thành để đảm bảo sinh hoạt CLB!</p>
+                                <p id="quyWarningText" class="text-xs font-semibold text-amber-800">Thành viên này có khoản nợ cũ hoặc chưa đóng quỹ quý. Vui lòng hoàn thành để đảm bảo sinh hoạt CLB!</p>
                             </div>
                         </div>
                         <button onclick="switchTab('quy')" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow whitespace-nowrap">XEM NGAY</button>
@@ -369,18 +372,18 @@
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b text-[11px]">
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('stt')">STT</th>
-                                    <th class="p-2.5 sticky-col cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('name')">Tên Thành Viên</th>
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('wins')">Thắng</th>
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('losses')">Thua</th>
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('draws')">Hòa</th>
-                                    <th class="p-2.5 text-center bg-amber-50 cursor-pointer hover:bg-amber-100" onclick="sortFinanceTable('monthMatches')">Số Trận</th>
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('winRate')">Tỷ Lệ %</th>
-                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('baseFee')">Góc Cơ Bản</th>
-                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('specialFee')">Kèo Đặc Biệt</th>
-                                    <th class="p-2.5 text-right font-bold text-emerald-700 cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('paid')">Thực Đóng</th>
-                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('noOld')">Nợ Cũ</th>
-                                    <th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50 cursor-pointer hover:bg-emerald-100" onclick="sortFinanceTable('totalPay')">TỔNG CẦN ĐÓNG</th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('stt')">STT <span id="sort-icon-stt" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 sticky-col cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('name')">Tên Thành Viên <span id="sort-icon-name" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('wins')">Thắng <span id="sort-icon-wins" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('losses')">Thua <span id="sort-icon-losses" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('draws')">Hòa <span id="sort-icon-draws" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-center bg-amber-50 cursor-pointer hover:bg-amber-100 select-none" onclick="sortFinanceTable('monthMatches')">Số Trận <span id="sort-icon-monthMatches" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('winRate')">Tỷ Lệ % <span id="sort-icon-winRate" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('baseFee')">Góc Cơ Bản <span id="sort-icon-baseFee" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('specialFee')">Kèo Đặc Biệt <span id="sort-icon-specialFee" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-right font-bold text-emerald-700 cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('paid')">Thực Đóng <span id="sort-icon-paid" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('noOld')">Nợ Cũ <span id="sort-icon-noOld" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50 cursor-pointer hover:bg-emerald-100 select-none" onclick="sortFinanceTable('totalPay')">TỔNG CẦN ĐÓNG <span id="sort-icon-totalPay" class="text-emerald-700 font-black">↕</span></th>
                                     <th class="p-2.5 text-center">Thanh Toán</th>
                                 </tr>
                             </thead>
@@ -751,7 +754,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSOSXnbp7fvuopsFMn3ZsmAclwsYtT8H0xmrjMOzRxwYKD0P8SEuYXGEesxl6fpnBV3Q/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRb6UPvw4tK7MruCpmfGb0I5mTlJch_8eYmEtAMVBi9WkDdeQ76E1t_EcQ1N6bK22_Yw/exec";
 
         let currentUserRole = "member";
         let loggedInMemberName = "";
@@ -839,9 +842,8 @@
             let lastCheckDate = localStorage.getItem('clb_last_rollover_date') || "";
             let currentMonthKey = `${nowDate.getFullYear()}-${nowDate.getMonth() + 1}`;
             
-            // Nếu là ngày mùng 1 đầu tháng và tháng này chưa rollover
             if (nowDate.getDate() === 1 && lastCheckDate !== currentMonthKey) {
-                let prevMonth = nowDate.getMonth(); // tháng trước (0-11)
+                let prevMonth = nowDate.getMonth();
                 let prevYear = nowDate.getFullYear();
                 if (prevMonth === 0) { prevMonth = 12; prevYear--; }
 
@@ -1057,7 +1059,7 @@
             systemSettings.bankAccount = document.getElementById('stBankAccount').value.trim();
             systemSettings.accountName = document.getElementById('stAccountName').value.trim().toUpperCase();
 
-            enqueueAction("updateSettings", { settings: systemSettings }, "Đã lưu cài đặt hệ thống thành công!");
+            enqueueAction("updateSettings", { settings: systemSettings }, "Đã lưu cài đặt hệ thống lên Cloud thành công!");
         }
 
         function recalculateMemberPaidTotals() {
@@ -1110,7 +1112,6 @@
                 switchTab('matches');
                 document.getElementById('matchP1A').value = main;
             } else if (actType === "dat16") {
-                // Kiểm tra giới hạn số lần thưởng trong tháng
                 let curMonth = document.getElementById('selectFinanceMonth').value;
                 let curYear = document.getElementById('selectFinanceYear').value;
                 let userBookingsThisMonth = bookingLogs.filter(b => {
@@ -1183,7 +1184,6 @@
 
             let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0 };
             
-            // Trần góc cơ bản tối đa 150k, không tính tiền kèo đặc biệt vào trần
             let cappedBaseFee = Math.min(150000, monthRegularFee);
             let totalPay = cappedBaseFee + monthSpecialBetFee + (m.noOld || 0) - (m.paidUser || 0);
 
@@ -1214,13 +1214,14 @@
             let paidQuy = (m.quyHistory && m.quyHistory[key] !== undefined) ? parseInt(m.quyHistory[key]) : 0;
             let warningBanner = document.getElementById('quyWarningBanner');
 
-            let hasWarning = (m.status === 'Đang tham gia' && (paidQuy < systemSettings.quyAmount || f.totalPay > 0));
+            // Điều kiện nhắc nợ: Chỉ hiển thị khi Nợ cũ > 0 đ hoặc chưa đóng quỹ quý
+            let hasWarning = (m.status === 'Đang tham gia' && ((m.noOld || 0) > 0 || paidQuy < systemSettings.quyAmount));
             if (hasWarning) {
                 warningBanner.classList.remove('hidden');
                 warningBanner.classList.add('flex');
                 let warningMsg = [];
+                if ((m.noOld || 0) > 0) warningMsg.push(`có số tiền Nợ cũ là ${m.noOld.toLocaleString()} đ`);
                 if (paidQuy < systemSettings.quyAmount) warningMsg.push(`chưa đóng quỹ ${qSel}/${ySel} (${(systemSettings.quyAmount/1000)}k)`);
-                if (f.totalPay > 0) warningMsg.push(`có số tiền cần đóng là ${f.totalPay.toLocaleString()} đ`);
                 document.getElementById('quyWarningText').innerText = `${m.name} ơi, bạn ${warningMsg.join(' và ')}. Vui lòng hoàn thành để CLB hoạt động tốt nhất nhé!`;
             } else {
                 warningBanner.classList.add('hidden');
@@ -1351,6 +1352,17 @@
             let tbody = document.getElementById('financeTableBody');
             tbody.innerHTML = '';
             
+            // Reset tất cả icon sort về mặc định
+            ['stt', 'name', 'wins', 'losses', 'draws', 'monthMatches', 'winRate', 'baseFee', 'specialFee', 'paid', 'noOld', 'totalPay'].forEach(f => {
+                let iconEl = document.getElementById('sort-icon-' + f);
+                if (iconEl) iconEl.innerText = '↕';
+            });
+            // Gán icon cho cột đang sort
+            let activeIcon = document.getElementById('sort-icon-' + financeSortField);
+            if (activeIcon) {
+                activeIcon.innerText = financeSortAsc ? '▲' : '▼';
+            }
+
             let dataList = members.map((m, originalIdx) => {
                 let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
                 let winRateVal = f.totalMatchCount > 0 ? (f.totalWins / f.totalMatchCount) : 0;
@@ -1793,7 +1805,6 @@
                     </tr>
                 `;
             });
-            document.getElementById('memberCountHeader').innerText = members.length;
             applyRolePermissions();
         }
 
@@ -1801,7 +1812,6 @@
             let m = members[idx];
             if (confirm(`Bạn có chắc muốn xóa thành viên [${m.name}] khỏi danh sách?\n(Toàn bộ lịch sử trận đấu, nộp tiền góc và quỹ đã đóng trước đó của thành viên này vẫn được bảo lưu hoàn toàn không bị ảnh hưởng).`)) {
                 members.splice(idx, 1);
-                // Đánh số lại STT cho các thành viên còn lại
                 members.forEach((mem, i) => { mem.stt = i + 1; });
                 enqueueAction("updateMember", { members: members }, "Đã xóa thành viên thành công và bảo lưu dữ liệu lịch sử!");
             }
