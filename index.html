@@ -552,7 +552,7 @@
                 </div>
             </section>
 
-            <!-- TAB 9: THÀNH VIÊN (CÓ CỘT BỎ RULE 50K CHO ADMIN BẬT/TẮT) -->
+            <!-- TAB 9: THÀNH VIÊN -->
             <section id="tab-members" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
@@ -755,6 +755,47 @@
         let financeSortField = 'stt';
         let financeSortAsc = true;
 
+        // Danh sách dự phòng chuẩn 37 thành viên/khách mời để đảm bảo không bao giờ bị trống dữ liệu đăng nhập
+        const defaultFallbackMembers = [
+            { stt: 1, name: "Nguyễn Anh Thi 72", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong1", skip50k: false },
+            { stt: 2, name: "Nguyễn Văn Sao 88", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong2", skip50k: false },
+            { stt: 3, name: "Đỗ Quang Vinh Trọc 77", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong3", skip50k: false },
+            { stt: 4, name: "Phạm Quang Vinh Già 71", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong4", skip50k: false },
+            { stt: 5, name: "Trần Đại An 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong5", skip50k: true },
+            { stt: 6, name: "Dương Khắc Đông 98", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong6", skip50k: true },
+            { stt: 7, name: "Trần Quang Báo 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong7", skip50k: false },
+            { stt: 8, name: "Nguyễn Trọng Hùng Lớp 98", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong8", skip50k: false },
+            { stt: 9, name: "Thế Vinh 94", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong9", skip50k: false },
+            { stt: 10, name: "Nguyễn Tiến Tùng 83", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong10", skip50k: false },
+            { stt: 11, name: "Nguyễn Văn Long 84", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong11", skip50k: false },
+            { stt: 12, name: "Hoàng Long Trọc 80", status: "Đang tham gia", base: 6.25, role: "member", username: "Thanglong12", skip50k: false },
+            { stt: 13, name: "Hoàng Minh Hưng 78", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong13", skip50k: false },
+            { stt: 14, name: "Nguyễn Đức Sơn Nước 81", status: "Bận tạm nghỉ", base: 6.25, role: "member", username: "Thanglong14", skip50k: true },
+            { stt: 15, name: "Hoàng Văn Thái 94", status: "Đặc cách", base: 6.2, role: "admin", username: "Thanglong15", skip50k: false },
+            { stt: 16, name: "Hồ Tuấn Nha 80", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong16", skip50k: true },
+            { stt: 17, name: "Lê Việt Trung Bộ Đội 73", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong17", skip50k: false },
+            { stt: 18, name: "Vũ Văn Thanh 87", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong18", skip50k: true },
+            { stt: 19, name: "Nguyễn Trọng Quân Cận 94", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong19", skip50k: false },
+            { stt: 20, name: "Căn Ngọc Quân 92", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong20", skip50k: true },
+            { stt: 21, name: "Lê Thái 97", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong21", skip50k: false },
+            { stt: 22, name: "Phùng Mạnh Hùng IT 89", status: "Đang tham gia", base: 6.25, role: "member", username: "Thanglong22", skip50k: false },
+            { stt: 23, name: "Hồ Sỹ Hiệp 93", status: "Bận tạm nghỉ", base: 6.25, role: "member", username: "Thanglong23", skip50k: true },
+            { stt: 24, name: "Đỗ Văn Tường 90", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong24", skip50k: false },
+            { stt: 25, name: "Nguyễn Anh Tài 2k", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong25", skip50k: false },
+            { stt: 26, name: "Nguyễn Trường Sơn Dubai 81", status: "Đang tham gia", base: 6.4, role: "member", username: "Thanglong26", skip50k: false },
+            { stt: 27, name: "Nguyễn Thành Tiến 83", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong27", skip50k: false },
+            { stt: 28, name: "Lý Đức Thái Oto 72", status: "Bận tạm nghỉ", base: 6.2, role: "member", username: "Thanglong28", skip50k: false },
+            { stt: 29, name: "Phạm Quốc Việt 97", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong29", skip50k: false },
+            { stt: 30, name: "Hồng Thái Già 62", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong30", skip50k: true },
+            { stt: 31, name: "Đoàn Kiên 79", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong31", skip50k: false },
+            { stt: 32, name: "Hải Phạm 73", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong32", skip50k: false },
+            { stt: 33, name: "Anh Tú 78", status: "Đang tham gia", base: 6.4, role: "member", username: "Thanglong33", skip50k: false },
+            { stt: 34, name: "Anh Kết 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong34", skip50k: false },
+            { stt: 35, name: "Trần Quân 74", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong35", skip50k: false },
+            { stt: 36, name: "Khách mời", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong36", skip50k: true },
+            { stt: 37, name: "Khách mời 2", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong37", skip50k: true }
+        ];
+
         window.addEventListener('DOMContentLoaded', () => {
             let now = new Date();
             let curMonth = now.getMonth() + 1;
@@ -762,6 +803,16 @@
             
             if (document.getElementById('selectFinanceMonth')) document.getElementById('selectFinanceMonth').value = curMonth;
             if (document.getElementById('selectFinanceYear')) document.getElementById('selectFinanceYear').value = curYear;
+
+            // Load dữ liệu cũ ngay khi bật trang
+            loadLocalData();
+            if (members.length === 0) {
+                members = defaultFallbackMembers;
+            }
+            initApp();
+
+            // Tự động kéo dữ liệu ngầm từ Cloud về để cập nhật mới nhất
+            fetchCloudData(false);
         });
 
         function showToast(msg) {
@@ -843,13 +894,14 @@
             });
         }
 
-        // ĐĂNG NHẬP CHUẨN XÁC TÀI KHOẢN CÁ NHÂN (Thanglong1 đến Thanglong35) KHÔNG DÙNG TÀI KHOẢN CHUNG
+        // ĐĂNG NHẬP AN TOÀN ĐÃ FIX LỖI MÁY TRỐNG DỮ LIỆU
         function handleLogin(e) {
             e.preventDefault();
             let u = document.getElementById('loginUser').value.trim();
             let p = document.getElementById('loginPass').value.trim();
 
             loadLocalData();
+            if (members.length === 0) members = defaultFallbackMembers;
 
             let foundMem = members.find(m => m.username && m.username.toLowerCase() === u.toLowerCase());
 
@@ -884,7 +936,6 @@
             
             initApp();
             
-            // Khóa chặt tên ở ô chọn Dashboard đúng với tài khoản đăng nhập
             let dashSelect = document.getElementById('dashMainUser');
             if (dashSelect) {
                 dashSelect.value = loggedInMemberName;
@@ -918,6 +969,7 @@
         }
 
         function initApp() {
+            if (members.length === 0) members = defaultFallbackMembers;
             populateSelectors();
             recalculateMemberPaidTotals();
             renderDashboard();
