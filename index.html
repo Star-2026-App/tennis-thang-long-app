@@ -42,12 +42,10 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tài khoản (Username):</label>
                     <input type="text" id="loginUser" required placeholder="Ví dụ: Thanglong1 đến Thanglong35" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
-                    <p class="text-[10px] text-slate-500 mt-1">Gợi ý: Cú pháp tài khoản là <strong class="text-emerald-700">Thanglong</strong> + <strong class="text-emerald-700">STT</strong> (VD: Thanglong1, Thanglong2, Thanglong15)</p>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu (Password):</label>
                     <input type="password" id="loginPass" required placeholder="••••••••" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
-                    <p class="text-[10px] text-slate-500 mt-1">Mật khẩu: <span class="font-bold">123456</span> (Member) hoặc <span class="font-bold">admin</span> (Admin STT 1, 2, 15)</p>
                 </div>
                 <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition">
                     ĐĂNG NHẬP HỆ THỐNG
@@ -87,7 +85,7 @@
                     <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Ghi Nhận Trận Đấu</button>
                     <button onclick="switchTab('matchLog')" id="btn-matchLog" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Nhật Ký Trận Đấu</button>
                     <button onclick="switchTab('gocLogs')" id="btn-gocLogs" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-receipt"></i> Nhật Ký Nộp Tiền</button>
-                    <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Tiền Góc & Phạt</button>
+                    <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Tiền Góc</button>
                     <button onclick="switchTab('booking')" id="btn-booking" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-calendar-check"></i> Thưởng Đặt Sân</button>
                     <button onclick="switchTab('quy')" id="btn-quy" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Đóng Quỹ Quý</button>
                     <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu - Chi</button>
@@ -344,7 +342,7 @@
                 </div>
             </section>
 
-            <!-- TAB 5: TIỀN GÓC & PHẠT -->
+            <!-- TAB 5: TIỀN GÓC -->
             <section id="tab-finance" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-4">
@@ -739,7 +737,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdI7Gz74CPkJyiY9ISwjkXuBVGg_PMz7iIgOfQbCFVFKVr-GcKpTQdI7mhATug0_xgyg/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQmeFtqkIiBtN1X4SZpTqqcwGTWBTe1aNrMMo03AiVhr5H5DDXGzszre_3H0QQK9aQ7w/exec";
 
         let currentUserRole = "member";
         let loggedInMemberName = "";
@@ -845,7 +843,7 @@
             });
         }
 
-        // ĐĂNG NHẬP CHUẨN XÁC TÀI KHOẢN CÁ NHÂN (Thanglong1 đến Thanglong35) ĐÃ KHẮC PHỤC LỖI TRÔI VỀ THI 72
+        // ĐĂNG NHẬP CHUẨN XÁC TÀI KHOẢN CÁ NHÂN (Thanglong1 đến Thanglong35) KHÔNG DÙNG TÀI KHOẢN CHUNG
         function handleLogin(e) {
             e.preventDefault();
             let u = document.getElementById('loginUser').value.trim();
@@ -863,27 +861,21 @@
                 }
             }
 
-            if (foundMem) {
-                let isSystemAdmin = (foundMem.role === 'admin' || foundMem.stt === 1 || foundMem.stt === 2 || foundMem.stt === 15);
-                let requiredPass = isSystemAdmin ? 'admin' : '123456';
-
-                if (p !== requiredPass && p !== 'admin' && p !== '123456') {
-                    alert("Mật khẩu không chính xác! Mật khẩu mặc định member là 123456, admin là admin.");
-                    return;
-                }
-
-                currentUserRole = isSystemAdmin ? "admin" : "member";
-                loggedInMemberName = foundMem.name;
-            } else if ((u === "admin1" || u === "admin2" || u === "admin") && p === "admin") {
-                currentUserRole = "admin";
-                loggedInMemberName = members.length > 0 ? members[0].name : "Admin";
-            } else if (u === "member" && p === "123456") {
-                currentUserRole = "member";
-                loggedInMemberName = members.length > 0 ? members[0].name : "Thành Viên";
-            } else {
-                alert("Tài khoản không tồn tại trên hệ thống! Vui lòng thử nhập Thanglong1, Thanglong2,...");
+            if (!foundMem) {
+                alert("Tài khoản không tồn tại trên hệ thống! Vui lòng nhập đúng cú pháp Thanglong1, Thanglong2,...");
                 return;
             }
+
+            let isSystemAdmin = (foundMem.role === 'admin' || foundMem.stt === 1 || foundMem.stt === 2 || foundMem.stt === 15);
+            let requiredPass = isSystemAdmin ? 'admin' : '123456';
+
+            if (p !== requiredPass) {
+                alert("Mật khẩu không chính xác!");
+                return;
+            }
+
+            currentUserRole = isSystemAdmin ? "admin" : "member";
+            loggedInMemberName = foundMem.name;
 
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
@@ -892,7 +884,7 @@
             
             initApp();
             
-            // Khóa chặt tên ở ô chọn Dashboard đúng với tài khoản đăng nhập (kể cả admin Thanglong2 hoặc Thanglong15)
+            // Khóa chặt tên ở ô chọn Dashboard đúng với tài khoản đăng nhập
             let dashSelect = document.getElementById('dashMainUser');
             if (dashSelect) {
                 dashSelect.value = loggedInMemberName;
@@ -900,7 +892,7 @@
                     dashSelect.disabled = true;
                     dashSelect.title = "Tài khoản cá nhân tự động khóa theo tên của bạn để đảm bảo không bị ghi nhận nhầm!";
                 } else {
-                    dashSelect.disabled = false; // Admin có quyền xem Dashboard của người khác
+                    dashSelect.disabled = false;
                 }
             }
 
@@ -966,7 +958,6 @@
                 if (currentVal) sel.value = currentVal;
             });
 
-            // Gán giá trị đúng với tài khoản đang đăng nhập
             if (loggedInMemberName) {
                 let dashSelect = document.getElementById('dashMainUser');
                 if (dashSelect) {
@@ -1003,7 +994,6 @@
             }
         }
 
-        // CÔNG THỨC TÍNH TIỀN GÓC ĐÃ CẬP NHẬT KIỂM TRA RULE BỎ PHẠT 50K
         function calculateUserFinanceForMonth(memberName, targetMonth, targetYear) {
             let totalWins = 0, totalLosses = 0, totalDraws = 0, totalMatchCount = 0;
             let monthMatchCount = 0, monthRegularFee = 0, monthSpecialBetFee = 0;
@@ -1042,7 +1032,6 @@
 
             let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0, skip50k: false };
             
-            // Nếu thành viên được bật "Bỏ Rule 50k", sẽ không tính phạt 50k dù số trận < 15
             let penalty50 = (!m.skip50k && monthMatchCount < 15) ? 50000 : 0;
             let cappedBaseFee = Math.min(150000, monthRegularFee + penalty50);
 
@@ -1619,7 +1608,6 @@
             selectCategory('Tiền góc thực thu');
         }
 
-        // BẢNG THÀNH VIÊN CÓ CỘT BỎ RULE 50K VÀ NÚT ĐỔI QUYỀN ADMIN CHO CÁC VỊ TRÍ
         function renderMemberList() {
             let tbody = document.getElementById('memberTableBody');
             tbody.innerHTML = '';
@@ -1658,7 +1646,7 @@
         function toggleSkip50k(idx, isChecked) {
             if (currentUserRole !== 'admin') {
                 alert("Chỉ tài khoản Admin mới có quyền thay đổi thiết lập này!");
-                renderMemberList(); // reset lại giao diện nếu member lỡ bấm
+                renderMemberList();
                 return;
             }
             members[idx].skip50k = isChecked;
@@ -1803,7 +1791,6 @@
             }
         }
 
-        // ĐỔI TIÊU ĐỀ THÀNH "CÁC SÂN NGÀY HÔM NAY" ĐÚNG THEO YÊU CẦU
         function openNotificationModal() {
             let yDate = getYesterdayDateObj();
             let yDay = yDate.getDate();
