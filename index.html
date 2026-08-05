@@ -30,12 +30,12 @@
             <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-3xl font-extrabold mx-auto shadow">🎾</div>
             <div>
                 <h1 class="text-xl font-black text-slate-800 uppercase">CLB TENNIS THĂNG LONG</h1>
-                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Tra Cứu Tự Động</p>
+                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Tra Cứu Tự Động (Lưu trữ 10 năm)</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tài khoản (Username):</label>
-                    <input type="text" id="loginUser" required placeholder="Nhập tên tài khoản" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <input type="text" id="loginUser" required value="member" placeholder="member hoặc admin" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu (Password):</label>
@@ -52,7 +52,7 @@
     <div id="appScreen" class="hidden flex-col min-h-screen">
         <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-                <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-3 cursor-pointer select-none" onclick="switchTab('dashboard')">
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-emerald-800 font-bold text-xl shadow">🎾</div>
                     <div>
                         <h1 class="font-bold text-lg md:text-xl leading-tight uppercase">CLB TENNIS THĂNG LONG - SMARTCITY</h1>
@@ -60,6 +60,12 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
+                    <!-- ICON THÔNG BÁO LỊCH SÂN HÔM TRƯỚC -->
+                    <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Lịch sân ngày hôm qua">
+                        <i class="fa-solid fa-bell text-base"></i>
+                        <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full hidden">0</span>
+                    </button>
+
                     <button onclick="fetchCloudData(true)" class="text-xs bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-full font-bold shadow flex items-center gap-1"><i class="fa-solid fa-rotate"></i> Làm mới</button>
                     <span id="roleBadge" class="text-xs md:text-sm font-semibold bg-emerald-700 px-3 py-1.5 rounded-full border border-emerald-600 flex items-center gap-2">
                         <i class="fa-solid fa-user-shield text-amber-300"></i> <span id="currentRoleText">Admin</span>
@@ -86,6 +92,18 @@
             <!-- TAB 1: DASHBOARD -->
             <section id="tab-dashboard" class="tab-content active space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <!-- THÔNG BÁO NHẮC ĐÓNG QUÝ (Ở GIỮA) -->
+                    <div id="quyWarningBanner" class="hidden mb-6 bg-amber-50 border-2 border-amber-300 text-amber-900 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl animate-bounce"></i>
+                            <div>
+                                <h4 class="font-black text-sm uppercase">THÔNG BÁO NHẮC ĐÓNG TIỀN QUỸ QUÝ</h4>
+                                <p id="quyWarningText" class="text-xs font-semibold text-amber-800">Thành viên này chưa đóng quỹ quý hiện tại. Vui lòng hoàn thành để đảm bảo quyền lợi sinh hoạt CLB!</p>
+                            </div>
+                        </div>
+                        <button onclick="switchTab('quy')" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow whitespace-nowrap">ĐÓNG QUỸ NGAY</button>
+                    </div>
+
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-user-circle text-emerald-600"></i> TRA CỨU CHỈ SỐ CÁ NHÂN REALTIME</h2>
@@ -127,16 +145,19 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-emerald-50/60 p-5 rounded-2xl border border-emerald-200 mb-6">
+                    <!-- THÔNG TIN TÀI CHÍNH & VIETQR TÍCH HỢP -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-emerald-50/60 p-5 rounded-2xl border border-emerald-200 mb-6 items-center">
                         <div>
                             <span class="text-xs font-bold text-slate-600 uppercase">THƯỞNG ĐẶT SÂN TÍCH LŨY:</span>
                             <div id="statReward" class="text-xl font-black text-emerald-700 mt-1">0 đ</div>
+                            <div class="mt-3">
+                                <span class="text-xs font-bold text-slate-600 uppercase">TỔNG CẦN ĐÓNG (REALTIME):</span>
+                                <div id="statDebt" class="text-xl font-black text-red-600 mt-1">0 đ</div>
+                            </div>
                         </div>
-                        <div>
-                            <span class="text-xs font-bold text-slate-600 uppercase">TỔNG CẦN ĐÓNG (REALTIME):</span>
-                            <div id="statDebt" class="text-xl font-black text-red-600 mt-1">0 đ</div>
-                        </div>
-                        <div class="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm">
+
+                        <!-- KHUNG NHẬP TIỀN GÓC ĐÃ NỘP -->
+                        <div class="bg-white p-4 rounded-xl border border-emerald-300 shadow-sm">
                             <label class="block text-xs font-extrabold text-emerald-900 uppercase mb-1">Tự nhập tiền GÓC đã chuyển khoản:</label>
                             <div class="flex gap-2">
                                 <input type="number" id="userPaidInput" placeholder="Số tiền vừa chuyển" class="w-full border rounded-lg p-1.5 text-sm font-bold text-slate-900">
@@ -144,11 +165,18 @@
                             </div>
                             <p class="text-[10px] text-slate-500 mt-1">Tổng đã nộp dồn: <span id="statPaidDisplay" class="font-bold text-emerald-700">0 đ</span></p>
                         </div>
+
+                        <!-- VIETQR TĨNH TÀI KHOẢN NGUYỄN ANH THI (KHÔNG CỐ ĐỊNH SỐ TIỀN) -->
+                        <div class="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm flex flex-col items-center text-center">
+                            <span class="text-[10px] font-extrabold text-emerald-900 uppercase mb-1">QUÉT MÃ QR CHUYỂN KHOẢN (TRỪ DẦN)</span>
+                            <img src="https://img.vietqr.io/image/TCB-19726868686868-compact2.png?accountName=NGUYEN%20ANH%20THI" alt="VietQR Nguyen Anh Thi" class="w-28 h-28 object-contain rounded border">
+                            <p class="text-[10px] text-slate-600 font-bold mt-1">Techcombank: <span class="text-red-600">19726868686868</span> (NGUYEN ANH THI)</p>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="bg-slate-50 p-4 rounded-xl border">
-                            <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU CÁ NHÂN</h3>
+                            <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU (THÁNG NÀY)</h3>
                             <div class="overflow-x-auto max-h-56">
                                 <table class="w-full text-left text-[11px] border-collapse">
                                     <thead><tr class="bg-slate-200 text-slate-700"><th class="p-2">Trận</th><th class="p-2">Đồng Đội</th><th class="p-2">Đối Thủ</th><th class="p-2 text-center">Tỉ Số</th><th class="p-2 text-right">Kèo Góc</th></tr></thead>
@@ -158,7 +186,7 @@
                         </div>
 
                         <div class="bg-slate-50 p-4 rounded-xl border">
-                            <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-gift text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN CÁ NHÂN</h3>
+                            <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-gift text-emerald-600"></i> NHẬT KÝ THƯỞNG SÂN (THÁNG NÀY)</h3>
                             <div class="overflow-x-auto max-h-56">
                                 <table class="w-full text-left text-[11px] border-collapse">
                                     <thead><tr class="bg-slate-200 text-slate-700"><th class="p-2">Thời Gian</th><th class="p-2 text-center">Khung Giờ</th><th class="p-2 text-right">Số Tiền</th></tr></thead>
@@ -168,13 +196,13 @@
                         </div>
 
                         <div class="bg-slate-50 p-4 rounded-xl border">
-                            <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> NHẬT KÝ ĐÓNG TIỀN GÓC CỦA CẦU THỦ</h3>
+                            <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> NHẬT KÝ NỘP TIỀN GÓC (TOÀN BỘ)</h3>
                             <div class="overflow-x-auto max-h-56">
                                 <table class="w-full text-left text-[11px] border-collapse">
                                     <thead>
                                         <tr class="bg-slate-200 text-slate-700">
                                             <th class="p-2">Thời Gian</th>
-                                            <th class="p-2 text-right">Số Tiền Nộp</th>
+                                            <th class="p-2 text-right">Số Tiền</th>
                                             <th class="p-2">Ghi Chú</th>
                                         </tr>
                                     </thead>
@@ -186,55 +214,62 @@
                 </div>
             </section>
 
-            <!-- TAB 2: GHI NHẬN TRẬN ĐẤU -->
+            <!-- TAB 2: GHI NHẬN TRẬN ĐẤU (GIAO DIỆN MỚI 2 CỘT ĐỐI XỨNG CHỐNG NHẦM LẪN) -->
             <section id="tab-matches" class="tab-content space-y-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 max-w-3xl mx-auto">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
                     <h2 class="text-xl font-bold text-slate-800 mb-4 pb-3 border-b flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-emerald-600"></i> GHI KẾT QUẢ TRẬN ĐẤU MỚI</h2>
                     <form id="matchForm" onsubmit="addMatch(event)" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3">
-                                <h3 class="font-bold text-emerald-800 text-sm uppercase">VẾ A (ĐỘI 1)</h3>
-                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ A1:</label><select id="matchP1A" required class="w-full bg-white border rounded-lg p-2 text-sm font-semibold"></select></div>
-                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ A2:</label><select id="matchP2A" required class="w-full bg-white border rounded-lg p-2 text-sm font-semibold"></select></div>
-                            </div>
-                            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3">
-                                <h3 class="font-bold text-blue-800 text-sm uppercase">VẾ B (ĐỘI 2)</h3>
-                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ B1:</label><select id="matchP1B" required class="w-full bg-white border rounded-lg p-2 text-sm font-semibold"></select></div>
-                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ B2:</label><select id="matchP2B" required class="w-full bg-white border rounded-lg p-2 text-sm font-semibold"></select></div>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-50 p-4 rounded-xl border space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-2">ĐIỂM VẾ A (ĐỘI 1) *</label>
-                                <div class="flex justify-between max-w-md mx-auto">
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">0</span><input type="radio" name="scoreA" value="0" class="w-5 h-5 text-emerald-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">1</span><input type="radio" name="scoreA" value="1" class="w-5 h-5 text-emerald-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">2</span><input type="radio" name="scoreA" value="2" class="w-5 h-5 text-emerald-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">3</span><input type="radio" name="scoreA" value="3" class="w-5 h-5 text-emerald-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">4</span><input type="radio" name="scoreA" value="4" class="w-5 h-5 text-emerald-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">5</span><input type="radio" name="scoreA" value="5" class="w-5 h-5 text-emerald-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">6</span><input type="radio" name="scoreA" value="6" class="w-5 h-5 text-emerald-600"></label>
+                            <!-- VẾ A -->
+                            <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-200 space-y-4">
+                                <h3 class="font-bold text-emerald-800 text-sm uppercase flex items-center justify-between">
+                                    <span>VẾ A (ĐỘI 1)</span>
+                                    <span class="text-xs bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded font-extrabold">Đội Nhà</span>
+                                </h3>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ A1:</label><select id="matchP1A" required class="w-full bg-white border rounded-lg p-2.5 text-sm font-semibold"></select></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ A2:</label><select id="matchP2A" required class="w-full bg-white border rounded-lg p-2.5 text-sm font-semibold"></select></div>
+                                
+                                <div class="pt-2 border-t border-emerald-200">
+                                    <label class="block text-xs font-black text-emerald-900 uppercase mb-2">ĐIỂM VẾ A (ĐỘI 1) *</label>
+                                    <div class="flex justify-between bg-white p-3 rounded-xl border border-emerald-300">
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">0</span><input type="radio" name="scoreA" value="0" class="w-4 h-4 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">1</span><input type="radio" name="scoreA" value="1" class="w-4 h-4 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">2</span><input type="radio" name="scoreA" value="2" class="w-4 h-4 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">3</span><input type="radio" name="scoreA" value="3" class="w-4 h-4 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">4</span><input type="radio" name="scoreA" value="4" class="w-4 h-4 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">5</span><input type="radio" name="scoreA" value="5" class="w-4 h-4 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">6</span><input type="radio" name="scoreA" value="6" class="w-4 h-4 text-emerald-600"></label>
+                                    </div>
                                 </div>
                             </div>
-                            <hr>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-2">ĐIỂM VẾ B (ĐỘI 2) *</label>
-                                <div class="flex justify-between max-w-md mx-auto">
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">0</span><input type="radio" name="scoreB" value="0" class="w-5 h-5 text-blue-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">1</span><input type="radio" name="scoreB" value="1" class="w-5 h-5 text-blue-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">2</span><input type="radio" name="scoreB" value="2" class="w-5 h-5 text-blue-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">3</span><input type="radio" name="scoreB" value="3" class="w-5 h-5 text-blue-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">4</span><input type="radio" name="scoreB" value="4" class="w-5 h-5 text-blue-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">5</span><input type="radio" name="scoreB" value="5" class="w-5 h-5 text-blue-600"></label>
-                                    <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">6</span><input type="radio" name="scoreB" value="6" class="w-5 h-5 text-blue-600"></label>
+
+                            <!-- VẾ B -->
+                            <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-200 space-y-4">
+                                <h3 class="font-bold text-blue-800 text-sm uppercase flex items-center justify-between">
+                                    <span>VẾ B (ĐỘI 2)</span>
+                                    <span class="text-xs bg-blue-200 text-blue-900 px-2 py-0.5 rounded font-extrabold">Đội Khách</span>
+                                </h3>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ B1:</label><select id="matchP1B" required class="w-full bg-white border rounded-lg p-2.5 text-sm font-semibold"></select></div>
+                                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Cầu thủ B2:</label><select id="matchP2B" required class="w-full bg-white border rounded-lg p-2.5 text-sm font-semibold"></select></div>
+                                
+                                <div class="pt-2 border-t border-blue-200">
+                                    <label class="block text-xs font-black text-blue-900 uppercase mb-2">ĐIỂM VẾ B (ĐỘI 2) *</label>
+                                    <div class="flex justify-between bg-white p-3 rounded-xl border border-blue-300">
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">0</span><input type="radio" name="scoreB" value="0" class="w-4 h-4 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">1</span><input type="radio" name="scoreB" value="1" class="w-4 h-4 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">2</span><input type="radio" name="scoreB" value="2" class="w-4 h-4 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">3</span><input type="radio" name="scoreB" value="3" class="w-4 h-4 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">4</span><input type="radio" name="scoreB" value="4" class="w-4 h-4 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">5</span><input type="radio" name="scoreB" value="5" class="w-4 h-4 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-1 cursor-pointer"><span class="text-xs font-bold">6</span><input type="radio" name="scoreB" value="6" class="w-4 h-4 text-blue-600"></label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
                             <label class="block text-xs font-extrabold text-amber-900 uppercase mb-1">KÈO GÓC ĐẶC BIỆT (Không khống chế trần):</label>
-                            <select id="specialBet" class="w-full bg-white border border-amber-300 rounded-lg p-2 text-sm font-bold text-amber-900">
+                            <select id="specialBet" class="w-full bg-white border border-amber-300 rounded-lg p-2.5 text-sm font-bold text-amber-900">
                                 <option value="0">Không có kèo đặc biệt (Thường: 10k/trận)</option>
                                 <option value="50000">Kèo đặc biệt 50.000 đ</option>
                                 <option value="100000">Kèo đặc biệt 100.000 đ</option>
@@ -244,19 +279,19 @@
                             </select>
                         </div>
 
-                        <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow transition">LƯU KẾT QUẢ TRẬN ĐẤU</button>
+                        <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition">LƯU KẾT QUẢ TRẬN ĐẤU</button>
                     </form>
                 </div>
             </section>
 
-            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU -->
+            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU (MỚI NHẤT LÊN TRÊN + NÚT SỬA TRẬN ĐẤU CHO ADMIN) -->
             <section id="tab-matchLog" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                    <h2 class="text-xl font-bold text-slate-800 mb-4">NHẬT KÝ TẤT CẢ CÁC TRẬN ĐẤU ĐÃ LƯU</h2>
+                    <h2 class="text-xl font-bold text-slate-800 mb-4">NHẬT KÝ TẤT CẢ CÁC TRẬN ĐẤU (MỚI NHẤT Ở TRÊN)</h2>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-3 text-center">STT</th><th class="p-3">Thời Gian</th><th class="p-3">Đội A</th><th class="p-3">Đội B</th><th class="p-3 text-center">Tỉ Số</th><th class="p-3 text-right">Kèo Đặc Biệt</th><th class="p-3 text-center admin-only">Sửa/Xóa Admin</th></tr>
+                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-3 text-center">STT</th><th class="p-3">Thời Gian</th><th class="p-3">Đội A</th><th class="p-3">Đội B</th><th class="p-3 text-center">Tỉ Số</th><th class="p-3 text-right">Kèo Đặc Biệt</th><th class="p-3 text-center admin-only">Sửa / Xóa</th></tr>
                             </thead>
                             <tbody id="allMatchTableBody" class="divide-y divide-slate-200"></tbody>
                         </table>
@@ -270,7 +305,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800 uppercase flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i> NHẬT KÝ NỘP TIỀN GÓC CỦA THÀNH VIÊN</h2>
-                            <p class="text-xs text-slate-500">Toàn bộ lịch sử nộp tiền chuyển khoản đều được tự động cộng dồn và lưu vết cụ thể</p>
+                            <p class="text-xs text-slate-500">Mới nhất hiển thị ở trên cùng</p>
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-300 text-right">
@@ -304,13 +339,13 @@
                 </div>
             </section>
 
-            <!-- TAB 4: TIỀN GÓC & PHẠT -->
+            <!-- TAB 4: TIỀN GÓC & PHẠT (CÓ SẮP XẾP CỘT GIỐNG EXCEL) -->
             <section id="tab-finance" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THEO THÁNG</h2>
-                            <p class="text-xs text-slate-500">Click vào tiêu đề cột để sắp xếp (vinh danh, lọc dữ liệu như Excel). Phạt 50k nếu < 15 trận/tháng.</p>
+                            <p class="text-xs text-slate-500">Click vào tiêu đề cột để sắp xếp tăng/giảm (như Excel) phục vụ vinh danh cuối tháng.</p>
                         </div>
                         <div class="flex gap-2 items-center">
                             <label class="text-xs font-bold text-slate-700 uppercase">THỜI GIAN:</label>
@@ -368,11 +403,14 @@
                 </div>
             </section>
 
-            <!-- TAB 5: THƯỞNG ĐẶT SÂN -->
+            <!-- TAB 5: THƯỞNG ĐẶT SÂN (CHỈ LỌC THÁNG HIỆN TẠI) -->
             <section id="tab-booking" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-4 pb-3 border-b">
-                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN</h2>
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN (THÁNG NÀY)</h2>
+                            <p class="text-xs text-slate-500">Hiển thị lịch sử thưởng đặt sân trong tháng hiện tại</p>
+                        </div>
                         <div class="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-300 text-right">
                             <span class="text-[10px] font-bold text-emerald-800 block uppercase">Tổng tiền thưởng đặt sân:</span>
                             <div id="totalBookingRewardDisplay" class="text-base font-black text-emerald-700">0 đ</div>
@@ -395,7 +433,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800 uppercase">CÂU LẠC BỘ TENNIS THĂNG LONG - ĐÓNG QUỸ QUÝ (600k/QUÝ)</h2>
-                            <p class="text-xs text-slate-500">Tự động mở rộng xem và quản lý quỹ cho mọi Quý/Năm tương lai (Hỗ trợ tới năm 2036)</p>
+                            <p class="text-xs text-slate-500">Hỗ trợ quản lý và đóng quỹ qua các năm (từ 2026 đến 2036)</p>
                         </div>
                         <div class="flex gap-2">
                             <select id="selectQuy" onchange="renderQuyTable()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
@@ -444,12 +482,12 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">SỔ THU - CHI CLB TENNIS THĂNG LONG</h2>
-                            <p class="text-xs text-slate-500">Tự động kết nối tiền Quỹ, Tiền Góc và Cập nhật dư quỹ Realtime</p>
+                            <p class="text-xs text-slate-500">Đồng bộ số dư quỹ đầu kỳ từ Google Sheet (Settings)</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-300 text-right text-xs admin-only">
-                                <span class="font-bold text-amber-900 block">CÀI SỐ DƯ QUỸ ĐẦU KỲ:</span>
-                                <input type="number" id="openingBalanceInput" onchange="updateOpeningBalance()" value="18706160" class="w-32 border rounded p-1 font-extrabold text-slate-900 text-right"> đ
+                            <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-300 text-right text-xs">
+                                <span class="font-bold text-amber-900 block">SỐ DƯ ĐẦU KỲ (GOOGLE SHEET):</span>
+                                <span id="openingBalanceDisplay" class="font-black text-slate-900 text-sm">2.656.160 đ</span>
                             </div>
                             <div class="bg-purple-100 text-purple-900 px-5 py-2.5 rounded-xl border border-purple-200 text-center">
                                 <span class="text-[10px] font-bold uppercase block">DƯ QUỸ HIỆN TẠI</span>
@@ -511,7 +549,7 @@
                 </div>
             </section>
 
-            <!-- TAB 8: THÀNH VIÊN -->
+            <!-- TAB 8: THÀNH VIÊN (TRẠNG THÁI: ĐANG THAM GIA, BẬN TẠM NGHỈ, ĐẶC CÁCH) -->
             <section id="tab-members" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
@@ -537,6 +575,48 @@
             </section>
 
         </main>
+    </div>
+
+    <!-- MODAL POPUP THÔNG BÁO LỊCH SÂN NGÀY HÔM TRƯỚC -->
+    <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeNotificationModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div class="flex items-center gap-2 border-b pb-3 text-emerald-800">
+                <i class="fa-solid fa-bullhorn text-xl"></i>
+                <h3 class="font-bold text-base uppercase">THÔNG BÁO LỊCH SÂN HÔM QUA (<span id="yesterdayDateLabel"></span>)</h3>
+            </div>
+            <div id="yesterdayBookingList" class="space-y-2 max-h-72 overflow-y-auto">
+                <!-- Danh sách sân ngày hôm trước -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SỬA TRẬN ĐẤU (DÀNH CHO ADMIN) -->
+    <div id="editMatchModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeEditMatchModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="font-bold text-slate-800 text-base border-b pb-2 uppercase text-emerald-800">SỬA KẾT QUẢ TRẬN ĐẤU</h3>
+            <form onsubmit="saveMatchEdit(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="emMatchId">
+                <div><label class="block mb-1 font-bold">Thông tin trận đấu:</label><input type="text" id="emMatchInfo" disabled class="w-full p-2.5 border rounded-lg font-bold bg-slate-100 text-slate-800"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block mb-1">Điểm Đội A:</label><input type="number" min="0" max="6" id="emScoreA" required class="w-full p-2.5 border rounded-lg font-bold text-emerald-800"></div>
+                    <div><label class="block mb-1">Điểm Đội B:</label><input type="number" min="0" max="6" id="emScoreB" required class="w-full p-2.5 border rounded-lg font-bold text-blue-800"></div>
+                </div>
+                <div>
+                    <label class="block mb-1">Kèo Đặc Biệt:</label>
+                    <select id="emSpecialBet" class="w-full p-2.5 border rounded-lg font-bold text-amber-900">
+                        <option value="0">Không có kèo đặc biệt (Thường: 10k)</option>
+                        <option value="50000">Kèo đặc biệt 50.000 đ</option>
+                        <option value="100000">Kèo đặc biệt 100.000 đ</option>
+                        <option value="200000">Kèo đặc biệt 200.000 đ</option>
+                        <option value="500000">Kèo đặc biệt 500.000 đ</option>
+                        <option value="1000000">Kèo đặc biệt 1.000.000 đ</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU CẬP NHẬT TRẬN ĐẤU</button>
+            </form>
+        </div>
     </div>
 
     <!-- MODAL EDIT TIỀN GÓC NỘP -->
@@ -582,7 +662,7 @@
                     <select id="newMemStatus" class="w-full p-2.5 border rounded-lg font-bold text-slate-800">
                         <option value="Đang tham gia" selected>Đang tham gia</option>
                         <option value="Bận tạm nghỉ">Bận tạm nghỉ</option>
-                        <option value="Nghỉ">Nghỉ</option>
+                        <option value="Đặc cách">Đặc cách</option>
                     </select>
                 </div>
                 <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">+ LƯU VÀO DANH SÁCH</button>
@@ -604,7 +684,7 @@
                     <select id="editMemStatus" class="w-full p-2.5 border rounded-lg font-bold text-slate-800">
                         <option value="Đang tham gia">Đang tham gia</option>
                         <option value="Bận tạm nghỉ">Bận tạm nghỉ</option>
-                        <option value="Nghỉ">Nghỉ</option>
+                        <option value="Đặc cách">Đặc cách</option>
                     </select>
                 </div>
                 <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU THAY ĐỔI</button>
@@ -616,7 +696,7 @@
     <div id="editFinanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
             <button onclick="closeEditFinanceModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <h3 class="font-bold text-slate-800 text-base border-b pb-2 uppercase text-emerald-800">SỬA SỐ LIỆU ĐỒNG BỘ NỢ CŨ & THỰC ĐÓNG</h3>
+            <h3 class="font-bold text-slate-800 text-base border-b pb-2 uppercase text-emerald-800">SỬA SỐ LIỆU ĐỒNG BỘ NỢ CŨ</h3>
             <form onsubmit="saveFinanceData(event)" class="space-y-3 text-xs font-semibold text-slate-600">
                 <input type="hidden" id="efMemberIdx">
                 <div><label class="block mb-1">Thành viên:</label><input type="text" id="efMemberName" disabled class="w-full p-2.5 border rounded-lg font-bold bg-slate-100"></div>
@@ -626,27 +706,11 @@
         </div>
     </div>
 
-    <!-- MODAL VIETQR TECHCOMBANK -->
-    <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
-            <button onclick="closeQRModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <h3 class="font-bold text-slate-800 text-base">THANH TOÁN TIỀN GÓC / QUỸ CLB</h3>
-            <div class="bg-slate-50 p-3 rounded-xl border flex justify-center">
-                <img id="qrImage" src="" alt="VietQR" class="w-64 h-64 object-contain">
-            </div>
-            <div class="text-xs text-slate-600 space-y-1">
-                <p>Chủ TK: <strong class="text-slate-900">NGUYEN ANH THI</strong></p>
-                <p>Số TK: <strong class="text-red-600 text-sm font-extrabold">1972 6868 6868 68</strong> (Techcombank)</p>
-                <p>Số tiền: <strong id="qrAmountDisplay" class="text-emerald-700 font-bold text-sm">0 đ</strong></p>
-            </div>
-        </div>
-    </div>
-
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDpfeqtQrpIFcp8mVrR_y69obeIrXVUin0-8eNjQqhXgWnM0XeRTQHudOc8umF6bikmA/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxieNG88LbNNmVkGHs9D27OpcZB1OfUGnmLLt3XT3JKXxyJZjr70EG9_pI0g6AiVXQHSw/exec";
 
         let currentUserRole = "member";
-        let openingBalance = 18706160;
+        let openingBalance = 2656160;
 
         let members = [];
         let matches = [];
@@ -692,6 +756,7 @@
             localStorage.setItem('clb_bookingLogs', JSON.stringify(bookingLogs));
             localStorage.setItem('clb_cashbookLogs', JSON.stringify(cashbookLogs));
             localStorage.setItem('clb_gocLogs', JSON.stringify(gocLogs));
+            localStorage.setItem('clb_openingBalance', openingBalance);
             localStorage.setItem('clb_syncQueue', JSON.stringify(syncQueue));
         }
 
@@ -701,6 +766,8 @@
             bookingLogs = JSON.parse(localStorage.getItem('clb_bookingLogs')) || [];
             cashbookLogs = JSON.parse(localStorage.getItem('clb_cashbookLogs')) || [];
             gocLogs = JSON.parse(localStorage.getItem('clb_gocLogs')) || [];
+            let storedBal = localStorage.getItem('clb_openingBalance');
+            if (storedBal !== null) openingBalance = parseFloat(storedBal);
             syncQueue = JSON.parse(localStorage.getItem('clb_syncQueue')) || [];
         }
 
@@ -709,6 +776,10 @@
             syncQueue.push(payload);
 
             if (actionName === "addMatch" && payload.match) matches.unshift(payload.match);
+            else if (actionName === "updateMatch" && payload.match) {
+                let m = matches.find(x => x.id == payload.match.id);
+                if (m) { m.scoreA = payload.match.scoreA; m.scoreB = payload.match.scoreB; m.specialBet = payload.match.specialBet; }
+            }
             else if (actionName === "addGocLog" && payload.gocLog) gocLogs.unshift(payload.gocLog);
             else if (actionName === "addBooking" && payload.booking) bookingLogs.unshift(payload.booking);
             else if (actionName === "addCashbook" && payload.cashbook) cashbookLogs.unshift(payload.cashbook);
@@ -797,6 +868,7 @@
             renderQuyTable();
             renderCashbook();
             renderMemberList();
+            checkYesterdayBookingsNotification();
             applyRolePermissions();
         }
 
@@ -915,33 +987,68 @@
             let f = calculateUserFinance(main);
             let m = members.find(item => item.name === main) || members[0];
 
+            // Kiểm tra trạng thái đóng quỹ quý hiện tại để bật/tắt banner nhắc nhở
+            let qSel = document.getElementById('selectQuy').value;
+            let ySel = document.getElementById('selectNam').value;
+            let key = qSel + "_" + ySel;
+            let paidQuy = (m.quyHistory && m.quyHistory[key] !== undefined) ? parseInt(m.quyHistory[key]) : 0;
+            let warningBanner = document.getElementById('quyWarningBanner');
+
+            if (m.status === 'Đang tham gia' && paidQuy < 600000) {
+                warningBanner.classList.remove('hidden');
+                warningBanner.classList.add('flex');
+                document.getElementById('quyWarningText').innerText = `${m.name} ơi, bạn chưa đóng ${qSel}/${ySel} (600k). Vui lòng đóng quỹ để CLB hoạt động tốt nhất nhé!`;
+            } else {
+                warningBanner.classList.add('hidden');
+                warningBanner.classList.remove('flex');
+            }
+
             document.getElementById('statTotal').innerText = f.totalMatchCount;
             let winRate = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
             document.getElementById('statWins').innerText = f.totalWins + " (" + winRate + ")";
             document.getElementById('statDraws').innerText = f.totalDraws;
             document.getElementById('statLosses').innerText = f.totalLosses;
 
-            let totalReward = bookingLogs.filter(b => b.name === main).reduce((sum, b) => sum + parseInt(b.reward), 0);
+            // Lọc chỉ thưởng đặt sân trong tháng hiện tại
+            let curMonth = document.getElementById('selectFinanceMonth').value;
+            let curYear = document.getElementById('selectFinanceYear').value;
+            let userBookingsThisMonth = bookingLogs.filter(b => {
+                if (b.name !== main) return false;
+                let t = b.time || "";
+                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+            });
+
+            let totalReward = userBookingsThisMonth.reduce((sum, b) => sum + parseInt(b.reward), 0);
             document.getElementById('statReward').innerText = totalReward.toLocaleString() + " đ";
 
             document.getElementById('statDebt').innerText = f.totalPay.toLocaleString() + " đ";
             document.getElementById('statPaidDisplay').innerText = (m.paidUser || 0).toLocaleString() + " đ";
 
+            // Nhật ký thi đấu cá nhân chỉ tháng này (Mới nhất lên trên)
             let matchBody = document.getElementById('userMatchHistoryBody');
             matchBody.innerHTML = '';
-            matches.filter(m => (m.p1_v1 === main || m.p2_v1 === main || m.p1_v2 === main || m.p2_v2 === main)).forEach((m, idx) => {
-                let isV1 = (m.p1_v1 === main || m.p2_v1 === main);
-                let teammate = isV1 ? (m.p1_v1 === main ? m.p2_v1 : m.p1_v1) : (m.p1_v2 === main ? m.p2_v2 : m.p1_v2);
-                let opponents = isV1 ? (m.p1_v2 + " & " + m.p2_v2) : (m.p1_v1 + " & " + m.p2_v1);
-                matchBody.innerHTML += `<tr class="border-b"><td class="p-2 font-bold">${idx+1}</td><td class="p-2">${teammate}</td><td class="p-2">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${m.scoreA}-${m.scoreB}</td><td class="p-2 text-right font-bold text-amber-800">${m.specialBet > 0 ? parseInt(m.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
+            let userMatchesThisMonth = matches.filter(match => {
+                let isUserIn = (match.p1_v1 === main || match.p2_v1 === main || match.p1_v2 === main || match.p2_v2 === main);
+                if (!isUserIn) return false;
+                let t = match.time || "";
+                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
             });
 
+            userMatchesThisMonth.forEach((mItem, idx) => {
+                let isV1 = (mItem.p1_v1 === main || mItem.p2_v1 === main);
+                let teammate = isV1 ? (mItem.p1_v1 === main ? mItem.p2_v1 : mItem.p1_v1) : (mItem.p1_v2 === main ? mItem.p2_v2 : mItem.p1_v2);
+                let opponents = isV1 ? (mItem.p1_v2 + " & " + mItem.p2_v2) : (mItem.p1_v1 + " & " + mItem.p2_v1);
+                matchBody.innerHTML += `<tr class="border-b"><td class="p-2 font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2">${teammate}</td><td class="p-2">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${mItem.scoreA}-${mItem.scoreB}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
+            });
+
+            // Nhật ký thưởng đặt sân cá nhân chỉ tháng này (Mới nhất lên trên)
             let rewardBody = document.getElementById('userRewardHistoryBody');
             rewardBody.innerHTML = '';
-            bookingLogs.filter(b => b.name === main).forEach(b => {
+            userBookingsThisMonth.forEach(b => {
                 rewardBody.innerHTML += `<tr class="border-b"><td class="p-2">${b.time}</td><td class="p-2 text-center font-bold text-amber-700">${b.frame}</td><td class="p-2 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td></tr>`;
             });
 
+            // Nhật ký nộp tiền góc (Toàn bộ lịch sử)
             let gocBody = document.getElementById('userGocHistoryBody');
             gocBody.innerHTML = '';
             let userGocs = gocLogs.filter(g => g.name === main);
@@ -993,7 +1100,7 @@
             logsToDisplay.forEach((g, idx) => {
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
-                        <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
+                        <td class="p-3 text-center font-bold text-slate-500">${logsToDisplay.length - idx}</td>
                         <td class="p-3 font-semibold text-slate-600">${g.time}</td>
                         <td class="p-3 font-bold text-slate-900">${g.name}</td>
                         <td class="p-3 text-right font-black text-emerald-700">${parseInt(g.amount).toLocaleString()} đ</td>
@@ -1055,7 +1162,7 @@
                 }
             });
 
-            dataList.forEach((item, idx) => {
+            dataList.forEach((item) => {
                 let m = item.m;
                 let f = item.f;
                 let winRateStr = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
@@ -1123,21 +1230,54 @@
         function renderAllMatchLog() {
             let tbody = document.getElementById('allMatchTableBody');
             tbody.innerHTML = '';
-            matches.forEach((m, idx) => {
+            // Đảo ngược để trận mới nhất lên trên
+            let reversedMatches = [...matches].reverse();
+            reversedMatches.forEach((m, idx) => {
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
-                        <td class="p-3 text-center font-bold text-slate-500">${idx+1}</td>
+                        <td class="p-3 text-center font-bold text-slate-500">${reversedMatches.length - idx}</td>
                         <td class="p-3 text-slate-600">${m.time || '-'}</td>
                         <td class="p-3 font-semibold text-slate-900">${m.p1_v1} & ${m.p2_v1}</td>
                         <td class="p-3 font-semibold text-slate-900">${m.p1_v2} & ${m.p2_v2}</td>
                         <td class="p-3 text-center font-black text-emerald-800 text-sm">${m.scoreA} - ${m.scoreB}</td>
                         <td class="p-3 text-right font-bold text-amber-800">${m.specialBet > 0 ? parseInt(m.specialBet).toLocaleString() + ' đ' : '-'}</td>
-                        <td class="p-3 text-center admin-only ${currentUserRole === 'admin' ? '' : 'hidden'}">
+                        <td class="p-3 text-center admin-only ${currentUserRole === 'admin' ? '' : 'hidden'} space-x-2">
+                            <button onclick="openEditMatchModal(${m.id})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i> Sửa</button>
                             <button onclick="deleteMatch(${m.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i> Xóa</button>
                         </td>
                     </tr>
                 `;
             });
+            applyRolePermissions();
+        }
+
+        function openEditMatchModal(id) {
+            let m = matches.find(x => x.id == id);
+            if (!m) return;
+            document.getElementById('emMatchId').value = m.id;
+            document.getElementById('emMatchInfo').value = `${m.time} | (${m.p1_v1}&${m.p2_v1}) vs (${m.p1_v2}&${m.p2_v2})`;
+            document.getElementById('emScoreA').value = m.scoreA;
+            document.getElementById('emScoreB').value = m.scoreB;
+            document.getElementById('emSpecialBet').value = m.specialBet || 0;
+
+            document.getElementById('editMatchModal').classList.remove('hidden');
+            document.getElementById('editMatchModal').classList.add('flex');
+        }
+
+        function closeEditMatchModal() {
+            document.getElementById('editMatchModal').classList.add('hidden');
+            document.getElementById('editMatchModal').classList.remove('flex');
+        }
+
+        function saveMatchEdit(e) {
+            e.preventDefault();
+            let id = parseInt(document.getElementById('emMatchId').value);
+            let scoreA = parseInt(document.getElementById('emScoreA').value) || 0;
+            let scoreB = parseInt(document.getElementById('emScoreB').value) || 0;
+            let specialBet = parseInt(document.getElementById('emSpecialBet').value) || 0;
+
+            closeEditMatchModal();
+            enqueueAction("updateMatch", { match: { id, scoreA, scoreB, specialBet } });
         }
 
         function deleteMatch(id) {
@@ -1149,13 +1289,25 @@
         function renderBookingLogs() {
             let tbody = document.getElementById('bookingLogTableBody');
             tbody.innerHTML = '';
-            let totalRewardSum = bookingLogs.reduce((sum, b) => sum + parseInt(b.reward || 0), 0);
+            
+            // Chỉ lọc danh sách đặt sân trong tháng hiện tại
+            let curMonth = document.getElementById('selectFinanceMonth').value;
+            let curYear = document.getElementById('selectFinanceYear').value;
+
+            let currentMonthBookings = bookingLogs.filter(b => {
+                let t = b.time || "";
+                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
+            });
+
+            let totalRewardSum = currentMonthBookings.reduce((sum, b) => sum + parseInt(b.reward || 0), 0);
             document.getElementById('totalBookingRewardDisplay').innerText = totalRewardSum.toLocaleString('vi-VN') + " đ";
 
-            bookingLogs.forEach((b, idx) => {
+            // Đảo ngược để mới nhất lên trên
+            let reversedBookings = [...currentMonthBookings].reverse();
+            reversedBookings.forEach((b, idx) => {
                 tbody.innerHTML += `
                     <tr class="border-b">
-                        <td class="p-3 text-center font-bold">${idx+1}</td>
+                        <td class="p-3 text-center font-bold">${reversedBookings.length - idx}</td>
                         <td class="p-3">${b.time}</td>
                         <td class="p-3 font-bold">${b.name}</td>
                         <td class="p-3 text-center font-bold text-amber-700">${b.frame}</td>
@@ -1166,6 +1318,7 @@
                     </tr>
                 `;
             });
+            applyRolePermissions();
         }
 
         function deleteBooking(id) {
@@ -1191,7 +1344,7 @@
                 }
 
                 let isOk = paidAmount >= 600000;
-                let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800');
+                let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
 
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
@@ -1244,11 +1397,6 @@
 
             closeEditQuyModal();
             enqueueAction("updateMember", { members: members });
-        }
-
-        function updateOpeningBalance() {
-            openingBalance = parseInt(document.getElementById('openingBalanceInput').value) || 0;
-            renderCashbook();
         }
 
         function addCashbookEntry(e) {
@@ -1365,6 +1513,7 @@
             let balance = openingBalance + totalThu - totalChi;
 
             document.getElementById('cashbookBalance').innerText = balance.toLocaleString() + " đ";
+            document.getElementById('openingBalanceDisplay').innerText = openingBalance.toLocaleString() + " đ";
             selectCategory('Tiền góc thực thu');
         }
 
@@ -1372,7 +1521,7 @@
             let tbody = document.getElementById('memberTableBody');
             tbody.innerHTML = '';
             members.forEach((m, idx) => {
-                let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800');
+                let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
                 tbody.innerHTML += `
                     <tr class="border-b">
                         <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
@@ -1473,6 +1622,69 @@
             document.getElementById('specialBet').value = "0";
         }
 
+        // Lấy định dạng chuỗi ngày DD/MM/YYYY của hôm qua
+        function getYesterdayDateString() {
+            let d = new Date();
+            d.setDate(d.getDate() - 1);
+            let day = String(d.getDate()).padStart(2, '0');
+            let month = String(d.getMonth() + 1).padStart(2, '0');
+            let year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function checkYesterdayBookingsNotification() {
+            let yesterdayStr = getYesterdayDateString();
+            let yesterdayBookings = bookingLogs.filter(b => {
+                let t = b.time || "";
+                return t.includes(yesterdayStr);
+            });
+
+            let badge = document.getElementById('notifBadge');
+            if (yesterdayBookings.length > 0) {
+                badge.innerText = yesterdayBookings.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function openNotificationModal() {
+            let yesterdayStr = getYesterdayDateString();
+            document.getElementById('yesterdayDateLabel').innerText = yesterdayStr;
+
+            let yesterdayBookings = bookingLogs.filter(b => {
+                let t = b.time || "";
+                return t.includes(yesterdayStr);
+            });
+
+            let listDiv = document.getElementById('yesterdayBookingList');
+            listDiv.innerHTML = '';
+
+            if (yesterdayBookings.length === 0) {
+                listDiv.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Không có lịch đặt sân nào được ghi nhận vào ngày hôm qua (${yesterdayStr}).</p>`;
+            } else {
+                yesterdayBookings.forEach((b, idx) => {
+                    listDiv.innerHTML += `
+                        <div class="bg-slate-50 p-3 rounded-xl border flex justify-between items-center text-xs">
+                            <div>
+                                <span class="font-black text-emerald-800">${b.name}</span>
+                                <p class="text-[10px] text-slate-500">Thời gian đặt: ${b.time}</p>
+                            </div>
+                            <span class="bg-amber-100 text-amber-900 font-extrabold px-3 py-1 rounded-full">${b.frame}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('notificationModal').classList.remove('hidden');
+            document.getElementById('notificationModal').classList.add('flex');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notificationModal').classList.add('hidden');
+            document.getElementById('notificationModal').classList.remove('flex');
+        }
+
         function exportToExcel() {
             let wb = XLSX.utils.book_new();
             let wsMem = XLSX.utils.json_to_sheet(members); XLSX.utils.book_append_sheet(wb, wsMem, "ThanhVien");
@@ -1511,6 +1723,7 @@
             if (data.bookingLogs) bookingLogs = data.bookingLogs;
             if (data.cashbookLogs) cashbookLogs = data.cashbookLogs;
             if (data.gocLogs) gocLogs = data.gocLogs;
+            if (data.openingBalance !== undefined) openingBalance = data.openingBalance;
 
             saveLocalData();
             initApp();
