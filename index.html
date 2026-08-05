@@ -41,11 +41,13 @@
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tài khoản (Username):</label>
-                    <input type="text" id="loginUser" required value="member" placeholder="member hoặc admin" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <input type="text" id="loginUser" required placeholder="Ví dụ: Thanglong1 đến Thanglong35" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <p class="text-[10px] text-slate-500 mt-1">Gợi ý: Cú pháp tài khoản là <strong class="text-emerald-700">Thanglong</strong> + <strong class="text-emerald-700">STT</strong> (VD: Thanglong1)</p>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu (Password):</label>
                     <input type="password" id="loginPass" required placeholder="••••••••" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <p class="text-[10px] text-slate-500 mt-1">Mật khẩu: <span class="font-bold">123456</span> (Member) hoặc <span class="font-bold">admin</span> (Admin STT 1, 2, 15)</p>
                 </div>
                 <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition">
                     ĐĂNG NHẬP HỆ THỐNG
@@ -66,7 +68,6 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <!-- ICON THÔNG BÁO LỊCH SÂN HÔM QUA -->
                     <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2.5 rounded-full text-amber-300 shadow transition" title="Lịch sân ngày hôm qua">
                         <i class="fa-solid fa-bell text-base"></i>
                         <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full hidden">0</span>
@@ -74,12 +75,12 @@
 
                     <button onclick="fetchCloudData(true)" class="text-xs bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-full font-bold shadow flex items-center gap-1.5"><i class="fa-solid fa-rotate"></i> Làm mới</button>
                     <span id="roleBadge" class="text-xs md:text-sm font-semibold bg-emerald-700 px-3 py-2 rounded-full border border-emerald-600 flex items-center gap-2">
-                        <i class="fa-solid fa-user-shield text-amber-300"></i> <span id="currentRoleText">Admin</span>
+                        <i class="fa-solid fa-user-shield text-amber-300"></i> <span id="currentRoleText">Thành Viên</span>
                     </span>
                 </div>
             </div>
 
-            <!-- MENU ĐIỀU HƯỚNG TỰ ĐỘNG XUỐNG DÒNG TRÊN DI ĐỘNG, KÈM NÚT THOÁT GỌN GÀNG -->
+            <!-- MENU ĐIỀU HƯỚNG TỰ ĐỘNG XUỐNG DÒNG CỰC KỲ THUẬN TIỆN TRÊN DI ĐỘNG -->
             <nav class="bg-emerald-900 text-emerald-100 px-4 py-1.5 flex flex-wrap gap-1 text-xs md:text-sm font-medium border-t border-emerald-700/50 items-center justify-between">
                 <div class="flex flex-wrap gap-1 items-center">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Dashboard Cá Nhân</button>
@@ -103,7 +104,6 @@
             <!-- TAB 1: DASHBOARD -->
             <section id="tab-dashboard" class="tab-content active space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <!-- THÔNG BÁO NHẮC ĐÓNG QUÝ (Ở GIỮA) -->
                     <div id="quyWarningBanner" class="hidden mb-6 bg-amber-50 border-2 border-amber-300 text-amber-900 p-4 rounded-2xl flex items-center justify-between shadow-sm">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl animate-bounce"></i>
@@ -118,11 +118,11 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-user-circle text-emerald-600"></i> TRA CỨU CHỈ SỐ CÁ NHÂN REALTIME</h2>
-                            <p class="text-xs text-slate-500">Tự động xuất toàn bộ chỉ số, tiền góc, tiền thưởng và lịch sử khi chọn tên</p>
+                            <p class="text-xs text-slate-500">Hệ thống khóa theo tài khoản đăng nhập chống chọn nhầm tên</p>
                         </div>
                         <div class="w-full md:w-72">
-                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">CHỌN TÊN THÀNH VIÊN (*):</label>
-                            <select id="dashMainUser" onchange="renderDashboard()" class="w-full bg-emerald-50 border border-emerald-300 rounded-xl p-2.5 text-sm font-extrabold text-emerald-900 outline-none"></select>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">TÊN THÀNH VIÊN ĐANG CHỌN (*):</label>
+                            <select id="dashMainUser" onchange="renderDashboard()" class="w-full bg-emerald-50 border border-emerald-300 rounded-xl p-2.5 text-sm font-extrabold text-emerald-900 outline-none disabled:bg-slate-100 disabled:text-slate-600"></select>
                         </div>
                     </div>
 
@@ -156,7 +156,6 @@
                         </div>
                     </div>
 
-                    <!-- THÔNG TIN TÀI CHÍNH & VIETQR TÍCH HỢP (CÓ TÍNH NĂNG CLICK PHÓNG TO MÃ QR) -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-emerald-50/60 p-5 rounded-2xl border border-emerald-200 mb-6 items-center">
                         <div>
                             <span class="text-xs font-bold text-slate-600 uppercase">THƯỞNG ĐẶT SÂN TÍCH LŨY:</span>
@@ -167,7 +166,6 @@
                             </div>
                         </div>
 
-                        <!-- KHUNG NHẬP TIỀN GÓC ĐÃ NỘP -->
                         <div class="bg-white p-4 rounded-xl border border-emerald-300 shadow-sm">
                             <label class="block text-xs font-extrabold text-emerald-900 uppercase mb-1">Tự nhập tiền GÓC đã chuyển khoản:</label>
                             <div class="flex gap-2">
@@ -177,7 +175,6 @@
                             <p class="text-[10px] text-slate-500 mt-1">Tổng đã nộp dồn: <span id="statPaidDisplay" class="font-bold text-emerald-700">0 đ</span></p>
                         </div>
 
-                        <!-- VIETQR TĨNH GỌN GÀNG (CLICK ĐỂ PHÓNG TO) -->
                         <div class="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm flex flex-col items-center text-center">
                             <span class="text-[10px] font-extrabold text-emerald-900 uppercase mb-1">QUÉT MÃ QR (BẤM ĐỂ PHÓNG TO)</span>
                             <img src="https://img.vietqr.io/image/TCB-19726868686868-compact2.png?accountName=NGUYEN%20ANH%20THI" alt="VietQR Nguyen Anh Thi" onclick="openQRZoomModal()" class="w-28 h-28 object-contain rounded border cursor-pointer hover:scale-105 transition" title="Bấm để phóng to mã QR">
@@ -224,13 +221,12 @@
                 </div>
             </section>
 
-            <!-- TAB 2: GHI NHẬN TRẬN ĐẤU (GIAO DIỆN 2 CỘT ĐỐI XỨNG CHỐNG NHẦM LẪN) -->
+            <!-- TAB 2: GHI NHẬN TRẬN ĐẤU -->
             <section id="tab-matches" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
                     <h2 class="text-xl font-bold text-slate-800 mb-4 pb-3 border-b flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-emerald-600"></i> GHI KẾT QUẢ TRẬN ĐẤU MỚI</h2>
                     <form id="matchForm" onsubmit="addMatch(event)" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- VẾ A -->
                             <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-200 space-y-4">
                                 <h3 class="font-bold text-emerald-800 text-sm uppercase flex items-center justify-between">
                                     <span>VẾ A (ĐỘI 1)</span>
@@ -253,7 +249,6 @@
                                 </div>
                             </div>
 
-                            <!-- VẾ B -->
                             <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-200 space-y-4">
                                 <h3 class="font-bold text-blue-800 text-sm uppercase flex items-center justify-between">
                                     <span>VẾ B (ĐỘI 2)</span>
@@ -294,7 +289,7 @@
                 </div>
             </section>
 
-            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU (MỚI NHẤT LÊN TRÊN) -->
+            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU -->
             <section id="tab-matchLog" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border">
                     <h2 class="text-xl font-bold text-slate-800 mb-4">NHẬT KÝ TẤT CẢ CÁC TRẬN ĐẤU (MỚI NHẤT Ở TRÊN)</h2>
@@ -309,7 +304,7 @@
                 </div>
             </section>
 
-            <!-- TAB NHẬT KÝ NỘP TIỀN -->
+            <!-- TAB 4: NHẬT KÝ NỘP TIỀN -->
             <section id="tab-gocLogs" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
@@ -349,7 +344,7 @@
                 </div>
             </section>
 
-            <!-- TAB 4: TIỀN GÓC & PHẠT (CÓ SẮP XẾP CỘT GIỐNG EXCEL) -->
+            <!-- TAB 5: TIỀN GÓC & PHẠT -->
             <section id="tab-finance" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-4">
@@ -413,7 +408,7 @@
                 </div>
             </section>
 
-            <!-- TAB 5: THƯỞNG ĐẶT SÂN (CHUẨN XÁC MỚI NHẤT LÊN TRÊN) -->
+            <!-- TAB 6: THƯỞNG ĐẶT SÂN -->
             <section id="tab-booking" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-4 pb-3 border-b">
@@ -437,7 +432,7 @@
                 </div>
             </section>
 
-            <!-- TAB 6: ĐÓNG QUỸ QUÝ -->
+            <!-- TAB 7: ĐÓNG QUỸ QUÝ -->
             <section id="tab-quy" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
@@ -486,7 +481,7 @@
                 </div>
             </section>
 
-            <!-- TAB 7: SỔ THU CHI CLB -->
+            <!-- TAB 8: SỔ THU CHI CLB -->
             <section id="tab-cashbook" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
@@ -559,13 +554,13 @@
                 </div>
             </section>
 
-            <!-- TAB 8: THÀNH VIÊN -->
+            <!-- TAB 9: THÀNH VIÊN (HIỂN THỊ TÀI KHOẢN VÀ QUYỀN VỚI TÍNH NĂNG ĐỔI QUYỀN ADMIN) -->
             <section id="tab-members" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB</h2>
-                            <p class="text-xs text-slate-500">Quản lý danh sách, điểm Base và trạng thái thành viên</p>
+                            <p class="text-xs text-slate-500">Quản lý danh sách, điểm Base, Tài khoản đăng nhập và Quyền Hạn</p>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
@@ -576,7 +571,15 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm border-collapse">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b"><th class="p-3 text-center">STT</th><th class="p-3">Tên Thành Viên</th><th class="p-3 text-center">Trạng Thái</th><th class="p-3 text-center bg-amber-50">Điểm Base</th><th class="p-3 text-center admin-only">Sửa</th></tr>
+                                <tr class="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b">
+                                    <th class="p-3 text-center">STT</th>
+                                    <th class="p-3">Tên Thành Viên</th>
+                                    <th class="p-3 text-center">Username</th>
+                                    <th class="p-3 text-center">Trạng Thái</th>
+                                    <th class="p-3 text-center bg-amber-50">Điểm Base</th>
+                                    <th class="p-3 text-center">Vai Trò</th>
+                                    <th class="p-3 text-center admin-only">Sửa / Quyền Admin</th>
+                                </tr>
                             </thead>
                             <tbody id="memberTableBody" class="divide-y divide-slate-200"></tbody>
                         </table>
@@ -725,9 +728,10 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxlnJQXM7cl-VcmGSPCnzA6O7AY1KJZhreBZCQSsFLQn6M6bFz4f9fabpfH4rPAlhJ77Q/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyklfMH6PjcJXHgCZ96yfXz-aOOtRMrqEV61-xC--_-QHyFzRWHgdfgm298O6zhczRxOg/exec";
 
         let currentUserRole = "member";
+        let loggedInMemberName = "";
         let openingBalance = 2656160;
 
         let members = [];
@@ -747,12 +751,8 @@
             let curMonth = now.getMonth() + 1;
             let curYear = now.getFullYear();
             
-            if (document.getElementById('selectFinanceMonth')) {
-                document.getElementById('selectFinanceMonth').value = curMonth;
-            }
-            if (document.getElementById('selectFinanceYear')) {
-                document.getElementById('selectFinanceYear').value = curYear;
-            }
+            if (document.getElementById('selectFinanceMonth')) document.getElementById('selectFinanceMonth').value = curMonth;
+            if (document.getElementById('selectFinanceYear')) document.getElementById('selectFinanceYear').value = curYear;
         });
 
         function showToast(msg) {
@@ -834,22 +834,65 @@
             });
         }
 
+        // ĐĂNG NHẬP THEO TÀI KHOẢN CÁ NHÂN (Thanglong1 - Thanglong35) VÀ PHÂN QUYỀN KHÓA TÊN
         function handleLogin(e) {
             e.preventDefault();
             let u = document.getElementById('loginUser').value.trim();
             let p = document.getElementById('loginPass').value.trim();
 
-            if ((u === "admin1" || u === "admin2") && p === "admin") currentUserRole = "admin";
-            else if (u === "member" && p === "123456") currentUserRole = "member";
-            else { alert("Tài khoản hoặc mật khẩu không đúng!"); return; }
+            loadLocalData();
+
+            // Tìm thành viên theo username (Thanglong1 đến Thanglong35)
+            let foundMem = members.find(m => m.username && m.username.toLowerCase() === u.toLowerCase());
+
+            if (!foundMem) {
+                // Kiểm tra xem user có gõ Thanglong + số không (ví dụ: Thanglong1)
+                let match = u.match(/^Thanglong(\d+)$/i);
+                if (match) {
+                    let sttNum = parseInt(match[1]);
+                    foundMem = members.find(m => m.stt === sttNum);
+                }
+            }
+
+            if (foundMem) {
+                let isSystemAdmin = (foundMem.role === 'admin' || foundMem.stt === 1 || foundMem.stt === 2 || foundMem.stt === 15);
+                let requiredPass = isSystemAdmin ? 'admin' : '123456';
+
+                if (p !== requiredPass && p !== 'admin' && p !== '123456') {
+                    alert("Mật khẩu không chính xác! Mật khẩu mặc định member là 123456, admin là admin.");
+                    return;
+                }
+
+                currentUserRole = isSystemAdmin ? "admin" : "member";
+                loggedInMemberName = foundMem.name;
+            } else if ((u === "admin1" || u === "admin2" || u === "admin") && p === "admin") {
+                currentUserRole = "admin";
+                loggedInMemberName = members.length > 0 ? members[0].name : "Admin";
+            } else if (u === "member" && p === "123456") {
+                currentUserRole = "member";
+                loggedInMemberName = members.length > 0 ? members[0].name : "Thành Viên";
+            } else {
+                alert("Tài khoản không tồn tại trên hệ thống! Vui lòng thử nhập Thanglong1, Thanglong2,...");
+                return;
+            }
 
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
             document.getElementById('appScreen').classList.add('flex');
-            document.getElementById('currentRoleText').innerText = currentUserRole === "admin" ? "Admin" : "Thành Viên";
+            document.getElementById('currentRoleText').innerText = currentUserRole === "admin" ? "Admin Tổng" : ("Cá nhân: " + loggedInMemberName);
             
-            loadLocalData();
             initApp();
+            
+            // Khóa chặt tên ở ô chọn Dashboard nếu là Member thường
+            let dashSelect = document.getElementById('dashMainUser');
+            if (currentUserRole !== 'admin') {
+                dashSelect.value = loggedInMemberName;
+                dashSelect.disabled = true;
+                dashSelect.title = "Tài khoản cá nhân tự động khóa theo tên của bạn để đảm bảo không bị ghi nhận nhầm!";
+            } else {
+                dashSelect.disabled = false;
+            }
+
             fetchCloudData(true);
             setInterval(() => { processQueue(); }, 5000);
         }
@@ -911,6 +954,15 @@
                 });
                 if (currentVal) sel.value = currentVal;
             });
+
+            // Nếu đã đăng nhập bằng Member thường, mặc định khóa chọn đúng tên cá nhân
+            if (currentUserRole !== 'admin' && loggedInMemberName) {
+                let dashSelect = document.getElementById('dashMainUser');
+                if (dashSelect) {
+                    dashSelect.value = loggedInMemberName;
+                    dashSelect.disabled = true;
+                }
+            }
         }
 
         function handleDashboardSubmit() {
@@ -1322,7 +1374,6 @@
                 return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
             });
 
-            // Sắp xếp tăng dần theo ID để bản ghi cũ ở trên, mới ở dưới, rồi đảo ngược để mới nhất lên đầu chuẩn xác
             currentMonthBookings.sort((a, b) => {
                 let idA = parseInt(a.id) || 0;
                 let idB = parseInt(b.id) || 0;
@@ -1548,22 +1599,46 @@
             selectCategory('Tiền góc thực thu');
         }
 
+        // BẢNG THÀNH VIÊN VỚI NÚT ĐỔI QUYỀN LINH HOẠT CHO ADMIN
         function renderMemberList() {
             let tbody = document.getElementById('memberTableBody');
             tbody.innerHTML = '';
             members.forEach((m, idx) => {
+                let stt = m.stt || (idx + 1);
+                let username = m.username || ("Thanglong" + stt);
+                let isSystemAdmin = (m.role === 'admin' || stt === 1 || stt === 2 || stt === 15);
+                let roleBadge = isSystemAdmin ? `<span class="bg-amber-100 text-amber-900 font-extrabold px-2 py-0.5 rounded text-[10px]">Admin</span>` : `<span class="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded text-[10px]">Member</span>`;
+
                 let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
+                
                 tbody.innerHTML += `
-                    <tr class="border-b">
-                        <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-3 text-center font-bold text-slate-500">${stt}</td>
                         <td class="p-3 font-bold text-slate-900">${m.name}</td>
+                        <td class="p-3 text-center font-mono font-bold text-emerald-700">${username}</td>
                         <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
                         <td class="p-3 text-center font-extrabold text-amber-700 bg-amber-50">${m.base}</td>
-                        <td class="p-3 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}"><button onclick="openEditMemberModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i> Sửa</button></td>
+                        <td class="p-3 text-center">${roleBadge}</td>
+                        <td class="p-3 text-center admin-only ${currentUserRole==='admin'?'':'hidden'} space-x-2">
+                            <button onclick="openEditMemberModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i> Sửa</button>
+                            <button onclick="toggleMemberRole(${idx})" class="text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded border border-amber-200 hover:bg-amber-100">Đổi Quyền</button>
+                        </td>
                     </tr>
                 `;
             });
             document.getElementById('memberCountHeader').innerText = members.length;
+        }
+
+        function toggleMemberRole(idx) {
+            if (currentUserRole !== 'admin') { alert("Bạn không có quyền thực hiện!"); return; }
+            let m = members[idx];
+            let currentRole = (m.role === 'admin' || m.stt === 1 || m.stt === 2 || m.stt === 15) ? 'admin' : 'member';
+            let newRole = currentRole === 'admin' ? 'member' : 'admin';
+            
+            if (confirm(`Đổi vai trò của [${m.name}] sang [${newRole.toUpperCase()}]?`)) {
+                m.role = newRole;
+                enqueueAction("updateMember", { members: members }, "Đã cập nhật quyền thành công!");
+            }
         }
 
         function openAddMemberModal() {
@@ -1581,15 +1656,18 @@
             let name = document.getElementById('newMemName').value.trim();
             let base = parseFloat(document.getElementById('newMemBase').value) || 6.2;
             let status = document.getElementById('newMemStatus').value;
+            let newStt = members.length + 1;
 
             members.push({
-                stt: members.length + 1,
+                stt: newStt,
                 name: name,
                 status: status,
                 base: base,
                 quyHistory: {},
                 paidUser: 0,
-                noOld: 0
+                noOld: 0,
+                username: "Thanglong" + newStt,
+                role: "member"
             });
 
             closeAddMemberModal();
