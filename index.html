@@ -14,6 +14,8 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .sticky-col { position: sticky; left: 0; background-color: white; z-index: 10; }
+        thead th { position: sticky; top: 0; z-index: 20; background-color: #f1f5f9; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col">
@@ -36,7 +38,7 @@
             <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-3xl font-extrabold mx-auto shadow">🎾</div>
             <div>
                 <h1 class="text-xl font-black text-slate-800 uppercase">CLB TENNIS THĂNG LONG</h1>
-                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Tra Cứu Tự Động (Lưu trữ 10 năm)</p>
+                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Tra Cứu Tự Động</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
@@ -81,15 +83,16 @@
             <!-- MENU ĐIỀU HƯỚNG -->
             <nav class="bg-emerald-900 text-emerald-100 px-4 py-1.5 flex flex-wrap gap-1 text-xs md:text-sm font-medium border-t border-emerald-700/50 items-center justify-between">
                 <div class="flex flex-wrap gap-1 items-center">
-                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Dashboard Cá Nhân</button>
-                    <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Ghi Nhận Trận Đấu</button>
-                    <button onclick="switchTab('matchLog')" id="btn-matchLog" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Nhật Ký Trận Đấu</button>
-                    <button onclick="switchTab('gocLogs')" id="btn-gocLogs" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-receipt"></i> Nhật Ký Nộp Tiền</button>
+                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+                    <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Ghi Trận</button>
+                    <button onclick="switchTab('matchLog')" id="btn-matchLog" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Nhật Ký Trận</button>
+                    <button onclick="switchTab('gocLogs')" id="btn-gocLogs" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-receipt"></i> Nộp Tiền</button>
                     <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Tiền Góc</button>
-                    <button onclick="switchTab('booking')" id="btn-booking" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-calendar-check"></i> Thưởng Đặt Sân</button>
-                    <button onclick="switchTab('quy')" id="btn-quy" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Đóng Quỹ Quý</button>
-                    <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu - Chi</button>
-                    <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên (<span id="memberCountHeader">35</span>)</button>
+                    <button onclick="switchTab('booking')" id="btn-booking" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-calendar-check"></i> Thưởng Sân</button>
+                    <button onclick="switchTab('quy')" id="btn-quy" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Đóng Quỹ</button>
+                    <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu Chi</button>
+                    <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên</button>
+                    <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 admin-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
                 <div class="py-1">
                     <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg font-bold shadow flex items-center gap-1 text-white"><i class="fa-solid fa-right-from-bracket"></i> Thoát</button>
@@ -106,11 +109,11 @@
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl animate-bounce"></i>
                             <div>
-                                <h4 class="font-black text-sm uppercase">THÔNG BÁO NHẮC ĐÓNG TIỀN QUỸ QUÝ</h4>
-                                <p id="quyWarningText" class="text-xs font-semibold text-amber-800">Thành viên này chưa đóng quỹ quý hiện tại. Vui lòng hoàn thành để đảm bảo quyền lợi sinh hoạt CLB!</p>
+                                <h4 class="font-black text-sm uppercase">THÔNG BÁO NHẮC NỢ / QUỸ QUÝ</h4>
+                                <p id="quyWarningText" class="text-xs font-semibold text-amber-800">Thành viên này có khoản nợ hoặc chưa đóng quỹ quý. Vui lòng hoàn thành để đảm bảo sinh hoạt CLB!</p>
                             </div>
                         </div>
-                        <button onclick="switchTab('quy')" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow whitespace-nowrap">ĐÓNG QUỸ NGAY</button>
+                        <button onclick="switchTab('quy')" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow whitespace-nowrap">XEM NGAY</button>
                     </div>
 
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
@@ -128,9 +131,9 @@
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-2">LOẠI HOẠT ĐỘNG CHUYỂN TÁC VỤ NHANH (*):</label>
                         <div class="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-700">
                             <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="actType" value="goc" checked class="w-4 h-4 text-emerald-600"> Ghi nhận trận góc</label>
-                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="actType" value="dat16" class="w-4 h-4 text-emerald-600"> Đặt sân 16h (Thưởng 20k)</label>
-                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="actType" value="dat18" class="w-4 h-4 text-emerald-600"> Đặt sân 18h (Thưởng 30k)</label>
-                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="actType" value="quy" class="w-4 h-4 text-emerald-600"> Đóng tiền quỹ (600k)</label>
+                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="actType" value="dat16" class="w-4 h-4 text-emerald-600"> Đặt sân 16h (Thưởng <span id="lblReward16">20k</span>)</label>
+                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="actType" value="dat18" class="w-4 h-4 text-emerald-600"> Đặt sân 18h (Thưởng <span id="lblReward18">30k</span>)</label>
+                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="actType" value="quy" class="w-4 h-4 text-emerald-600"> Đóng tiền quỹ (<span id="lblQuyNum">600k</span>)</label>
                             <button onclick="handleDashboardSubmit()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow transition">XÁC NHẬN (SUBMIT)</button>
                         </div>
                     </div>
@@ -175,7 +178,7 @@
 
                         <div class="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm flex flex-col items-center text-center">
                             <span class="text-[10px] font-extrabold text-emerald-900 uppercase mb-1">QUÉT MÃ QR (BẤM ĐỂ PHÓNG TO)</span>
-                            <img src="https://img.vietqr.io/image/TCB-19726868686868-compact2.png?accountName=NGUYEN%20ANH%20THI" alt="VietQR Nguyen Anh Thi" onclick="openQRZoomModal()" class="w-28 h-28 object-contain rounded border cursor-pointer hover:scale-105 transition" title="Bấm để phóng to mã QR">
+                            <img id="dashQrImg" src="" alt="VietQR" onclick="openQRZoomModal()" class="w-28 h-28 object-contain rounded border cursor-pointer hover:scale-105 transition" title="Bấm để phóng to mã QR">
                         </div>
                     </div>
 
@@ -348,55 +351,36 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THEO THÁNG</h2>
-                            <p class="text-xs text-slate-500">Click vào tiêu đề cột để sắp xếp tăng/giảm (như Excel) phục vụ vinh danh cuối tháng.</p>
+                            <p class="text-xs text-slate-500">Cột tên thành viên được ghim cố định, click tiêu đề để sắp xếp (như Excel).</p>
                         </div>
                         <div class="flex gap-2 items-center">
                             <label class="text-xs font-bold text-slate-700 uppercase">THỜI GIAN:</label>
                             <select id="selectFinanceMonth" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
-                                <option value="1">Tháng 1</option>
-                                <option value="2">Tháng 2</option>
-                                <option value="3">Tháng 3</option>
-                                <option value="4">Tháng 4</option>
-                                <option value="5">Tháng 5</option>
-                                <option value="6">Tháng 6</option>
-                                <option value="7">Tháng 7</option>
-                                <option value="8" selected>Tháng 8</option>
-                                <option value="9">Tháng 9</option>
-                                <option value="10">Tháng 10</option>
-                                <option value="11">Tháng 11</option>
-                                <option value="12">Tháng 12</option>
+                                <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option><option value="4">Tháng 4</option>
+                                <option value="5">Tháng 5</option><option value="6">Tháng 6</option><option value="7">Tháng 7</option><option value="8" selected>Tháng 8</option>
+                                <option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
                             </select>
                             <select id="selectFinanceYear" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
-                                <option value="2026" selected>Năm 2026</option>
-                                <option value="2027">Năm 2027</option>
-                                <option value="2028">Năm 2028</option>
-                                <option value="2029">Năm 2029</option>
-                                <option value="2030">Năm 2030</option>
-                                <option value="2031">Năm 2031</option>
-                                <option value="2032">Năm 2032</option>
-                                <option value="2033">Năm 2033</option>
-                                <option value="2034">Năm 2034</option>
-                                <option value="2035">Năm 2035</option>
-                                <option value="2036">Năm 2036</option>
+                                <option value="2026" selected>Năm 2026</option><option value="2027">Năm 2027</option><option value="2028">Năm 2028</option><option value="2029">Năm 2029</option><option value="2030">Năm 2030</option>
                             </select>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto max-h-[600px]">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b text-[11px]">
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('stt')">STT <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('name')">Tên Thành Viên <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('wins')">Thắng (Tổng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('losses')">Thua (Tổng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('draws')">Hòa (Tổng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-center bg-amber-50 cursor-pointer hover:bg-amber-100" onclick="sortFinanceTable('monthMatches')">Số Trận (Tháng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('winRate')">Tỷ Lệ % (Tổng) <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('baseFee')">Góc Cơ Bản <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('specialFee')">Kèo Đặc Biệt <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-right font-bold text-emerald-700 cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('paid')">Thực Đóng <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('noOld')">Nợ Cũ <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
-                                    <th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50 cursor-pointer hover:bg-emerald-100" onclick="sortFinanceTable('totalPay')">TỔNG CẦN ĐÓNG <i class="fa-solid fa-sort text-[10px] text-slate-400"></i></th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('stt')">STT</th>
+                                    <th class="p-2.5 sticky-col cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('name')">Tên Thành Viên</th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('wins')">Thắng</th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('losses')">Thua</th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('draws')">Hòa</th>
+                                    <th class="p-2.5 text-center bg-amber-50 cursor-pointer hover:bg-amber-100" onclick="sortFinanceTable('monthMatches')">Số Trận</th>
+                                    <th class="p-2.5 text-center cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('winRate')">Tỷ Lệ %</th>
+                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('baseFee')">Góc Cơ Bản</th>
+                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('specialFee')">Kèo Đặc Biệt</th>
+                                    <th class="p-2.5 text-right font-bold text-emerald-700 cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('paid')">Thực Đóng</th>
+                                    <th class="p-2.5 text-right cursor-pointer hover:bg-slate-200" onclick="sortFinanceTable('noOld')">Nợ Cũ</th>
+                                    <th class="p-2.5 text-right font-black text-emerald-800 bg-emerald-50 cursor-pointer hover:bg-emerald-100" onclick="sortFinanceTable('totalPay')">TỔNG CẦN ĐÓNG</th>
                                     <th class="p-2.5 text-center">Thanh Toán</th>
                                 </tr>
                             </thead>
@@ -411,8 +395,8 @@
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-4 pb-3 border-b">
                         <div>
-                            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN (THÁNG NÀY - MỚI NHẤT LÊN TRÊN)</h2>
-                            <p class="text-xs text-slate-500">Hiển thị lịch sử thưởng đặt sân trong tháng hiện tại</p>
+                            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN (THÁNG NÀY)</h2>
+                            <p class="text-xs text-slate-500">Giới hạn tối đa tính thưởng theo cấu hình Cài đặt</p>
                         </div>
                         <div class="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-300 text-right">
                             <span class="text-[10px] font-bold text-emerald-800 block uppercase">Tổng tiền thưởng đặt sân:</span>
@@ -435,28 +419,15 @@
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
                         <div>
-                            <h2 class="text-xl font-bold text-slate-800 uppercase">CÂU LẠC BỘ TENNIS THĂNG LONG - ĐÓNG QUỸ QUÝ (600k/QUÝ)</h2>
-                            <p class="text-xs text-slate-500">Hỗ trợ quản lý và đóng quỹ qua các năm (từ 2026 đến 2036)</p>
+                            <h2 class="text-xl font-bold text-slate-800 uppercase">CÂU LẠC BỘ TENNIS THĂNG LONG - ĐÓNG QUỸ QUÝ</h2>
+                            <p class="text-xs text-slate-500">Hỗ trợ quản lý và đóng quỹ qua các năm theo mức cài đặt chung</p>
                         </div>
                         <div class="flex gap-2">
                             <select id="selectQuy" onchange="renderQuyTable()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
-                                <option value="Q1">Quý 1</option>
-                                <option value="Q2">Quý 2</option>
-                                <option value="Q3" selected>Quý 3</option>
-                                <option value="Q4">Quý 4</option>
+                                <option value="Q1">Quý 1</option><option value="Q2">Quý 2</option><option value="Q3" selected>Quý 3</option><option value="Q4">Quý 4</option>
                             </select>
                             <select id="selectNam" onchange="renderQuyTable()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
-                                <option value="2026" selected>Năm 2026</option>
-                                <option value="2027">Năm 2027</option>
-                                <option value="2028">Năm 2028</option>
-                                <option value="2029">Năm 2029</option>
-                                <option value="2030">Năm 2030</option>
-                                <option value="2031">Năm 2031</option>
-                                <option value="2032">Năm 2032</option>
-                                <option value="2033">Năm 2033</option>
-                                <option value="2034">Năm 2034</option>
-                                <option value="2035">Năm 2035</option>
-                                <option value="2036">Năm 2036</option>
+                                <option value="2026" selected>Năm 2026</option><option value="2027">Năm 2027</option><option value="2028">Năm 2028</option>
                             </select>
                         </div>
                     </div>
@@ -468,7 +439,7 @@
                                     <th class="p-3 text-center">STT</th>
                                     <th class="p-3">Tên Thành Viên</th>
                                     <th class="p-3 text-center">Trạng Thái</th>
-                                    <th id="thQuyTitle" class="p-3 text-right">Số Tiền Quý 3/2026</th>
+                                    <th id="thQuyTitle" class="p-3 text-right">Số Tiền Đóng Quý</th>
                                     <th class="p-3 text-center">Kết Quả Quỹ</th>
                                     <th class="p-3 text-center admin-only">Thao Tác Admin</th>
                                 </tr>
@@ -489,7 +460,7 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-300 text-right text-xs">
-                                <span class="font-bold text-amber-900 block">SỐ DƯ ĐẦU KỲ (GOOGLE SHEET):</span>
+                                <span class="font-bold text-amber-900 block">SỐ DƯ ĐẦU KỲ:</span>
                                 <span id="openingBalanceDisplay" class="font-black text-slate-900 text-sm">2.656.160 đ</span>
                             </div>
                             <div class="bg-purple-100 text-purple-900 px-5 py-2.5 rounded-xl border border-purple-200 text-center">
@@ -512,6 +483,7 @@
                                     <option value="Tiền mua bóng">Tiền mua bóng</option>
                                     <option value="Tiền thưởng đặt sân">Tiền thưởng đặt sân</option>
                                     <option value="Tiền chi liên hoan ăn nhậu">Tiền chi liên hoan ăn nhậu</option>
+                                    <option value="Tiền chi khác (Hiếu, Hỷ,...)">Tiền chi khác (Hiếu, Hỷ,...)</option>
                                 </optgroup>
                             </select>
                             <input type="number" id="cbAmount" placeholder="Số tiền (đ)" required class="p-2.5 border rounded-lg font-bold">
@@ -522,9 +494,9 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="space-y-2 bg-slate-50 p-4 rounded-xl border">
-                            <h3 class="font-bold text-xs text-slate-700 uppercase mb-2">DANH MỤC THU / CHI (CLICK XEM)</h3>
-                            <button onclick="selectCategory('Tiền quỹ QUÝ')" class="w-full text-left p-2 rounded text-xs font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">1. Tiền quỹ QUÝ (Link tự động)</button>
-                            <button onclick="selectCategory('Tiền góc thực thu')" class="w-full text-left p-2 rounded text-xs font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">2. Tiền góc thực thu (Link tự động)</button>
+                            <h3 class="font-bold text-xs text-slate-700 uppercase mb-2">DANH MỤC THU / CHI</h3>
+                            <button onclick="selectCategory('Tiền quỹ QUÝ')" class="w-full text-left p-2 rounded text-xs font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">1. Tiền quỹ QUÝ</button>
+                            <button onclick="selectCategory('Tiền góc thực thu')" class="w-full text-left p-2 rounded text-xs font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">2. Tiền góc thực thu</button>
                             <button onclick="selectCategory('Tiền bán sân')" class="w-full text-left p-2 rounded text-xs font-bold bg-emerald-50 hover:bg-emerald-100">3. Tiền bán sân</button>
                             <button onclick="selectCategory('Tiền ủng hộ / Tài trợ')" class="w-full text-left p-2 rounded text-xs font-bold bg-emerald-50 hover:bg-emerald-100">4. Tiền ủng hộ / Tài trợ</button>
                             <hr>
@@ -532,18 +504,19 @@
                             <button onclick="selectCategory('Tiền mua bóng')" class="w-full text-left p-2 rounded text-xs font-bold bg-red-50 hover:bg-red-100">6. Tiền mua bóng</button>
                             <button onclick="selectCategory('Tiền thưởng đặt sân')" class="w-full text-left p-2 rounded text-xs font-bold bg-red-50 hover:bg-red-100">7. Tiền thưởng đặt sân</button>
                             <button onclick="selectCategory('Tiền chi liên hoan ăn nhậu')" class="w-full text-left p-2 rounded text-xs font-bold bg-red-50 hover:bg-red-100">8. Tiền chi liên hoan ăn nhậu</button>
+                            <button onclick="selectCategory('Tiền chi khác (Hiếu, Hỷ,...)')" class="w-full text-left p-2 rounded text-xs font-bold bg-red-50 hover:bg-red-100">9. Tiền chi khác (Hiếu, Hỷ,...)</button>
                         </div>
 
                         <div class="md:col-span-2 bg-slate-50 p-4 rounded-xl border space-y-4">
                             <div class="flex justify-between items-center border-b pb-2">
-                                <h3 id="selectedCatTitle" class="font-black text-sm text-slate-800 uppercase">LỊCH SỬ DỮ LIỆU: TIỀN GÓC THỰC THU</h3>
+                                <h3 id="selectedCatTitle" class="font-black text-sm text-slate-800 uppercase">LỊCH SỬ DỮ LIỆU</h3>
                                 <div class="bg-emerald-100 text-emerald-900 px-3 py-1 rounded-lg text-xs font-black">
-                                    Tổng danh mục: <span id="selectedCatTotal">0 đ</span>
+                                    Tổng: <span id="selectedCatTotal">0 đ</span>
                                 </div>
                             </div>
                             <div class="overflow-x-auto max-h-72">
                                 <table class="w-full text-left text-xs border-collapse">
-                                    <thead><tr class="bg-slate-200"><th class="p-2">Thời Gian</th><th class="p-2">Nội Dung</th><th class="p-2 text-right">Số Tiền</th><th class="p-2 text-center admin-only">Thao Tác Admin</th></tr></thead>
+                                    <thead><tr class="bg-slate-200"><th class="p-2">Thời Gian</th><th class="p-2">Nội Dung</th><th class="p-2 text-right">Số Tiền</th><th class="p-2 text-center admin-only">Xóa</th></tr></thead>
                                     <tbody id="categoryLogBody" class="divide-y divide-slate-200"></tbody>
                                 </table>
                             </div>
@@ -558,7 +531,7 @@
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB</h2>
-                            <p class="text-xs text-slate-500">Quản lý danh sách, điểm Base, Tài khoản đăng nhập, Quyền Hạn và Bỏ Rule 50k</p>
+                            <p class="text-xs text-slate-500">Quản lý danh sách, điểm Base, Tài khoản đăng nhập, Quyền Hạn và Xóa thành viên</p>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
@@ -576,13 +549,54 @@
                                     <th class="p-3 text-center">Trạng Thái</th>
                                     <th class="p-3 text-center bg-amber-50">Điểm Base</th>
                                     <th class="p-3 text-center">Vai Trò</th>
-                                    <th class="p-3 text-center bg-purple-50 text-purple-900">Bỏ Rule 50k</th>
-                                    <th class="p-3 text-center admin-only">Sửa / Quyền Admin</th>
+                                    <th class="p-3 text-center admin-only">Sửa / Quyền Admin / Xóa</th>
                                 </tr>
                             </thead>
                             <tbody id="memberTableBody" class="divide-y divide-slate-200"></tbody>
                         </table>
                     </div>
+                </div>
+            </section>
+
+            <!-- TAB 10: CÀI ĐẶT (DÀNH CHO ADMIN) -->
+            <section id="tab-settings" class="tab-content space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 max-w-2xl mx-auto">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4 pb-3 border-b flex items-center gap-2"><i class="fa-solid fa-gears text-emerald-600"></i> CÀI ĐẶT THAM SỐ HỆ THỐNG CLB</h2>
+                    <form onsubmit="saveSystemSettings(event)" class="space-y-4 text-xs font-semibold text-slate-700">
+                        <div>
+                            <label class="block mb-1 font-bold">Số tiền đóng quỹ 1 Quý (đ):</label>
+                            <input type="number" id="stQuyAmount" required class="w-full p-3 border rounded-xl font-bold text-slate-900">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block mb-1 font-bold">Thưởng đặt sân khung 16h (đ):</label>
+                                <input type="number" id="stReward16" required class="w-full p-3 border rounded-xl font-bold text-emerald-700">
+                            </div>
+                            <div>
+                                <label class="block mb-1 font-bold">Thưởng đặt sân khung 18h (đ):</label>
+                                <input type="number" id="stReward18" required class="w-full p-3 border rounded-xl font-bold text-emerald-700">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-bold">Giới hạn số lần nhận thưởng đặt sân tối đa / tháng:</label>
+                            <input type="number" id="stMaxLimit" required class="w-full p-3 border rounded-xl font-bold text-amber-800">
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block mb-1 font-bold">Mã Ngân Hàng (Bank ID):</label>
+                                <input type="text" id="stBankId" required class="w-full p-3 border rounded-xl font-bold uppercase">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block mb-1 font-bold">Số Tài Khoản Ngân Hàng:</label>
+                                <input type="text" id="stBankAccount" required class="w-full p-3 border rounded-xl font-bold">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-bold">Tên Chủ Tài Khoản (Không dấu / Viết hoa):</label>
+                            <input type="text" id="stAccountName" required class="w-full p-3 border rounded-xl font-bold uppercase">
+                        </div>
+                        <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition">LƯU CÀI ĐẶT HỆ THỐNG</button>
+                    </form>
                 </div>
             </section>
 
@@ -595,7 +609,7 @@
             <button onclick="closeNotificationModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
             <div class="flex items-center gap-2 border-b pb-3 text-emerald-800">
                 <i class="fa-solid fa-bullhorn text-xl"></i>
-                <h3 class="font-bold text-base uppercase">CÁC SÂN NGÀY HÔM NAY (<span id="yesterdayDateLabel"></span>)</h3>
+                <h3 class="font-bold text-base uppercase">CÁC SÂN NGÀY HÔM NAY</h3>
             </div>
             <div id="yesterdayBookingList" class="space-y-2 max-h-72 overflow-y-auto"></div>
         </div>
@@ -606,7 +620,7 @@
         <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
             <button onclick="closeQRZoomModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark text-lg"></i></button>
             <h3 class="font-extrabold text-emerald-900 text-sm uppercase mb-4">QUÉT MÃ QR CHUYỂN KHOẢN</h3>
-            <img src="https://img.vietqr.io/image/TCB-19726868686868-compact2.png?accountName=NGUYEN%20ANH%20THI" alt="VietQR Zoomed" class="w-72 h-72 object-contain rounded-2xl border shadow-md mb-3">
+            <img id="zoomQrImg" src="" alt="VietQR Zoomed" class="w-72 h-72 object-contain rounded-2xl border shadow-md mb-3">
             <p class="text-xs text-slate-500 font-semibold">Chạm hoặc chụp màn hình để quét mã chuyển khoản</p>
         </div>
     </div>
@@ -673,7 +687,7 @@
                 <input type="hidden" id="eqMemberIdx">
                 <div><label class="block mb-1">Thành viên:</label><input type="text" id="eqMemberName" disabled class="w-full p-2.5 border rounded-lg font-bold bg-slate-100"></div>
                 <div><label class="block mb-1">Kỳ Đóng Quỹ:</label><input type="text" id="eqKyDisplay" disabled class="w-full p-2.5 border rounded-lg font-bold text-emerald-800 bg-emerald-50"></div>
-                <div><label class="block mb-1">Số tiền nộp (đ):</label><input type="number" id="eqAmount" required value="600000" class="w-full p-2.5 border rounded-lg font-bold text-slate-900"></div>
+                <div><label class="block mb-1">Số tiền nộp (đ):</label><input type="number" id="eqAmount" required class="w-full p-2.5 border rounded-lg font-bold text-slate-900"></div>
                 <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">XÁC NHẬN LƯU QUỸ</button>
             </form>
         </div>
@@ -737,11 +751,21 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQmeFtqkIiBtN1X4SZpTqqcwGTWBTe1aNrMMo03AiVhr5H5DDXGzszre_3H0QQK9aQ7w/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSOSXnbp7fvuopsFMn3ZsmAclwsYtT8H0xmrjMOzRxwYKD0P8SEuYXGEesxl6fpnBV3Q/exec";
 
         let currentUserRole = "member";
         let loggedInMemberName = "";
         let openingBalance = 2656160;
+
+        let systemSettings = {
+            quyAmount: 600000,
+            reward16h: 20000,
+            reward18h: 30000,
+            maxRewardLimit: 15,
+            bankId: "TCB",
+            bankAccount: "19726868686868",
+            accountName: "NGUYEN ANH THI"
+        };
 
         let members = [];
         let matches = [];
@@ -755,45 +779,44 @@
         let financeSortField = 'stt';
         let financeSortAsc = true;
 
-        // Danh sách dự phòng chuẩn 37 thành viên/khách mời để đảm bảo không bao giờ bị trống dữ liệu đăng nhập
         const defaultFallbackMembers = [
-            { stt: 1, name: "Nguyễn Anh Thi 72", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong1", skip50k: false },
-            { stt: 2, name: "Nguyễn Văn Sao 88", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong2", skip50k: false },
-            { stt: 3, name: "Đỗ Quang Vinh Trọc 77", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong3", skip50k: false },
-            { stt: 4, name: "Phạm Quang Vinh Già 71", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong4", skip50k: false },
-            { stt: 5, name: "Trần Đại An 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong5", skip50k: true },
-            { stt: 6, name: "Dương Khắc Đông 98", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong6", skip50k: true },
-            { stt: 7, name: "Trần Quang Báo 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong7", skip50k: false },
-            { stt: 8, name: "Nguyễn Trọng Hùng Lớp 98", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong8", skip50k: false },
-            { stt: 9, name: "Thế Vinh 94", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong9", skip50k: false },
-            { stt: 10, name: "Nguyễn Tiến Tùng 83", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong10", skip50k: false },
-            { stt: 11, name: "Nguyễn Văn Long 84", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong11", skip50k: false },
-            { stt: 12, name: "Hoàng Long Trọc 80", status: "Đang tham gia", base: 6.25, role: "member", username: "Thanglong12", skip50k: false },
-            { stt: 13, name: "Hoàng Minh Hưng 78", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong13", skip50k: false },
-            { stt: 14, name: "Nguyễn Đức Sơn Nước 81", status: "Bận tạm nghỉ", base: 6.25, role: "member", username: "Thanglong14", skip50k: true },
-            { stt: 15, name: "Hoàng Văn Thái 94", status: "Đặc cách", base: 6.2, role: "admin", username: "Thanglong15", skip50k: false },
-            { stt: 16, name: "Hồ Tuấn Nha 80", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong16", skip50k: true },
-            { stt: 17, name: "Lê Việt Trung Bộ Đội 73", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong17", skip50k: false },
-            { stt: 18, name: "Vũ Văn Thanh 87", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong18", skip50k: true },
-            { stt: 19, name: "Nguyễn Trọng Quân Cận 94", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong19", skip50k: false },
-            { stt: 20, name: "Căn Ngọc Quân 92", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong20", skip50k: true },
-            { stt: 21, name: "Lê Thái 97", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong21", skip50k: false },
-            { stt: 22, name: "Phùng Mạnh Hùng IT 89", status: "Đang tham gia", base: 6.25, role: "member", username: "Thanglong22", skip50k: false },
-            { stt: 23, name: "Hồ Sỹ Hiệp 93", status: "Bận tạm nghỉ", base: 6.25, role: "member", username: "Thanglong23", skip50k: true },
-            { stt: 24, name: "Đỗ Văn Tường 90", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong24", skip50k: false },
-            { stt: 25, name: "Nguyễn Anh Tài 2k", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong25", skip50k: false },
-            { stt: 26, name: "Nguyễn Trường Sơn Dubai 81", status: "Đang tham gia", base: 6.4, role: "member", username: "Thanglong26", skip50k: false },
-            { stt: 27, name: "Nguyễn Thành Tiến 83", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong27", skip50k: false },
-            { stt: 28, name: "Lý Đức Thái Oto 72", status: "Bận tạm nghỉ", base: 6.2, role: "member", username: "Thanglong28", skip50k: false },
-            { stt: 29, name: "Phạm Quốc Việt 97", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong29", skip50k: false },
-            { stt: 30, name: "Hồng Thái Già 62", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong30", skip50k: true },
-            { stt: 31, name: "Đoàn Kiên 79", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong31", skip50k: false },
-            { stt: 32, name: "Hải Phạm 73", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong32", skip50k: false },
-            { stt: 33, name: "Anh Tú 78", status: "Đang tham gia", base: 6.4, role: "member", username: "Thanglong33", skip50k: false },
-            { stt: 34, name: "Anh Kết 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong34", skip50k: false },
-            { stt: 35, name: "Trần Quân 74", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong35", skip50k: false },
-            { stt: 36, name: "Khách mời", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong36", skip50k: true },
-            { stt: 37, name: "Khách mời 2", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong37", skip50k: true }
+            { stt: 1, name: "Nguyễn Anh Thi 72", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong1" },
+            { stt: 2, name: "Nguyễn Văn Sao 88", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong2" },
+            { stt: 3, name: "Đỗ Quang Vinh Trọc 77", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong3" },
+            { stt: 4, name: "Phạm Quang Vinh Già 71", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong4" },
+            { stt: 5, name: "Trần Đại An 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong5" },
+            { stt: 6, name: "Dương Khắc Đông 98", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong6" },
+            { stt: 7, name: "Trần Quang Báo 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong7" },
+            { stt: 8, name: "Nguyễn Trọng Hùng Lớp 98", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong8" },
+            { stt: 9, name: "Thế Vinh 94", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong9" },
+            { stt: 10, name: "Nguyễn Tiến Tùng 83", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong10" },
+            { stt: 11, name: "Nguyễn Văn Long 84", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong11" },
+            { stt: 12, name: "Hoàng Long Trọc 80", status: "Đang tham gia", base: 6.25, role: "member", username: "Thanglong12" },
+            { stt: 13, name: "Hoàng Minh Hưng 78", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong13" },
+            { stt: 14, name: "Nguyễn Đức Sơn Nước 81", status: "Bận tạm nghỉ", base: 6.25, role: "member", username: "Thanglong14" },
+            { stt: 15, name: "Hoàng Văn Thái 94", status: "Đặc cách", base: 6.2, role: "admin", username: "Thanglong15" },
+            { stt: 16, name: "Hồ Tuấn Nha 80", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong16" },
+            { stt: 17, name: "Lê Việt Trung Bộ Đội 73", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong17" },
+            { stt: 18, name: "Vũ Văn Thanh 87", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong18" },
+            { stt: 19, name: "Nguyễn Trọng Quân Cận 94", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong19" },
+            { stt: 20, name: "Căn Ngọc Quân 92", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong20" },
+            { stt: 21, name: "Lê Thái 97", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong21" },
+            { stt: 22, name: "Phùng Mạnh Hùng IT 89", status: "Đang tham gia", base: 6.25, role: "member", username: "Thanglong22" },
+            { stt: 23, name: "Hồ Sỹ Hiệp 93", status: "Bận tạm nghỉ", base: 6.25, role: "member", username: "Thanglong23" },
+            { stt: 24, name: "Đỗ Văn Tường 90", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong24" },
+            { stt: 25, name: "Nguyễn Anh Tài 2k", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong25" },
+            { stt: 26, name: "Nguyễn Trường Sơn Dubai 81", status: "Đang tham gia", base: 6.4, role: "member", username: "Thanglong26" },
+            { stt: 27, name: "Nguyễn Thành Tiến 83", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong27" },
+            { stt: 28, name: "Lý Đức Thái Oto 72", status: "Bận tạm nghỉ", base: 6.2, role: "member", username: "Thanglong28" },
+            { stt: 29, name: "Phạm Quốc Việt 97", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong29" },
+            { stt: 30, name: "Hồng Thái Già 62", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong30" },
+            { stt: 31, name: "Đoàn Kiên 79", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong31" },
+            { stt: 32, name: "Hải Phạm 73", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong32" },
+            { stt: 33, name: "Anh Tú 78", status: "Đang tham gia", base: 6.4, role: "member", username: "Thanglong33" },
+            { stt: 34, name: "Anh Kết 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong34" },
+            { stt: 35, name: "Trần Quân 74", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong35" },
+            { stt: 36, name: "Khách mời", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong36" },
+            { stt: 37, name: "Khách mời 2", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong37" }
         ];
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -804,16 +827,36 @@
             if (document.getElementById('selectFinanceMonth')) document.getElementById('selectFinanceMonth').value = curMonth;
             if (document.getElementById('selectFinanceYear')) document.getElementById('selectFinanceYear').value = curYear;
 
-            // Load dữ liệu cũ ngay khi bật trang
             loadLocalData();
-            if (members.length === 0) {
-                members = defaultFallbackMembers;
-            }
-            initApp();
+            if (members.length === 0) members = defaultFallbackMembers;
 
-            // Tự động kéo dữ liệu ngầm từ Cloud về để cập nhật mới nhất
+            checkAndRolloverMonth(now);
+            initApp();
             fetchCloudData(false);
         });
+
+        function checkAndRolloverMonth(nowDate) {
+            let lastCheckDate = localStorage.getItem('clb_last_rollover_date') || "";
+            let currentMonthKey = `${nowDate.getFullYear()}-${nowDate.getMonth() + 1}`;
+            
+            // Nếu là ngày mùng 1 đầu tháng và tháng này chưa rollover
+            if (nowDate.getDate() === 1 && lastCheckDate !== currentMonthKey) {
+                let prevMonth = nowDate.getMonth(); // tháng trước (0-11)
+                let prevYear = nowDate.getFullYear();
+                if (prevMonth === 0) { prevMonth = 12; prevYear--; }
+
+                members.forEach(m => {
+                    let fPrev = calculateUserFinanceForMonth(m.name, prevMonth, prevYear);
+                    if (fPrev.totalPay > 0) {
+                        m.noOld = (m.noOld || 0) + fPrev.totalPay;
+                    }
+                });
+
+                localStorage.setItem('clb_members', JSON.stringify(members));
+                localStorage.setItem('clb_last_rollover_date', currentMonthKey);
+                enqueueAction("updateMember", { members: members }, "Hệ thống đã tự động chuyển Tổng cần đóng tháng trước thành Nợ cũ sang tháng mới!");
+            }
+        }
 
         function showToast(msg) {
             let toast = document.getElementById('appToast');
@@ -831,6 +874,7 @@
             localStorage.setItem('clb_cashbookLogs', JSON.stringify(cashbookLogs));
             localStorage.setItem('clb_gocLogs', JSON.stringify(gocLogs));
             localStorage.setItem('clb_openingBalance', openingBalance);
+            localStorage.setItem('clb_settings', JSON.stringify(systemSettings));
             localStorage.setItem('clb_syncQueue', JSON.stringify(syncQueue));
         }
 
@@ -842,6 +886,8 @@
             gocLogs = JSON.parse(localStorage.getItem('clb_gocLogs')) || [];
             let storedBal = localStorage.getItem('clb_openingBalance');
             if (storedBal !== null) openingBalance = parseFloat(storedBal);
+            let storedSets = JSON.parse(localStorage.getItem('clb_settings'));
+            if (storedSets) systemSettings = Object.assign(systemSettings, storedSets);
             syncQueue = JSON.parse(localStorage.getItem('clb_syncQueue')) || [];
         }
 
@@ -857,6 +903,7 @@
             else if (actionName === "addGocLog" && payload.gocLog) gocLogs.unshift(payload.gocLog);
             else if (actionName === "addBooking" && payload.booking) bookingLogs.unshift(payload.booking);
             else if (actionName === "addCashbook" && payload.cashbook) cashbookLogs.unshift(payload.cashbook);
+            else if (actionName === "updateSettings" && payload.settings) systemSettings = payload.settings;
             else if (actionName === "deleteItem") {
                 let id = payload.id;
                 if (payload.sheetName === "Matches") matches = matches.filter(x => x.id != id);
@@ -894,7 +941,6 @@
             });
         }
 
-        // ĐĂNG NHẬP AN TOÀN ĐÃ FIX LỖI MÁY TRỐNG DỮ LIỆU
         function handleLogin(e) {
             e.preventDefault();
             let u = document.getElementById('loginUser').value.trim();
@@ -941,7 +987,6 @@
                 dashSelect.value = loggedInMemberName;
                 if (currentUserRole !== 'admin') {
                     dashSelect.disabled = true;
-                    dashSelect.title = "Tài khoản cá nhân tự động khóa theo tên của bạn để đảm bảo không bị ghi nhận nhầm!";
                 } else {
                     dashSelect.disabled = false;
                 }
@@ -970,6 +1015,7 @@
 
         function initApp() {
             if (members.length === 0) members = defaultFallbackMembers;
+            populateSettingsForm();
             populateSelectors();
             recalculateMemberPaidTotals();
             renderDashboard();
@@ -982,6 +1028,36 @@
             renderMemberList();
             checkYesterdayBookingsNotification();
             applyRolePermissions();
+        }
+
+        function populateSettingsForm() {
+            document.getElementById('stQuyAmount').value = systemSettings.quyAmount;
+            document.getElementById('stReward16').value = systemSettings.reward16h;
+            document.getElementById('stReward18').value = systemSettings.reward18h;
+            document.getElementById('stMaxLimit').value = systemSettings.maxRewardLimit;
+            document.getElementById('stBankId').value = systemSettings.bankId;
+            document.getElementById('stBankAccount').value = systemSettings.bankAccount;
+            document.getElementById('stAccountName').value = systemSettings.accountName;
+
+            document.getElementById('lblReward16').innerText = (systemSettings.reward16h / 1000) + 'k';
+            document.getElementById('lblReward18').innerText = (systemSettings.reward18h / 1000) + 'k';
+            document.getElementById('lblQuyNum').innerText = (systemSettings.quyAmount / 1000) + 'k';
+
+            let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?accountName=${encodeURIComponent(systemSettings.accountName)}`;
+            document.getElementById('dashQrImg').src = qrUrl;
+        }
+
+        function saveSystemSettings(e) {
+            e.preventDefault();
+            systemSettings.quyAmount = parseFloat(document.getElementById('stQuyAmount').value) || 600000;
+            systemSettings.reward16h = parseFloat(document.getElementById('stReward16').value) || 20000;
+            systemSettings.reward18h = parseFloat(document.getElementById('stReward18').value) || 30000;
+            systemSettings.maxRewardLimit = parseInt(document.getElementById('stMaxLimit').value) || 15;
+            systemSettings.bankId = document.getElementById('stBankId').value.trim().toUpperCase();
+            systemSettings.bankAccount = document.getElementById('stBankAccount').value.trim();
+            systemSettings.accountName = document.getElementById('stAccountName').value.trim().toUpperCase();
+
+            enqueueAction("updateSettings", { settings: systemSettings }, "Đã lưu cài đặt hệ thống thành công!");
         }
 
         function recalculateMemberPaidTotals() {
@@ -1034,14 +1110,37 @@
                 switchTab('matches');
                 document.getElementById('matchP1A').value = main;
             } else if (actType === "dat16") {
-                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: 20000 };
+                // Kiểm tra giới hạn số lần thưởng trong tháng
+                let curMonth = document.getElementById('selectFinanceMonth').value;
+                let curYear = document.getElementById('selectFinanceYear').value;
+                let userBookingsThisMonth = bookingLogs.filter(b => {
+                    if (b.name !== main) return false;
+                    let t = b.time || "";
+                    return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+                });
+                if (userBookingsThisMonth.length >= systemSettings.maxRewardLimit) {
+                    alert(`Thành viên ${main} đã đạt giới hạn tối đa ${systemSettings.maxRewardLimit} lần nhận thưởng đặt sân trong tháng này!`);
+                    return;
+                }
+                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: systemSettings.reward16h };
                 enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Đặt sân 16h thành công!");
             } else if (actType === "dat18") {
-                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h", reward: 30000 };
+                let curMonth = document.getElementById('selectFinanceMonth').value;
+                let curYear = document.getElementById('selectFinanceYear').value;
+                let userBookingsThisMonth = bookingLogs.filter(b => {
+                    if (b.name !== main) return false;
+                    let t = b.time || "";
+                    return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+                });
+                if (userBookingsThisMonth.length >= systemSettings.maxRewardLimit) {
+                    alert(`Thành viên ${main} đã đạt giới hạn tối đa ${systemSettings.maxRewardLimit} lần nhận thưởng đặt sân trong tháng này!`);
+                    return;
+                }
+                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h", reward: systemSettings.reward18h };
                 enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Đặt sân 18h thành công!");
             } else if (actType === "quy") {
                 if (!m.quyHistory) m.quyHistory = {};
-                m.quyHistory[key] = 600000;
+                m.quyHistory[key] = systemSettings.quyAmount;
                 enqueueAction("updateMember", { members: members }, "Đã ghi nhận Đóng quỹ quý thành công!");
             }
         }
@@ -1082,11 +1181,10 @@
                 }
             });
 
-            let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0, skip50k: false };
+            let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0 };
             
-            let penalty50 = (!m.skip50k && monthMatchCount < 15) ? 50000 : 0;
-            let cappedBaseFee = Math.min(150000, monthRegularFee + penalty50);
-
+            // Trần góc cơ bản tối đa 150k, không tính tiền kèo đặc biệt vào trần
+            let cappedBaseFee = Math.min(150000, monthRegularFee);
             let totalPay = cappedBaseFee + monthSpecialBetFee + (m.noOld || 0) - (m.paidUser || 0);
 
             return {
@@ -1116,10 +1214,14 @@
             let paidQuy = (m.quyHistory && m.quyHistory[key] !== undefined) ? parseInt(m.quyHistory[key]) : 0;
             let warningBanner = document.getElementById('quyWarningBanner');
 
-            if (m.status === 'Đang tham gia' && paidQuy < 600000) {
+            let hasWarning = (m.status === 'Đang tham gia' && (paidQuy < systemSettings.quyAmount || f.totalPay > 0));
+            if (hasWarning) {
                 warningBanner.classList.remove('hidden');
                 warningBanner.classList.add('flex');
-                document.getElementById('quyWarningText').innerText = `${m.name} ơi, bạn chưa đóng ${qSel}/${ySel} (600k). Vui lòng đóng quỹ để CLB hoạt động tốt nhất nhé!`;
+                let warningMsg = [];
+                if (paidQuy < systemSettings.quyAmount) warningMsg.push(`chưa đóng quỹ ${qSel}/${ySel} (${(systemSettings.quyAmount/1000)}k)`);
+                if (f.totalPay > 0) warningMsg.push(`có số tiền cần đóng là ${f.totalPay.toLocaleString()} đ`);
+                document.getElementById('quyWarningText').innerText = `${m.name} ơi, bạn ${warningMsg.join(' và ')}. Vui lòng hoàn thành để CLB hoạt động tốt nhất nhé!`;
             } else {
                 warningBanner.classList.add('hidden');
                 warningBanner.classList.remove('flex');
@@ -1285,18 +1387,14 @@
                 let f = item.f;
                 let winRateStr = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
 
-                let isUnder15 = f.monthMatchCount < 15;
-                let matchCountCellClass = isUnder15 ? (m.skip50k ? 'text-amber-700 bg-amber-50 font-black' : 'text-red-600 bg-red-50 font-black') : 'text-emerald-700 font-black';
-                let matchTitleTooltip = isUnder15 && m.skip50k ? 'Đang bật miễn phạt <15 trận' : '';
-
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
                         <td class="p-2.5 text-center font-bold text-slate-500">${item.originalIdx}</td>
-                        <td class="p-2.5 font-bold text-slate-900">${m.name}</td>
+                        <td class="p-2.5 sticky-col font-bold text-slate-900 border-r">${m.name}</td>
                         <td class="p-2.5 text-center font-bold text-blue-600">${f.totalWins}</td>
                         <td class="p-2.5 text-center font-bold text-red-600">${f.totalLosses}</td>
                         <td class="p-2.5 text-center font-bold text-amber-600">${f.totalDraws}</td>
-                        <td class="p-2.5 text-center ${matchCountCellClass}" title="${matchTitleTooltip}">${f.monthMatchCount} ${m.skip50k && isUnder15 ? '<i class="fa-solid fa-shield-halved text-[10px]" title="Đã miễn phạt 50k"></i>' : ''}</td>
+                        <td class="p-2.5 text-center font-black text-emerald-700 bg-emerald-50/50">${f.monthMatchCount}</td>
                         <td class="p-2.5 text-center font-bold">${winRateStr}</td>
                         <td class="p-2.5 text-right font-semibold">${f.cappedBaseFee.toLocaleString()} đ</td>
                         <td class="p-2.5 text-right font-bold text-amber-800">${f.monthSpecialBetFee.toLocaleString()} đ</td>
@@ -1337,7 +1435,7 @@
 
         function openQRModal(memberName, amount) {
             let content = "NOP TIEN GOC " + memberName.replace(/[^a-zA-Z0-9]/g, '');
-            let qrUrl = `https://img.vietqr.io/image/TCB-19726868686868-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=NGUYEN%20ANH%20THI`;
+            let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(systemSettings.accountName)}`;
             document.getElementById('qrImage').src = qrUrl;
             document.getElementById('qrAmountDisplay').innerText = amount.toLocaleString('vi-VN') + " đ";
             document.getElementById('qrModal').classList.remove('hidden');
@@ -1350,6 +1448,8 @@
         }
 
         function openQRZoomModal() {
+            let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?accountName=${encodeURIComponent(systemSettings.accountName)}`;
+            document.getElementById('zoomQrImg').src = qrUrl;
             let modal = document.getElementById('qrZoomModal');
             if (modal) {
                 modal.classList.remove('hidden');
@@ -1484,7 +1584,7 @@
                     paidAmount = parseInt(m.quyHistory[key]);
                 }
 
-                let isOk = paidAmount >= 600000;
+                let isOk = paidAmount >= systemSettings.quyAmount;
                 let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
 
                 tbody.innerHTML += `
@@ -1514,7 +1614,7 @@
             document.getElementById('eqMemberIdx').value = idx;
             document.getElementById('eqMemberName').value = m.name;
             document.getElementById('eqKyDisplay').value = q.replace('Q', 'Quý ') + "/" + y;
-            document.getElementById('eqAmount').value = currentPaid > 0 ? currentPaid : 600000;
+            document.getElementById('eqAmount').value = currentPaid > 0 ? currentPaid : systemSettings.quyAmount;
 
             document.getElementById('editQuyModal').classList.remove('hidden');
             document.getElementById('editQuyModal').classList.add('flex');
@@ -1622,8 +1722,7 @@
                             <td class="p-2 font-bold">${g.name} <span class="text-[10px] font-normal text-slate-500">(${g.note||''})</span></td>
                             <td class="p-2 text-right font-bold text-emerald-700">${parseInt(g.amount).toLocaleString()} đ</td>
                             <td class="p-2 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
-                                <button onclick="openEditGocLog(${g.id})" class="text-blue-600 font-bold mr-2"><i class="fa-solid fa-pen"></i> Sửa</button>
-                                <button onclick="deleteGocLog(${g.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i> Xóa</button>
+                                <button onclick="deleteGocLog(${g.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>
                     `;
@@ -1651,7 +1750,14 @@
             let banSan = cashbookLogs.filter(c => c.category === "Tiền bán sân").reduce((s, c) => s + parseInt(c.amount), 0);
             let ungHo = cashbookLogs.filter(c => c.category === "Tiền ủng hộ / Tài trợ").reduce((s, c) => s + parseInt(c.amount), 0);
 
-            let totalChi = cashbookLogs.filter(c => c.category.includes("Tiền app") || c.category.includes("mua bóng") || c.category.includes("thưởng") || c.category.includes("liên hoan")).reduce((s, c) => s + parseInt(c.amount), 0);
+            let totalChi = cashbookLogs.filter(c => 
+                c.category.includes("Tiền app") || 
+                c.category.includes("mua bóng") || 
+                c.category.includes("thưởng") || 
+                c.category.includes("liên hoan") ||
+                c.category.includes("chi khác")
+            ).reduce((s, c) => s + parseInt(c.amount), 0);
+
             let totalThu = totalQuyThu + totalGocThu + banSan + ungHo;
             let balance = openingBalance + totalThu - totalChi;
 
@@ -1670,8 +1776,6 @@
                 let roleBadge = isSystemAdmin ? `<span class="bg-amber-100 text-amber-900 font-extrabold px-2 py-0.5 rounded text-[10px]">Admin</span>` : `<span class="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded text-[10px]">Member</span>`;
 
                 let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
-                
-                let skipChecked = m.skip50k ? 'checked' : '';
 
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
@@ -1681,12 +1785,10 @@
                         <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
                         <td class="p-3 text-center font-extrabold text-amber-700 bg-amber-50">${m.base}</td>
                         <td class="p-3 text-center">${roleBadge}</td>
-                        <td class="p-3 text-center bg-purple-50/50">
-                            <input type="checkbox" ${skipChecked} onchange="toggleSkip50k(${idx}, this.checked)" class="w-4 h-4 text-purple-600 rounded cursor-pointer" title="Bật để miễn phí phạt 50k khi dưới 15 trận trong tháng">
-                        </td>
                         <td class="p-3 text-center admin-only ${currentUserRole==='admin'?'':'hidden'} space-x-2">
                             <button onclick="openEditMemberModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i> Sửa</button>
-                            <button onclick="toggleMemberRole(${idx})" class="text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded border border-amber-200 hover:bg-amber-100">Đổi Quyền</button>
+                            <button onclick="toggleMemberRole(${idx})" class="text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded border border-amber-200">Đổi Quyền</button>
+                            <button onclick="deleteMember(${idx})" class="text-red-600 font-bold text-xs bg-red-50 px-2 py-1 rounded border border-red-200"><i class="fa-solid fa-trash"></i> Xóa</button>
                         </td>
                     </tr>
                 `;
@@ -1695,14 +1797,14 @@
             applyRolePermissions();
         }
 
-        function toggleSkip50k(idx, isChecked) {
-            if (currentUserRole !== 'admin') {
-                alert("Chỉ tài khoản Admin mới có quyền thay đổi thiết lập này!");
-                renderMemberList();
-                return;
+        function deleteMember(idx) {
+            let m = members[idx];
+            if (confirm(`Bạn có chắc muốn xóa thành viên [${m.name}] khỏi danh sách?\n(Toàn bộ lịch sử trận đấu, nộp tiền góc và quỹ đã đóng trước đó của thành viên này vẫn được bảo lưu hoàn toàn không bị ảnh hưởng).`)) {
+                members.splice(idx, 1);
+                // Đánh số lại STT cho các thành viên còn lại
+                members.forEach((mem, i) => { mem.stt = i + 1; });
+                enqueueAction("updateMember", { members: members }, "Đã xóa thành viên thành công và bảo lưu dữ liệu lịch sử!");
             }
-            members[idx].skip50k = isChecked;
-            enqueueAction("updateMember", { members: members }, `Đã ${isChecked ? 'bật' : 'tắt'} miễn phạt 50k cho ${members[idx].name}!`);
         }
 
         function toggleMemberRole(idx) {
@@ -1743,8 +1845,7 @@
                 paidUser: 0,
                 noOld: 0,
                 username: "Thanglong" + newStt,
-                role: "member",
-                skip50k: false
+                role: "member"
             });
 
             closeAddMemberModal();
@@ -1850,8 +1951,6 @@
             let yYear = yDate.getFullYear();
             let dateStrFormatted = `${String(yDay).padStart(2, '0')}/${String(yMonth).padStart(2, '0')}/${yYear}`;
 
-            document.getElementById('yesterdayDateLabel').innerText = dateStrFormatted;
-
             let yesterdayBookings = bookingLogs.filter(b => {
                 let t = b.time || "";
                 let parts = t.split(" ");
@@ -1934,6 +2033,7 @@
             if (data.cashbookLogs) cashbookLogs = data.cashbookLogs;
             if (data.gocLogs) gocLogs = data.gocLogs;
             if (data.openingBalance !== undefined) openingBalance = data.openingBalance;
+            if (data.settings) systemSettings = Object.assign(systemSettings, data.settings);
 
             saveLocalData();
             initApp();
