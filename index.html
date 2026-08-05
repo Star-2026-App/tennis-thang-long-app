@@ -79,7 +79,7 @@
                 </div>
             </div>
 
-            <!-- MENU ĐIỀU HƯỚNG TỰ ĐỘNG XUỐNG DÒNG (FLEX-WRAP) TRÊN DI ĐỘNG, KÈM NÚT THOÁT XUỐNG DƯỚI GỌN GÀNG -->
+            <!-- MENU ĐIỀU HƯỚNG TỰ ĐỘNG XUỐNG DÒNG TRÊN DI ĐỘNG, KÈM NÚT THOÁT GỌN GÀNG -->
             <nav class="bg-emerald-900 text-emerald-100 px-4 py-1.5 flex flex-wrap gap-1 text-xs md:text-sm font-medium border-t border-emerald-700/50 items-center justify-between">
                 <div class="flex flex-wrap gap-1 items-center">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Dashboard Cá Nhân</button>
@@ -92,7 +92,6 @@
                     <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu - Chi</button>
                     <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên (<span id="memberCountHeader">35</span>)</button>
                 </div>
-                <!-- NÚT THOÁT ĐƯA GỌN VÀO DÒNG MENU DI ĐỘNG -->
                 <div class="py-1">
                     <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg font-bold shadow flex items-center gap-1 text-white"><i class="fa-solid fa-right-from-bracket"></i> Thoát</button>
                 </div>
@@ -157,7 +156,7 @@
                         </div>
                     </div>
 
-                    <!-- THÔNG TIN TÀI CHÍNH & VIETQR TÍCH HỢP (BỎ TEXT THỪA BÊN DƯỚI MÃ QR CHO GỌN GÀNG) -->
+                    <!-- THÔNG TIN TÀI CHÍNH & VIETQR TÍCH HỢP (CÓ TÍNH NĂNG CLICK PHÓNG TO MÃ QR) -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-emerald-50/60 p-5 rounded-2xl border border-emerald-200 mb-6 items-center">
                         <div>
                             <span class="text-xs font-bold text-slate-600 uppercase">THƯỞNG ĐẶT SÂN TÍCH LŨY:</span>
@@ -178,10 +177,10 @@
                             <p class="text-[10px] text-slate-500 mt-1">Tổng đã nộp dồn: <span id="statPaidDisplay" class="font-bold text-emerald-700">0 đ</span></p>
                         </div>
 
-                        <!-- VIETQR TĨNH GỌN GÀNG (KHÔNG CÓ DÒNG CHỮ THỪA BÊN DƯỚI) -->
+                        <!-- VIETQR TĨNH GỌN GÀNG (CLICK ĐỂ PHÓNG TO) -->
                         <div class="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm flex flex-col items-center text-center">
-                            <span class="text-[10px] font-extrabold text-emerald-900 uppercase mb-1">QUÉT MÃ QR CHUYỂN KHOẢN (TRỪ DẦN)</span>
-                            <img src="https://img.vietqr.io/image/TCB-19726868686868-compact2.png?accountName=NGUYEN%20ANH%20THI" alt="VietQR Nguyen Anh Thi" class="w-28 h-28 object-contain rounded border">
+                            <span class="text-[10px] font-extrabold text-emerald-900 uppercase mb-1">QUÉT MÃ QR (BẤM ĐỂ PHÓNG TO)</span>
+                            <img src="https://img.vietqr.io/image/TCB-19726868686868-compact2.png?accountName=NGUYEN%20ANH%20THI" alt="VietQR Nguyen Anh Thi" onclick="openQRZoomModal()" class="w-28 h-28 object-contain rounded border cursor-pointer hover:scale-105 transition" title="Bấm để phóng to mã QR">
                         </div>
                     </div>
 
@@ -295,7 +294,7 @@
                 </div>
             </section>
 
-            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU (MỚI NHẤT LÊN TRÊN + NÚT SỬA TRẬN ĐẤU CHO ADMIN) -->
+            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU (MỚI NHẤT LÊN TRÊN) -->
             <section id="tab-matchLog" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border">
                     <h2 class="text-xl font-bold text-slate-800 mb-4">NHẬT KÝ TẤT CẢ CÁC TRẬN ĐẤU (MỚI NHẤT Ở TRÊN)</h2>
@@ -414,7 +413,7 @@
                 </div>
             </section>
 
-            <!-- TAB 5: THƯỞNG ĐẶT SÂN (CHỈ LỌC THÁNG HIỆN TẠI, ĐẢO NGƯỢC MỚI NHẤT LÊN TRÊN) -->
+            <!-- TAB 5: THƯỞNG ĐẶT SÂN (CHUẨN XÁC MỚI NHẤT LÊN TRÊN) -->
             <section id="tab-booking" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-4 pb-3 border-b">
@@ -560,7 +559,7 @@
                 </div>
             </section>
 
-            <!-- TAB 8: THÀNH VIÊN (TRẠNG THÁI: ĐANG THAM GIA, BẬN TẠM NGHỈ, ĐẶC CÁCH) -->
+            <!-- TAB 8: THÀNH VIÊN -->
             <section id="tab-members" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
@@ -596,13 +595,21 @@
                 <i class="fa-solid fa-bullhorn text-xl"></i>
                 <h3 class="font-bold text-base uppercase">THÔNG BÁO LỊCH SÂN HÔM QUA (<span id="yesterdayDateLabel"></span>)</h3>
             </div>
-            <div id="yesterdayBookingList" class="space-y-2 max-h-72 overflow-y-auto">
-                <!-- Danh sách sân ngày hôm trước -->
-            </div>
+            <div id="yesterdayBookingList" class="space-y-2 max-h-72 overflow-y-auto"></div>
         </div>
     </div>
 
-    <!-- MODAL SỬA TRẬN ĐẤU (DÀNH CHO ADMIN) -->
+    <!-- MODAL PHÓNG TO MÃ QR CÁ NHÂN -->
+    <div id="qrZoomModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeQRZoomModal()">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
+            <button onclick="closeQRZoomModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="font-extrabold text-emerald-900 text-sm uppercase mb-4">QUÉT MÃ QR CHUYỂN KHOẢN</h3>
+            <img src="https://img.vietqr.io/image/TCB-19726868686868-compact2.png?accountName=NGUYEN%20ANH%20THI" alt="VietQR Zoomed" class="w-72 h-72 object-contain rounded-2xl border shadow-md mb-3">
+            <p class="text-xs text-slate-500 font-semibold">Chạm hoặc chụp màn hình để quét mã chuyển khoản</p>
+        </div>
+    </div>
+
+    <!-- MODAL SỬA TRẬN ĐẤU -->
     <div id="editMatchModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
             <button onclick="closeEditMatchModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -681,7 +688,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT TÊN, ĐIỂM BASE & TRẠNG THÁI -->
+    <!-- MODAL EDIT THÔNG TIN THÀNH VIÊN -->
     <div id="editMemberModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
             <button onclick="closeEditMemberModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -703,7 +710,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT THỰC ĐÓNG & NỢ CŨ -->
+    <!-- MODAL EDIT NỢ CŨ -->
     <div id="editFinanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
             <button onclick="closeEditFinanceModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -718,7 +725,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyL30XrDmf20ShYlnePrGKD7eNNmjPC-3xiqG-60V8TqNSrBtFl2W4mSLqjR84DMNIvxw/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxlnJQXM7cl-VcmGSPCnzA6O7AY1KJZhreBZCQSsFLQn6M6bFz4f9fabpfH4rPAlhJ77Q/exec";
 
         let currentUserRole = "member";
         let openingBalance = 2656160;
@@ -1229,6 +1236,22 @@
             document.getElementById('qrModal').classList.remove('flex');
         }
 
+        function openQRZoomModal() {
+            let modal = document.getElementById('qrZoomModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeQRZoomModal() {
+            let modal = document.getElementById('qrZoomModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
         function renderAllMatchLog() {
             let tbody = document.getElementById('allMatchTableBody');
             tbody.innerHTML = '';
@@ -1299,10 +1322,16 @@
                 return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
             });
 
+            // Sắp xếp tăng dần theo ID để bản ghi cũ ở trên, mới ở dưới, rồi đảo ngược để mới nhất lên đầu chuẩn xác
+            currentMonthBookings.sort((a, b) => {
+                let idA = parseInt(a.id) || 0;
+                let idB = parseInt(b.id) || 0;
+                return idA - idB;
+            });
+
             let totalRewardSum = currentMonthBookings.reduce((sum, b) => sum + parseInt(b.reward || 0), 0);
             document.getElementById('totalBookingRewardDisplay').innerText = totalRewardSum.toLocaleString('vi-VN') + " đ";
 
-            // Đảo ngược để mới nhất lên trên
             let reversedBookings = [...currentMonthBookings].reverse();
             reversedBookings.forEach((b, idx) => {
                 tbody.innerHTML += `
