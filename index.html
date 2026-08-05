@@ -42,7 +42,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tài khoản (Username):</label>
                     <input type="text" id="loginUser" required placeholder="Ví dụ: Thanglong1 đến Thanglong35" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
-                    <p class="text-[10px] text-slate-500 mt-1">Gợi ý: Cú pháp tài khoản là <strong class="text-emerald-700">Thanglong</strong> + <strong class="text-emerald-700">STT</strong> (VD: Thanglong1)</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Gợi ý: Cú pháp tài khoản là <strong class="text-emerald-700">Thanglong</strong> + <strong class="text-emerald-700">STT</strong> (VD: Thanglong1, Thanglong2, Thanglong15)</p>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu (Password):</label>
@@ -68,7 +68,7 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2.5 rounded-full text-amber-300 shadow transition" title="Lịch sân ngày hôm qua">
+                    <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2.5 rounded-full text-amber-300 shadow transition" title="Các sân ngày hôm nay">
                         <i class="fa-solid fa-bell text-base"></i>
                         <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full hidden">0</span>
                     </button>
@@ -80,7 +80,7 @@
                 </div>
             </div>
 
-            <!-- MENU ĐIỀU HƯỚNG TỰ ĐỘNG XUỐNG DÒNG CỰC KỲ THUẬN TIỆN TRÊN DI ĐỘNG -->
+            <!-- MENU ĐIỀU HƯỚNG -->
             <nav class="bg-emerald-900 text-emerald-100 px-4 py-1.5 flex flex-wrap gap-1 text-xs md:text-sm font-medium border-t border-emerald-700/50 items-center justify-between">
                 <div class="flex flex-wrap gap-1 items-center">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Dashboard Cá Nhân</button>
@@ -122,7 +122,7 @@
                         </div>
                         <div class="w-full md:w-72">
                             <label class="block text-xs font-bold text-slate-700 uppercase mb-1">TÊN THÀNH VIÊN ĐANG CHỌN (*):</label>
-                            <select id="dashMainUser" onchange="renderDashboard()" class="w-full bg-emerald-50 border border-emerald-300 rounded-xl p-2.5 text-sm font-extrabold text-emerald-900 outline-none disabled:bg-slate-100 disabled:text-slate-600"></select>
+                            <select id="dashMainUser" onchange="renderDashboard()" class="w-full bg-emerald-50 border border-emerald-300 rounded-xl p-2.5 text-sm font-extrabold text-emerald-900 outline-none disabled:bg-slate-100 disabled:text-slate-700"></select>
                         </div>
                     </div>
 
@@ -554,13 +554,13 @@
                 </div>
             </section>
 
-            <!-- TAB 9: THÀNH VIÊN (HIỂN THỊ TÀI KHOẢN VÀ QUYỀN VỚI TÍNH NĂNG ĐỔI QUYỀN ADMIN) -->
+            <!-- TAB 9: THÀNH VIÊN (CÓ CỘT BỎ RULE 50K CHO ADMIN BẬT/TẮT) -->
             <section id="tab-members" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB</h2>
-                            <p class="text-xs text-slate-500">Quản lý danh sách, điểm Base, Tài khoản đăng nhập và Quyền Hạn</p>
+                            <p class="text-xs text-slate-500">Quản lý danh sách, điểm Base, Tài khoản đăng nhập, Quyền Hạn và Bỏ Rule 50k</p>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
@@ -578,6 +578,7 @@
                                     <th class="p-3 text-center">Trạng Thái</th>
                                     <th class="p-3 text-center bg-amber-50">Điểm Base</th>
                                     <th class="p-3 text-center">Vai Trò</th>
+                                    <th class="p-3 text-center bg-purple-50 text-purple-900">Bỏ Rule 50k</th>
                                     <th class="p-3 text-center admin-only">Sửa / Quyền Admin</th>
                                 </tr>
                             </thead>
@@ -590,13 +591,13 @@
         </main>
     </div>
 
-    <!-- MODAL POPUP THÔNG BÁO LỊCH SÂN NGÀY HÔM QUA -->
+    <!-- MODAL POPUP CÁC SÂN NGÀY HÔM NAY -->
     <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
             <button onclick="closeNotificationModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
             <div class="flex items-center gap-2 border-b pb-3 text-emerald-800">
                 <i class="fa-solid fa-bullhorn text-xl"></i>
-                <h3 class="font-bold text-base uppercase">THÔNG BÁO LỊCH SÂN HÔM QUA (<span id="yesterdayDateLabel"></span>)</h3>
+                <h3 class="font-bold text-base uppercase">CÁC SÂN NGÀY HÔM NAY (<span id="yesterdayDateLabel"></span>)</h3>
             </div>
             <div id="yesterdayBookingList" class="space-y-2 max-h-72 overflow-y-auto"></div>
         </div>
@@ -609,6 +610,16 @@
             <h3 class="font-extrabold text-emerald-900 text-sm uppercase mb-4">QUÉT MÃ QR CHUYỂN KHOẢN</h3>
             <img src="https://img.vietqr.io/image/TCB-19726868686868-compact2.png?accountName=NGUYEN%20ANH%20THI" alt="VietQR Zoomed" class="w-72 h-72 object-contain rounded-2xl border shadow-md mb-3">
             <p class="text-xs text-slate-500 font-semibold">Chạm hoặc chụp màn hình để quét mã chuyển khoản</p>
+        </div>
+    </div>
+
+    <!-- MODAL THANH TOÁN QR TRONG BẢNG TÀI CHÍNH -->
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeQRModal()">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
+            <button onclick="closeQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="font-extrabold text-emerald-900 text-sm uppercase mb-2">QUÉT MÃ QR THANH TOÁN</h3>
+            <p class="text-xs font-bold text-red-600 mb-3" id="qrAmountDisplay">0 đ</p>
+            <img id="qrImage" src="" alt="QR Thanh Toan" class="w-64 h-64 object-contain rounded-2xl border shadow-md mb-3">
         </div>
     </div>
 
@@ -728,7 +739,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyklfMH6PjcJXHgCZ96yfXz-aOOtRMrqEV61-xC--_-QHyFzRWHgdfgm298O6zhczRxOg/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdI7Gz74CPkJyiY9ISwjkXuBVGg_PMz7iIgOfQbCFVFKVr-GcKpTQdI7mhATug0_xgyg/exec";
 
         let currentUserRole = "member";
         let loggedInMemberName = "";
@@ -834,7 +845,7 @@
             });
         }
 
-        // ĐĂNG NHẬP THEO TÀI KHOẢN CÁ NHÂN (Thanglong1 - Thanglong35) VÀ PHÂN QUYỀN KHÓA TÊN
+        // ĐĂNG NHẬP CHUẨN XÁC TÀI KHOẢN CÁ NHÂN (Thanglong1 đến Thanglong35) ĐÃ KHẮC PHỤC LỖI TRÔI VỀ THI 72
         function handleLogin(e) {
             e.preventDefault();
             let u = document.getElementById('loginUser').value.trim();
@@ -842,11 +853,9 @@
 
             loadLocalData();
 
-            // Tìm thành viên theo username (Thanglong1 đến Thanglong35)
             let foundMem = members.find(m => m.username && m.username.toLowerCase() === u.toLowerCase());
 
             if (!foundMem) {
-                // Kiểm tra xem user có gõ Thanglong + số không (ví dụ: Thanglong1)
                 let match = u.match(/^Thanglong(\d+)$/i);
                 if (match) {
                     let sttNum = parseInt(match[1]);
@@ -883,14 +892,16 @@
             
             initApp();
             
-            // Khóa chặt tên ở ô chọn Dashboard nếu là Member thường
+            // Khóa chặt tên ở ô chọn Dashboard đúng với tài khoản đăng nhập (kể cả admin Thanglong2 hoặc Thanglong15)
             let dashSelect = document.getElementById('dashMainUser');
-            if (currentUserRole !== 'admin') {
+            if (dashSelect) {
                 dashSelect.value = loggedInMemberName;
-                dashSelect.disabled = true;
-                dashSelect.title = "Tài khoản cá nhân tự động khóa theo tên của bạn để đảm bảo không bị ghi nhận nhầm!";
-            } else {
-                dashSelect.disabled = false;
+                if (currentUserRole !== 'admin') {
+                    dashSelect.disabled = true;
+                    dashSelect.title = "Tài khoản cá nhân tự động khóa theo tên của bạn để đảm bảo không bị ghi nhận nhầm!";
+                } else {
+                    dashSelect.disabled = false; // Admin có quyền xem Dashboard của người khác
+                }
             }
 
             fetchCloudData(true);
@@ -955,12 +966,14 @@
                 if (currentVal) sel.value = currentVal;
             });
 
-            // Nếu đã đăng nhập bằng Member thường, mặc định khóa chọn đúng tên cá nhân
-            if (currentUserRole !== 'admin' && loggedInMemberName) {
+            // Gán giá trị đúng với tài khoản đang đăng nhập
+            if (loggedInMemberName) {
                 let dashSelect = document.getElementById('dashMainUser');
                 if (dashSelect) {
                     dashSelect.value = loggedInMemberName;
-                    dashSelect.disabled = true;
+                    if (currentUserRole !== 'admin') {
+                        dashSelect.disabled = true;
+                    }
                 }
             }
         }
@@ -990,6 +1003,7 @@
             }
         }
 
+        // CÔNG THỨC TÍNH TIỀN GÓC ĐÃ CẬP NHẬT KIỂM TRA RULE BỎ PHẠT 50K
         function calculateUserFinanceForMonth(memberName, targetMonth, targetYear) {
             let totalWins = 0, totalLosses = 0, totalDraws = 0, totalMatchCount = 0;
             let monthMatchCount = 0, monthRegularFee = 0, monthSpecialBetFee = 0;
@@ -1026,10 +1040,12 @@
                 }
             });
 
-            let penalty50 = monthMatchCount < 15 ? 50000 : 0;
+            let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0, skip50k: false };
+            
+            // Nếu thành viên được bật "Bỏ Rule 50k", sẽ không tính phạt 50k dù số trận < 15
+            let penalty50 = (!m.skip50k && monthMatchCount < 15) ? 50000 : 0;
             let cappedBaseFee = Math.min(150000, monthRegularFee + penalty50);
 
-            let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0 };
             let totalPay = cappedBaseFee + monthSpecialBetFee + (m.noOld || 0) - (m.paidUser || 0);
 
             return {
@@ -1228,6 +1244,10 @@
                 let f = item.f;
                 let winRateStr = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
 
+                let isUnder15 = f.monthMatchCount < 15;
+                let matchCountCellClass = isUnder15 ? (m.skip50k ? 'text-amber-700 bg-amber-50 font-black' : 'text-red-600 bg-red-50 font-black') : 'text-emerald-700 font-black';
+                let matchTitleTooltip = isUnder15 && m.skip50k ? 'Đang bật miễn phạt <15 trận' : '';
+
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
                         <td class="p-2.5 text-center font-bold text-slate-500">${item.originalIdx}</td>
@@ -1235,7 +1255,7 @@
                         <td class="p-2.5 text-center font-bold text-blue-600">${f.totalWins}</td>
                         <td class="p-2.5 text-center font-bold text-red-600">${f.totalLosses}</td>
                         <td class="p-2.5 text-center font-bold text-amber-600">${f.totalDraws}</td>
-                        <td class="p-2.5 text-center font-black ${f.monthMatchCount < 15 ? 'text-red-600 bg-red-50' : 'text-emerald-700'}">${f.monthMatchCount}</td>
+                        <td class="p-2.5 text-center ${matchCountCellClass}" title="${matchTitleTooltip}">${f.monthMatchCount} ${m.skip50k && isUnder15 ? '<i class="fa-solid fa-shield-halved text-[10px]" title="Đã miễn phạt 50k"></i>' : ''}</td>
                         <td class="p-2.5 text-center font-bold">${winRateStr}</td>
                         <td class="p-2.5 text-right font-semibold">${f.cappedBaseFee.toLocaleString()} đ</td>
                         <td class="p-2.5 text-right font-bold text-amber-800">${f.monthSpecialBetFee.toLocaleString()} đ</td>
@@ -1599,7 +1619,7 @@
             selectCategory('Tiền góc thực thu');
         }
 
-        // BẢNG THÀNH VIÊN VỚI NÚT ĐỔI QUYỀN LINH HOẠT CHO ADMIN
+        // BẢNG THÀNH VIÊN CÓ CỘT BỎ RULE 50K VÀ NÚT ĐỔI QUYỀN ADMIN CHO CÁC VỊ TRÍ
         function renderMemberList() {
             let tbody = document.getElementById('memberTableBody');
             tbody.innerHTML = '';
@@ -1611,6 +1631,8 @@
 
                 let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
                 
+                let skipChecked = m.skip50k ? 'checked' : '';
+
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
                         <td class="p-3 text-center font-bold text-slate-500">${stt}</td>
@@ -1619,6 +1641,9 @@
                         <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
                         <td class="p-3 text-center font-extrabold text-amber-700 bg-amber-50">${m.base}</td>
                         <td class="p-3 text-center">${roleBadge}</td>
+                        <td class="p-3 text-center bg-purple-50/50">
+                            <input type="checkbox" ${skipChecked} onchange="toggleSkip50k(${idx}, this.checked)" class="w-4 h-4 text-purple-600 rounded cursor-pointer" title="Bật để miễn phí phạt 50k khi dưới 15 trận trong tháng">
+                        </td>
                         <td class="p-3 text-center admin-only ${currentUserRole==='admin'?'':'hidden'} space-x-2">
                             <button onclick="openEditMemberModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i> Sửa</button>
                             <button onclick="toggleMemberRole(${idx})" class="text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded border border-amber-200 hover:bg-amber-100">Đổi Quyền</button>
@@ -1627,6 +1652,17 @@
                 `;
             });
             document.getElementById('memberCountHeader').innerText = members.length;
+            applyRolePermissions();
+        }
+
+        function toggleSkip50k(idx, isChecked) {
+            if (currentUserRole !== 'admin') {
+                alert("Chỉ tài khoản Admin mới có quyền thay đổi thiết lập này!");
+                renderMemberList(); // reset lại giao diện nếu member lỡ bấm
+                return;
+            }
+            members[idx].skip50k = isChecked;
+            enqueueAction("updateMember", { members: members }, `Đã ${isChecked ? 'bật' : 'tắt'} miễn phạt 50k cho ${members[idx].name}!`);
         }
 
         function toggleMemberRole(idx) {
@@ -1667,7 +1703,8 @@
                 paidUser: 0,
                 noOld: 0,
                 username: "Thanglong" + newStt,
-                role: "member"
+                role: "member",
+                skip50k: false
             });
 
             closeAddMemberModal();
@@ -1766,6 +1803,7 @@
             }
         }
 
+        // ĐỔI TIÊU ĐỀ THÀNH "CÁC SÂN NGÀY HÔM NAY" ĐÚNG THEO YÊU CẦU
         function openNotificationModal() {
             let yDate = getYesterdayDateObj();
             let yDay = yDate.getDate();
