@@ -73,19 +73,19 @@
                         <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full hidden">0</span>
                     </button>
 
-                    <!-- Icon Thành Viên (Bấm để hiện popup tên) -->
+                    <!-- Icon Thành Viên -->
                     <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản">
                         <i class="fa-solid fa-user-shield text-sm text-amber-300"></i>
                     </button>
 
-                    <!-- Nút Thoát đưa lên Header -->
+                    <!-- Nút Thoát lên Header -->
                     <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-2.5 py-1.5 rounded-full text-white font-bold text-xs shadow flex items-center gap-1" title="Thoát hệ thống">
                         <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden md:inline">Thoát</span>
                     </button>
                 </div>
             </div>
 
-            <!-- MENU ĐIỀU HƯỚNG: PC HIỂN THỊ ĐẦY ĐỦ, MOBILE DẠNG MENU ẨN THU GỌN -->
+            <!-- MENU ĐIỀU HƯỚNG -->
             <nav class="bg-emerald-900 text-emerald-100 px-3 py-1.5 border-t border-emerald-700/50 flex items-center justify-between">
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex flex-wrap gap-1 text-xs md:text-sm font-medium items-center w-full">
@@ -102,7 +102,7 @@
                     <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 admin-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
 
-                <!-- Mobile Hamburger Menu Button & Dropdown Header -->
+                <!-- Mobile Hamburger Menu Button -->
                 <div class="md:hidden flex items-center justify-between w-full">
                     <button onclick="toggleMobileMenu()" class="bg-emerald-800 hover:bg-emerald-700 text-amber-300 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 shadow border border-emerald-700">
                         <i class="fa-solid fa-bars text-sm"></i> <span id="currentActiveTabLabel">Tổng quan</span>
@@ -129,7 +129,7 @@
 
         <main class="max-w-7xl mx-auto px-3 py-4 flex-grow w-full space-y-4">
 
-            <!-- TAB 1: TỔNG QUAN (ĐÃ TỐI ƯU GỌN GÀNG CHO MOBILE) -->
+            <!-- TAB 1: TỔNG QUAN -->
             <section id="tab-dashboard" class="tab-content active space-y-4">
                 <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                     <div id="quyWarningBanner" class="hidden bg-amber-50 border-2 border-amber-300 text-amber-900 p-3 rounded-xl flex items-center justify-between shadow-sm">
@@ -154,12 +154,12 @@
 
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase mb-2">TÁC VỤ NHANH (*):</label>
-                        <div class="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-700">
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="goc" checked class="w-3.5 h-3.5 text-emerald-600"> Góc</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="dat16" class="w-3.5 h-3.5 text-emerald-600"> 16h (<span id="lblReward16">20k</span>)</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="dat18" class="w-3.5 h-3.5 text-emerald-600"> 18h (<span id="lblReward18">30k</span>)</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="quy" class="w-3.5 h-3.5 text-emerald-600"> Quý (<span id="lblQuyNum">600k</span>)</label>
-                            <button onclick="handleDashboardSubmit()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[11px] px-4 py-2 rounded-xl shadow transition">XÁC NHẬN</button>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-700">
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="goc" checked class="w-3.5 h-3.5 text-emerald-600"> Kết quả trận góc</label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="dat16" class="w-3.5 h-3.5 text-emerald-600"> Thưởng sân 16h</label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="dat18" class="w-3.5 h-3.5 text-emerald-600"> Thưởng sân 18h</label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="quy" class="w-3.5 h-3.5 text-emerald-600"> Tiền quỹ QUÝ</label>
+                            <button onclick="handleDashboardSubmit()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[11px] px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl shadow transition">XÁC NHẬN</button>
                         </div>
                     </div>
 
@@ -370,7 +370,6 @@
                             <h2 class="text-base md:text-lg font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THÁNG</h2>
                         </div>
                         <div class="flex flex-wrap gap-2 items-center">
-                            <!-- NÚT SAO CHÉP NHẮC NỢ (Ý TƯỞNG 4) -->
                             <button onclick="copyReminderText()" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition"><i class="fa-solid fa-copy"></i> Sao chép nhắc nợ Zalo</button>
 
                             <div class="flex gap-2 items-center">
@@ -583,7 +582,6 @@
                         </div>
                     </div>
 
-                    <!-- Khung đăng quy chế mới dành riêng cho Admin -->
                     <div id="adminRuleBox" class="bg-emerald-50 p-4 rounded-xl border border-emerald-300 hidden admin-only space-y-2.5">
                         <h3 class="font-extrabold text-[11px] text-emerald-900 uppercase"><i class="fa-solid fa-pen-nib"></i> ĐĂNG THÔNG BÁO MỚI</h3>
                         <form onsubmit="addNewRule(event)" class="space-y-2.5">
@@ -642,7 +640,7 @@
         </main>
     </div>
 
-    <!-- MODAL TRUNG TÂM THÔNG BÁO (TÍCH HỢP SÂN HÔM NAY VÀ BẢNG VÀNG THÀNH TÍCH) -->
+    <!-- MODAL TRUNG TÂM THÔNG BÁO -->
     <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl relative">
             <button onclick="closeNotificationModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -651,18 +649,15 @@
                 <h3 class="font-bold text-sm uppercase">TRUNG TÂM THÔNG BÁO & VINH DANH</h3>
             </div>
             
-            <!-- Tabs trong Modal Thông báo -->
             <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
                 <button onclick="switchNotifSubTab('san')" id="btnNotifSan" class="flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition">Sân Hôm Nay</button>
                 <button onclick="switchNotifSubTab('vinhdanh')" id="btnNotifVinhDanh" class="flex-1 py-2 rounded-lg text-slate-600 transition">Bảng Vàng Thành Tích</button>
             </div>
 
-            <!-- Tab Content 1: Sân hôm nay -->
             <div id="notifSubTabSan" class="space-y-2 max-h-72 overflow-y-auto">
                 <div id="yesterdayBookingList" class="space-y-2"></div>
             </div>
 
-            <!-- Tab Content 2: Bảng vàng thành tích tháng -->
             <div id="notifSubTabVinhDanh" class="space-y-3 hidden max-h-72 overflow-y-auto">
                 <div class="bg-gradient-to-r from-amber-500 via-emerald-600 to-teal-700 p-4 rounded-xl shadow text-white space-y-3">
                     <div class="flex items-center justify-between border-b border-white/20 pb-1.5">
@@ -1114,7 +1109,6 @@
             let activeBtn = document.getElementById('btn-' + tabId);
             if (activeBtn) activeBtn.classList.add('border-amber-400', 'text-amber-300', 'font-bold', 'bg-emerald-800');
             
-            // Đóng menu ẩn di động nếu đang mở
             document.getElementById('mobileMenuDrawer').classList.add('hidden');
         }
 
@@ -1234,7 +1228,6 @@
             }
         }
 
-        // BẢNG VÀNG VINH DANH THÁNG
         function renderGamification() {
             let curMonth = document.getElementById('selectFinanceMonth') ? document.getElementById('selectFinanceMonth').value : (new Date().getMonth() + 1);
             let curYear = document.getElementById('selectFinanceYear') ? document.getElementById('selectFinanceYear').value : new Date().getFullYear();
@@ -1280,7 +1273,6 @@
             document.getElementById('vuaTyletang').innerText = (bestRate && bestRate.matches > 0) ? `${bestRate.name} (${((bestRate.wins/bestRate.matches)*100).toFixed(0)}%)` : "Cần >= 3 trận";
         }
 
-        // SAO CHÉP NỘI DUNG NHẮC NỢ
         function copyReminderText() {
             let mSel = document.getElementById('selectFinanceMonth').value;
             let ySel = document.getElementById('selectFinanceYear').value;
@@ -1338,7 +1330,7 @@
                     return;
                 }
                 let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: systemSettings.reward16h };
-                enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Đặt sân 16h thành công!");
+                enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Thưởng sân 16h thành công!");
             } else if (actType === "dat18") {
                 let curMonth = document.getElementById('selectFinanceMonth').value;
                 let curYear = document.getElementById('selectFinanceYear').value;
@@ -1352,11 +1344,11 @@
                 let rewardAmount = isHoangVanThai ? 0 : systemSettings.reward18h;
 
                 let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h (CVTT5)", reward: rewardAmount };
-                enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Đặt sân 18h thành công!");
+                enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Thưởng sân 18h thành công!");
             } else if (actType === "quy") {
                 if (!m.quyHistory) m.quyHistory = {};
                 m.quyHistory[key] = systemSettings.quyAmount;
-                enqueueAction("updateMember", { members: members }, "Đã ghi nhận Đóng quỹ quý thành công!");
+                enqueueAction("updateMember", { members: members }, "Đã ghi nhận Tiền quỹ QUÝ thành công!");
             }
         }
 
@@ -2232,7 +2224,6 @@
             }
         }
 
-        // TRUNG TÂM THÔNG BÁO MODAL & SUB-TABS
         function openNotificationModal() {
             let yDate = getYesterdayDateObj();
             let yDay = yDate.getDate();
