@@ -67,18 +67,15 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <!-- Nút Thông Báo (Chuông) -->
                     <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Trung tâm Thông báo & Bảng vàng">
                         <i class="fa-solid fa-bell text-sm"></i>
                         <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full hidden">0</span>
                     </button>
 
-                    <!-- Icon Thành Viên -->
                     <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản">
                         <i class="fa-solid fa-user-shield text-sm text-amber-300"></i>
                     </button>
 
-                    <!-- Nút Thoát lên Header -->
                     <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-2.5 py-1.5 rounded-full text-white font-bold text-xs shadow flex items-center gap-1" title="Thoát hệ thống">
                         <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden md:inline">Thoát</span>
                     </button>
@@ -87,7 +84,6 @@
 
             <!-- MENU ĐIỀU HƯỚNG -->
             <nav class="bg-emerald-900 text-emerald-100 px-3 py-1.5 border-t border-emerald-700/50 flex items-center justify-between">
-                <!-- Desktop Menu -->
                 <div class="hidden md:flex flex-wrap gap-1 text-xs md:text-sm font-medium items-center w-full">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Tổng quan</button>
                     <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Ghi Trận</button>
@@ -102,7 +98,6 @@
                     <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 admin-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
 
-                <!-- Mobile Hamburger Menu Button -->
                 <div class="md:hidden flex items-center justify-between w-full">
                     <button onclick="toggleMobileMenu()" class="bg-emerald-800 hover:bg-emerald-700 text-amber-300 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 shadow border border-emerald-700">
                         <i class="fa-solid fa-bars text-sm"></i> <span id="currentActiveTabLabel">Tổng quan</span>
@@ -111,7 +106,6 @@
                 </div>
             </nav>
 
-            <!-- Mobile Hidden Menu Drawer -->
             <div id="mobileMenuDrawer" class="hidden md:hidden bg-emerald-950 border-t border-emerald-800 px-3 py-2 space-y-1 text-xs font-medium">
                 <button onclick="switchTabMobile('dashboard', 'Tổng quan')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-amber-300"></i> Tổng quan</button>
                 <button onclick="switchTabMobile('matches', 'Ghi Trận')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-amber-300"></i> Ghi Trận</button>
@@ -159,7 +153,7 @@
                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="dat16" class="w-3.5 h-3.5 text-emerald-600"> Thưởng sân 16h</label>
                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="dat18" class="w-3.5 h-3.5 text-emerald-600"> Thưởng sân 18h</label>
                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="quy" class="w-3.5 h-3.5 text-emerald-600"> Tiền quỹ QUÝ</label>
-                            <button onclick="handleDashboardSubmit()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[11px] px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl shadow transition">XÁC NHẬN</button>
+                            <button onclick="handleDashboardSubmit()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[10px] px-2.5 py-1.5 md:px-3.5 md:py-1.5 rounded-lg shadow transition">XÁC NHẬN</button>
                         </div>
                     </div>
 
@@ -920,7 +914,7 @@
             if (document.getElementById('selectFinanceYear')) document.getElementById('selectFinanceYear').value = curYear;
 
             loadLocalData();
-            if (members.length === 0) members = defaultFallbackMembers;
+            if (!members || members.length === 0) members = defaultFallbackMembers;
 
             checkAndRolloverMonth(now);
             initApp();
@@ -1041,7 +1035,7 @@
             let p = document.getElementById('loginPass').value.trim();
 
             loadLocalData();
-            if (members.length === 0) members = defaultFallbackMembers;
+            if (!members || members.length === 0) members = defaultFallbackMembers;
 
             let foundMem = members.find(m => m.username && m.username.toLowerCase() === u.toLowerCase());
 
@@ -1143,7 +1137,7 @@
         }
 
         function initApp() {
-            if (members.length === 0) members = defaultFallbackMembers;
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             populateSettingsForm();
             populateSelectors();
             recalculateMemberPaidTotals();
@@ -1170,10 +1164,6 @@
             document.getElementById('stBankAccount').value = systemSettings.bankAccount;
             document.getElementById('stAccountName').value = systemSettings.accountName;
 
-            document.getElementById('lblReward16').innerText = (systemSettings.reward16h / 1000) + 'k';
-            document.getElementById('lblReward18').innerText = (systemSettings.reward18h / 1000) + 'k';
-            document.getElementById('lblQuyNum').innerText = (systemSettings.quyAmount / 1000) + 'k';
-
             let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?accountName=${encodeURIComponent(systemSettings.accountName)}`;
             document.getElementById('dashQrImg').src = qrUrl;
         }
@@ -1192,6 +1182,7 @@
         }
 
         function recalculateMemberPaidTotals() {
+            if (!members || members.length === 0) return;
             members.forEach(m => {
                 let userLogs = gocLogs.filter(g => g.name === m.name);
                 m.paidUser = userLogs.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
@@ -1199,6 +1190,7 @@
         }
 
         function populateSelectors() {
+            if (!members || members.length === 0) return;
             ['dashMainUser', 'matchP1A', 'matchP2A', 'matchP1B', 'matchP2B', 'filterGocUser'].forEach(id => {
                 let sel = document.getElementById(id);
                 if (!sel) return;
@@ -1235,9 +1227,11 @@
             document.getElementById('gamificationMonthLabel').innerText = `Tháng ${curMonth}/${curYear}`;
 
             let statsMap = {};
-            members.forEach(m => {
-                statsMap[m.name] = { name: m.name, matches: 0, wins: 0 };
-            });
+            if (members && members.length > 0) {
+                members.forEach(m => {
+                    statsMap[m.name] = { name: m.name, matches: 0, wins: 0 };
+                });
+            }
 
             matches.forEach(m => {
                 let mTime = m.time || "";
@@ -1278,12 +1272,14 @@
             let ySel = document.getElementById('selectFinanceYear').value;
 
             let debtList = [];
-            members.forEach(m => {
-                let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
-                if (f.totalPay > 0) {
-                    debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
-                }
-            });
+            if (members && members.length > 0) {
+                members.forEach(m => {
+                    let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
+                    if (f.totalPay > 0) {
+                        debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
+                    }
+                });
+            }
 
             let text = `🎾 CLB TENNIS THĂNG LONG - NHẮC NỢ TÀI CHÍNH THÁNG ${mSel}/${ySel} 🎾\n`;
             text += `Thân gửi anh em, hệ thống ghi nhận các khoản đóng góp và góc tháng ${mSel} như sau:\n\n`;
@@ -1312,6 +1308,7 @@
             let y = document.getElementById('selectNam').value;
             let key = q + "_" + y;
 
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             let m = members.find(item => item.name === main) || members[0];
 
             if (actType === "goc") {
@@ -1388,6 +1385,7 @@
                 }
             });
 
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0 };
             let cappedBaseFee = Math.min(150000, monthRegularFee);
             let totalPay = cappedBaseFee + monthSpecialBetFee + (m.noOld || 0) - (m.paidUser || 0);
@@ -1406,6 +1404,7 @@
         }
 
         function renderDashboard() {
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             let main = document.getElementById('dashMainUser').value;
             if (!main && members.length > 0) main = members[0].name;
             if (!main) return;
@@ -1565,6 +1564,7 @@
                 activeIcon.innerText = financeSortAsc ? '▲' : '▼';
             }
 
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             let dataList = members.map((m, originalIdx) => {
                 let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
                 let winRateVal = f.totalMatchCount > 0 ? (f.totalWins / f.totalMatchCount) : 0;
@@ -1785,6 +1785,7 @@
         }
 
         function renderQuyTable() {
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             let q = document.getElementById('selectQuy').value;
             let y = document.getElementById('selectNam').value;
             let key = q + "_" + y;
@@ -1919,6 +1920,7 @@
             let catTotal = 0;
 
             if (cat === 'Tiền quỹ QUÝ') {
+                if (!members || members.length === 0) members = defaultFallbackMembers;
                 members.forEach(m => {
                     let totalQuy = 0;
                     if (m.quyHistory) {
@@ -1955,6 +1957,7 @@
         }
 
         function renderCashbook() {
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             let totalQuyThu = 0;
             members.forEach(m => {
                 if (m.quyHistory) {
@@ -1983,8 +1986,13 @@
         }
 
         function renderMemberList() {
+            if (!members || members.length === 0) {
+                members = defaultFallbackMembers;
+            }
             let tbody = document.getElementById('memberTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
+            
             members.forEach((m, idx) => {
                 let stt = m.stt || (idx + 1);
                 let username = m.username || ("Thanglong" + stt);
