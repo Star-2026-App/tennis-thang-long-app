@@ -1948,47 +1948,47 @@
         }
 
         function renderRulesTab() {
-            let container = document.getElementById('rulesContainer');
-            if (!container) return;
-            container.innerHTML = '';
+    let container = document.getElementById('rulesContainer');
+    if (!container) return;
+    container.innerHTML = '';
 
-            let defaultRules = [
-                {
-                    id: 1,
-                    time: "01/08/2026",
-                    title: "Quy định đặt sân 18h-20h tại CVTT5",
-                    content: "Khung giờ 18h-20h tại CVTT5 do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app của CLB. Khi thành viên bấm chọn Đặt sân 18h, hệ thống sẽ tự động ghi nhận lịch sân để thông báo cho toàn đội chơi, đồng thời tiền thưởng đặt sân áp dụng đặc cách = 0 đ."
-                },
-                {
-                    id: 2,
-                    time: "01/05/2026",
-                    title: "Quy định tài chính và phạt trận Hòa",
-                    content: "Trong các trận đấu, nếu kết quả là hòa (Draw), cả 4 thành viên tham gia trận đấu đều có nghĩa vụ đóng góp tiền quỹ góc theo quy định của CLB."
-                }
-            ];
-
-            let combinedRules = rulesList.length > 0 ? rulesList : defaultRules;
-
-            // Đảo ngược thứ tự để tin mới nhất (id lớn hơn hoặc vừa push vào) nằm ở trên cùng
-            let reversedRules = [...combinedRules].reverse();
-
-            reversedRules.forEach((r) => {
-                let deleteBtn = (currentUserRole === 'admin') ? `<button onclick="deleteRule(${r.id})" class="text-red-600 hover:text-red-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> Xóa</button>` : '';
-                container.innerHTML += `
-                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <h3 class="font-black text-emerald-900 text-sm md:text-base flex items-center gap-2"><i class="fa-solid fa-circle-chevron-right text-emerald-600 text-xs"></i> ${r.title}</h3>
-                            <div class="flex items-center gap-3">
-                                <span class="text-[11px] font-bold text-slate-400 bg-white px-2.5 py-1 rounded-lg border">${r.time}</span>
-                                ${deleteBtn}
-                            </div>
-                        </div>
-                        <p class="text-xs md:text-sm text-slate-700 whitespace-pre-line leading-relaxed pl-5">${r.content}</p>
-                    </div>
-                `;
-            });
-            applyRolePermissions();
+    let defaultRules = [
+        {
+            id: 1,
+            time: "01/08/2026",
+            title: "Quy định đặt sân 18h-20h tại CVTT5",
+            content: "Khung giờ 18h-20h tại CVTT5 do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app của CLB. Khi thành viên bấm chọn Đặt sân 18h, hệ thống sẽ tự động ghi nhận lịch sân để thông báo cho toàn đội chơi, đồng thời tiền thưởng đặt sân áp dụng đặc cách = 0 đ."
+        },
+        {
+            id: 2,
+            time: "01/05/2026",
+            title: "Quy định tài chính và phạt trận Hòa",
+            content: "Trong các trận đấu, nếu kết quả là hòa (Draw), cả 4 thành viên tham gia trận đấu đều có nghĩa vụ đóng góp tiền quỹ góc theo quy định của CLB."
         }
+    ];
+
+    let combinedRules = rulesList.length > 0 ? rulesList : defaultRules;
+
+    // Sắp xếp theo ID hoặc thời gian mới nhất lên đầu (không dùng reverse nữa)
+    combinedRules.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+
+    combinedRules.forEach((r) => {
+        let deleteBtn = (currentUserRole === 'admin') ? `<button onclick="deleteRule(${r.id})" class="text-red-600 hover:text-red-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> Xóa</button>` : '';
+        container.innerHTML += `
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
+                <div class="flex justify-between items-start">
+                    <h3 class="font-black text-emerald-900 text-sm md:text-base flex items-center gap-2"><i class="fa-solid fa-circle-chevron-right text-emerald-600 text-xs"></i> ${r.title}</h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[11px] font-bold text-slate-400 bg-white px-2.5 py-1 rounded-lg border">${r.time}</span>
+                        ${deleteBtn}
+                    </div>
+                </div>
+                <p class="text-xs md:text-sm text-slate-700 whitespace-pre-line leading-relaxed pl-5">${r.content}</p>
+            </div>
+        `;
+    });
+    applyRolePermissions();
+}
 
         function addMatch(e) {
             e.preventDefault();
