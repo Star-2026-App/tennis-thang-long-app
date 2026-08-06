@@ -83,7 +83,7 @@
             <!-- MENU ĐIỀU HƯỚNG -->
             <nav class="bg-emerald-900 text-emerald-100 px-4 py-1.5 flex flex-wrap gap-1 text-xs md:text-sm font-medium border-t border-emerald-700/50 items-center justify-between">
                 <div class="flex flex-wrap gap-1 items-center">
-                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Tổng quan</button>
                     <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Ghi Trận</button>
                     <button onclick="switchTab('matchLog')" id="btn-matchLog" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Nhật Ký Trận</button>
                     <button onclick="switchTab('gocLogs')" id="btn-gocLogs" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-receipt"></i> Nộp Tiền</button>
@@ -103,7 +103,7 @@
 
         <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
 
-            <!-- TAB 1: DASHBOARD -->
+            <!-- TAB 1: TỔNG QUAN -->
             <section id="tab-dashboard" class="tab-content active space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div id="quyWarningBanner" class="hidden mb-6 bg-amber-50 border-2 border-amber-300 text-amber-900 p-4 rounded-2xl flex items-center justify-between shadow-sm">
@@ -583,7 +583,7 @@
                         </form>
                     </div>
 
-                    <!-- Danh sách hiển thị thông báo & quy định -->
+                    <!-- Danh sách hiển thị thông báo & quy định (Tin mới lên trên) -->
                     <div id="rulesContainer" class="space-y-4">
                         <!-- Render danh sách thông báo từ Cloud -->
                     </div>
@@ -1169,7 +1169,7 @@
                     return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
                 });
 
-                // Kiểm tra nếu là Hoàng Văn Thái (user Thanglong15 hoặc tên chính xác) thì tiền thưởng đặt sân 18h = 0 đ (Đặc cách)
+                // Đặc cách: Hoàng Văn Thái thưởng đặt sân 18h = 0 đ
                 let isHoangVanThai = (main.toLowerCase().includes("hoàng văn thái") || m.username === "Thanglong15");
                 let rewardAmount = isHoangVanThai ? 0 : systemSettings.reward18h;
 
@@ -1969,7 +1969,10 @@
 
             let combinedRules = rulesList.length > 0 ? rulesList : defaultRules;
 
-            combinedRules.forEach((r) => {
+            // Đảo ngược thứ tự để tin mới nhất (id lớn hơn hoặc vừa push vào) nằm ở trên cùng
+            let reversedRules = [...combinedRules].reverse();
+
+            reversedRules.forEach((r) => {
                 let deleteBtn = (currentUserRole === 'admin') ? `<button onclick="deleteRule(${r.id})" class="text-red-600 hover:text-red-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> Xóa</button>` : '';
                 container.innerHTML += `
                     <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
