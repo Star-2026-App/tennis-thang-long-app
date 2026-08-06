@@ -15,7 +15,6 @@
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        /* Ghim cố định cột Tên thành viên và ô tiêu đề tương ứng */
         .sticky-col { position: sticky; left: 0; background-color: white; z-index: 10; }
         thead th.sticky-col { z-index: 30; background-color: #f1f5f9; }
         thead th { position: sticky; top: 0; z-index: 20; background-color: #f1f5f9; }
@@ -23,13 +22,11 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col">
 
-    <!-- OVERLAY LOADING -->
     <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] hidden flex-col items-center justify-center text-white">
         <div class="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-3"></div>
         <p class="font-bold text-sm">Đang tải dữ liệu Cloud...</p>
     </div>
 
-    <!-- TOAST NOTIFICATION POP-UP -->
     <div id="appToast" class="fixed bottom-6 right-6 bg-slate-900/95 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-2xl z-[200] transition-all duration-300 transform translate-y-12 opacity-0 flex items-center gap-3 border border-slate-700">
         <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
         <span id="toastMsg">Đã ghi nhận thành công!</span>
@@ -95,6 +92,7 @@
                     <button onclick="switchTab('quy')" id="btn-quy" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Đóng Quỹ</button>
                     <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu Chi</button>
                     <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên</button>
+                    <button onclick="switchTab('rules')" id="btn-rules" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy Định CLB</button>
                     <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-2 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 admin-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
                 <div class="py-1">
@@ -561,7 +559,38 @@
                 </div>
             </section>
 
-            <!-- TAB 10: CÀI ĐẶT (DÀNH CHO ADMIN) -->
+            <!-- TAB 10: QUY ĐỊNH & THÔNG BÁO CLB -->
+            <section id="tab-rules" class="tab-content space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 max-w-4xl mx-auto space-y-6">
+                    <div class="border-b pb-4 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-emerald-600"></i> QUY ĐỊNH & THÔNG BÁO CÂU LẠC BỘ</h2>
+                            <p class="text-xs text-slate-500">Các quy chế sinh hoạt, lịch sân và thông báo quan trọng được cập nhật trực tiếp từ Cloud</p>
+                        </div>
+                    </div>
+
+                    <!-- Khung đăng quy chế mới dành riêng cho Admin -->
+                    <div id="adminRuleBox" class="bg-emerald-50 p-5 rounded-2xl border border-emerald-300 hidden admin-only space-y-3">
+                        <h3 class="font-extrabold text-xs text-emerald-900 uppercase"><i class="fa-solid fa-pen-nib"></i> ĐĂNG THÔNG BÁO / QUY CHẾ MỚI (DÀNH CHO ADMIN)</h3>
+                        <form onsubmit="addNewRule(event)" class="space-y-3">
+                            <div>
+                                <input type="text" id="ruleTitleInput" required placeholder="Tiêu đề thông báo / quy định mới..." class="w-full p-2.5 bg-white border rounded-xl font-bold text-slate-900 text-xs">
+                            </div>
+                            <div>
+                                <textarea id="ruleContentInput" rows="3" required placeholder="Nội dung chi tiết quy chế hoặc thông báo..." class="w-full p-2.5 bg-white border rounded-xl text-xs font-semibold text-slate-800 outline-none"></textarea>
+                            </div>
+                            <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow transition">+ ĐĂNG VÀ LƯU LÊN CLOUD</button>
+                        </form>
+                    </div>
+
+                    <!-- Danh sách hiển thị thông báo & quy định -->
+                    <div id="rulesContainer" class="space-y-4">
+                        <!-- Render danh sách thông báo từ Cloud -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 11: CÀI ĐẶT (DÀNH CHO ADMIN) -->
             <section id="tab-settings" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 max-w-2xl mx-auto">
                     <h2 class="text-xl font-bold text-slate-800 mb-4 pb-3 border-b flex items-center gap-2"><i class="fa-solid fa-gears text-emerald-600"></i> CÀI ĐẶT THAM SỐ HỆ THỐNG CLB</h2>
@@ -754,7 +783,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRb6UPvw4tK7MruCpmfGb0I5mTlJch_8eYmEtAMVBi9WkDdeQ76E1t_EcQ1N6bK22_Yw/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymqhFEfxFO0_0FzsqIC3kepAxo4ByP4VeMFSwBvmY0gijKehMizatDCnvtrYRmOMj1Sw/exec";
 
         let currentUserRole = "member";
         let loggedInMemberName = "";
@@ -775,6 +804,7 @@
         let bookingLogs = [];
         let cashbookLogs = [];
         let gocLogs = [];
+        let rulesList = [];
 
         let syncQueue = [];
         let isSyncing = false;
@@ -875,6 +905,7 @@
             localStorage.setItem('clb_bookingLogs', JSON.stringify(bookingLogs));
             localStorage.setItem('clb_cashbookLogs', JSON.stringify(cashbookLogs));
             localStorage.setItem('clb_gocLogs', JSON.stringify(gocLogs));
+            localStorage.setItem('clb_rulesList', JSON.stringify(rulesList));
             localStorage.setItem('clb_openingBalance', openingBalance);
             localStorage.setItem('clb_settings', JSON.stringify(systemSettings));
             localStorage.setItem('clb_syncQueue', JSON.stringify(syncQueue));
@@ -886,6 +917,7 @@
             bookingLogs = JSON.parse(localStorage.getItem('clb_bookingLogs')) || [];
             cashbookLogs = JSON.parse(localStorage.getItem('clb_cashbookLogs')) || [];
             gocLogs = JSON.parse(localStorage.getItem('clb_gocLogs')) || [];
+            rulesList = JSON.parse(localStorage.getItem('clb_rulesList')) || [];
             let storedBal = localStorage.getItem('clb_openingBalance');
             if (storedBal !== null) openingBalance = parseFloat(storedBal);
             let storedSets = JSON.parse(localStorage.getItem('clb_settings'));
@@ -905,6 +937,7 @@
             else if (actionName === "addGocLog" && payload.gocLog) gocLogs.unshift(payload.gocLog);
             else if (actionName === "addBooking" && payload.booking) bookingLogs.unshift(payload.booking);
             else if (actionName === "addCashbook" && payload.cashbook) cashbookLogs.unshift(payload.cashbook);
+            else if (actionName === "addRule" && payload.rule) rulesList.unshift(payload.rule);
             else if (actionName === "updateSettings" && payload.settings) systemSettings = payload.settings;
             else if (actionName === "deleteItem") {
                 let id = payload.id;
@@ -912,6 +945,7 @@
                 if (payload.sheetName === "Bookings") bookingLogs = bookingLogs.filter(x => x.id != id);
                 if (payload.sheetName === "Cashbook") cashbookLogs = cashbookLogs.filter(x => x.id != id);
                 if (payload.sheetName === "GocLogs") gocLogs = gocLogs.filter(x => x.id != id);
+                if (payload.sheetName === "Rules") rulesList = rulesList.filter(x => x.id != id);
             }
 
             saveLocalData();
@@ -1028,6 +1062,7 @@
             renderQuyTable();
             renderCashbook();
             renderMemberList();
+            renderRulesTab();
             checkYesterdayBookingsNotification();
             applyRolePermissions();
         }
@@ -1133,12 +1168,13 @@
                     let t = b.time || "";
                     return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
                 });
-                if (userBookingsThisMonth.length >= systemSettings.maxRewardLimit) {
-                    alert(`Thành viên ${main} đã đạt giới hạn tối đa ${systemSettings.maxRewardLimit} lần nhận thưởng đặt sân trong tháng này!`);
-                    return;
-                }
-                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h", reward: systemSettings.reward18h };
-                enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Đặt sân 18h thành công!");
+
+                // Kiểm tra nếu là Hoàng Văn Thái (user Thanglong15 hoặc tên chính xác) thì tiền thưởng đặt sân 18h = 0 đ (Đặc cách)
+                let isHoangVanThai = (main.toLowerCase().includes("hoàng văn thái") || m.username === "Thanglong15");
+                let rewardAmount = isHoangVanThai ? 0 : systemSettings.reward18h;
+
+                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h (CVTT5)", reward: rewardAmount };
+                enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Đặt sân 18h thành công!");
             } else if (actType === "quy") {
                 if (!m.quyHistory) m.quyHistory = {};
                 m.quyHistory[key] = systemSettings.quyAmount;
@@ -1214,7 +1250,6 @@
             let paidQuy = (m.quyHistory && m.quyHistory[key] !== undefined) ? parseInt(m.quyHistory[key]) : 0;
             let warningBanner = document.getElementById('quyWarningBanner');
 
-            // Điều kiện nhắc nợ: Chỉ hiển thị khi Nợ cũ > 0 đ hoặc chưa đóng quỹ quý
             let hasWarning = (m.status === 'Đang tham gia' && ((m.noOld || 0) > 0 || paidQuy < systemSettings.quyAmount));
             if (hasWarning) {
                 warningBanner.classList.remove('hidden');
@@ -1352,12 +1387,10 @@
             let tbody = document.getElementById('financeTableBody');
             tbody.innerHTML = '';
             
-            // Reset tất cả icon sort về mặc định
             ['stt', 'name', 'wins', 'losses', 'draws', 'monthMatches', 'winRate', 'baseFee', 'specialFee', 'paid', 'noOld', 'totalPay'].forEach(f => {
                 let iconEl = document.getElementById('sort-icon-' + f);
                 if (iconEl) iconEl.innerText = '↕';
             });
-            // Gán icon cho cột đang sort
             let activeIcon = document.getElementById('sort-icon-' + financeSortField);
             if (activeIcon) {
                 activeIcon.innerText = financeSortAsc ? '▲' : '▼';
@@ -1889,6 +1922,71 @@
             enqueueAction("updateMember", { members: members }, "Đã cập nhật thông tin thành viên thành công!");
         }
 
+        function addNewRule(e) {
+            e.preventDefault();
+            let title = document.getElementById('ruleTitleInput').value.trim();
+            let content = document.getElementById('ruleContentInput').value.trim();
+            if (!title || !content) return;
+
+            let newRule = {
+                id: Date.now(),
+                time: new Date().toLocaleString('vi-VN'),
+                title: title,
+                content: content
+            };
+
+            document.getElementById('ruleTitleInput').value = '';
+            document.getElementById('ruleContentInput').value = '';
+
+            enqueueAction("addRule", { rule: newRule }, "Đã đăng thông báo/quy chế mới lên Cloud thành công!");
+        }
+
+        function deleteRule(id) {
+            if (confirm("Xóa thông báo/quy định này?")) {
+                enqueueAction("deleteItem", { sheetName: "Rules", id: id }, "Đã xóa thông báo thành công!");
+            }
+        }
+
+        function renderRulesTab() {
+            let container = document.getElementById('rulesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let defaultRules = [
+                {
+                    id: 1,
+                    time: "01/08/2026",
+                    title: "Quy định đặt sân 18h-20h tại CVTT5",
+                    content: "Khung giờ 18h-20h tại CVTT5 do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app của CLB. Khi thành viên bấm chọn Đặt sân 18h, hệ thống sẽ tự động ghi nhận lịch sân để thông báo cho toàn đội chơi, đồng thời tiền thưởng đặt sân áp dụng đặc cách = 0 đ."
+                },
+                {
+                    id: 2,
+                    time: "01/05/2026",
+                    title: "Quy định tài chính và phạt trận Hòa",
+                    content: "Trong các trận đấu, nếu kết quả là hòa (Draw), cả 4 thành viên tham gia trận đấu đều có nghĩa vụ đóng góp tiền quỹ góc theo quy định của CLB."
+                }
+            ];
+
+            let combinedRules = rulesList.length > 0 ? rulesList : defaultRules;
+
+            combinedRules.forEach((r) => {
+                let deleteBtn = (currentUserRole === 'admin') ? `<button onclick="deleteRule(${r.id})" class="text-red-600 hover:text-red-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> Xóa</button>` : '';
+                container.innerHTML += `
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-black text-emerald-900 text-sm md:text-base flex items-center gap-2"><i class="fa-solid fa-circle-chevron-right text-emerald-600 text-xs"></i> ${r.title}</h3>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[11px] font-bold text-slate-400 bg-white px-2.5 py-1 rounded-lg border">${r.time}</span>
+                                ${deleteBtn}
+                            </div>
+                        </div>
+                        <p class="text-xs md:text-sm text-slate-700 whitespace-pre-line leading-relaxed pl-5">${r.content}</p>
+                    </div>
+                `;
+            });
+            applyRolePermissions();
+        }
+
         function addMatch(e) {
             e.preventDefault();
             let p1A = document.getElementById('matchP1A').value;
@@ -2042,6 +2140,7 @@
             if (data.bookingLogs) bookingLogs = data.bookingLogs;
             if (data.cashbookLogs) cashbookLogs = data.cashbookLogs;
             if (data.gocLogs) gocLogs = data.gocLogs;
+            if (data.rules) rulesList = data.rules;
             if (data.openingBalance !== undefined) openingBalance = data.openingBalance;
             if (data.settings) systemSettings = Object.assign(systemSettings, data.settings);
 
