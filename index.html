@@ -117,6 +117,37 @@
                         <button onclick="switchTab('quy')" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow whitespace-nowrap">XEM NGAY</button>
                     </div>
 
+                    <!-- BẢNG VÀNG VINH DANH THÁNG (Ý TƯỞNG 1) -->
+                    <div class="bg-gradient-to-r from-amber-500 via-emerald-600 to-teal-700 p-5 rounded-2xl shadow-lg text-white mb-6">
+                        <div class="flex items-center justify-between mb-3 border-b border-white/20 pb-2">
+                            <h3 class="font-black text-sm md:text-base uppercase flex items-center gap-2"><i class="fa-solid fa-trophy text-amber-300 animate-pulse"></i> BẢNG VÀNG VINH DANH THÀNH TÍCH THÁNG NÀY</h3>
+                            <span id="gamificationMonthLabel" class="text-xs bg-white/20 px-3 py-1 rounded-full font-bold">Tháng này</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-xl border border-white/20 flex items-center gap-3">
+                                <div class="w-10 h-10 bg-amber-400 text-amber-950 rounded-full flex items-center justify-center font-black text-lg shadow">🥇</div>
+                                <div>
+                                    <span class="text-[10px] text-amber-200 uppercase font-bold block">Vua Cày Sân (Năng suất)</span>
+                                    <div id="vuaCaysan" class="font-black text-sm mt-0.5">Đang cập nhật...</div>
+                                </div>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-xl border border-white/20 flex items-center gap-3">
+                                <div class="w-10 h-10 bg-cyan-400 text-cyan-950 rounded-full flex items-center justify-center font-black text-lg shadow">🔥</div>
+                                <div>
+                                    <span class="text-[10px] text-cyan-200 uppercase font-bold block">Nhiều Trận Thắng Nhất</span>
+                                    <div id="vuaThangtran" class="font-black text-sm mt-0.5">Đang cập nhật...</div>
+                                </div>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-xl border border-white/20 flex items-center gap-3">
+                                <div class="w-10 h-10 bg-emerald-400 text-emerald-950 rounded-full flex items-center justify-center font-black text-lg shadow">⭐</div>
+                                <div>
+                                    <span class="text-[10px] text-emerald-200 uppercase font-bold block">Tỷ Lệ Thắng Cao Nhất (&ge;5 trận)</span>
+                                    <div id="vuaTyletang" class="font-black text-sm mt-0.5">Đang cập nhật...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-user-circle text-emerald-600"></i> TRA CỨU CHỈ SỐ CÁ NHÂN REALTIME</h2>
@@ -354,16 +385,21 @@
                             <h2 class="text-xl font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THEO THÁNG</h2>
                             <p class="text-xs text-slate-500">Cột tên thành viên được ghim cố định, click tiêu đề để sắp xếp (như Excel).</p>
                         </div>
-                        <div class="flex gap-2 items-center">
-                            <label class="text-xs font-bold text-slate-700 uppercase">THỜI GIAN:</label>
-                            <select id="selectFinanceMonth" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
-                                <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option><option value="4">Tháng 4</option>
-                                <option value="5">Tháng 5</option><option value="6">Tháng 6</option><option value="7">Tháng 7</option><option value="8" selected>Tháng 8</option>
-                                <option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
-                            </select>
-                            <select id="selectFinanceYear" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
-                                <option value="2026" selected>Năm 2026</option><option value="2027">Năm 2027</option><option value="2028">Năm 2028</option><option value="2029">Năm 2029</option><option value="2030">Năm 2030</option>
-                            </select>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <!-- NÚT SAO CHÉP NHẮC NỢ (Ý TƯỞNG 4) -->
+                            <button onclick="copyReminderText()" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow flex items-center gap-2 transition"><i class="fa-solid fa-copy"></i> Sao chép tin nhắn nhắc nợ</button>
+
+                            <div class="flex gap-2 items-center">
+                                <label class="text-xs font-bold text-slate-700 uppercase">THỜI GIAN:</label>
+                                <select id="selectFinanceMonth" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
+                                    <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option><option value="4">Tháng 4</option>
+                                    <option value="5">Tháng 5</option><option value="6">Tháng 6</option><option value="7">Tháng 7</option><option value="8" selected>Tháng 8</option>
+                                    <option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
+                                </select>
+                                <select id="selectFinanceYear" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2.5 outline-none">
+                                    <option value="2026" selected>Năm 2026</option><option value="2027">Năm 2027</option><option value="2028">Năm 2028</option><option value="2029">Năm 2029</option><option value="2030">Năm 2030</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="overflow-x-auto max-h-[600px]">
@@ -583,7 +619,7 @@
                         </form>
                     </div>
 
-                    <!-- Danh sách hiển thị thông báo & quy định (Tin mới lên trên) -->
+                    <!-- Danh sách hiển thị thông báo & quy định -->
                     <div id="rulesContainer" class="space-y-4">
                         <!-- Render danh sách thông báo từ Cloud -->
                     </div>
@@ -879,14 +915,14 @@
 
                 members.forEach(m => {
                     let fPrev = calculateUserFinanceForMonth(m.name, prevMonth, prevYear);
-                    if (fPrev.totalPay > 0) {
+                    if (fPrev.totalPay !== 0) {
                         m.noOld = (m.noOld || 0) + fPrev.totalPay;
                     }
                 });
 
                 localStorage.setItem('clb_members', JSON.stringify(members));
                 localStorage.setItem('clb_last_rollover_date', currentMonthKey);
-                enqueueAction("updateMember", { members: members }, "Hệ thống đã tự động chuyển Tổng cần đóng tháng trước thành Nợ cũ sang tháng mới!");
+                enqueueAction("updateMember", { members: members }, "Hệ thống đã tự động chuyển số dư tháng trước thành Nợ cũ sang tháng mới!");
             }
         }
 
@@ -1054,6 +1090,7 @@
             populateSettingsForm();
             populateSelectors();
             recalculateMemberPaidTotals();
+            renderGamification();
             renderDashboard();
             renderFinance();
             renderAllMatchLog();
@@ -1132,6 +1169,89 @@
                     }
                 }
             }
+        }
+
+        // Ý TƯỞNG 1: TÍNH TOÁN BẢNG VÀNG VINH DANH THÁNG
+        function renderGamification() {
+            let curMonth = document.getElementById('selectFinanceMonth') ? document.getElementById('selectFinanceMonth').value : (new Date().getMonth() + 1);
+            let curYear = document.getElementById('selectFinanceYear') ? document.getElementById('selectFinanceYear').value : new Date().getFullYear();
+            
+            document.getElementById('gamificationMonthLabel').innerText = `Tháng ${curMonth}/${curYear}`;
+
+            let statsMap = {};
+            members.forEach(m => {
+                statsMap[m.name] = { name: m.name, matches: 0, wins: 0 };
+            });
+
+            matches.forEach(m => {
+                let mTime = m.time || "";
+                let isThisMonth = mTime.includes(`/${curMonth}/${curYear}`) || mTime.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
+                if (!isThisMonth) return;
+
+                let players = [m.p1_v1, m.p2_v1, m.p1_v2, m.p2_v2];
+                players.forEach(p => {
+                    if (!p) return;
+                    if (!statsMap[p]) statsMap[p] = { name: p, matches: 0, wins: 0 };
+                    statsMap[p].matches++;
+                });
+
+                if (m.scoreA !== m.scoreB) {
+                    let winningTeam = m.scoreA > m.scoreB ? [m.p1_v1, m.p2_v1] : [m.p1_v2, m.p2_v2];
+                    winningTeam.forEach(p => {
+                        if (p && statsMap[p]) statsMap[p].wins++;
+                    });
+                }
+            });
+
+            let arr = Object.values(statsMap);
+            
+            // 1. Thần cày sân (Nhiều trận nhất)
+            let mostMatches = [...arr].sort((a, b) => b.matches - a.matches)[0];
+            document.getElementById('vuaCaysan').innerText = (mostMatches && mostMatches.matches > 0) ? `${mostMatches.name} (${mostMatches.matches} trận)` : "Chưa có dữ liệu";
+
+            // 2. Thắng nhiều nhất
+            let mostWins = [...arr].sort((a, b) => b.wins - a.wins)[0];
+            document.getElementById('vuaThangtran').innerText = (mostWins && mostWins.wins > 0) ? `${mostWins.name} (${mostWins.wins} trận thắng)` : "Chưa có dữ liệu";
+
+            // 3. Tỷ lệ thắng cao nhất (>= 3 trận)
+            let qualified = arr.filter(x => x.matches >= 3);
+            qualified.sort((a, b) => (b.wins / b.matches) - (a.wins / a.matches));
+            let bestRate = qualified[0];
+            document.getElementById('vuaTyletang').innerText = (bestRate && bestRate.matches > 0) ? `${bestRate.name} (${((bestRate.wins/bestRate.matches)*100).toFixed(0)}%)` : "Cần >= 3 trận";
+        }
+
+        // Ý TƯỞNG 4: SAO CHÉP NỘI DUNG NHẮC NỢ NHANH
+        function copyReminderText() {
+            let mSel = document.getElementById('selectFinanceMonth').value;
+            let ySel = document.getElementById('selectFinanceYear').value;
+            let qSel = document.getElementById('selectQuy').value;
+
+            let debtList = [];
+            members.forEach(m => {
+                let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
+                if (f.totalPay > 0) {
+                    debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
+                }
+            });
+
+            let text = `🎾 CLB TENNIS THĂNG LONG - NHẮC NỢ TÀI CHÍNH THÁNG ${mSel}/${ySel} 🎾\n`;
+            text += `Thân gửi anh em, hệ thống ghi nhận các khoản đóng góp và góc tháng ${mSel} như sau:\n\n`;
+            if (debtList.length === 0) {
+                text += `Tuyệt vời! Hiện tại tất cả anh em đều đã hoàn thành nghĩa vụ tài chính.\n`;
+            } else {
+                text += debtList.join('\n') + `\n\n`;
+            }
+            text += `👉 Anh em chuyển khoản về:\n`;
+            text += `- Ngân hàng: ${systemSettings.bankId} (${systemSettings.bankAccount})\n`;
+            text += `- Chủ TK: ${systemSettings.accountName}\n`;
+            text += `- Nội dung CK: Nop tien goc <Tên của bạn>\n`;
+            text += `Trân trọng cảm ơn anh em! 🙏`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Đã sao chép nội dung tin nhắn nhắc nợ vào bộ nhớ tạm!");
+            }).catch(err => {
+                alert("Không thể tự động sao chép. Vui lòng thử lại!");
+            });
         }
 
         function handleDashboardSubmit() {
@@ -1221,12 +1341,14 @@
             let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0 };
             
             let cappedBaseFee = Math.min(150000, monthRegularFee);
+            
+            // Cho phép hiển thị số âm (cho phép dư góc cấn trừ tháng sau hoặc theo dõi công nợ âm)
             let totalPay = cappedBaseFee + monthSpecialBetFee + (m.noOld || 0) - (m.paidUser || 0);
 
             return {
                 totalMatchCount, totalWins, totalLosses, totalDraws,
                 monthMatchCount, monthRegularFee, monthSpecialBetFee, cappedBaseFee,
-                totalPay: Math.max(0, totalPay)
+                totalPay: totalPay
             };
         }
 
@@ -1326,18 +1448,18 @@
         function submitUserPayment() {
             let main = document.getElementById('dashMainUser').value;
             let val = parseInt(document.getElementById('userPaidInput').value) || 0;
-            if (val <= 0) { alert("Vui lòng nhập số tiền lớn hơn 0!"); return; }
+            if (val === 0) { alert("Vui lòng nhập số tiền hợp lệ!"); return; }
 
             let newGoc = {
                 id: Date.now(),
                 time: new Date().toLocaleString('vi-VN'),
                 name: main,
                 amount: val,
-                note: "Thành viên tự nhập CK"
+                note: val < 0 ? "Điều chỉnh hoàn tiền/bù trừ" : "Thành viên tự nhập CK"
             };
 
             document.getElementById('userPaidInput').value = '';
-            enqueueAction("addGocLog", { gocLog: newGoc }, "Đã nộp tiền góc thành công!");
+            enqueueAction("addGocLog", { gocLog: newGoc }, "Đã ghi nhận giao dịch thành công!");
         }
 
         function renderGocLogsTab() {
@@ -1359,7 +1481,7 @@
                         <td class="p-3 text-center font-bold text-slate-500">${logsToDisplay.length - idx}</td>
                         <td class="p-3 font-semibold text-slate-600">${g.time}</td>
                         <td class="p-3 font-bold text-slate-900">${g.name}</td>
-                        <td class="p-3 text-right font-black text-emerald-700">${parseInt(g.amount).toLocaleString()} đ</td>
+                        <td class="p-3 text-right font-black ${parseInt(g.amount)<0?'text-red-600':'text-emerald-700'}">${parseInt(g.amount).toLocaleString()} đ</td>
                         <td class="p-3 text-slate-500">${g.note || '-'}</td>
                         <td class="p-3 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
                             <button onclick="openEditGocLog(${g.id})" class="text-blue-600 font-bold mr-2"><i class="fa-solid fa-pen"></i></button>
@@ -1431,6 +1553,7 @@
                 let m = item.m;
                 let f = item.f;
                 let winRateStr = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
+                let totalPayColor = f.totalPay < 0 ? 'text-cyan-700 bg-cyan-50' : (f.totalPay > 0 ? 'text-emerald-800 bg-emerald-50' : 'text-slate-700 bg-slate-50');
 
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
@@ -1444,8 +1567,8 @@
                         <td class="p-2.5 text-right font-semibold">${f.cappedBaseFee.toLocaleString()} đ</td>
                         <td class="p-2.5 text-right font-bold text-amber-800">${f.monthSpecialBetFee.toLocaleString()} đ</td>
                         <td class="p-2.5 text-right text-emerald-700 font-black">${(m.paidUser || 0).toLocaleString()} đ</td>
-                        <td class="p-2.5 text-right font-bold ${m.noOld > 0 ? 'text-red-600' : 'text-slate-500'}">${(m.noOld || 0).toLocaleString()} đ</td>
-                        <td class="p-2.5 text-right font-black text-emerald-800 text-sm bg-emerald-50">${f.totalPay.toLocaleString()} đ</td>
+                        <td class="p-2.5 text-right font-bold ${m.noOld < 0 ? 'text-cyan-700' : (m.noOld > 0 ? 'text-red-600' : 'text-slate-500')}">${(m.noOld || 0).toLocaleString()} đ</td>
+                        <td class="p-2.5 text-right font-black text-sm ${totalPayColor}">${f.totalPay.toLocaleString()} đ</td>
                         <td class="p-2.5 text-center space-x-1">
                             <button onclick="openQRModal('${m.name}', ${f.totalPay})" class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-blue-700">QR</button>
                             ${currentUserRole === 'admin' ? `<button onclick="openEditFinanceModal(${members.indexOf(m)})" class="bg-amber-500 text-slate-900 text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-amber-600">Sửa Nợ</button>` : ''}
@@ -1475,14 +1598,15 @@
             members[idx].noOld = parseInt(document.getElementById('efNoOld').value) || 0;
 
             closeEditFinanceModal();
-            enqueueAction("updateMember", { members: members }, "Đã cập nhật nợ cũ thành công!");
+            enqueueAction("updateMember", { members: members }, "Đã cập nhật số liệu thành công!");
         }
 
         function openQRModal(memberName, amount) {
+            let payAmt = Math.max(0, amount);
             let content = "NOP TIEN GOC " + memberName.replace(/[^a-zA-Z0-9]/g, '');
-            let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(systemSettings.accountName)}`;
+            let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?amount=${payAmt}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(systemSettings.accountName)}`;
             document.getElementById('qrImage').src = qrUrl;
-            document.getElementById('qrAmountDisplay').innerText = amount.toLocaleString('vi-VN') + " đ";
+            document.getElementById('qrAmountDisplay').innerText = payAmt.toLocaleString('vi-VN') + " đ" + (amount < 0 ? " (Dư quỹ cấn trừ)" : "");
             document.getElementById('qrModal').classList.remove('hidden');
             document.getElementById('qrModal').classList.add('flex');
         }
@@ -1765,7 +1889,7 @@
                         <tr class="border-b">
                             <td class="p-2">${g.time}</td>
                             <td class="p-2 font-bold">${g.name} <span class="text-[10px] font-normal text-slate-500">(${g.note||''})</span></td>
-                            <td class="p-2 text-right font-bold text-emerald-700">${parseInt(g.amount).toLocaleString()} đ</td>
+                            <td class="p-2 text-right font-bold ${parseInt(g.amount)<0?'text-red-600':'text-emerald-700'}">${parseInt(g.amount).toLocaleString()} đ</td>
                             <td class="p-2 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
                                 <button onclick="deleteGocLog(${g.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
                             </td>
@@ -1948,47 +2072,47 @@
         }
 
         function renderRulesTab() {
-    let container = document.getElementById('rulesContainer');
-    if (!container) return;
-    container.innerHTML = '';
+            let container = document.getElementById('rulesContainer');
+            if (!container) return;
+            container.innerHTML = '';
 
-    let defaultRules = [
-        {
-            id: 1,
-            time: "01/08/2026",
-            title: "Quy định đặt sân 18h-20h tại CVTT5",
-            content: "Khung giờ 18h-20h tại CVTT5 do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app của CLB. Khi thành viên bấm chọn Đặt sân 18h, hệ thống sẽ tự động ghi nhận lịch sân để thông báo cho toàn đội chơi, đồng thời tiền thưởng đặt sân áp dụng đặc cách = 0 đ."
-        },
-        {
-            id: 2,
-            time: "01/05/2026",
-            title: "Quy định tài chính và phạt trận Hòa",
-            content: "Trong các trận đấu, nếu kết quả là hòa (Draw), cả 4 thành viên tham gia trận đấu đều có nghĩa vụ đóng góp tiền quỹ góc theo quy định của CLB."
-        }
-    ];
+            let defaultRules = [
+                {
+                    id: 1,
+                    time: "01/08/2026",
+                    title: "Quy định đặt sân 18h-20h tại CVTT5",
+                    content: "Khung giờ 18h-20h tại CVTT5 do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app của CLB. Khi thành viên bấm chọn Đặt sân 18h, hệ thống sẽ tự động ghi nhận lịch sân để thông báo cho toàn đội chơi, đồng thời tiền thưởng đặt sân áp dụng đặc cách = 0 đ."
+                },
+                {
+                    id: 2,
+                    time: "01/05/2026",
+                    title: "Quy định tài chính và phạt trận Hòa",
+                    content: "Trong các trận đấu, nếu kết quả là hòa (Draw), cả 4 thành viên tham gia trận đấu đều có nghĩa vụ đóng góp tiền quỹ góc theo quy định của CLB."
+                }
+            ];
 
-    let combinedRules = rulesList.length > 0 ? rulesList : defaultRules;
+            let combinedRules = rulesList.length > 0 ? rulesList : defaultRules;
 
-    // Sắp xếp theo ID hoặc thời gian mới nhất lên đầu (không dùng reverse nữa)
-    combinedRules.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+            // Sắp xếp ID giảm dần để tin mới nhất nằm ở trên cùng
+            combinedRules.sort((a, b) => parseInt(b.id) - parseInt(a.id));
 
-    combinedRules.forEach((r) => {
-        let deleteBtn = (currentUserRole === 'admin') ? `<button onclick="deleteRule(${r.id})" class="text-red-600 hover:text-red-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> Xóa</button>` : '';
-        container.innerHTML += `
-            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
-                <div class="flex justify-between items-start">
-                    <h3 class="font-black text-emerald-900 text-sm md:text-base flex items-center gap-2"><i class="fa-solid fa-circle-chevron-right text-emerald-600 text-xs"></i> ${r.title}</h3>
-                    <div class="flex items-center gap-3">
-                        <span class="text-[11px] font-bold text-slate-400 bg-white px-2.5 py-1 rounded-lg border">${r.time}</span>
-                        ${deleteBtn}
+            combinedRules.forEach((r) => {
+                let deleteBtn = (currentUserRole === 'admin') ? `<button onclick="deleteRule(${r.id})" class="text-red-600 hover:text-red-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> Xóa</button>` : '';
+                container.innerHTML += `
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-black text-emerald-900 text-sm md:text-base flex items-center gap-2"><i class="fa-solid fa-circle-chevron-right text-emerald-600 text-xs"></i> ${r.title}</h3>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[11px] font-bold text-slate-400 bg-white px-2.5 py-1 rounded-lg border">${r.time}</span>
+                                ${deleteBtn}
+                            </div>
+                        </div>
+                        <p class="text-xs md:text-sm text-slate-700 whitespace-pre-line leading-relaxed pl-5">${r.content}</p>
                     </div>
-                </div>
-                <p class="text-xs md:text-sm text-slate-700 whitespace-pre-line leading-relaxed pl-5">${r.content}</p>
-            </div>
-        `;
-    });
-    applyRolePermissions();
-}
+                `;
+            });
+            applyRolePermissions();
+        }
 
         function addMatch(e) {
             e.preventDefault();
