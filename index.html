@@ -201,17 +201,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-slate-50 p-3 rounded-xl border">
-                            <h3 class="font-extrabold text-[11px] text-slate-700 uppercase mb-2 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU (THÁNG)</h3>
-                            <div class="overflow-x-auto max-h-48">
-                                <table class="w-full text-left text-[11px] border-collapse">
-                                    <thead><tr class="bg-slate-200 text-slate-700"><th class="p-1.5">Trận</th><th class="p-1.5">Đồng Đội</th><th class="p-1.5">Đối Thủ</th><th class="p-1.5 text-center">Tỉ Số</th><th class="p-1.5 text-right">Kèo</th></tr></thead>
-                                    <tbody id="userMatchHistoryBody" class="divide-y divide-slate-200"></tbody>
-                                </table>
-                            </div>
-                        </div>
-
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-slate-50 p-3 rounded-xl border">
                             <h3 class="font-extrabold text-[11px] text-slate-700 uppercase mb-2 flex items-center gap-1.5"><i class="fa-solid fa-gift text-emerald-600"></i> THƯỞNG SÂN (THÁNG)</h3>
                             <div class="overflow-x-auto max-h-48">
@@ -230,6 +220,25 @@
                                     <tbody id="userGocHistoryBody" class="divide-y divide-slate-200"></tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- NHẬT KÝ THI ĐẤU (THÁNG) CHUYỂN XUỐNG DƯỚI CÙNG VÀ HIỂN THỊ ĐẦY ĐỦ TÊN -->
+                    <div class="bg-slate-50 p-4 rounded-xl border">
+                        <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU (THÁNG)</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-200 text-slate-700">
+                                        <th class="p-2 text-center">Trận</th>
+                                        <th class="p-2">Đồng Đội</th>
+                                        <th class="p-2">Đối Thủ</th>
+                                        <th class="p-2 text-center">Tỉ Số</th>
+                                        <th class="p-2 text-right">Kèo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userMatchHistoryBody" class="divide-y divide-slate-200"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -1464,7 +1473,7 @@
                 let isV1 = (mItem.p1_v1 === main || mItem.p2_v1 === main);
                 let teammate = isV1 ? (mItem.p1_v1 === main ? mItem.p2_v1 : mItem.p1_v1) : (mItem.p1_v2 === main ? mItem.p2_v2 : mItem.p1_v2);
                 let opponents = isV1 ? (mItem.p1_v2 + " & " + mItem.p2_v2) : (mItem.p1_v1 + " & " + mItem.p2_v1);
-                matchBody.innerHTML += `<tr class="border-b"><td class="p-1.5 font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-1.5 truncate max-w-[80px]">${teammate}</td><td class="p-1.5 truncate max-w-[80px]">${opponents}</td><td class="p-1.5 text-center font-bold text-emerald-800">${mItem.scoreA}-${mItem.scoreB}</td><td class="p-1.5 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
+                matchBody.innerHTML += `<tr class="border-b"><td class="p-2 text-center font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2 font-semibold text-slate-800">${teammate}</td><td class="p-2 font-semibold text-slate-800">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${mItem.scoreA}-${mItem.scoreB}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
             });
 
             let rewardBody = document.getElementById('userRewardHistoryBody');
