@@ -1525,7 +1525,6 @@
                 let teammate = isV1 ? (mItem.p1_v1 === main ? mItem.p2_v1 : mItem.p1_v1) : (mItem.p1_v2 === main ? mItem.p2_v2 : mItem.p1_v2);
                 let opponents = isV1 ? (mItem.p1_v2 + " & " + mItem.p2_v2) : (mItem.p1_v1 + " & " + mItem.p2_v1);
                 
-                // Chuẩn hóa tỷ số theo góc nhìn cá nhân (Đội của mình bên trái, đối thủ bên phải)
                 let displayScore = isV1 ? `${mItem.scoreA}-${mItem.scoreB}` : `${mItem.scoreB}-${mItem.scoreA}`;
 
                 matchBody.innerHTML += `<tr class="border-b"><td class="p-2 text-center font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2 font-semibold text-slate-800">${teammate}</td><td class="p-2 font-semibold text-slate-800">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${displayScore}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
@@ -2255,7 +2254,7 @@
             let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
             let specialBet = parseInt(document.getElementById('specialBet').value);
 
-            // XỬ LÝ CHỐNG TRÙNG LẶP TUYỆT ĐỐI VỚI NỘI DUNG THÔNG BÁO RÚT GỌN
+            // KIỂM TRA TRÙNG LẶP VỚI CÂU THÔNG BÁO MỚI THEO YÊU CẦU CỦA ANH
             const NOW = new Date().getTime();
             const TIME_LIMIT = 18 * 60 * 60 * 1000;
 
@@ -2286,7 +2285,7 @@
             });
 
             if (isDuplicateMatch) {
-                let confirmMatch = confirm("⚠️ Phát hiện có trận đấu tương tự trong 18 giờ trước đó.\n\nBạn có muốn tiếp tục ghi nhận thêm không?");
+                let confirmMatch = confirm("Phát hiện có trận đấu tương tự đã được nhập trong 18 giờ trước đó. Nếu thực sự là trận đấu mới thì chọn OK, nếu không phải chọn Hủy");
                 if (!confirmMatch) return;
             }
 
