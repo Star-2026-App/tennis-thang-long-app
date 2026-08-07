@@ -960,7 +960,20 @@
             setTimeout(() => { toast.classList.add('translate-y-12', 'opacity-0'); }, 2500);
         }
 
+        function sortCollectionsByTime() {
+            if (matches && matches.length > 0) {
+                matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+            }
+            if (gocLogs && gocLogs.length > 0) {
+                gocLogs.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+            }
+            if (bookingLogs && bookingLogs.length > 0) {
+                bookingLogs.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+            }
+        }
+
         function saveLocalData() {
+            sortCollectionsByTime();
             localStorage.setItem('clb_members', JSON.stringify(members));
             localStorage.setItem('clb_matches', JSON.stringify(matches));
             localStorage.setItem('clb_bookingLogs', JSON.stringify(bookingLogs));
@@ -985,10 +998,7 @@
             if (storedSets) systemSettings = Object.assign(systemSettings, storedSets);
             syncQueue = JSON.parse(localStorage.getItem('clb_syncQueue')) || [];
 
-            // Sắp xếp mảng matches giảm dần theo id thời gian để đảm bảo trận mới nhất luôn ở đầu mảng
-            if (matches && matches.length > 0) {
-                matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
-            }
+            sortCollectionsByTime();
         }
 
         function enqueueAction(actionName, payload, successMessage) {
@@ -997,14 +1007,17 @@
 
             if (actionName === "addMatch" && payload.match) {
                 matches.unshift(payload.match);
-                matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
             }
             else if (actionName === "updateMatch" && payload.match) {
                 let m = matches.find(x => x.id == payload.match.id);
                 if (m) { m.scoreA = payload.match.scoreA; m.scoreB = payload.match.scoreB; m.specialBet = payload.match.specialBet; }
             }
-            else if (actionName === "addGocLog" && payload.gocLog) gocLogs.unshift(payload.gocLog);
-            else if (actionName === "addBooking" && payload.booking) bookingLogs.unshift(payload.booking);
+            else if (actionName === "addGocLog" && payload.gocLog) {
+                gocLogs.unshift(payload.gocLog);
+            }
+            else if (actionName === "addBooking" && payload.booking) {
+                bookingLogs.unshift(payload.booking);
+            }
             else if (actionName === "addCashbook" && payload.cashbook) cashbookLogs.unshift(payload.cashbook);
             else if (actionName === "addRule" && payload.rule) rulesList.unshift(payload.rule);
             else if (actionName === "updateSettings" && payload.settings) systemSettings = payload.settings;
@@ -1017,6 +1030,7 @@
                 if (payload.sheetName === "Rules") rulesList = rulesList.filter(x => x.id != id);
             }
 
+            sortCollectionsByTime();
             saveLocalData();
             initApp();
             showToast(successMessage || "Đã ghi nhận thành công!");
@@ -1567,13 +1581,17 @@
                 logsToDisplay = gocLogs.filter(g => g.name === filterUser);
             }
 
+            // Sắp xếp giảm dần theo thời gian (id) để mới nhất lên trên
+            logsToDisplay.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+
             let totalFiltered = logsToDisplay.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
             document.getElementById('totalGocCollectedDisplay').innerText = totalFiltered.toLocaleString('vi-VN') + " đ";
 
             logsToDisplay.forEach((g, idx) => {
+                let stt = logsToDisplay.length - idx;
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
-                        <td class="p-2.5 text-center font-bold text-slate-500">${logsToDisplay.length - idx}</td>
+                        <td class="p-2.5 text-center font-bold text-slate-500">${stt}</td>
                         <td class="p-2.5 font-semibold text-slate-600">${g.time}</td>
                         <td class="p-2.5 font-bold text-slate-900">${g.name}</td>
                         <td class="p-2.5 text-right font-black ${parseInt(g.amount)<0?'text-red-600':'text-emerald-700'}">${parseInt(g.amount).toLocaleString()} đ</td>
@@ -1734,7 +1752,6 @@
             let tbody = document.getElementById('allMatchTableBody');
             tbody.innerHTML = '';
             
-            // Sắp xếp giảm dần theo thời gian (id) để trận mới nhất luôn nằm ở trên cùng (STT = Tổng số trận)
             if (matches && matches.length > 0) {
                 matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
             }
@@ -1806,20 +1823,16 @@
                 return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
             });
 
-            currentMonthBookings.sort((a, b) => {
-                let idA = parseInt(a.id) || 0;
-                let idB = parseInt(b.id) || 0;
-                return idA - idB;
-            });
+            currentMonthBookings.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
 
             let totalRewardSum = currentMonthBookings.reduce((sum, b) => sum + parseInt(b.reward || 0), 0);
             document.getElementById('totalBookingRewardDisplay').innerText = totalRewardSum.toLocaleString('vi-VN') + " đ";
 
-            let reversedBookings = [...currentMonthBookings].reverse();
-            reversedBookings.forEach((b, idx) => {
+            currentMonthBookings.forEach((b, idx) => {
+                let stt = currentMonthBookings.length - idx;
                 tbody.innerHTML += `
                     <tr class="border-b">
-                        <td class="p-2.5 text-center font-bold">${reversedBookings.length - idx}</td>
+                        <td class="p-2.5 text-center font-bold">${stt}</td>
                         <td class="p-2.5">${b.time}</td>
                         <td class="p-2.5 font-bold">${b.name}</td>
                         <td class="p-2.5 text-center font-bold text-amber-700">${b.frame}</td>
@@ -2239,28 +2252,40 @@
             let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
             let specialBet = parseInt(document.getElementById('specialBet').value);
 
-            // KIỂM TRA TRÙNG LẶP TRẬN ĐẤU (TRONG 18 GIỜ - KHỚP 4 THÀNH VIÊN VÀ TỈ SỐ)
+            // XỬ LÝ CHỐNG TRÙNG LẶP TUYỆT ĐỐI (QUÉT ĐẢO VỊ TRÍ NỘI BỘ VÀ ĐẢO VẾ TRONG 18 GIỜ)
             const NOW = new Date().getTime();
             const TIME_LIMIT = 18 * 60 * 60 * 1000;
+
+            // Sắp xếp tên trong mỗi đội để dù chọn A1/A2 hay A2/A1 thì thứ tự mảng vẫn giống nhau
+            let teamANew = [p1A, p2A].sort();
+            let teamBNew = [p1B, p2B].sort();
 
             let isDuplicateMatch = matches.some(item => {
                 let itemTime = parseInt(item.id) || 0;
                 let isWithin18h = (NOW - itemTime) <= TIME_LIMIT;
-                
-                let samePlayers = (
-                    (item.p1_v1 === p1A && item.p2_v1 === p2A && item.p1_v2 === p1B && item.p2_v2 === p2B) ||
-                    (item.p1_v1 === p2A && item.p2_v1 === p1A && item.p1_v2 === p2B && item.p2_v2 === p1B) ||
-                    (item.p1_v1 === p1B && item.p2_v1 === p2B && item.p1_v2 === p1A && item.p2_v2 === p2A) ||
-                    (item.p1_v1 === p2B && item.p2_v1 === p1B && item.p1_v2 === p2A && item.p2_v2 === p1A)
+                if (!isWithin18h) return false;
+
+                let teamAOld = [item.p1_v1, item.p2_v1].sort();
+                let teamBOld = [item.p1_v2, item.p2_v2].sort();
+
+                let sameAsDirect = (
+                    teamAOld[0] === teamANew[0] && teamAOld[1] === teamANew[1] &&
+                    teamBOld[0] === teamBNew[0] && teamBOld[1] === teamBNew[1] &&
+                    item.scoreA === scoreA && item.scoreB === scoreB
                 );
 
-                let sameScore = (item.scoreA === scoreA && item.scoreB === scoreB);
+                // Trường hợp đảo vế A và vế B cho nhau
+                let sameAsSwapped = (
+                    teamAOld[0] === teamBNew[0] && teamAOld[1] === teamBNew[1] &&
+                    teamBOld[0] === teamANew[0] && teamBOld[1] === teamANew[1] &&
+                    item.scoreA === scoreB && item.scoreB === scoreA
+                );
 
-                return isWithin18h && samePlayers && sameScore;
+                return sameAsDirect || sameAsSwapped;
             });
 
             if (isDuplicateMatch) {
-                let confirmMatch = confirm("⚠️ Phát hiện trận đấu này đã được ghi nhận trong 18 giờ qua với cùng tỷ số và thành viên!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?");
+                let confirmMatch = confirm("⚠️ Phát hiện trận đấu này (hoặc đảo vị trí 2 người chơi cùng đội/đổi vế) đã được ghi nhận trong 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?");
                 if (!confirmMatch) return;
             }
 
@@ -2427,10 +2452,7 @@
             if (data.openingBalance !== undefined) openingBalance = data.openingBalance;
             if (data.settings) systemSettings = Object.assign(systemSettings, data.settings);
 
-            if (matches && matches.length > 0) {
-                matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
-            }
-
+            sortCollectionsByTime();
             saveLocalData();
             initApp();
         }
