@@ -223,7 +223,7 @@
                         </div>
                     </div>
 
-                    <!-- NHẬT KÝ THI ĐẤU (THÁNG) CHUYỂN XUỐNG DƯỚI CÙNG VÀ HIỂN THỊ ĐẦY ĐỦ TÊN -->
+                    <!-- NHẬT KÝ THI ĐẤU (THÁNG) -->
                     <div class="bg-slate-50 p-4 rounded-xl border">
                         <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU (THÁNG)</h3>
                         <div class="overflow-x-auto">
@@ -1324,6 +1324,20 @@
                 switchTab('matches');
                 document.getElementById('matchP1A').value = main;
             } else if (actType === "dat16") {
+                // YÊU CẦU 2: CHỐNG TRÙNG LẶP THƯỞNG SÂN 16H/18H (TRONG 18 GIỜ)
+                let NOW = new Date().getTime();
+                let TIME_LIMIT = 18 * 60 * 60 * 1000;
+                let duplicateReward = bookingLogs.find(b => {
+                    let itemTime = new Date(b.time.split(',')[0].trim().split('/').reverse().join('-')).getTime(); // Tương đối hoặc check chuỗi
+                    // Đơn giản hóa check trùng tên và khung giờ trong ngày gần đây
+                    return b.name === main && b.frame === "16h-18h" && (NOW - new Date(b.time).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
+                });
+
+                if (duplicateReward) {
+                    let confirmDup = confirm(`⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 16h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`);
+                    if (!confirmDup) return;
+                }
+
                 let curMonth = document.getElementById('selectFinanceMonth').value;
                 let curYear = document.getElementById('selectFinanceYear').value;
                 let userBookingsThisMonth = bookingLogs.filter(b => {
@@ -1338,6 +1352,18 @@
                 let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: systemSettings.reward16h };
                 enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Thưởng sân 16h thành công!");
             } else if (actType === "dat18") {
+                // YÊU CẦU 2: CHỐNG TRÙNG LẶP THƯỞNG SÂN 18H (TRONG 18 GIỜ)
+                let NOW = new Date().getTime();
+                let TIME_LIMIT = 18 * 60 * 60 * 1000;
+                let duplicateReward = bookingLogs.find(b => {
+                    return b.name === main && b.frame.includes("18h") && (new Date().getTime() - new Date(b.time).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
+                });
+
+                if (duplicateReward) {
+                    let confirmDup = confirm(`⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 18h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`);
+                    if (!confirmDup) return;
+                }
+
                 let curMonth = document.getElementById('selectFinanceMonth').value;
                 let curYear = document.getElementById('selectFinanceYear').value;
                 let userBookingsThisMonth = bookingLogs.filter(b => {
@@ -1352,6 +1378,13 @@
                 let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h (CVTT5)", reward: rewardAmount };
                 enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Thưởng sân 18h thành công!");
             } else if (actType === "quy") {
+                // YÊU CẦU 3: CHỐNG TRÙNG LẶP QUỸ QUÝ
+                let alreadyPaid = (m.quyHistory && m.quyHistory[key] !== undefined && m.quyHistory[key] >= systemSettings.quyAmount);
+                if (alreadyPaid) {
+                    alert("Hệ thống đã ghi nhận bạn đã đóng quỹ rồi!");
+                    return;
+                }
+
                 if (!m.quyHistory) m.quyHistory = {};
                 m.quyHistory[key] = systemSettings.quyAmount;
                 enqueueAction("updateMember", { members: members }, "Đã ghi nhận Tiền quỹ QUÝ thành công!");
@@ -1514,6 +1547,10 @@
             };
 
             document.getElementById('userPaidInput').value = '';
+            
+            // YÊU CẦU 4: THÔNG BÁO XÁC NHẬN CHI TIẾT (ALERT) KHI NỘP TIỀN GÓC CÁ NHÂN
+            alert(`✅ Nộp tiền góc thành công!\n\n- Thành viên: ${main}\n- Số tiền: ${val.toLocaleString()} VNĐ\n- Thời gian: ${new Date().toLocaleString('vi-VN')}`);
+
             enqueueAction("addGocLog", { gocLog: newGoc }, "Đã ghi nhận giao dịch thành công!");
         }
 
@@ -1875,6 +1912,10 @@
             let newCashbook = { id: Date.now(), category, amount, note, time: new Date().toLocaleDateString('vi-VN') };
             document.getElementById('cbAmount').value = '';
             document.getElementById('cbNote').value = '';
+
+            // YÊU CẦU 4: THÔNG BÁO XÁC NHẬN CHI TIẾT (ALERT) KHI GHI NHẬN THU/CHI TRONG SỔ QUỸ
+            alert(`✅ Đã ghi nhận Sổ quỹ thành công!\n\n- Hạng mục: ${category}\n- Số tiền: ${amount.toLocaleString()} VNĐ\n- Nội dung: ${note}\n- Thời gian: ${new Date().toLocaleString('vi-VN')}`);
+
             enqueueAction("addCashbook", { cashbook: newCashbook }, "Đã ghi nhận khoản thu/chi thành công!");
         }
 
@@ -2189,6 +2230,31 @@
             let scoreA = checkedScoreA ? parseInt(checkedScoreA.value) : 0;
             let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
             let specialBet = parseInt(document.getElementById('specialBet').value);
+
+            // YÊU CẦU 1: CHỐNG TRÙNG LẶP TRẬN ĐẤU (TRONG 18 GIỜ, KHỚP CẢ 4 THÀNH VIÊN VÀ TỈ SỐ)
+            const NOW = new Date().getTime();
+            const TIME_LIMIT = 18 * 60 * 60 * 1000;
+
+            let isDuplicateMatch = matches.some(item => {
+                let itemTime = new Date(item.timestamp || item.id).getTime(); // Dùng timestamp hoặc id thời gian
+                let isWithin18h = (NOW - itemTime) <= TIME_LIMIT || (NOW - item.id) <= TIME_LIMIT;
+                
+                // Khớp thành viên (cả 2 chiều vế A và vế B)
+                let membersMatch = (
+                    (item.p1_v1 === p1A && item.p2_v1 === p2A && item.p1_v2 === p1B && item.p2_v2 === p2B) ||
+                    (item.p1_v1 === p2A && item.p2_v1 === p1A && item.p1_v2 === p2B && item.p2_v2 === p1B) ||
+                    (item.p1_v1 === p1B && item.p2_v1 === p2B && item.p1_v2 === p1A && item.p2_v2 === p2A)
+                );
+
+                let scoreMatch = (item.scoreA === scoreA && item.scoreB === scoreB);
+
+                return isWithin18h && membersMatch && scoreMatch;
+            });
+
+            if (isDuplicateMatch) {
+                let confirmMatch = confirm("⚠️ Phát hiện trận đấu này đã được ghi nhận trong 18 giờ qua với cùng tỷ số và thành viên!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?");
+                if (!confirmMatch) return;
+            }
 
             let newMatch = {
                 id: Date.now(),
