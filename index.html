@@ -43,7 +43,7 @@
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tài khoản (Username):</label>
-                    <input type="text" id="loginUser" required placeholder="Ví dụ: Thanglong1 đến Thanglong35" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <input type="text" id="loginUser" required placeholder="Ví dụ: Thanglong1 đến Thanglong37" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu (Password):</label>
@@ -223,7 +223,6 @@
                         </div>
                     </div>
 
-                    <!-- NHẬT KÝ THI ĐẤU (THÁNG) -->
                     <div class="bg-slate-50 p-4 rounded-xl border">
                         <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU (THÁNG)</h3>
                         <div class="overflow-x-auto">
@@ -1324,13 +1323,10 @@
                 switchTab('matches');
                 document.getElementById('matchP1A').value = main;
             } else if (actType === "dat16") {
-                // YÊU CẦU 2: CHỐNG TRÙNG LẶP THƯỞNG SÂN 16H/18H (TRONG 18 GIỜ)
                 let NOW = new Date().getTime();
                 let TIME_LIMIT = 18 * 60 * 60 * 1000;
                 let duplicateReward = bookingLogs.find(b => {
-                    let itemTime = new Date(b.time.split(',')[0].trim().split('/').reverse().join('-')).getTime(); // Tương đối hoặc check chuỗi
-                    // Đơn giản hóa check trùng tên và khung giờ trong ngày gần đây
-                    return b.name === main && b.frame === "16h-18h" && (NOW - new Date(b.time).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
+                    return b.name === main && b.frame === "16h-18h" && (NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
                 });
 
                 if (duplicateReward) {
@@ -1352,11 +1348,10 @@
                 let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: systemSettings.reward16h };
                 enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Thưởng sân 16h thành công!");
             } else if (actType === "dat18") {
-                // YÊU CẦU 2: CHỐNG TRÙNG LẶP THƯỞNG SÂN 18H (TRONG 18 GIỜ)
                 let NOW = new Date().getTime();
                 let TIME_LIMIT = 18 * 60 * 60 * 1000;
                 let duplicateReward = bookingLogs.find(b => {
-                    return b.name === main && b.frame.includes("18h") && (new Date().getTime() - new Date(b.time).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
+                    return b.name === main && b.frame.includes("18h") && (NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
                 });
 
                 if (duplicateReward) {
@@ -1378,7 +1373,6 @@
                 let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h (CVTT5)", reward: rewardAmount };
                 enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Thưởng sân 18h thành công!");
             } else if (actType === "quy") {
-                // YÊU CẦU 3: CHỐNG TRÙNG LẶP QUỸ QUÝ
                 let alreadyPaid = (m.quyHistory && m.quyHistory[key] !== undefined && m.quyHistory[key] >= systemSettings.quyAmount);
                 if (alreadyPaid) {
                     alert("Hệ thống đã ghi nhận bạn đã đóng quỹ rồi!");
@@ -1401,9 +1395,13 @@
                 
                 if (isV1 || isV2) {
                     totalMatchCount++;
-                    if (match.scoreA === match.scoreB) totalDraws++;
-                    else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) totalWins++;
-                    else totalLosses++;
+                    if (match.scoreA === match.scoreB) {
+                        totalDraws++;
+                    } else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) {
+                        totalWins++;
+                    } else {
+                        totalLosses++;
+                    }
 
                     let mTime = match.time || "";
                     let isTargetTime = false;
@@ -1548,7 +1546,6 @@
 
             document.getElementById('userPaidInput').value = '';
             
-            // YÊU CẦU 4: THÔNG BÁO XÁC NHẬN CHI TIẾT (ALERT) KHI NỘP TIỀN GÓC CÁ NHÂN
             alert(`✅ Nộp tiền góc thành công!\n\n- Thành viên: ${main}\n- Số tiền: ${val.toLocaleString()} VNĐ\n- Thời gian: ${new Date().toLocaleString('vi-VN')}`);
 
             enqueueAction("addGocLog", { gocLog: newGoc }, "Đã ghi nhận giao dịch thành công!");
@@ -1730,11 +1727,13 @@
         function renderAllMatchLog() {
             let tbody = document.getElementById('allMatchTableBody');
             tbody.innerHTML = '';
-            let reversedMatches = [...matches].reverse();
-            reversedMatches.forEach((m, idx) => {
+            
+            // ĐẢO NGƯỢC: Trận mới nhất (index 0 trong mảng matches khi unshift) sẽ nằm ở trên cùng
+            matches.forEach((m, idx) => {
+                let stt = matches.length - idx;
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
-                        <td class="p-2.5 text-center font-bold text-slate-500">${reversedMatches.length - idx}</td>
+                        <td class="p-2.5 text-center font-bold text-slate-500">${stt}</td>
                         <td class="p-2.5 text-slate-600">${m.time || '-'}</td>
                         <td class="p-2.5 font-semibold text-slate-900">${m.p1_v1} & ${m.p2_v1}</td>
                         <td class="p-2.5 font-semibold text-slate-900">${m.p1_v2} & ${m.p2_v2}</td>
@@ -1913,7 +1912,6 @@
             document.getElementById('cbAmount').value = '';
             document.getElementById('cbNote').value = '';
 
-            // YÊU CẦU 4: THÔNG BÁO XÁC NHẬN CHI TIẾT (ALERT) KHI GHI NHẬN THU/CHI TRONG SỔ QUỸ
             alert(`✅ Đã ghi nhận Sổ quỹ thành công!\n\n- Hạng mục: ${category}\n- Số tiền: ${amount.toLocaleString()} VNĐ\n- Nội dung: ${note}\n- Thời gian: ${new Date().toLocaleString('vi-VN')}`);
 
             enqueueAction("addCashbook", { cashbook: newCashbook }, "Đã ghi nhận khoản thu/chi thành công!");
@@ -2231,24 +2229,24 @@
             let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
             let specialBet = parseInt(document.getElementById('specialBet').value);
 
-            // YÊU CẦU 1: CHỐNG TRÙNG LẶP TRẬN ĐẤU (TRONG 18 GIỜ, KHỚP CẢ 4 THÀNH VIÊN VÀ TỈ SỐ)
+            // KHẮC PHỤC LỖI 1: CHỐNG TRÙNG LẶP TRẬN ĐẤU CHÍNH XÁC (18 GIỜ)
             const NOW = new Date().getTime();
             const TIME_LIMIT = 18 * 60 * 60 * 1000;
 
             let isDuplicateMatch = matches.some(item => {
-                let itemTime = new Date(item.timestamp || item.id).getTime(); // Dùng timestamp hoặc id thời gian
-                let isWithin18h = (NOW - itemTime) <= TIME_LIMIT || (NOW - item.id) <= TIME_LIMIT;
+                let itemTime = parseInt(item.id) || 0;
+                let isWithin18h = (NOW - itemTime) <= TIME_LIMIT;
                 
-                // Khớp thành viên (cả 2 chiều vế A và vế B)
-                let membersMatch = (
+                let samePlayers = (
                     (item.p1_v1 === p1A && item.p2_v1 === p2A && item.p1_v2 === p1B && item.p2_v2 === p2B) ||
                     (item.p1_v1 === p2A && item.p2_v1 === p1A && item.p1_v2 === p2B && item.p2_v2 === p1B) ||
-                    (item.p1_v1 === p1B && item.p2_v1 === p2B && item.p1_v2 === p1A && item.p2_v2 === p2A)
+                    (item.p1_v1 === p1B && item.p2_v1 === p2B && item.p1_v2 === p1A && item.p2_v2 === p2A) ||
+                    (item.p1_v1 === p2B && item.p2_v1 === p1B && item.p1_v2 === p2A && item.p2_v2 === p1A)
                 );
 
-                let scoreMatch = (item.scoreA === scoreA && item.scoreB === scoreB);
+                let sameScore = (item.scoreA === scoreA && item.scoreB === scoreB);
 
-                return isWithin18h && membersMatch && scoreMatch;
+                return isWithin18h && samePlayers && sameScore;
             });
 
             if (isDuplicateMatch) {
