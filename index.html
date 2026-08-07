@@ -2352,38 +2352,45 @@
             document.getElementById('notificationModal').classList.remove('flex');
         }
 
-        function openTodayCourtsModal() {
-            let container = document.getElementById('todayCourtsListContainer');
-            container.innerHTML = '';
+    // Cập nhật lại hàm này trong thẻ <script> của anh
+function openTodayCourtsModal() {
+    let container = document.getElementById('todayCourtsListContainer');
+    container.innerHTML = '';
 
-            let todayStr = new Date().toLocaleDateString('vi-VN');
-            let todayBookings = bookingLogs.filter(b => {
-                let t = b.time || "";
-                return t.includes(todayStr) || t.startsWith(new Date().getDate() + "/" + (new Date().getMonth() + 1));
-            });
+    // Lấy ngày hôm qua
+    let yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    let yesterdayStr = yesterday.getDate() + "/" + (yesterday.getMonth() + 1);
+    let yesterdayFullStr = yesterday.toLocaleDateString('vi-VN');
 
-            if (todayBookings.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs italic">Hôm nay chưa có lịch đặt sân nào được ghi nhận.</div>`;
-            } else {
-                todayBookings.forEach(b => {
-                    container.innerHTML += `
-                        <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between shadow-sm">
-                            <div>
-                                <h4 class="font-black text-xs text-slate-900">${b.name}</h4>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Thời gian đặt: ${b.time}</p>
-                            </div>
-                            <span class="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-3 py-1 rounded-xl shadow-sm">${b.frame}</span>
-                        </div>
-                    `;
-                });
-            }
+    // Lọc các bản ghi đặt sân của ngày hôm trước
+    let yesterdayBookings = bookingLogs.filter(b => {
+        let t = b.time || "";
+        return t.includes(yesterdayStr) || t.includes(yesterdayFullStr);
+    });
 
-            let modal = document.getElementById('todayCourtsModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-        }
+    if (yesterdayBookings.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs italic">Không có lịch đặt sân nào được ghi nhận từ ngày hôm qua.</div>`;
+    } else {
+        yesterdayBookings.forEach(b => {
+            container.innerHTML += `
+                <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div>
+                        <h4 class="font-black text-xs text-slate-900">${b.name}</h4>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Thời gian đặt: ${b.time}</p>
+                    </div>
+                    <span class="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-3 py-1 rounded-xl shadow-sm">${b.frame}</span>
+                </div>
+            `;
+        });
+    }
+
+    let modal = document.getElementById('todayCourtsModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
 
         function closeTodayCourtsModal() {
             let modal = document.getElementById('todayCourtsModal');
