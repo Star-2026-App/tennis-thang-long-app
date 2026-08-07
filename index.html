@@ -67,11 +67,16 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
+                    <!-- ICON CÁC SÂN NGÀY HÔM NAY (ĐÃ THÊM BÊN TRÁI ICON CÚP) -->
+                    <button onclick="openTodayCourtsModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Các sân ngày hôm nay">
+                        <i class="fa-solid fa-calendar-days text-sm"></i>
+                    </button>
+
                     <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Bảng Vàng Vinh Danh">
                         <i class="fa-solid fa-trophy text-sm"></i>
                     </button>
 
-                    <!-- ICON THÔNG TIN TÀI KHOẢN (ĐÃ TÍCH HỢP NÚT THOÁT BÊN TRONG) -->
+                    <!-- ICON THÔNG TIN TÀI KHOẢN (TÍCH HỢP NÚT THOÁT BÊN TRONG) -->
                     <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản & Thoát">
                         <i class="fa-solid fa-user-shield text-sm text-amber-300"></i>
                     </button>
@@ -307,7 +312,7 @@
                 </div>
             </section>
 
-            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU (CÓ THÊM DÒNG CHỮ ĐỘNG THỐNG KÊ TRẬN TRONG NGÀY) -->
+            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU -->
             <section id="tab-matchLog" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border space-y-3">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-3 gap-2">
@@ -659,21 +664,21 @@
                     <span id="gamificationMonthLabel" class="text-[10px] bg-white/20 px-2.5 py-0.5 rounded-full font-bold">Tháng này</span>
                 </div>
                 <div class="space-y-2 text-xs">
-                    <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
+                    <div class="bg-white/10 p-2.5 rounded-xl border border-white/20 flex items-center gap-2.5">
                         <div class="w-8 h-8 bg-amber-400 text-amber-950 rounded-full flex items-center justify-center font-black shadow">🥇</div>
                         <div>
                             <span class="text-[9px] text-amber-200 uppercase font-bold block">Vua Cày Sân</span>
                             <div id="vuaCaysan" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
                         </div>
                     </div>
-                    <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
+                    <div class="bg-white/10 p-2.5 rounded-xl border border-white/20 flex items-center gap-2.5">
                         <div class="w-8 h-8 bg-cyan-400 text-cyan-950 rounded-full flex items-center justify-center font-black shadow">🔥</div>
                         <div>
                             <span class="text-[9px] text-cyan-200 uppercase font-bold block">Nhiều Trận Thắng Nhất</span>
                             <div id="vuaThangtran" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
                         </div>
                     </div>
-                    <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
+                    <div class="bg-white/10 p-2.5 rounded-xl border border-white/20 flex items-center gap-2.5">
                         <div class="w-8 h-8 bg-emerald-400 text-emerald-950 rounded-full flex items-center justify-center font-black shadow">⭐</div>
                         <div>
                             <span class="text-[9px] text-emerald-200 uppercase font-bold block">Tỷ Lệ Thắng Cao Nhất (&ge;3 trận)</span>
@@ -681,6 +686,20 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CÁC SÂN NGÀY HÔM NAY -->
+    <div id="todayCourtsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl relative">
+            <button onclick="closeTodayCourtsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="flex items-center gap-2 border-b pb-3 text-emerald-900">
+                <i class="fa-solid fa-bullhorn text-lg text-emerald-700"></i>
+                <h3 class="font-black text-sm uppercase">CÁC SÂN NGÀY HÔM NAY</h3>
+            </div>
+            <div id="todayCourtsListContainer" class="space-y-2.5 max-h-80 overflow-y-auto">
+                <!-- Danh sách sân render động -->
             </div>
         </div>
     </div>
@@ -700,7 +719,7 @@
         </div>
     </div>
 
-    <!-- MODAL CHUNG XÁC NHẬN THAO TÁC (YÊU CẦU 1) -->
+    <!-- MODAL CHUNG XÁC NHẬN THAO TÁC (ĐÃ SỬA GÁN SỰ KIỆN NÚT ĐỒNG Ý) -->
     <div id="actionConfirmModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[300] p-4">
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
             <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xl font-black mx-auto">❓</div>
@@ -715,7 +734,7 @@
         </div>
     </div>
 
-    <!-- MODAL HIỂN THỊ TÊN KHI BẤM ICON THÀNH VIÊN + NÚT THOÁT AN TOÀN (YÊU CẦU 3) -->
+    <!-- MODAL HIỂN THỊ TÊN KHI BẤM ICON THÀNH VIÊN + NÚT THOÁT AN TOÀN -->
     <div id="userProfileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-6 space-y-4 shadow-2xl text-center relative">
             <button onclick="closeUserProfileModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -1182,11 +1201,17 @@
             document.getElementById('dashQrImg').src = qrUrl;
         }
 
-        // HÀM GỌI HỘP THOẠI XÁC NHẬN CHUNG TRƯỚC KHI GHI NHẬN (YÊU CẦU 1)
+        // HÀM GỌI HỘP THOẠI XÁC NHẬN CHUNG
         function showActionConfirm(message, callback) {
             document.getElementById('actionConfirmText').innerText = message;
             pendingActionCallback = callback;
             let modal = document.getElementById('actionConfirmModal');
+            
+            let okBtn = document.getElementById('actionConfirmOkBtn');
+            okBtn.onclick = function() {
+                closeActionConfirmModal(true);
+            };
+
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
@@ -1322,7 +1347,6 @@
             }).catch(err => { alert("Không thể tự động sao chép. Vui lòng thử lại!"); });
         }
 
-        // HÀNH ĐỘNG TÁC VỤ NHANH TẠI DASHBOARD (CÓ XÁC NHẬN - YÊU CẦU 1)
         function handleDashboardSubmit() {
             let main = document.getElementById('dashMainUser').value;
             let actType = document.querySelector('input[name="actType"]:checked').value;
@@ -1544,7 +1568,6 @@
             }
         }
 
-        // NỘP TIỀN GÓC (CÓ XÁC NHẬN - YÊU CẦU 1)
         function submitUserPayment() {
             let main = document.getElementById('dashMainUser').value;
             let val = parseInt(document.getElementById('userPaidInput').value) || 0;
@@ -1726,7 +1749,6 @@
             
             if (matches && matches.length > 0) matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
 
-            // TÍNH TOÁN VÀ HIỂN THỊ DÒNG CHỮ ĐỘNG SỐ TRẬN TRONG NGÀY (YÊU CẦU 5)
             let todayDateStr = new Date().toLocaleDateString('vi-VN');
             let todayCount = matches.filter(m => {
                 let t = m.time || "";
@@ -1902,7 +1924,6 @@
             enqueueAction("updateMember", { members: members }, "Đã cập nhật quỹ quý thành công!");
         }
 
-        // SỔ THU CHI (CÓ XÁC NHẬN - YÊU CẦU 1)
         function addCashbookEntry(e) {
             e.preventDefault();
             let category = document.getElementById('cbCategory').value;
@@ -2238,7 +2259,6 @@
             });
         }
 
-        // GHI TRẬN (ĐÃ KIỂM TRA VALIDATION CHẶN TRÙNG LẶP & TỈ SỐ VÀ CÓ HỘP THOẠI XÁC NHẬN - YÊU CẦU 1 & 2)
         function addMatch(e) {
             e.preventDefault();
             let p1A = document.getElementById('matchP1A').value;
@@ -2246,7 +2266,6 @@
             let p1B = document.getElementById('matchP1B').value;
             let p2B = document.getElementById('matchP2B').value;
             
-            // KIỂM TRA RÀNG BUỘC 4 CẦU THỦ PHẢI KHÁC NHAU HOÀN TOÀN (YÊU CẦU 2)
             let playersSet = new Set([p1A, p2A, p1B, p2B]);
             if (playersSet.size < 4) {
                 alert("⚠️ Lỗi: 4 cầu thủ trong một trận đấu đôi phải là 4 cá nhân khác nhau hoàn toàn! Vui lòng kiểm tra lại danh sách lựa chọn.");
@@ -2256,7 +2275,6 @@
             let checkedScoreA = document.querySelector('input[name="scoreA"]:checked');
             let checkedScoreB = document.querySelector('input[name="scoreB"]:checked');
 
-            // KIỂM TRA BẮT BUỘC CHỌN TỈ SỐ (YÊU CẦU 2)
             if (!checkedScoreA || !checkedScoreB) {
                 alert("⚠️ Vui lòng chọn đầy đủ điểm số cho cả Vế A và Vế B trước khi lưu trận đấu!");
                 return;
@@ -2332,6 +2350,47 @@
         function closeNotificationModal() {
             document.getElementById('notificationModal').classList.add('hidden');
             document.getElementById('notificationModal').classList.remove('flex');
+        }
+
+        function openTodayCourtsModal() {
+            let container = document.getElementById('todayCourtsListContainer');
+            container.innerHTML = '';
+
+            let todayStr = new Date().toLocaleDateString('vi-VN');
+            let todayBookings = bookingLogs.filter(b => {
+                let t = b.time || "";
+                return t.includes(todayStr) || t.startsWith(new Date().getDate() + "/" + (new Date().getMonth() + 1));
+            });
+
+            if (todayBookings.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs italic">Hôm nay chưa có lịch đặt sân nào được ghi nhận.</div>`;
+            } else {
+                todayBookings.forEach(b => {
+                    container.innerHTML += `
+                        <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between shadow-sm">
+                            <div>
+                                <h4 class="font-black text-xs text-slate-900">${b.name}</h4>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Thời gian đặt: ${b.time}</p>
+                            </div>
+                            <span class="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-3 py-1 rounded-xl shadow-sm">${b.frame}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            let modal = document.getElementById('todayCourtsModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeTodayCourtsModal() {
+            let modal = document.getElementById('todayCourtsModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
         }
 
         function exportToExcel() {
