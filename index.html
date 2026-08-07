@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLB Tennis Thăng Long</title>
+    <title>CLB Tennis Thăng Long - Ver1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -38,7 +38,7 @@
             <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-3xl font-extrabold mx-auto shadow">🎾</div>
             <div>
                 <h1 class="text-xl font-black text-slate-800 uppercase">CLB TENNIS THĂNG LONG</h1>
-                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Tra Cứu Tự Động</p>
+                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Tra Cứu Tự Động - Ver1.0</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
@@ -67,17 +67,13 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Trung tâm Thông báo & Bảng vàng">
-                        <i class="fa-solid fa-bell text-sm"></i>
-                        <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full hidden">0</span>
+                    <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Bảng Vàng Vinh Danh">
+                        <i class="fa-solid fa-trophy text-sm"></i>
                     </button>
 
-                    <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản">
+                    <!-- ICON THÔNG TIN TÀI KHOẢN (ĐÃ TÍCH HỢP NÚT THOÁT BÊN TRONG) -->
+                    <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản & Thoát">
                         <i class="fa-solid fa-user-shield text-sm text-amber-300"></i>
-                    </button>
-
-                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-2.5 py-1.5 rounded-full text-white font-bold text-xs shadow flex items-center gap-1" title="Thoát hệ thống">
-                        <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden md:inline">Thoát</span>
                     </button>
                 </div>
             </div>
@@ -94,7 +90,7 @@
                     <button onclick="switchTab('quy')" id="btn-quy" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Đóng Quỹ</button>
                     <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu Chi</button>
                     <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên</button>
-                    <button onclick="switchTab('rules')" id="btn-rules" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy Định CLB</button>
+                    <button onclick="switchTab('rules')" id="btn-rules" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
                     <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 admin-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
 
@@ -116,7 +112,7 @@
                 <button onclick="switchTabMobile('quy', 'Đóng Quỹ')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-piggy-bank text-amber-300"></i> Đóng Quỹ</button>
                 <button onclick="switchTabMobile('cashbook', 'Sổ Thu Chi')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-amber-300"></i> Sổ Thu Chi</button>
                 <button onclick="switchTabMobile('members', 'Thành Viên')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-users text-amber-300"></i> Thành Viên</button>
-                <button onclick="switchTabMobile('rules', 'Quy Định CLB')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy Định CLB</button>
+                <button onclick="switchTabMobile('rules', 'Quy định và thông báo')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
                 <button onclick="switchTabMobile('settings', 'Cài Đặt')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2 admin-only hidden"><i class="fa-solid fa-gears text-amber-300"></i> Cài Đặt</button>
             </div>
         </header>
@@ -311,10 +307,16 @@
                 </div>
             </section>
 
-            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU -->
+            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU (CÓ THÊM DÒNG CHỮ ĐỘNG THỐNG KÊ TRẬN TRONG NGÀY) -->
             <section id="tab-matchLog" class="tab-content space-y-4">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border">
-                    <h2 class="text-base font-bold text-slate-800 mb-3">NHẬT KÝ TẤT CẢ CÁC TRẬN ĐẤU</h2>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border space-y-3">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-3 gap-2">
+                        <h2 class="text-base font-bold text-slate-800">NHẬT KÝ TẤT CẢ CÁC TRẬN ĐẤU</h2>
+                        <div id="todayMatchCounterBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-bolt text-amber-500"></i>
+                            <span id="todayMatchCountText">Ngày hôm nay có thêm 0 trận đấu được ghi nhận</span>
+                        </div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
@@ -416,7 +418,7 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-3 pb-3 border-b">
                         <div>
-                            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN</h2>
+                            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN VINHOMES</h2>
                         </div>
                         <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-right">
                             <span class="text-[9px] font-bold text-emerald-800 block uppercase">Tổng thưởng:</span>
@@ -426,7 +428,7 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Thành Viên</th><th class="p-2.5 text-center">Khung</th><th class="p-2.5 text-right">Số Tiền</th><th class="p-2.5 text-center admin-only">Xóa</th></tr>
+                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Thành Viên</th><th class="p-2.5 text-center">Khung Sân</th><th class="p-2.5 text-right">Số Tiền Thưởng</th><th class="p-2.5 text-center admin-only">Xóa</th></tr>
                             </thead>
                             <tbody id="bookingLogTableBody" class="divide-y divide-slate-200"></tbody>
                         </table>
@@ -580,7 +582,7 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-4xl mx-auto space-y-4">
                     <div class="border-b pb-3 flex justify-between items-center">
                         <div>
-                            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-emerald-600"></i> QUY ĐỊNH & THÔNG BÁO CÂU LẠC BỘ</h2>
+                            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-emerald-600"></i> QUY ĐỊNH VÀ THÔNG BÁO CÂU LẠC BỘ</h2>
                         </div>
                     </div>
 
@@ -642,6 +644,47 @@
         </main>
     </div>
 
+    <!-- MODAL BẢNG VÀNG VINH DANH -->
+    <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl relative">
+            <button onclick="closeNotificationModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="flex items-center gap-2 border-b pb-2.5 text-emerald-800">
+                <i class="fa-solid fa-trophy text-lg text-amber-500"></i>
+                <h3 class="font-bold text-sm uppercase">BẢNG VÀNG VINH DANH THÀNH TÍCH</h3>
+            </div>
+
+            <div class="bg-gradient-to-r from-amber-500 via-emerald-600 to-teal-700 p-4 rounded-xl shadow text-white space-y-3">
+                <div class="flex items-center justify-between border-b border-white/20 pb-1.5">
+                    <span class="font-black text-xs uppercase flex items-center gap-1.5"><i class="fa-solid fa-crown text-amber-300"></i> VINH DANH THÁNG NÀY</span>
+                    <span id="gamificationMonthLabel" class="text-[10px] bg-white/20 px-2.5 py-0.5 rounded-full font-bold">Tháng này</span>
+                </div>
+                <div class="space-y-2 text-xs">
+                    <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
+                        <div class="w-8 h-8 bg-amber-400 text-amber-950 rounded-full flex items-center justify-center font-black shadow">🥇</div>
+                        <div>
+                            <span class="text-[9px] text-amber-200 uppercase font-bold block">Vua Cày Sân</span>
+                            <div id="vuaCaysan" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
+                        </div>
+                    </div>
+                    <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
+                        <div class="w-8 h-8 bg-cyan-400 text-cyan-950 rounded-full flex items-center justify-center font-black shadow">🔥</div>
+                        <div>
+                            <span class="text-[9px] text-cyan-200 uppercase font-bold block">Nhiều Trận Thắng Nhất</span>
+                            <div id="vuaThangtran" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
+                        </div>
+                    </div>
+                    <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
+                        <div class="w-8 h-8 bg-emerald-400 text-emerald-950 rounded-full flex items-center justify-center font-black shadow">⭐</div>
+                        <div>
+                            <span class="text-[9px] text-emerald-200 uppercase font-bold block">Tỷ Lệ Thắng Cao Nhất (&ge;3 trận)</span>
+                            <div id="vuaTyletang" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CUSTOM CẢNH BÁO TRÙNG LẶP TRẬN ĐẤU -->
     <div id="customConfirmModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[300] p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 text-center animate-in fade-in zoom-in duration-200">
@@ -657,59 +700,22 @@
         </div>
     </div>
 
-    <!-- MODAL TRUNG TÂM THÔNG BÁO -->
-    <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl relative">
-            <button onclick="closeNotificationModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <div class="flex items-center gap-2 border-b pb-2.5 text-emerald-800">
-                <i class="fa-solid fa-bell text-lg"></i>
-                <h3 class="font-bold text-sm uppercase">TRUNG TÂM THÔNG BÁO & VINH DANH</h3>
+    <!-- MODAL CHUNG XÁC NHẬN THAO TÁC (YÊU CẦU 1) -->
+    <div id="actionConfirmModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[300] p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
+            <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xl font-black mx-auto">❓</div>
+            <div>
+                <h3 class="font-black text-slate-900 text-sm uppercase mb-1">XÁC NHẬN HÀNH ĐỘNG</h3>
+                <p id="actionConfirmText" class="text-xs text-slate-600 font-semibold">Bạn có chắc chắn muốn thực hiện thao tác này không?</p>
             </div>
-            
-            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
-                <button onclick="switchNotifSubTab('san')" id="btnNotifSan" class="flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition">Sân Hôm Nay</button>
-                <button onclick="switchNotifSubTab('vinhdanh')" id="btnNotifVinhDanh" class="flex-1 py-2 rounded-lg text-slate-600 transition">Bảng Vàng Thành Tích</button>
-            </div>
-
-            <div id="notifSubTabSan" class="space-y-2 max-h-72 overflow-y-auto">
-                <div id="yesterdayBookingList" class="space-y-2"></div>
-            </div>
-
-            <div id="notifSubTabVinhDanh" class="space-y-3 hidden max-h-72 overflow-y-auto">
-                <div class="bg-gradient-to-r from-amber-500 via-emerald-600 to-teal-700 p-4 rounded-xl shadow text-white space-y-3">
-                    <div class="flex items-center justify-between border-b border-white/20 pb-1.5">
-                        <span class="font-black text-xs uppercase flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-300"></i> VINH DANH THÁNG NÀY</span>
-                        <span id="gamificationMonthLabel" class="text-[10px] bg-white/20 px-2.5 py-0.5 rounded-full font-bold">Tháng này</span>
-                    </div>
-                    <div class="space-y-2 text-xs">
-                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-amber-400 text-amber-950 rounded-full flex items-center justify-center font-black shadow">🥇</div>
-                            <div>
-                                <span class="text-[9px] text-amber-200 uppercase font-bold block">Vua Cày Sân</span>
-                                <div id="vuaCaysan" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
-                            </div>
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-cyan-400 text-cyan-950 rounded-full flex items-center justify-center font-black shadow">🔥</div>
-                            <div>
-                                <span class="text-[9px] text-cyan-200 uppercase font-bold block">Nhiều Trận Thắng Nhất</span>
-                                <div id="vuaThangtran" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
-                            </div>
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-emerald-400 text-emerald-950 rounded-full flex items-center justify-center font-black shadow">⭐</div>
-                            <div>
-                                <span class="text-[9px] text-emerald-200 uppercase font-bold block">Tỷ Lệ Thắng Cao Nhất (&ge;3 trận)</span>
-                                <div id="vuaTyletang" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="closeActionConfirmModal(false)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold py-2.5 rounded-xl text-xs">Hủy</button>
+                <button type="button" id="actionConfirmOkBtn" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-2.5 rounded-xl text-xs">Đồng ý</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL HIỂN THỊ TÊN KHI BẤM ICON THÀNH VIÊN -->
+    <!-- MODAL HIỂN THỊ TÊN KHI BẤM ICON THÀNH VIÊN + NÚT THOÁT AN TOÀN (YÊU CẦU 3) -->
     <div id="userProfileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-6 space-y-4 shadow-2xl text-center relative">
             <button onclick="closeUserProfileModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -719,7 +725,13 @@
                 <h3 id="modalProfileName" class="font-black text-slate-800 text-base">Đang tải...</h3>
                 <p id="modalProfileRole" class="text-xs text-emerald-700 font-bold mt-1">Vai trò: Thành Viên</p>
             </div>
-            <button onclick="closeUserProfileModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-xs">ĐÓNG</button>
+            
+            <div class="pt-2 border-t space-y-2">
+                <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i> THOÁT HỆ THỐNG
+                </button>
+                <button onclick="closeUserProfileModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-xs">ĐÓNG</button>
+            </div>
         </div>
     </div>
 
@@ -888,6 +900,8 @@
         let financeSortField = 'stt';
         let financeSortAsc = true;
 
+        let pendingActionCallback = null;
+
         const defaultFallbackMembers = [
             { stt: 1, name: "Nguyễn Anh Thi 72", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong1" },
             { stt: 2, name: "Nguyễn Văn Sao 88", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong2" },
@@ -939,32 +953,9 @@
             loadLocalData();
             if (!members || members.length === 0) members = defaultFallbackMembers;
 
-            checkAndRolloverMonth(now);
             initApp();
             fetchCloudData(false);
         });
-
-        function checkAndRolloverMonth(nowDate) {
-            let lastCheckDate = localStorage.getItem('clb_last_rollover_date') || "";
-            let currentMonthKey = `${nowDate.getFullYear()}-${nowDate.getMonth() + 1}`;
-            
-            if (nowDate.getDate() === 1 && lastCheckDate !== currentMonthKey) {
-                let prevMonth = nowDate.getMonth();
-                let prevYear = nowDate.getFullYear();
-                if (prevMonth === 0) { prevMonth = 12; prevYear--; }
-
-                members.forEach(m => {
-                    let fPrev = calculateUserFinanceForMonth(m.name, prevMonth, prevYear);
-                    if (fPrev.totalPay !== 0) {
-                        m.noOld = (m.noOld || 0) + fPrev.totalPay;
-                    }
-                });
-
-                localStorage.setItem('clb_members', JSON.stringify(members));
-                localStorage.setItem('clb_last_rollover_date', currentMonthKey);
-                enqueueAction("updateMember", { members: members }, "Hệ thống đã tự động chuyển số dư tháng trước thành Nợ cũ sang tháng mới!");
-            }
-        }
 
         function showToast(msg) {
             let toast = document.getElementById('appToast');
@@ -1020,19 +1011,13 @@
             payload.action = actionName;
             syncQueue.push(payload);
 
-            if (actionName === "addMatch" && payload.match) {
-                matches.unshift(payload.match);
-            }
+            if (actionName === "addMatch" && payload.match) matches.unshift(payload.match);
             else if (actionName === "updateMatch" && payload.match) {
                 let m = matches.find(x => x.id == payload.match.id);
                 if (m) { m.scoreA = payload.match.scoreA; m.scoreB = payload.match.scoreB; m.specialBet = payload.match.specialBet; }
             }
-            else if (actionName === "addGocLog" && payload.gocLog) {
-                gocLogs.unshift(payload.gocLog);
-            }
-            else if (actionName === "addBooking" && payload.booking) {
-                bookingLogs.unshift(payload.booking);
-            }
+            else if (actionName === "addGocLog" && payload.gocLog) gocLogs.unshift(payload.gocLog);
+            else if (actionName === "addBooking" && payload.booking) bookingLogs.unshift(payload.booking);
             else if (actionName === "addCashbook" && payload.cashbook) cashbookLogs.unshift(payload.cashbook);
             else if (actionName === "addRule" && payload.rule) rulesList.unshift(payload.rule);
             else if (actionName === "updateSettings" && payload.settings) systemSettings = payload.settings;
@@ -1069,9 +1054,7 @@
                 saveLocalData();
                 if (syncQueue.length > 0) processQueue();
             })
-            .catch(err => {
-                isSyncing = false;
-            });
+            .catch(err => { isSyncing = false; });
         }
 
         function handleLogin(e) {
@@ -1121,9 +1104,7 @@
             let dashSelect = document.getElementById('dashMainUser');
             if (dashSelect) {
                 dashSelect.value = loggedInMemberName;
-                if (currentUserRole !== 'admin') {
-                    dashSelect.disabled = true;
-                }
+                if (currentUserRole !== 'admin') dashSelect.disabled = true;
             }
 
             fetchCloudData(true);
@@ -1156,27 +1137,18 @@
 
         function toggleMobileMenu() {
             let drawer = document.getElementById('mobileMenuDrawer');
-            if (drawer.classList.contains('hidden')) {
-                drawer.classList.remove('hidden');
-            } else {
-                drawer.classList.add('hidden');
-            }
+            if (drawer.classList.contains('hidden')) drawer.classList.remove('hidden');
+            else drawer.classList.add('hidden');
         }
 
         function openUserProfileModal() {
             let modal = document.getElementById('userProfileModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
+            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
         }
 
         function closeUserProfileModal() {
             let modal = document.getElementById('userProfileModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
         }
 
         function initApp() {
@@ -1194,7 +1166,6 @@
             renderCashbook();
             renderMemberList();
             renderRulesTab();
-            checkYesterdayBookingsNotification();
             applyRolePermissions();
         }
 
@@ -1211,17 +1182,38 @@
             document.getElementById('dashQrImg').src = qrUrl;
         }
 
+        // HÀM GỌI HỘP THOẠI XÁC NHẬN CHUNG TRƯỚC KHI GHI NHẬN (YÊU CẦU 1)
+        function showActionConfirm(message, callback) {
+            document.getElementById('actionConfirmText').innerText = message;
+            pendingActionCallback = callback;
+            let modal = document.getElementById('actionConfirmModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeActionConfirmModal(isConfirmed) {
+            let modal = document.getElementById('actionConfirmModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (isConfirmed && typeof pendingActionCallback === 'function') {
+                pendingActionCallback();
+            }
+            pendingActionCallback = null;
+        }
+
         function saveSystemSettings(e) {
             e.preventDefault();
-            systemSettings.quyAmount = parseFloat(document.getElementById('stQuyAmount').value) || 600000;
-            systemSettings.reward16h = parseFloat(document.getElementById('stReward16').value) || 20000;
-            systemSettings.reward18h = parseFloat(document.getElementById('stReward18').value) || 30000;
-            systemSettings.maxRewardLimit = parseInt(document.getElementById('stMaxLimit').value) || 15;
-            systemSettings.bankId = document.getElementById('stBankId').value.trim().toUpperCase();
-            systemSettings.bankAccount = document.getElementById('stBankAccount').value.trim();
-            systemSettings.accountName = document.getElementById('stAccountName').value.trim().toUpperCase();
+            showActionConfirm("Bạn có chắc chắn muốn lưu các cài đặt hệ thống mới lên Cloud?", () => {
+                systemSettings.quyAmount = parseFloat(document.getElementById('stQuyAmount').value) || 600000;
+                systemSettings.reward16h = parseFloat(document.getElementById('stReward16').value) || 20000;
+                systemSettings.reward18h = parseFloat(document.getElementById('stReward18').value) || 30000;
+                systemSettings.maxRewardLimit = parseInt(document.getElementById('stMaxLimit').value) || 15;
+                systemSettings.bankId = document.getElementById('stBankId').value.trim().toUpperCase();
+                systemSettings.bankAccount = document.getElementById('stBankAccount').value.trim();
+                systemSettings.accountName = document.getElementById('stAccountName').value.trim().toUpperCase();
 
-            enqueueAction("updateSettings", { settings: systemSettings }, "Đã lưu cài đặt hệ thống lên Cloud thành công!");
+                enqueueAction("updateSettings", { settings: systemSettings }, "Đã lưu cài đặt hệ thống lên Cloud thành công!");
+            });
         }
 
         function recalculateMemberPaidTotals() {
@@ -1238,11 +1230,9 @@
                 let sel = document.getElementById(id);
                 if (!sel) return;
                 let currentVal = sel.value;
-                if (id === 'filterGocUser') {
-                    sel.innerHTML = '<option value="ALL">-- Tất cả thành viên --</option>';
-                } else {
-                    sel.innerHTML = '';
-                }
+                if (id === 'filterGocUser') sel.innerHTML = '<option value="ALL">-- Tất cả thành viên --</option>';
+                else sel.innerHTML = '';
+                
                 members.forEach(m => {
                     let opt = document.createElement('option');
                     opt.value = m.name;
@@ -1256,9 +1246,7 @@
                 let dashSelect = document.getElementById('dashMainUser');
                 if (dashSelect) {
                     dashSelect.value = loggedInMemberName;
-                    if (currentUserRole !== 'admin') {
-                        dashSelect.disabled = true;
-                    }
+                    if (currentUserRole !== 'admin') dashSelect.disabled = true;
                 }
             }
         }
@@ -1271,14 +1259,12 @@
 
             let statsMap = {};
             if (members && members.length > 0) {
-                members.forEach(m => {
-                    statsMap[m.name] = { name: m.name, matches: 0, wins: 0 };
-                });
+                members.forEach(m => { statsMap[m.name] = { name: m.name, matches: 0, wins: 0 }; });
             }
 
             matches.forEach(m => {
                 let mTime = m.time || "";
-                let isThisMonth = mTime.includes(`/${curMonth}/${curYear}`) || mTime.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
+                let isThisMonth = mTime.includes(`/${curMonth}/${curYear}`) || mTime.includes(` ${curMonth}/${curYear}`);
                 if (!isThisMonth) return;
 
                 let players = [m.p1_v1, m.p2_v1, m.p1_v2, m.p2_v2];
@@ -1290,9 +1276,7 @@
 
                 if (m.scoreA !== m.scoreB) {
                     let winningTeam = m.scoreA > m.scoreB ? [m.p1_v1, m.p2_v1] : [m.p1_v2, m.p2_v2];
-                    winningTeam.forEach(p => {
-                        if (p && statsMap[p]) statsMap[p].wins++;
-                    });
+                    winningTeam.forEach(p => { if (p && statsMap[p]) statsMap[p].wins++; });
                 }
             });
 
@@ -1318,19 +1302,15 @@
             if (members && members.length > 0) {
                 members.forEach(m => {
                     let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
-                    if (f.totalPay > 0) {
-                        debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
-                    }
+                    if (f.totalPay > 0) debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
                 });
             }
 
             let text = `🎾 CLB TENNIS THĂNG LONG - NHẮC NỢ TÀI CHÍNH THÁNG ${mSel}/${ySel} 🎾\n`;
             text += `Thân gửi anh em, hệ thống ghi nhận các khoản đóng góp và góc tháng ${mSel} như sau:\n\n`;
-            if (debtList.length === 0) {
-                text += `Tuyệt vời! Hiện tại tất cả anh em đều đã hoàn thành nghĩa vụ tài chính.\n`;
-            } else {
-                text += debtList.join('\n') + `\n\n`;
-            }
+            if (debtList.length === 0) text += `Tuyệt vời! Hiện tại tất cả anh em đều đã hoàn thành nghĩa vụ tài chính.\n`;
+            else text += debtList.join('\n') + `\n\n`;
+            
             text += `👉 Anh em chuyển khoản về:\n`;
             text += `- Ngân hàng: ${systemSettings.bankId} (${systemSettings.bankAccount})\n`;
             text += `- Chủ TK: ${systemSettings.accountName}\n`;
@@ -1339,11 +1319,10 @@
 
             navigator.clipboard.writeText(text).then(() => {
                 showToast("Đã sao chép nội dung tin nhắn nhắc nợ vào bộ nhớ tạm!");
-            }).catch(err => {
-                alert("Không thể tự động sao chép. Vui lòng thử lại!");
-            });
+            }).catch(err => { alert("Không thể tự động sao chép. Vui lòng thử lại!"); });
         }
 
+        // HÀNH ĐỘNG TÁC VỤ NHANH TẠI DASHBOARD (CÓ XÁC NHẬN - YÊU CẦU 1)
         function handleDashboardSubmit() {
             let main = document.getElementById('dashMainUser').value;
             let actType = document.querySelector('input[name="actType"]:checked').value;
@@ -1358,65 +1337,71 @@
                 switchTab('matches');
                 document.getElementById('matchP1A').value = main;
             } else if (actType === "dat16") {
-                let NOW = new Date().getTime();
-                let TIME_LIMIT = 18 * 60 * 60 * 1000;
-                let duplicateReward = bookingLogs.find(b => {
-                    return b.name === main && b.frame === "16h-18h" && (NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
-                });
+                showActionConfirm(`Xác nhận ghi nhận Thưởng sân 16h cho thành viên [${main}]?`, () => {
+                    let NOW = new Date().getTime();
+                    let TIME_LIMIT = 18 * 60 * 60 * 1000;
+                    let duplicateReward = bookingLogs.find(b => {
+                        return b.name === main && b.frame === "16h-18h" && (NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
+                    });
 
-                if (duplicateReward) {
-                    let confirmDup = confirm(`⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 16h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`);
-                    if (!confirmDup) return;
-                }
+                    if (duplicateReward) {
+                        let confirmDup = confirm(`⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 16h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`);
+                        if (!confirmDup) return;
+                    }
 
-                let curMonth = document.getElementById('selectFinanceMonth').value;
-                let curYear = document.getElementById('selectFinanceYear').value;
-                let userBookingsThisMonth = bookingLogs.filter(b => {
-                    if (b.name !== main) return false;
-                    let t = b.time || "";
-                    return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+                    let curMonth = document.getElementById('selectFinanceMonth').value;
+                    let curYear = document.getElementById('selectFinanceYear').value;
+                    let userBookingsThisMonth = bookingLogs.filter(b => {
+                        if (b.name !== main) return false;
+                        let t = b.time || "";
+                        return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+                    });
+                    if (userBookingsThisMonth.length >= systemSettings.maxRewardLimit) {
+                        alert(`Thành viên ${main} đã đạt giới hạn tối đa ${systemSettings.maxRewardLimit} lần nhận thưởng đặt sân trong tháng này!`);
+                        return;
+                    }
+                    let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: systemSettings.reward16h };
+                    enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Thưởng sân 16h thành công!");
                 });
-                if (userBookingsThisMonth.length >= systemSettings.maxRewardLimit) {
-                    alert(`Thành viên ${main} đã đạt giới hạn tối đa ${systemSettings.maxRewardLimit} lần nhận thưởng đặt sân trong tháng này!`);
-                    return;
-                }
-                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: systemSettings.reward16h };
-                enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Thưởng sân 16h thành công!");
             } else if (actType === "dat18") {
-                let NOW = new Date().getTime();
-                let TIME_LIMIT = 18 * 60 * 60 * 1000;
-                let duplicateReward = bookingLogs.find(b => {
-                    return b.name === main && b.frame.includes("18h") && (NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
+                showActionConfirm(`Xác nhận ghi nhận Thưởng sân 18h cho thành viên [${main}]?`, () => {
+                    let NOW = new Date().getTime();
+                    let TIME_LIMIT = 18 * 60 * 60 * 1000;
+                    let duplicateReward = bookingLogs.find(b => {
+                        return b.name === main && b.frame.includes("18h") && (NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
+                    });
+
+                    if (duplicateReward) {
+                        let confirmDup = confirm(`⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 18h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`);
+                        if (!confirmDup) return;
+                    }
+
+                    let curMonth = document.getElementById('selectFinanceMonth').value;
+                    let curYear = document.getElementById('selectFinanceYear').value;
+                    let userBookingsThisMonth = bookingLogs.filter(b => {
+                        if (b.name !== main) return false;
+                        let t = b.time || "";
+                        return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+                    });
+
+                    let isHoangVanThai = (main.toLowerCase().includes("hoàng văn thái") || m.username === "Thanglong15");
+                    let rewardAmount = isHoangVanThai ? 0 : systemSettings.reward18h;
+
+                    let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h (CVTT5)", reward: rewardAmount };
+                    enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Thưởng sân 18h thành công!");
                 });
-
-                if (duplicateReward) {
-                    let confirmDup = confirm(`⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 18h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`);
-                    if (!confirmDup) return;
-                }
-
-                let curMonth = document.getElementById('selectFinanceMonth').value;
-                let curYear = document.getElementById('selectFinanceYear').value;
-                let userBookingsThisMonth = bookingLogs.filter(b => {
-                    if (b.name !== main) return false;
-                    let t = b.time || "";
-                    return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
-                });
-
-                let isHoangVanThai = (main.toLowerCase().includes("hoàng văn thái") || m.username === "Thanglong15");
-                let rewardAmount = isHoangVanThai ? 0 : systemSettings.reward18h;
-
-                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h (CVTT5)", reward: rewardAmount };
-                enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Thưởng sân 18h thành công!");
             } else if (actType === "quy") {
-                let alreadyPaid = (m.quyHistory && m.quyHistory[key] !== undefined && m.quyHistory[key] >= systemSettings.quyAmount);
-                if (alreadyPaid) {
-                    alert("Hệ thống đã ghi nhận bạn đã đóng quỹ rồi!");
-                    return;
-                }
+                showActionConfirm(`Xác nhận ghi nhận đóng Tiền quỹ ${q}/${y} cho thành viên [${main}]?`, () => {
+                    let alreadyPaid = (m.quyHistory && m.quyHistory[key] !== undefined && m.quyHistory[key] >= systemSettings.quyAmount);
+                    if (alreadyPaid) {
+                        alert("Hệ thống đã ghi nhận bạn đã đóng quỹ rồi!");
+                        return;
+                    }
 
-                if (!m.quyHistory) m.quyHistory = {};
-                m.quyHistory[key] = systemSettings.quyAmount;
-                enqueueAction("updateMember", { members: members }, "Đã ghi nhận Tiền quỹ QUÝ thành công!");
+                    if (!m.quyHistory) m.quyHistory = {};
+                    m.quyHistory[key] = systemSettings.quyAmount;
+                    enqueueAction("updateMember", { members: members }, "Đã ghi nhận Tiền quỹ QUÝ thành công!");
+                });
             }
         }
 
@@ -1430,29 +1415,19 @@
                 
                 if (isV1 || isV2) {
                     totalMatchCount++;
-                    if (match.scoreA === match.scoreB) {
-                        totalDraws++;
-                    } else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) {
-                        totalWins++;
-                    } else {
-                        totalLosses++;
-                    }
+                    if (match.scoreA === match.scoreB) totalDraws++;
+                    else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) totalWins++;
+                    else totalLosses++;
 
                     let mTime = match.time || "";
                     let isTargetTime = false;
-                    if (mTime.includes(`/${targetMonth}/${targetYear}`) || mTime.includes(` ${targetMonth}/${targetYear}`)) {
-                        isTargetTime = true;
-                    } else if (targetMonth == 8 && targetYear == 2026 && (!mTime || mTime.includes("4/8/2026") || mTime.includes("2026"))) {
-                        isTargetTime = true;
-                    }
+                    if (mTime.includes(`/${targetMonth}/${targetYear}`) || mTime.includes(` ${targetMonth}/${targetYear}`)) isTargetTime = true;
 
                     if (isTargetTime) {
                         monthMatchCount++;
-                        if (match.scoreA === match.scoreB) {
-                            monthRegularFee += 10000;
-                        } else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) {
-                            // Thắng không mất góc
-                        } else {
+                        if (match.scoreA === match.scoreB) monthRegularFee += 10000;
+                        else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) { }
+                        else {
                             monthRegularFee += 10000;
                             if (match.specialBet > 0) monthSpecialBetFee += parseInt(match.specialBet);
                         }
@@ -1532,7 +1507,7 @@
                 let isUserIn = (match.p1_v1 === main || match.p2_v1 === main || match.p1_v2 === main || match.p2_v2 === main);
                 if (!isUserIn) return false;
                 let t = match.time || "";
-                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
+                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
             });
 
             userMatchesThisMonth.forEach((mItem, idx) => {
@@ -1569,24 +1544,24 @@
             }
         }
 
+        // NỘP TIỀN GÓC (CÓ XÁC NHẬN - YÊU CẦU 1)
         function submitUserPayment() {
             let main = document.getElementById('dashMainUser').value;
             let val = parseInt(document.getElementById('userPaidInput').value) || 0;
             if (val === 0) { alert("Vui lòng nhập số tiền hợp lệ!"); return; }
 
-            let newGoc = {
-                id: Date.now(),
-                time: new Date().toLocaleString('vi-VN'),
-                name: main,
-                amount: val,
-                note: val < 0 ? "Điều chỉnh hoàn tiền/bù trừ" : "Thành viên tự nhập CK"
-            };
+            showActionConfirm(`Xác nhận nộp số tiền ${val.toLocaleString()} VNĐ cho thành viên [${main}]?`, () => {
+                let newGoc = {
+                    id: Date.now(),
+                    time: new Date().toLocaleString('vi-VN'),
+                    name: main,
+                    amount: val,
+                    note: val < 0 ? "Điều chỉnh hoàn tiền/bù trừ" : "Thành viên tự nhập CK"
+                };
 
-            document.getElementById('userPaidInput').value = '';
-            
-            alert(`✅ Nộp tiền góc thành công!\n\n- Thành viên: ${main}\n- Số tiền: ${val.toLocaleString()} VNĐ\n- Thời gian: ${new Date().toLocaleString('vi-VN')}`);
-
-            enqueueAction("addGocLog", { gocLog: newGoc }, "Đã ghi nhận giao dịch thành công!");
+                document.getElementById('userPaidInput').value = '';
+                enqueueAction("addGocLog", { gocLog: newGoc }, "Đã ghi nhận giao dịch thành công!");
+            });
         }
 
         function renderGocLogsTab() {
@@ -1595,9 +1570,7 @@
             tbody.innerHTML = '';
 
             let logsToDisplay = gocLogs;
-            if (filterUser !== 'ALL') {
-                logsToDisplay = gocLogs.filter(g => g.name === filterUser);
-            }
+            if (filterUser !== 'ALL') logsToDisplay = gocLogs.filter(g => g.name === filterUser);
 
             logsToDisplay.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
 
@@ -1624,12 +1597,8 @@
         }
 
         function sortFinanceTable(field) {
-            if (financeSortField === field) {
-                financeSortAsc = !financeSortAsc;
-            } else {
-                financeSortField = field;
-                financeSortAsc = true;
-            }
+            if (financeSortField === field) financeSortAsc = !financeSortAsc;
+            else { financeSortField = field; financeSortAsc = true; }
             renderFinance();
         }
 
@@ -1644,18 +1613,13 @@
                 if (iconEl) iconEl.innerText = '↕';
             });
             let activeIcon = document.getElementById('sort-icon-' + financeSortField);
-            if (activeIcon) {
-                activeIcon.innerText = financeSortAsc ? '▲' : '▼';
-            }
+            if (activeIcon) activeIcon.innerText = financeSortAsc ? '▲' : '▼';
 
             if (!members || members.length === 0) members = defaultFallbackMembers;
             let dataList = members.map((m, originalIdx) => {
                 let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
                 let winRateVal = f.totalMatchCount > 0 ? (f.totalWins / f.totalMatchCount) : 0;
-                return {
-                    originalIdx: originalIdx + 1,
-                    m, f, winRateVal
-                };
+                return { originalIdx: originalIdx + 1, m, f, winRateVal };
             });
 
             dataList.sort((a, b) => {
@@ -1673,11 +1637,8 @@
                 else if (financeSortField === 'noOld') { valA = a.m.noOld || 0; valB = b.m.noOld || 0; }
                 else if (financeSortField === 'totalPay') { valA = a.f.totalPay; valB = b.f.totalPay; }
 
-                if (typeof valA === 'string') {
-                    return financeSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                } else {
-                    return financeSortAsc ? (valA - valB) : (valB - valA);
-                }
+                if (typeof valA === 'string') return financeSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                else return financeSortAsc ? (valA - valB) : (valB - valA);
             });
 
             dataList.forEach((item) => {
@@ -1751,27 +1712,28 @@
             let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?accountName=${encodeURIComponent(systemSettings.accountName)}`;
             document.getElementById('zoomQrImg').src = qrUrl;
             let modal = document.getElementById('qrZoomModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
+            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
         }
 
         function closeQRZoomModal() {
             let modal = document.getElementById('qrZoomModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
         }
 
         function renderAllMatchLog() {
             let tbody = document.getElementById('allMatchTableBody');
             tbody.innerHTML = '';
             
-            if (matches && matches.length > 0) {
-                matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
-            }
+            if (matches && matches.length > 0) matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+
+            // TÍNH TOÁN VÀ HIỂN THỊ DÒNG CHỮ ĐỘNG SỐ TRẬN TRONG NGÀY (YÊU CẦU 5)
+            let todayDateStr = new Date().toLocaleDateString('vi-VN');
+            let todayCount = matches.filter(m => {
+                let t = m.time || "";
+                return t.includes(todayDateStr) || t.startsWith(new Date().getDate() + "/" + (new Date().getMonth() + 1));
+            }).length;
+
+            document.getElementById('todayMatchCountText').innerText = `Ngày hôm nay có thêm ${todayCount} trận đấu được ghi nhận`;
 
             matches.forEach((m, idx) => {
                 let stt = matches.length - idx;
@@ -1837,7 +1799,7 @@
 
             let currentMonthBookings = bookingLogs.filter(b => {
                 let t = b.time || "";
-                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
+                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
             });
 
             currentMonthBookings.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
@@ -1882,9 +1844,7 @@
 
             members.forEach((m, idx) => {
                 let paidAmount = 0;
-                if (m.quyHistory && m.quyHistory[key] !== undefined) {
-                    paidAmount = parseInt(m.quyHistory[key]);
-                }
+                if (m.quyHistory && m.quyHistory[key] !== undefined) paidAmount = parseInt(m.quyHistory[key]);
 
                 let isOk = paidAmount >= systemSettings.quyAmount;
                 let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
@@ -1942,19 +1902,20 @@
             enqueueAction("updateMember", { members: members }, "Đã cập nhật quỹ quý thành công!");
         }
 
+        // SỔ THU CHI (CÓ XÁC NHẬN - YÊU CẦU 1)
         function addCashbookEntry(e) {
             e.preventDefault();
             let category = document.getElementById('cbCategory').value;
             let amount = parseInt(document.getElementById('cbAmount').value) || 0;
             let note = document.getElementById('cbNote').value || category;
 
-            let newCashbook = { id: Date.now(), category, amount, note, time: new Date().toLocaleDateString('vi-VN') };
-            document.getElementById('cbAmount').value = '';
-            document.getElementById('cbNote').value = '';
+            showActionConfirm(`Xác nhận ghi nhận khoản [${category}] với số tiền ${amount.toLocaleString()} đ?`, () => {
+                let newCashbook = { id: Date.now(), category, amount, note, time: new Date().toLocaleDateString('vi-VN') };
+                document.getElementById('cbAmount').value = '';
+                document.getElementById('cbNote').value = '';
 
-            alert(`✅ Đã ghi nhận Sổ quỹ thành công!\n\n- Hạng mục: ${category}\n- Số tiền: ${amount.toLocaleString()} VNĐ\n- Nội dung: ${note}\n- Thời gian: ${new Date().toLocaleString('vi-VN')}`);
-
-            enqueueAction("addCashbook", { cashbook: newCashbook }, "Đã ghi nhận khoản thu/chi thành công!");
+                enqueueAction("addCashbook", { cashbook: newCashbook }, "Đã ghi nhận khoản thu/chi thành công!");
+            });
         }
 
         function deleteCashbookLog(id) {
@@ -2011,9 +1972,7 @@
                 if (!members || members.length === 0) members = defaultFallbackMembers;
                 members.forEach(m => {
                     let totalQuy = 0;
-                    if (m.quyHistory) {
-                        Object.values(m.quyHistory).forEach(val => totalQuy += parseInt(val));
-                    }
+                    if (m.quyHistory) Object.values(m.quyHistory).forEach(val => totalQuy += parseInt(val));
                     if (totalQuy > 0) {
                         catTotal += totalQuy;
                         tbody.innerHTML += `<tr class="border-b"><td class="p-1.5">Tất cả Quý</td><td class="p-1.5 font-bold">${m.name}</td><td class="p-1.5 text-right font-bold text-emerald-700">${totalQuy.toLocaleString()} đ</td><td class="p-1.5 text-center">-</td></tr>`;
@@ -2048,9 +2007,7 @@
             if (!members || members.length === 0) members = defaultFallbackMembers;
             let totalQuyThu = 0;
             members.forEach(m => {
-                if (m.quyHistory) {
-                    Object.values(m.quyHistory).forEach(val => totalQuyThu += parseInt(val));
-                }
+                if (m.quyHistory) Object.values(m.quyHistory).forEach(val => totalQuyThu += parseInt(val));
             });
 
             let totalGocThu = gocLogs.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
@@ -2074,9 +2031,7 @@
         }
 
         function renderMemberList() {
-            if (!members || members.length === 0) {
-                members = defaultFallbackMembers;
-            }
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             let tbody = document.getElementById('memberTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -2255,7 +2210,6 @@
             applyRolePermissions();
         }
 
-        // HÀM HIỂN THỊ MODAL XÁC NHẬN TRÙNG LẶP TÙY CHỈNH TÊN NÚT
         function showCustomConfirm(message, onConfirm) {
             let modal = document.getElementById('customConfirmModal');
             let textEl = document.getElementById('customConfirmText');
@@ -2284,6 +2238,7 @@
             });
         }
 
+        // GHI TRẬN (ĐÃ KIỂM TRA VALIDATION CHẶN TRÙNG LẶP & TỈ SỐ VÀ CÓ HỘP THOẠI XÁC NHẬN - YÊU CẦU 1 & 2)
         function addMatch(e) {
             e.preventDefault();
             let p1A = document.getElementById('matchP1A').value;
@@ -2291,50 +2246,65 @@
             let p1B = document.getElementById('matchP1B').value;
             let p2B = document.getElementById('matchP2B').value;
             
+            // KIỂM TRA RÀNG BUỘC 4 CẦU THỦ PHẢI KHÁC NHAU HOÀN TOÀN (YÊU CẦU 2)
+            let playersSet = new Set([p1A, p2A, p1B, p2B]);
+            if (playersSet.size < 4) {
+                alert("⚠️ Lỗi: 4 cầu thủ trong một trận đấu đôi phải là 4 cá nhân khác nhau hoàn toàn! Vui lòng kiểm tra lại danh sách lựa chọn.");
+                return;
+            }
+
             let checkedScoreA = document.querySelector('input[name="scoreA"]:checked');
             let checkedScoreB = document.querySelector('input[name="scoreB"]:checked');
 
-            let scoreA = checkedScoreA ? parseInt(checkedScoreA.value) : 0;
-            let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
+            // KIỂM TRA BẮT BUỘC CHỌN TỈ SỐ (YÊU CẦU 2)
+            if (!checkedScoreA || !checkedScoreB) {
+                alert("⚠️ Vui lòng chọn đầy đủ điểm số cho cả Vế A và Vế B trước khi lưu trận đấu!");
+                return;
+            }
+
+            let scoreA = parseInt(checkedScoreA.value);
+            let scoreB = parseInt(checkedScoreB.value);
             let specialBet = parseInt(document.getElementById('specialBet').value);
 
-            const NOW = new Date().getTime();
-            const TIME_LIMIT = 18 * 60 * 60 * 1000;
+            showActionConfirm(`Xác nhận lưu kết quả trận đấu:\n(${p1A} & ${p2A}) vs (${p1B} & ${p2B})\nTỉ số: ${scoreA} - ${scoreB}?`, () => {
+                const NOW = new Date().getTime();
+                const TIME_LIMIT = 18 * 60 * 60 * 1000;
 
-            let teamANew = [p1A, p2A].sort();
-            let teamBNew = [p1B, p2B].sort();
+                let teamANew = [p1A, p2A].sort();
+                let teamBNew = [p1B, p2B].sort();
 
-            let isDuplicateMatch = matches.some(item => {
-                let itemTime = parseInt(item.id) || 0;
-                let isWithin18h = (NOW - itemTime) <= TIME_LIMIT;
-                if (!isWithin18h) return false;
+                let isDuplicateMatch = matches.some(item => {
+                    let itemTime = parseInt(item.id) || 0;
+                    let isWithin18h = (NOW - itemTime) <= TIME_LIMIT;
+                    if (!isWithin18h) return false;
 
-                let teamAOld = [item.p1_v1, item.p2_v1].sort();
-                let teamBOld = [item.p1_v2, item.p2_v2].sort();
+                    let teamAOld = [item.p1_v1, item.p2_v1].sort();
+                    let teamBOld = [item.p1_v2, item.p2_v2].sort();
 
-                let sameAsDirect = (
-                    teamAOld[0] === teamANew[0] && teamAOld[1] === teamANew[1] &&
-                    teamBOld[0] === teamBNew[0] && teamBOld[1] === teamBNew[1] &&
-                    item.scoreA === scoreA && item.scoreB === scoreB
-                );
+                    let sameAsDirect = (
+                        teamAOld[0] === teamANew[0] && teamAOld[1] === teamANew[1] &&
+                        teamBOld[0] === teamBNew[0] && teamBOld[1] === teamBNew[1] &&
+                        item.scoreA === scoreA && item.scoreB === scoreB
+                    );
 
-                let sameAsSwapped = (
-                    teamAOld[0] === teamBNew[0] && teamAOld[1] === teamBNew[1] &&
-                    teamBOld[0] === teamANew[0] && teamBOld[1] === teamANew[1] &&
-                    item.scoreA === scoreB && item.scoreB === scoreA
-                );
+                    let sameAsSwapped = (
+                        teamAOld[0] === teamBNew[0] && teamAOld[1] === teamBNew[1] &&
+                        teamBOld[0] === teamANew[0] && teamBOld[1] === teamANew[1] &&
+                        item.scoreA === scoreB && item.scoreB === scoreA
+                    );
 
-                return sameAsDirect || sameAsSwapped;
-            });
-
-            if (isDuplicateMatch) {
-                showCustomConfirm("Phát hiện có trận đấu tương tự đã được nhập trong 18 giờ trước đó. Nếu thực sự là trận đấu mới thì chọn OK, nếu không phải chọn Hủy", (confirmed) => {
-                    if (!confirmed) return;
-                    saveNewMatchData(p1A, p2A, p1B, p2B, scoreA, scoreB, specialBet);
+                    return sameAsDirect || sameAsSwapped;
                 });
-            } else {
-                saveNewMatchData(p1A, p2A, p1B, p2B, scoreA, scoreB, specialBet);
-            }
+
+                if (isDuplicateMatch) {
+                    showCustomConfirm("Phát hiện có trận đấu tương tự đã được nhập trong 18 giờ trước đó. Nếu thực sự là trận đấu mới thì chọn OK, nếu không phải chọn Hủy", (confirmed) => {
+                        if (!confirmed) return;
+                        saveNewMatchData(p1A, p2A, p1B, p2B, scoreA, scoreB, specialBet);
+                    });
+                } else {
+                    saveNewMatchData(p1A, p2A, p1B, p2B, scoreA, scoreB, specialBet);
+                }
+            });
         }
 
         function saveNewMatchData(p1A, p2A, p1B, p2B, scoreA, scoreB, specialBet) {
@@ -2353,83 +2323,7 @@
             document.getElementById('specialBet').value = "0";
         }
 
-        function getYesterdayDateObj() {
-            let d = new Date();
-            d.setDate(d.getDate() - 1);
-            return d;
-        }
-
-        function checkYesterdayBookingsNotification() {
-            let yDate = getYesterdayDateObj();
-            let yDay = yDate.getDate();
-            let yMonth = yDate.getMonth() + 1;
-            let yYear = yDate.getFullYear();
-
-            let yesterdayBookings = bookingLogs.filter(b => {
-                let t = b.time || "";
-                let parts = t.split(" ");
-                let datePart = parts.length > 1 ? parts[1] : parts[0];
-                let dateSegments = datePart.split("/");
-                
-                if (dateSegments.length === 3) {
-                    let d = parseInt(dateSegments[0], 10);
-                    let m = parseInt(dateSegments[1], 10);
-                    let y = parseInt(dateSegments[2], 10);
-                    return d === yDay && m === yMonth && y === yYear;
-                }
-                return false;
-            });
-
-            let badge = document.getElementById('notifBadge');
-            if (yesterdayBookings.length > 0) {
-                badge.innerText = yesterdayBookings.length;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
         function openNotificationModal() {
-            let yDate = getYesterdayDateObj();
-            let yDay = yDate.getDate();
-            let yMonth = yDate.getMonth() + 1;
-            let yYear = yDate.getFullYear();
-            let dateStrFormatted = `${String(yDay).padStart(2, '0')}/${String(yMonth).padStart(2, '0')}/${yYear}`;
-
-            let yesterdayBookings = bookingLogs.filter(b => {
-                let t = b.time || "";
-                let parts = t.split(" ");
-                let datePart = parts.length > 1 ? parts[1] : parts[0];
-                let dateSegments = datePart.split("/");
-                
-                if (dateSegments.length === 3) {
-                    let d = parseInt(dateSegments[0], 10);
-                    let m = parseInt(dateSegments[1], 10);
-                    let y = parseInt(dateSegments[2], 10);
-                    return d === yDay && m === yMonth && y === yYear;
-                }
-                return false;
-            });
-
-            let listDiv = document.getElementById('yesterdayBookingList');
-            listDiv.innerHTML = '';
-
-            if (yesterdayBookings.length === 0) {
-                listDiv.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Không có lịch đặt sân nào ngày hôm qua (${dateStrFormatted}).</p>`;
-            } else {
-                yesterdayBookings.forEach((b) => {
-                    listDiv.innerHTML += `
-                        <div class="bg-slate-50 p-2.5 rounded-xl border flex justify-between items-center text-xs">
-                            <div>
-                                <span class="font-black text-emerald-800">${b.name}</span>
-                                <p class="text-[10px] text-slate-500">Thời gian: ${b.time}</p>
-                            </div>
-                            <span class="bg-amber-100 text-amber-900 font-extrabold px-2.5 py-1 rounded-full text-[10px]">${b.frame}</span>
-                        </div>
-                    `;
-                });
-            }
-
             renderGamification();
             document.getElementById('notificationModal').classList.remove('hidden');
             document.getElementById('notificationModal').classList.add('flex');
@@ -2440,31 +2334,12 @@
             document.getElementById('notificationModal').classList.remove('flex');
         }
 
-        function switchNotifSubTab(tab) {
-            let btnSan = document.getElementById('btnNotifSan');
-            let btnVinhDanh = document.getElementById('btnNotifVinhDanh');
-            let tabSan = document.getElementById('notifSubTabSan');
-            let tabVinhDanh = document.getElementById('notifSubTabVinhDanh');
-
-            if (tab === 'san') {
-                btnSan.className = "flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition";
-                btnVinhDanh.className = "flex-1 py-2 rounded-lg text-slate-600 transition";
-                tabSan.classList.remove('hidden');
-                tabVinhDanh.classList.add('hidden');
-            } else {
-                btnVinhDanh.className = "flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition";
-                btnSan.className = "flex-1 py-2 rounded-lg text-slate-600 transition";
-                tabVinhDanh.classList.remove('hidden');
-                tabSan.classList.add('hidden');
-            }
-        }
-
         function exportToExcel() {
             let wb = XLSX.utils.book_new();
             let wsMem = XLSX.utils.json_to_sheet(members); XLSX.utils.book_append_sheet(wb, wsMem, "ThanhVien");
             let wsMatch = XLSX.utils.json_to_sheet(matches); XLSX.utils.book_append_sheet(wb, wsMatch, "TranDau");
             let wsGoc = XLSX.utils.json_to_sheet(gocLogs); XLSX.utils.book_append_sheet(wb, wsGoc, "NopTienGoc");
-            XLSX.writeFile(wb, "CLB_Tennis_Thang_Long_Backup.xlsx");
+            XLSX.writeFile(wb, "CLB_Tennis_Thang_Long_Ver1.0_Backup.xlsx");
         }
 
         function fetchCloudData(showSpinner) {
