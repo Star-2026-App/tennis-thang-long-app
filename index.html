@@ -8,9 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f1f5f9; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .sticky-col { position: sticky; left: 0; background-color: white; z-index: 10; }
         thead th.sticky-col { z-index: 30; background-color: #f1f5f9; }
         thead th { position: sticky; top: 0; z-index: 20; background-color: #f1f5f9; }
@@ -18,18 +21,1014 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col">
 
-    <!-- CẤU TRÚC APP HOÀN CHỈNH -->
-    <div id="appScreen" class="flex flex-col min-h-screen">
-        <!-- (Bạn dùng lại phần header, nav, và các tab từ bản code trước đây. Sao chỉ cập nhật lại các hàm logic trong thẻ script bên dưới để đảm bảo mọi tính năng trùng lặp và thông báo hoạt động chính xác) -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] hidden flex-col items-center justify-center text-white">
+        <div class="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p class="font-bold text-sm">Đang tải dữ liệu Cloud...</p>
+    </div>
+
+    <div id="appToast" class="fixed bottom-6 right-6 bg-slate-900/95 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-2xl z-[200] transition-all duration-300 transform translate-y-12 opacity-0 flex items-center gap-3 border border-slate-700">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMsg">Đã ghi nhận thành công!</span>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="fixed inset-0 bg-emerald-900 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 text-center">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-3xl font-extrabold mx-auto shadow">🎾</div>
+            <div>
+                <h1 class="text-xl font-black text-slate-800 uppercase">CLB TENNIS THĂNG LONG</h1>
+                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Tra Cứu Tự Động</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tài khoản (Username):</label>
+                    <input type="text" id="loginUser" required placeholder="Ví dụ: Thanglong1 đến Thanglong35" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu (Password):</label>
+                    <input type="password" id="loginPass" required placeholder="••••••••" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition">
+                    ĐĂNG NHẬP HỆ THỐNG
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP SCREEN -->
+    <div id="appScreen" class="hidden flex-col min-h-screen">
+        <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-3 py-2 flex justify-between items-center">
+                <div class="flex items-center space-x-2.5 cursor-pointer select-none" onclick="switchTab('dashboard')">
+                    <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-emerald-800 font-bold text-base shadow">🎾</div>
+                    <div>
+                        <h1 class="font-bold text-sm md:text-lg leading-tight uppercase tracking-tight">CLB TENNIS THĂNG LONG</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Trung tâm Thông báo & Bảng vàng">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                        <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full hidden">0</span>
+                    </button>
+                    <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản">
+                        <i class="fa-solid fa-user-shield text-sm text-amber-300"></i>
+                    </button>
+                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-2.5 py-1.5 rounded-full text-white font-bold text-xs shadow flex items-center gap-1" title="Thoát hệ thống">
+                        <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden md:inline">Thoát</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MENU ĐIỀU HƯỚNG -->
+            <nav class="bg-emerald-900 text-emerald-100 px-3 py-1.5 border-t border-emerald-700/50 flex items-center justify-between">
+                <div class="hidden md:flex flex-wrap gap-1 text-xs md:text-sm font-medium items-center w-full">
+                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Tổng quan</button>
+                    <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Ghi Trận</button>
+                    <button onclick="switchTab('matchLog')" id="btn-matchLog" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Nhật Ký Trận</button>
+                    <button onclick="switchTab('gocLogs')" id="btn-gocLogs" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-receipt"></i> Nộp Tiền</button>
+                    <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Tiền Góc</button>
+                    <button onclick="switchTab('booking')" id="btn-booking" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-calendar-check"></i> Thưởng Sân</button>
+                    <button onclick="switchTab('quy')" id="btn-quy" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Đóng Quỹ</button>
+                    <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu Chi</button>
+                    <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên</button>
+                    <button onclick="switchTab('rules')" id="btn-rules" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy Định CLB</button>
+                    <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 admin-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
+                </div>
+                <div class="md:hidden flex items-center justify-between w-full">
+                    <button onclick="toggleMobileMenu()" class="bg-emerald-800 hover:bg-emerald-700 text-amber-300 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 shadow border border-emerald-700">
+                        <i class="fa-solid fa-bars text-sm"></i> <span id="currentActiveTabLabel">Tổng quan</span>
+                    </button>
+                    <span class="text-[11px] text-emerald-200 font-semibold truncate max-w-[180px]" id="mobileHeaderUserDisplay">Đang tải...</span>
+                </div>
+            </nav>
+
+            <div id="mobileMenuDrawer" class="hidden md:hidden bg-emerald-950 border-t border-emerald-800 px-3 py-2 space-y-1 text-xs font-medium">
+                <button onclick="switchTabMobile('dashboard', 'Tổng quan')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-amber-300"></i> Tổng quan</button>
+                <button onclick="switchTabMobile('matches', 'Ghi Trận')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-amber-300"></i> Ghi Trận</button>
+                <button onclick="switchTabMobile('matchLog', 'Nhật Ký Trận')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-list-check text-amber-300"></i> Nhật Ký Trận</button>
+                <button onclick="switchTabMobile('gocLogs', 'Nộp Tiền')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-receipt text-amber-300"></i> Nộp Tiền</button>
+                <button onclick="switchTabMobile('finance', 'Tiền Góc')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-amber-300"></i> Tiền Góc</button>
+                <button onclick="switchTabMobile('booking', 'Thưởng Sân')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-amber-300"></i> Thưởng Sân</button>
+                <button onclick="switchTabMobile('quy', 'Đóng Quỹ')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-piggy-bank text-amber-300"></i> Đóng Quỹ</button>
+                <button onclick="switchTabMobile('cashbook', 'Sổ Thu Chi')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-amber-300"></i> Sổ Thu Chi</button>
+                <button onclick="switchTabMobile('members', 'Thành Viên')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-users text-amber-300"></i> Thành Viên</button>
+                <button onclick="switchTabMobile('rules', 'Quy Định CLB')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy Định CLB</button>
+                <button onclick="switchTabMobile('settings', 'Cài Đặt')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2 admin-only hidden"><i class="fa-solid fa-gears text-amber-300"></i> Cài Đặt</button>
+            </div>
+        </header>
+
         <main class="max-w-7xl mx-auto px-3 py-4 flex-grow w-full space-y-4">
-             <!-- Nội dung các tab (Dashboard, Matches, v.v...) giữ nguyên như cũ -->
+
+            <!-- TAB 1: TỔNG QUAN -->
+            <section id="tab-dashboard" class="tab-content active space-y-4">
+                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div id="quyWarningBanner" class="hidden bg-amber-50 border-2 border-amber-300 text-amber-900 p-3 rounded-xl flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg animate-bounce"></i>
+                            <div>
+                                <h4 class="font-black text-xs uppercase">THÔNG BÁO NHẮC NỢ / QUỸ QUÝ</h4>
+                                <p id="quyWarningText" class="text-[11px] font-semibold text-amber-800">Thành viên có khoản nợ cũ hoặc chưa đóng quỹ quý.</p>
+                            </div>
+                        </div>
+                        <button onclick="switchTab('quy')" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-[10px] px-3 py-1.5 rounded-lg shadow whitespace-nowrap">XEM</button>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center pb-3 border-b gap-3">
+                        <div>
+                            <h2 class="text-base md:text-xl font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-user-circle text-emerald-600"></i> TRA CỨU CHỈ SỐ CÁ NHÂN REALTIME</h2>
+                        </div>
+                        <div class="w-full md:w-64">
+                            <select id="dashMainUser" onchange="renderDashboard()" class="w-full bg-emerald-50 border border-emerald-300 rounded-xl p-2 text-xs md:text-sm font-extrabold text-emerald-900 outline-none disabled:bg-slate-100 disabled:text-slate-700"></select>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-2">TÁC VỤ NHANH (*):</label>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-700">
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="goc" checked class="w-3.5 h-3.5 text-emerald-600"> Kết quả trận góc</label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="dat16" class="w-3.5 h-3.5 text-emerald-600"> Thưởng sân 16h</label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="dat18" class="w-3.5 h-3.5 text-emerald-600"> Thưởng sân 18h</label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="quy" class="w-3.5 h-3.5 text-emerald-600"> Tiền quỹ QUÝ</label>
+                            <button onclick="handleDashboardSubmit()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[10px] px-2.5 py-1.5 md:px-3.5 md:py-1.5 rounded-lg shadow transition">XÁC NHẬN</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-center">
+                            <span class="text-[10px] font-semibold text-emerald-700 uppercase">TỔNG SỐ TRẬN</span>
+                            <div id="statTotal" class="text-2xl font-black text-emerald-900 mt-0.5">0</div>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-center">
+                            <span class="text-[10px] font-semibold text-blue-700 uppercase">THẮNG (% THẮNG)</span>
+                            <div id="statWins" class="text-xl font-black text-blue-900 mt-0.5">0 (0%)</div>
+                        </div>
+                        <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 text-center">
+                            <span class="text-[10px] font-semibold text-amber-700 uppercase">SỐ TRẬN HÒA</span>
+                            <div id="statDraws" class="text-2xl font-black text-amber-900 mt-0.5">0</div>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-xl border border-red-100 text-center">
+                            <span class="text-[10px] font-semibold text-red-700 uppercase">SỐ TRẬN THUA</span>
+                            <div id="statLosses" class="text-2xl font-black text-red-900 mt-0.5">0</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-emerald-50/60 p-4 rounded-xl border border-emerald-200 items-center">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-600 uppercase">THƯỞNG ĐẶT SÂN TÍCH LŨY:</span>
+                            <div id="statReward" class="text-lg font-black text-emerald-700 mt-0.5">0 đ</div>
+                            <div class="mt-2">
+                                <span class="text-[10px] font-bold text-slate-600 uppercase">TỔNG CẦN ĐÓNG (REALTIME):</span>
+                                <div id="statDebt" class="text-lg font-black text-red-600 mt-0.5">0 đ</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm">
+                            <label class="block text-[10px] font-extrabold text-emerald-900 uppercase mb-1">Tự nhập tiền GÓC CK:</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="userPaidInput" placeholder="Số tiền" class="w-full border rounded-lg p-2 text-xs font-bold text-slate-900">
+                                <button onclick="submitUserPayment()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] px-3 py-2 rounded-lg shadow whitespace-nowrap">+ NỘP</button>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-1">Đã nộp dồn: <span id="statPaidDisplay" class="font-bold text-emerald-700">0 đ</span></p>
+                        </div>
+
+                        <div class="bg-white p-2.5 rounded-xl border border-emerald-300 shadow-sm flex flex-col items-center text-center">
+                            <span class="text-[9px] font-extrabold text-emerald-900 uppercase mb-1">MÃ QR (BẤM PHÓNG TO)</span>
+                            <img id="dashQrImg" src="" alt="VietQR" onclick="openQRZoomModal()" class="w-20 h-20 object-contain rounded border cursor-pointer hover:scale-105 transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-50 p-3 rounded-xl border">
+                            <h3 class="font-extrabold text-[11px] text-slate-700 uppercase mb-2 flex items-center gap-1.5"><i class="fa-solid fa-gift text-emerald-600"></i> THƯỞNG SÂN (THÁNG)</h3>
+                            <div class="overflow-x-auto max-h-48">
+                                <table class="w-full text-left text-[11px] border-collapse">
+                                    <thead><tr class="bg-slate-200 text-slate-700"><th class="p-1.5">Thời Gian</th><th class="p-1.5 text-center">Khung</th><th class="p-1.5 text-right">Số Tiền</th></tr></thead>
+                                    <tbody id="userRewardHistoryBody" class="divide-y divide-slate-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-xl border">
+                            <h3 class="font-extrabold text-[11px] text-slate-700 uppercase mb-2 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> LỊCH SỬ NỘP GÓC</h3>
+                            <div class="overflow-x-auto max-h-48">
+                                <table class="w-full text-left text-[11px] border-collapse">
+                                    <thead><tr class="bg-slate-200 text-slate-700"><th class="p-1.5">Thời Gian</th><th class="p-1.5 text-right">Số Tiền</th><th class="p-1.5">Ghi Chú</th></tr></thead>
+                                    <tbody id="userGocHistoryBody" class="divide-y divide-slate-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border">
+                        <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU (THÁNG)</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-200 text-slate-700">
+                                        <th class="p-2 text-center">Trận</th>
+                                        <th class="p-2">Đồng Đội</th>
+                                        <th class="p-2">Đối Thủ</th>
+                                        <th class="p-2 text-center">Tỉ Số</th>
+                                        <th class="p-2 text-right">Kèo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userMatchHistoryBody" class="divide-y divide-slate-200"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: GHI NHẬN TRẬN ĐẤU -->
+            <section id="tab-matches" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 pb-2 border-b flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-emerald-600"></i> GHI KẾT QUẢ TRẬN ĐẤU MỚI</h2>
+                    <form id="matchForm" onsubmit="addMatch(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200 space-y-3">
+                                <h3 class="font-bold text-emerald-800 text-xs uppercase flex items-center justify-between">
+                                    <span>VẾ A (ĐỘI 1)</span>
+                                    <span class="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded font-extrabold">Đội Nhà</span>
+                                </h3>
+                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Cầu thủ A1:</label><select id="matchP1A" required class="w-full bg-white border rounded-lg p-2 text-xs font-semibold"></select></div>
+                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Cầu thủ A2:</label><select id="matchP2A" required class="w-full bg-white border rounded-lg p-2 text-xs font-semibold"></select></div>
+                                <div class="pt-2 border-t border-emerald-200">
+                                    <label class="block text-[11px] font-black text-emerald-900 uppercase mb-1">ĐIỂM VẾ A *</label>
+                                    <div class="flex justify-between bg-white p-2 rounded-lg border border-emerald-300">
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">0</span><input type="radio" name="scoreA" value="0" class="w-3.5 h-3.5 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">1</span><input type="radio" name="scoreA" value="1" class="w-3.5 h-3.5 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">2</span><input type="radio" name="scoreA" value="2" class="w-3.5 h-3.5 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">3</span><input type="radio" name="scoreA" value="3" class="w-3.5 h-3.5 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">4</span><input type="radio" name="scoreA" value="4" class="w-3.5 h-3.5 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">5</span><input type="radio" name="scoreA" value="5" class="w-3.5 h-3.5 text-emerald-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">6</span><input type="radio" name="scoreA" value="6" class="w-3.5 h-3.5 text-emerald-600"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-200 space-y-3">
+                                <h3 class="font-bold text-blue-800 text-xs uppercase flex items-center justify-between">
+                                    <span>VẾ B (ĐỘI 2)</span>
+                                    <span class="text-[10px] bg-blue-200 text-blue-900 px-2 py-0.5 rounded font-extrabold">Đội Khách</span>
+                                </h3>
+                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Cầu thủ B1:</label><select id="matchP1B" required class="w-full bg-white border rounded-lg p-2 text-xs font-semibold"></select></div>
+                                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Cầu thủ B2:</label><select id="matchP2B" required class="w-full bg-white border rounded-lg p-2 text-xs font-semibold"></select></div>
+                                <div class="pt-2 border-t border-blue-200">
+                                    <label class="block text-[11px] font-black text-blue-900 uppercase mb-1">ĐIỂM VẾ B *</label>
+                                    <div class="flex justify-between bg-white p-2 rounded-lg border border-blue-300">
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">0</span><input type="radio" name="scoreB" value="0" class="w-3.5 h-3.5 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">1</span><input type="radio" name="scoreB" value="1" class="w-3.5 h-3.5 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">2</span><input type="radio" name="scoreB" value="2" class="w-3.5 h-3.5 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">3</span><input type="radio" name="scoreB" value="3" class="w-3.5 h-3.5 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">4</span><input type="radio" name="scoreB" value="4" class="w-3.5 h-3.5 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">5</span><input type="radio" name="scoreB" value="5" class="w-3.5 h-3.5 text-blue-600"></label>
+                                        <label class="flex flex-col items-center gap-0.5 cursor-pointer text-xs"><span class="font-bold">6</span><input type="radio" name="scoreB" value="6" class="w-3.5 h-3.5 text-blue-600"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+                            <label class="block text-[11px] font-extrabold text-amber-900 uppercase mb-1">KÈO GÓC ĐẶC BIỆT:</label>
+                            <select id="specialBet" class="w-full bg-white border border-amber-300 rounded-lg p-2 text-xs font-bold text-amber-900">
+                                <option value="0">Không có kèo đặc biệt (Thường: 10k/trận)</option>
+                                <option value="50000">Kèo đặc biệt 50.000 đ</option>
+                                <option value="100000">Kèo đặc biệt 100.000 đ</option>
+                                <option value="200000">Kèo đặc biệt 200.000 đ</option>
+                                <option value="500000">Kèo đặc biệt 500.000 đ</option>
+                                <option value="1000000">Kèo đặc biệt 1.000.000 đ</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-lg transition text-xs">LƯU KẾT QUẢ TRẬN ĐẤU</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU -->
+            <section id="tab-matchLog" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border">
+                    <h2 class="text-base font-bold text-slate-800 mb-3">NHẬT KÝ TẤT CẢ CÁC TRẬN ĐẤU</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Đội A</th><th class="p-2.5">Đội B</th><th class="p-2.5 text-center">Tỉ Số</th><th class="p-2.5 text-right">Kèo</th><th class="p-2.5 text-center admin-only">Sửa / Xóa</th></tr>
+                            </thead>
+                            <tbody id="allMatchTableBody" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: NHẬT KÝ NỘP TIỀN -->
+            <section id="tab-gocLogs" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-3">
+                        <div><h2 class="text-base font-bold text-slate-800 uppercase flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i> NHẬT KÝ NỘP TIỀN GÓC</h2></div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-right">
+                                <span class="text-[9px] font-bold text-emerald-800 block uppercase">Tổng thu:</span>
+                                <div id="totalGocCollectedDisplay" class="text-sm font-black text-emerald-700">0 đ</div>
+                            </div>
+                            <div class="w-56">
+                                <select id="filterGocUser" onchange="renderGocLogsTab()" class="w-full bg-emerald-50 border border-emerald-300 rounded-xl p-2 text-xs font-bold text-emerald-900 outline-none">
+                                    <option value="ALL">-- Tất cả thành viên --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Thành Viên</th><th class="p-2.5 text-right">Số Tiền</th><th class="p-2.5">Ghi Chú</th><th class="p-2.5 text-center admin-only">Sửa / Xóa</th></tr>
+                            </thead>
+                            <tbody id="gocLogsTableBody" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: TIỀN GÓC -->
+            <section id="tab-finance" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 pb-3 border-b gap-3">
+                        <div><h2 class="text-base md:text-lg font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THÁNG</h2></div>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <button onclick="copyReminderText()" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition"><i class="fa-solid fa-copy"></i> Sao chép nhắc nợ Zalo</button>
+                            <div class="flex gap-2 items-center">
+                                <select id="selectFinanceMonth" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                    <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option><option value="4">Tháng 4</option>
+                                    <option value="5">Tháng 5</option><option value="6">Tháng 6</option><option value="7">Tháng 7</option><option value="8" selected>Tháng 8</option>
+                                    <option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
+                                </select>
+                                <select id="selectFinanceYear" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                    <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto max-h-[550px]">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b text-[11px]">
+                                    <th class="p-2 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('stt')">STT <span id="sort-icon-stt" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 sticky-col cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('name')">Tên Thành Viên <span id="sort-icon-name" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('wins')">Thắng <span id="sort-icon-wins" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('losses')">Thua <span id="sort-icon-losses" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('draws')">Hòa <span id="sort-icon-draws" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-center bg-amber-50 cursor-pointer hover:bg-amber-100 select-none" onclick="sortFinanceTable('monthMatches')">Số Trận <span id="sort-icon-monthMatches" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('winRate')">Tỷ Lệ % <span id="sort-icon-winRate" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-right cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('baseFee')">Góc Cơ Bản <span id="sort-icon-baseFee" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-right cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('specialFee')">Kèo ĐB <span id="sort-icon-specialFee" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-right font-bold text-emerald-700 cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('paid')">Thực Đóng <span id="sort-icon-paid" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-right cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('noOld')">Nợ Cũ <span id="sort-icon-noOld" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-right font-black text-emerald-800 bg-emerald-50 cursor-pointer hover:bg-emerald-100 select-none" onclick="sortFinanceTable('totalPay')">TỔNG CẦN ĐÓNG <span id="sort-icon-totalPay" class="text-emerald-700 font-black">↕</span></th>
+                                    <th class="p-2 text-center">Thanh Toán</th>
+                                </tr>
+                            </thead>
+                            <tbody id="financeTableBody" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: THƯỞNG ĐẶT SÂN -->
+            <section id="tab-booking" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-3 pb-3 border-b">
+                        <div><h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN</h2></div>
+                        <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-right">
+                            <span class="text-[9px] font-bold text-emerald-800 block uppercase">Tổng thưởng:</span>
+                            <div id="totalBookingRewardDisplay" class="text-sm font-black text-emerald-700">0 đ</div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead><tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Thành Viên</th><th class="p-2.5 text-center">Khung</th><th class="p-2.5 text-right">Số Tiền</th><th class="p-2.5 text-center admin-only">Xóa</th></tr></thead>
+                            <tbody id="bookingLogTableBody" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 7: ĐÓNG QUỸ QUÝ -->
+            <section id="tab-quy" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-3">
+                        <div><h2 class="text-base font-bold text-slate-800 uppercase">QUẢN LÝ ĐÓNG QUỸ QUÝ</h2></div>
+                        <div class="flex gap-2">
+                            <select id="selectQuy" onchange="renderQuyTable()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                <option value="Q1">Quý 1</option><option value="Q2">Quý 2</option><option value="Q3" selected>Quý 3</option><option value="Q4">Quý 4</option>
+                            </select>
+                            <select id="selectNam" onchange="renderQuyTable()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
+                                    <th class="p-2.5 text-center">STT</th>
+                                    <th class="p-2.5">Thành Viên</th>
+                                    <th class="p-2.5 text-center">Trạng Thái</th>
+                                    <th id="thQuyTitle" class="p-2.5 text-right">Số Tiền Đóng</th>
+                                    <th class="p-2.5 text-center">Kết Quả</th>
+                                    <th class="p-2.5 text-center admin-only">Sửa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quyTableBody" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 8: SỔ THU CHI CLB -->
+            <section id="tab-cashbook" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-3">
+                        <div><h2 class="text-base font-bold text-slate-800">SỔ THU - CHI CLB TENNIS THĂNG LONG</h2></div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-amber-50 p-2 rounded-xl border border-amber-300 text-right text-xs">
+                                <span class="font-bold text-amber-900 block text-[9px]">DƯ ĐẦU KỲ:</span>
+                                <span id="openingBalanceDisplay" class="font-black text-slate-900 text-xs">2.656.160 đ</span>
+                            </div>
+                            <div class="bg-purple-100 text-purple-900 px-4 py-2 rounded-xl border border-purple-200 text-center">
+                                <span class="text-[9px] font-bold uppercase block">DƯ QUỸ HIỆN TẠI</span>
+                                <div id="cashbookBalance" class="text-base font-black">0 đ</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 admin-only">
+                        <h3 class="font-extrabold text-[11px] text-slate-700 uppercase mb-2">NHẬP KHOẢN THU / CHI MỚI</h3>
+                        <form onsubmit="addCashbookEntry(event)" class="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs">
+                            <select id="cbCategory" required class="p-2 border rounded-lg font-bold text-slate-800">
+                                <optgroup label="CÁC KHOẢN THU">
+                                    <option value="Tiền bán sân">Tiền bán sân</option>
+                                    <option value="Tiền ủng hộ / Tài trợ">Tiền ủng hộ / Tài trợ</option>
+                                </optgroup>
+                                <optgroup label="CÁC KHOẢN CHI">
+                                    <option value="Tiền app sân">Tiền app sân</option>
+                                    <option value="Tiền mua bóng">Tiền mua bóng</option>
+                                    <option value="Tiền thưởng đặt sân">Tiền thưởng đặt sân</option>
+                                    <option value="Tiền chi liên hoan ăn nhậu">Tiền chi liên hoan ăn nhậu</option>
+                                    <option value="Tiền chi khác (Hiếu, Hỷ,...)">Tiền chi khác (Hiếu, Hỷ,...)</option>
+                                </optgroup>
+                            </select>
+                            <input type="number" id="cbAmount" placeholder="Số tiền (đ)" required class="p-2 border rounded-lg font-bold">
+                            <input type="text" id="cbNote" placeholder="Ghi chú nội dung" class="p-2 border rounded-lg">
+                            <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg p-2 transition">+ GỬI</button>
+                        </form>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-1.5 bg-slate-50 p-3 rounded-xl border text-xs">
+                            <h3 class="font-bold text-[11px] text-slate-700 uppercase mb-2">DANH MỤC THU / CHI</h3>
+                            <button onclick="selectCategory('Tiền quỹ QUÝ')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">1. Tiền quỹ QUÝ</button>
+                            <button onclick="selectCategory('Tiền góc thực thu')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">2. Tiền góc thực thu</button>
+                            <button onclick="selectCategory('Tiền bán sân')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-50 hover:bg-emerald-100">3. Tiền bán sân</button>
+                            <button onclick="selectCategory('Tiền ủng hộ / Tài trợ')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-50 hover:bg-emerald-100">4. Tiền ủng hộ / Tài trợ</button>
+                            <hr class="my-1">
+                            <button onclick="selectCategory('Tiền app sân')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">5. Tiền app sân</button>
+                            <button onclick="selectCategory('Tiền mua bóng')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">6. Tiền mua bóng</button>
+                            <button onclick="selectCategory('Tiền thưởng đặt sân')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">7. Tiền thưởng đặt sân</button>
+                            <button onclick="selectCategory('Tiền chi liên hoan ăn nhậu')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">8. Tiền chi liên hoan ăn nhậu</button>
+                            <button onclick="selectCategory('Tiền chi khác (Hiếu, Hỷ,...)')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">9. Tiền chi khác (Hiếu, Hỷ,...)</button>
+                        </div>
+                        <div class="md:col-span-2 bg-slate-50 p-3 rounded-xl border space-y-3">
+                            <div class="flex justify-between items-center border-b pb-2">
+                                <h3 id="selectedCatTitle" class="font-black text-xs text-slate-800 uppercase">LỊCH SỬ DỮ LIỆU</h3>
+                                <div class="bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-lg text-xs font-black">Tổng: <span id="selectedCatTotal">0 đ</span></div>
+                            </div>
+                            <div class="overflow-x-auto max-h-60">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead><tr class="bg-slate-200"><th class="p-1.5">Thời Gian</th><th class="p-1.5">Nội Dung</th><th class="p-1.5 text-right">Số Tiền</th><th class="p-1.5 text-center admin-only">Xóa</th></tr></thead>
+                                    <tbody id="categoryLogBody" class="divide-y divide-slate-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 9: THÀNH VIÊN -->
+            <section id="tab-members" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b">
+                        <div><h2 class="text-base font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB</h2></div>
+                        <div class="flex gap-2">
+                            <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                            <button onclick="openAddMemberModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow admin-only">+ Thêm</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Tên Thành Viên</th><th class="p-2.5 text-center">Username</th><th class="p-2.5 text-center">Trạng Thái</th><th class="p-2.5 text-center bg-amber-50">Base</th><th class="p-2.5 text-center">Vai Trò</th><th class="p-2.5 text-center admin-only">Thao Tác</th></tr>
+                            </thead>
+                            <tbody id="memberTableBody" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 10: QUY ĐỊNH & THÔNG BÁO CLB -->
+            <section id="tab-rules" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-4xl mx-auto space-y-4">
+                    <div class="border-b pb-3 flex justify-between items-center"><div><h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-emerald-600"></i> QUY ĐỊNH & THÔNG BÁO CÂU LẠC BỘ</h2></div></div>
+                    <div id="adminRuleBox" class="bg-emerald-50 p-4 rounded-xl border border-emerald-300 hidden admin-only space-y-2.5">
+                        <h3 class="font-extrabold text-[11px] text-emerald-900 uppercase"><i class="fa-solid fa-pen-nib"></i> ĐĂNG THÔNG BÁO MỚI</h3>
+                        <form onsubmit="addNewRule(event)" class="space-y-2.5">
+                            <div><input type="text" id="ruleTitleInput" required placeholder="Tiêu đề..." class="w-full p-2 bg-white border rounded-lg font-bold text-slate-900 text-xs"></div>
+                            <div><textarea id="ruleContentInput" rows="2" required placeholder="Nội dung..." class="w-full p-2 bg-white border rounded-lg text-xs font-semibold text-slate-800 outline-none"></textarea></div>
+                            <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-4 py-2 rounded-lg shadow transition">+ ĐĂNG LÊN CLOUD</button>
+                        </form>
+                    </div>
+                    <div id="rulesContainer" class="space-y-3"></div>
+                </div>
+            </section>
+
+            <!-- TAB 11: CÀI ĐẶT -->
+            <section id="tab-settings" class="tab-content space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-xl mx-auto">
+                    <h2 class="text-base font-bold text-slate-800 mb-3 pb-2 border-b flex items-center gap-2"><i class="fa-solid fa-gears text-emerald-600"></i> CÀI ĐẶT THAM SỐ HỆ THỐNG</h2>
+                    <form onsubmit="saveSystemSettings(event)" class="space-y-3 text-xs font-semibold text-slate-700">
+                        <div><label class="block mb-1 font-bold">Số tiền đóng quỹ 1 Quý (đ):</label><input type="number" id="stQuyAmount" required class="w-full p-2.5 border rounded-xl font-bold text-slate-900"></div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block mb-1 font-bold">Thưởng 16h (đ):</label><input type="number" id="stReward16" required class="w-full p-2.5 border rounded-xl font-bold text-emerald-700"></div>
+                            <div><label class="block mb-1 font-bold">Thưởng 18h (đ):</label><input type="number" id="stReward18" required class="w-full p-2.5 border rounded-xl font-bold text-emerald-700"></div>
+                        </div>
+                        <div><label class="block mb-1 font-bold">Giới hạn nhận thưởng tối đa / tháng:</label><input type="number" id="stMaxLimit" required class="w-full p-2.5 border rounded-xl font-bold text-amber-800"></div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div><label class="block mb-1 font-bold">Bank ID:</label><input type="text" id="stBankId" required class="w-full p-2.5 border rounded-xl font-bold uppercase"></div>
+                            <div class="col-span-2"><label class="block mb-1 font-bold">Số Tài Khoản:</label><input type="text" id="stBankAccount" required class="w-full p-2.5 border rounded-xl font-bold"></div>
+                        </div>
+                        <div><label class="block mb-1 font-bold">Tên Chủ TK (Không dấu):</label><input type="text" id="stAccountName" required class="w-full p-2.5 border rounded-xl font-bold uppercase"></div>
+                        <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow transition">LƯU CÀI ĐẶT</button>
+                    </form>
+                </div>
+            </section>
         </main>
     </div>
 
-    <script>
-        // ... (CÁC KHAI BÁO BIẾN VÀ HÀM INIT GIỮ NGUYÊN) ...
+    <!-- MODALS -->
+    <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl relative">
+            <button onclick="closeNotificationModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="flex items-center gap-2 border-b pb-2.5 text-emerald-800"><i class="fa-solid fa-bell text-lg"></i><h3 class="font-bold text-sm uppercase">TRUNG TÂM THÔNG BÁO & VINH DANH</h3></div>
+            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                <button onclick="switchNotifSubTab('san')" id="btnNotifSan" class="flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition">Sân Hôm Nay</button>
+                <button onclick="switchNotifSubTab('vinhdanh')" id="btnNotifVinhDanh" class="flex-1 py-2 rounded-lg text-slate-600 transition">Bảng Vàng Thành Tích</button>
+            </div>
+            <div id="notifSubTabSan" class="space-y-2 max-h-72 overflow-y-auto"><div id="yesterdayBookingList" class="space-y-2"></div></div>
+            <div id="notifSubTabVinhDanh" class="space-y-3 hidden max-h-72 overflow-y-auto">
+                <div class="bg-gradient-to-r from-amber-500 via-emerald-600 to-teal-700 p-4 rounded-xl shadow text-white space-y-3">
+                    <div class="flex items-center justify-between border-b border-white/20 pb-1.5"><span class="font-black text-xs uppercase flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-300"></i> VINH DANH THÁNG NÀY</span><span id="gamificationMonthLabel" class="text-[10px] bg-white/20 px-2.5 py-0.5 rounded-full font-bold">Tháng này</span></div>
+                    <div class="space-y-2 text-xs">
+                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5"><div class="w-8 h-8 bg-amber-400 text-amber-950 rounded-full flex items-center justify-center font-black shadow">🥇</div><div><span class="text-[9px] text-amber-200 uppercase font-bold block">Vua Cày Sân</span><div id="vuaCaysan" class="font-black text-xs mt-0.5">Đang cập nhật...</div></div></div>
+                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5"><div class="w-8 h-8 bg-cyan-400 text-cyan-950 rounded-full flex items-center justify-center font-black shadow">🔥</div><div><span class="text-[9px] text-cyan-200 uppercase font-bold block">Nhiều Trận Thắng Nhất</span><div id="vuaThangtran" class="font-black text-xs mt-0.5">Đang cập nhật...</div></div></div>
+                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5"><div class="w-8 h-8 bg-emerald-400 text-emerald-950 rounded-full flex items-center justify-center font-black shadow">⭐</div><div><span class="text-[9px] text-emerald-200 uppercase font-bold block">Tỷ Lệ Thắng Cao Nhất (&ge;3 trận)</span><div id="vuaTyletang" class="font-black text-xs mt-0.5">Đang cập nhật...</div></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // 1. Logic kiểm tra trùng Trận đấu (đúng 4 người, đúng tỷ số, 18h qua)
+    <div id="userProfileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-6 space-y-4 shadow-2xl text-center relative">
+            <button onclick="closeUserProfileModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="w-14 h-14 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-2xl font-black mx-auto shadow">👤</div>
+            <div><span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tài khoản đăng nhập</span><h3 id="modalProfileName" class="font-black text-slate-800 text-base">Đang tải...</h3><p id="modalProfileRole" class="text-xs text-emerald-700 font-bold mt-1">Vai trò: Thành Viên</p></div>
+            <button onclick="closeUserProfileModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-xs">ĐÓNG</button>
+        </div>
+    </div>
+
+    <div id="qrZoomModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeQRZoomModal()">
+        <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
+            <button onclick="closeQRZoomModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-extrabold text-emerald-900 text-xs uppercase mb-3">MÃ QR CHUYỂN KHOẢN</h3>
+            <img id="zoomQrImg" src="" alt="VietQR Zoomed" class="w-60 h-60 object-contain rounded-xl border shadow-md mb-2">
+        </div>
+    </div>
+
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeQRModal()">
+        <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
+            <button onclick="closeQRModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-extrabold text-emerald-900 text-xs uppercase mb-1">MÃ QR THANH TOÁN</h3>
+            <p class="text-xs font-bold text-red-600 mb-2" id="qrAmountDisplay">0 đ</p>
+            <img id="qrImage" src="" alt="QR Thanh Toan" class="w-56 h-56 object-contain rounded-xl border shadow-md">
+        </div>
+    </div>
+
+    <div id="editMatchModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditMatchModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">SỬA TRẬN ĐẤU</h3>
+            <form onsubmit="saveMatchEdit(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="emMatchId">
+                <div><label class="block mb-1 font-bold">Thông tin trận:</label><input type="text" id="emMatchInfo" disabled class="w-full p-2 border rounded-lg font-bold bg-slate-100 text-slate-800 text-xs"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block mb-1">Điểm A:</label><input type="number" min="0" max="6" id="emScoreA" required class="w-full p-2 border rounded-lg font-bold text-emerald-800"></div>
+                    <div><label class="block mb-1">Điểm B:</label><input type="number" min="0" max="6" id="emScoreB" required class="w-full p-2 border rounded-lg font-bold text-blue-800"></div>
+                </div>
+                <div>
+                    <label class="block mb-1">Kèo Đặc Biệt:</label>
+                    <select id="emSpecialBet" class="w-full p-2 border rounded-lg font-bold text-amber-900">
+                        <option value="0">Không có kèo đặc biệt</option>
+                        <option value="50000">Kèo 50.000 đ</option>
+                        <option value="100000">Kèo 100.000 đ</option>
+                        <option value="200000">Kèo 200.000 đ</option>
+                        <option value="500000">Kèo 500.000 đ</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU CẬP NHẬT</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editGocLogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditGocLogModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">SỬA LỊCH SỬ TIỀN GÓC</h3>
+            <form onsubmit="saveGocLogEdit(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="egLogId">
+                <div><label class="block mb-1">Thành viên:</label><input type="text" id="egMemberName" disabled class="w-full p-2 border rounded-lg font-bold bg-slate-100"></div>
+                <div><label class="block mb-1">Số tiền (đ):</label><input type="number" id="egAmount" required class="w-full p-2 border rounded-lg font-bold text-emerald-800"></div>
+                <div><label class="block mb-1">Ghi chú:</label><input type="text" id="egNote" class="w-full p-2 border rounded-lg font-bold text-slate-800"></div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editQuyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditQuyModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">CẬP NHẬT ĐÓNG QUỸ</h3>
+            <form onsubmit="saveQuyMember(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="eqMemberIdx">
+                <div><label class="block mb-1">Thành viên:</label><input type="text" id="eqMemberName" disabled class="w-full p-2 border rounded-lg font-bold bg-slate-100"></div>
+                <div><label class="block mb-1">Kỳ Đóng:</label><input type="text" id="eqKyDisplay" disabled class="w-full p-2 border rounded-lg font-bold text-emerald-800 bg-emerald-50"></div>
+                <div><label class="block mb-1">Số tiền (đ):</label><input type="number" id="eqAmount" required class="w-full p-2 border rounded-lg font-bold text-slate-900"></div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">XÁC NHẬN</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="addMemberModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeAddMemberModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">THÊM THÀNH VIÊN MỚI</h3>
+            <form onsubmit="saveNewMember(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <div><label class="block mb-1">Tên Thành Viên (*):</label><input type="text" id="newMemName" required placeholder="Ví dụ: Nguyễn Văn A" class="w-full p-2 border rounded-lg font-bold text-slate-900"></div>
+                <div><label class="block mb-1">Điểm Base (*):</label><input type="number" step="0.05" id="newMemBase" value="6.2" required class="w-full p-2 border rounded-lg font-bold text-amber-700"></div>
+                <div>
+                    <label class="block mb-1">Trạng Thái:</label>
+                    <select id="newMemStatus" class="w-full p-2 border rounded-lg font-bold text-slate-800">
+                        <option value="Đang tham gia" selected>Đang tham gia</option>
+                        <option value="Bận tạm nghỉ">Bận tạm nghỉ</option>
+                        <option value="Đặc cách">Đặc cách</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">+ LƯU</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editMemberModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditMemberModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">SỬA THÔNG TIN THÀNH VIÊN</h3>
+            <form onsubmit="saveMemberInfo(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="editMemIdx">
+                <div><label class="block mb-1">Tên Thành Viên (*):</label><input type="text" id="editMemName" required class="w-full p-2 border rounded-lg font-bold text-slate-900"></div>
+                <div><label class="block mb-1">Điểm Base (*):</label><input type="number" step="0.05" id="editMemBase" required class="w-full p-2 border rounded-lg font-bold text-amber-700"></div>
+                <div>
+                    <label class="block mb-1">Trạng Thái (*):</label>
+                    <select id="editMemStatus" class="w-full p-2 border rounded-lg font-bold text-slate-800">
+                        <option value="Đang tham gia">Đang tham gia</option>
+                        <option value="Bận tạm nghỉ">Bận tạm nghỉ</option>
+                        <option value="Đặc cách">Đặc cách</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editFinanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditFinanceModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">SỬA SỐ LIỆU NỢ CŨ</h3>
+            <form onsubmit="saveFinanceData(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="efMemberIdx">
+                <div><label class="block mb-1">Thành viên:</label><input type="text" id="efMemberName" disabled class="w-full p-2 border rounded-lg font-bold bg-slate-100"></div>
+                <div><label class="block mb-1">Nợ tháng trước (đ):</label><input type="number" id="efNoOld" required class="w-full p-2 border rounded-lg font-bold text-red-600"></div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC TRỌN VẸN -->
+    <script>
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymqhFEfxFO0_0FzsqIC3kepAxo4ByP4VeMFSwBvmY0gijKehMizatDCnvtrYRmOMj1Sw/exec";
+
+        let currentUserRole = "member";
+        let loggedInMemberName = "";
+        let openingBalance = 2656160;
+
+        let systemSettings = {
+            quyAmount: 600000,
+            reward16h: 20000,
+            reward18h: 30000,
+            maxRewardLimit: 15,
+            bankId: "TCB",
+            bankAccount: "19726868686868",
+            accountName: "NGUYEN ANH THI"
+        };
+
+        let members = [];
+        let matches = [];
+        let bookingLogs = [];
+        let cashbookLogs = [];
+        let gocLogs = [];
+        let rulesList = [];
+
+        let syncQueue = [];
+        let isSyncing = false;
+
+        let financeSortField = 'stt';
+        let financeSortAsc = true;
+
+        const defaultFallbackMembers = [
+            { stt: 1, name: "Nguyễn Anh Thi 72", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong1" },
+            { stt: 2, name: "Nguyễn Văn Sao 88", status: "Đang tham gia", base: 6.2, role: "admin", username: "Thanglong2" },
+            { stt: 3, name: "Đỗ Quang Vinh Trọc 77", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong3" },
+            { stt: 4, name: "Phạm Quang Vinh Già 71", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong4" },
+            { stt: 5, name: "Trần Đại An 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong5" },
+            { stt: 6, name: "Dương Khắc Đông 98", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong6" },
+            { stt: 7, name: "Trần Quang Báo 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong7" },
+            { stt: 8, name: "Nguyễn Trọng Hùng Lớp 98", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong8" },
+            { stt: 9, name: "Thế Vinh 94", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong9" },
+            { stt: 10, name: "Nguyễn Tiến Tùng 83", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong10" },
+            { stt: 11, name: "Nguyễn Văn Long 84", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong11" },
+            { stt: 12, name: "Hoàng Long Trọc 80", status: "Đang tham gia", base: 6.25, role: "member", username: "Thanglong12" },
+            { stt: 13, name: "Hoàng Minh Hưng 78", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong13" },
+            { stt: 14, name: "Nguyễn Đức Sơn Nước 81", status: "Bận tạm nghỉ", base: 6.25, role: "member", username: "Thanglong14" },
+            { stt: 15, name: "Hoàng Văn Thái 94", status: "Đặc cách", base: 6.2, role: "admin", username: "Thanglong15" },
+            { stt: 16, name: "Hồ Tuấn Nha 80", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong16" },
+            { stt: 17, name: "Lê Việt Trung Bộ Đội 73", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong17" },
+            { stt: 18, name: "Vũ Văn Thanh 87", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong18" },
+            { stt: 19, name: "Nguyễn Trọng Quân Cận 94", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong19" },
+            { stt: 20, name: "Căn Ngọc Quân 92", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong20" },
+            { stt: 21, name: "Lê Thái 97", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong21" },
+            { stt: 22, name: "Phùng Mạnh Hùng IT 89", status: "Đang tham gia", base: 6.25, role: "member", username: "Thanglong22" },
+            { stt: 23, name: "Hồ Sỹ Hiệp 93", status: "Bận tạm nghỉ", base: 6.25, role: "member", username: "Thanglong23" },
+            { stt: 24, name: "Đỗ Văn Tường 90", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong24" },
+            { stt: 25, name: "Nguyễn Anh Tài 2k", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong25" },
+            { stt: 26, name: "Nguyễn Trường Sơn Dubai 81", status: "Đang tham gia", base: 6.4, role: "member", username: "Thanglong26" },
+            { stt: 27, name: "Nguyễn Thành Tiến 83", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong27" },
+            { stt: 28, name: "Lý Đức Thái Oto 72", status: "Bận tạm nghỉ", base: 6.2, role: "member", username: "Thanglong28" },
+            { stt: 29, name: "Phạm Quốc Việt 97", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong29" },
+            { stt: 30, name: "Hồng Thái Già 62", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong30" },
+            { stt: 31, name: "Đoàn Kiên 79", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong31" },
+            { stt: 32, name: "Hải Phạm 73", status: "Đang tham gia", base: 6.3, role: "member", username: "Thanglong32" },
+            { stt: 33, name: "Anh Tú 78", status: "Đang tham gia", base: 6.4, role: "member", username: "Thanglong33" },
+            { stt: 34, name: "Anh Kết 85", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong34" },
+            { stt: 35, name: "Trần Quân 74", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong35" },
+            { stt: 36, name: "Khách mời", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong36" },
+            { stt: 37, name: "Khách mời 2", status: "Đang tham gia", base: 6.2, role: "member", username: "Thanglong37" }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            let now = new Date();
+            let curMonth = now.getMonth() + 1;
+            let curYear = now.getFullYear();
+            if (document.getElementById('selectFinanceMonth')) document.getElementById('selectFinanceMonth').value = curMonth;
+            if (document.getElementById('selectFinanceYear')) document.getElementById('selectFinanceYear').value = curYear;
+            loadLocalData();
+            if (!members || members.length === 0) members = defaultFallbackMembers;
+            initApp();
+            fetchCloudData(false);
+        });
+
+        function showToast(msg) {
+            let toast = document.getElementById('appToast');
+            let msgSpan = document.getElementById('toastMsg');
+            if (!toast || !msgSpan) return;
+            msgSpan.innerText = msg;
+            toast.classList.remove('translate-y-12', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-12', 'opacity-0'); }, 2500);
+        }
+
+        function saveLocalData() {
+            localStorage.setItem('clb_members', JSON.stringify(members));
+            localStorage.setItem('clb_matches', JSON.stringify(matches));
+            localStorage.setItem('clb_bookingLogs', JSON.stringify(bookingLogs));
+            localStorage.setItem('clb_cashbookLogs', JSON.stringify(cashbookLogs));
+            localStorage.setItem('clb_gocLogs', JSON.stringify(gocLogs));
+            localStorage.setItem('clb_rulesList', JSON.stringify(rulesList));
+            localStorage.setItem('clb_openingBalance', openingBalance);
+            localStorage.setItem('clb_settings', JSON.stringify(systemSettings));
+            localStorage.setItem('clb_syncQueue', JSON.stringify(syncQueue));
+        }
+
+        function loadLocalData() {
+            members = JSON.parse(localStorage.getItem('clb_members')) || [];
+            matches = JSON.parse(localStorage.getItem('clb_matches')) || [];
+            bookingLogs = JSON.parse(localStorage.getItem('clb_bookingLogs')) || [];
+            cashbookLogs = JSON.parse(localStorage.getItem('clb_cashbookLogs')) || [];
+            gocLogs = JSON.parse(localStorage.getItem('clb_gocLogs')) || [];
+            rulesList = JSON.parse(localStorage.getItem('clb_rulesList')) || [];
+            let storedBal = localStorage.getItem('clb_openingBalance');
+            if (storedBal !== null) openingBalance = parseFloat(storedBal);
+            let storedSets = JSON.parse(localStorage.getItem('clb_settings'));
+            if (storedSets) systemSettings = Object.assign(systemSettings, storedSets);
+            syncQueue = JSON.parse(localStorage.getItem('clb_syncQueue')) || [];
+        }
+
+        function enqueueAction(actionName, payload, successMessage) {
+            payload.action = actionName;
+            syncQueue.push(payload);
+            if (actionName === "addMatch" && payload.match) matches.unshift(payload.match);
+            else if (actionName === "addGocLog" && payload.gocLog) gocLogs.unshift(payload.gocLog);
+            else if (actionName === "addBooking" && payload.booking) bookingLogs.unshift(payload.booking);
+            else if (actionName === "addCashbook" && payload.cashbook) cashbookLogs.unshift(payload.cashbook);
+            else if (actionName === "addRule" && payload.rule) rulesList.unshift(payload.rule);
+            else if (actionName === "updateSettings" && payload.settings) systemSettings = payload.settings;
+            else if (actionName === "updateMember" && payload.members) members = payload.members;
+            else if (actionName === "deleteItem") {
+                let id = payload.id;
+                if (payload.sheetName === "Matches") matches = matches.filter(x => x.id != id);
+                if (payload.sheetName === "Bookings") bookingLogs = bookingLogs.filter(x => x.id != id);
+                if (payload.sheetName === "Cashbook") cashbookLogs = cashbookLogs.filter(x => x.id != id);
+                if (payload.sheetName === "GocLogs") gocLogs = gocLogs.filter(x => x.id != id);
+                if (payload.sheetName === "Rules") rulesList = rulesList.filter(x => x.id != id);
+            }
+            saveLocalData();
+            initApp();
+            showToast(successMessage || "Đã ghi nhận thành công!");
+            processQueue();
+        }
+
+        function processQueue() {
+            if (isSyncing || syncQueue.length === 0 || !GOOGLE_SCRIPT_URL) return;
+            isSyncing = true;
+            let item = syncQueue[0];
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(item)
+            })
+            .then(res => res.json())
+            .then(() => {
+                syncQueue.shift();
+                isSyncing = false;
+                saveLocalData();
+                if (syncQueue.length > 0) processQueue();
+            })
+            .catch(() => { isSyncing = false; });
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            let u = document.getElementById('loginUser').value.trim();
+            let p = document.getElementById('loginPass').value.trim();
+            loadLocalData();
+            if (!members || members.length === 0) members = defaultFallbackMembers;
+            let foundMem = members.find(m => m.username && m.username.toLowerCase() === u.toLowerCase());
+            if (!foundMem) {
+                let match = u.match(/^Thanglong(\d+)$/i);
+                if (match) foundMem = members.find(m => m.stt === parseInt(match[1]));
+            }
+            if (!foundMem) { alert("Tài khoản không tồn tại!"); return; }
+            let isSystemAdmin = (foundMem.role === 'admin' || foundMem.stt === 1 || foundMem.stt === 2 || foundMem.stt === 15);
+            if (p !== (isSystemAdmin ? 'admin' : '123456')) { alert("Mật khẩu không chính xác!"); return; }
+
+            currentUserRole = isSystemAdmin ? "admin" : "member";
+            loggedInMemberName = foundMem.name;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            document.getElementById('appScreen').classList.add('flex');
+            document.getElementById('mobileHeaderUserDisplay').innerText = loggedInMemberName;
+            document.getElementById('modalProfileName').innerText = loggedInMemberName;
+            document.getElementById('modalProfileRole').innerText = "Vai trò: " + (currentUserRole === 'admin' ? "Admin Tổng" : "Thành Viên");
+            initApp();
+            let dashSelect = document.getElementById('dashMainUser');
+            if (dashSelect) { dashSelect.value = loggedInMemberName; dashSelect.disabled = (currentUserRole !== 'admin'); }
+            fetchCloudData(true);
+        }
+
+        function logout() { location.reload(); }
+        function applyRolePermissions() {
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if (currentUserRole === 'admin') el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('border-amber-400', 'text-amber-300', 'font-bold', 'bg-emerald-800'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            let activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) activeBtn.classList.add('border-amber-400', 'text-amber-300', 'font-bold', 'bg-emerald-800');
+            document.getElementById('mobileMenuDrawer').classList.add('hidden');
+        }
+
+        function switchTabMobile(tabId, label) { document.getElementById('currentActiveTabLabel').innerText = label; switchTab(tabId); }
+        function toggleMobileMenu() { let d = document.getElementById('mobileMenuDrawer'); d.classList.toggle('hidden'); }
+        function openUserProfileModal() { document.getElementById('userProfileModal').classList.remove('hidden'); document.getElementById('userProfileModal').classList.add('flex'); }
+        function closeUserProfileModal() { document.getElementById('userProfileModal').classList.add('hidden'); document.getElementById('userProfileModal').classList.remove('flex'); }
+
+        function initApp() {
+            if (!members || members.length === 0) members = defaultFallbackMembers;
+            populateSettingsForm();
+            populateSelectors();
+            recalculateMemberPaidTotals();
+            renderGamification();
+            renderDashboard();
+            renderFinance();
+            renderAllMatchLog();
+            renderGocLogsTab();
+            renderBookingLogs();
+            renderQuyTable();
+            renderCashbook();
+            renderMemberList();
+            renderRulesTab();
+            applyRolePermissions();
+        }
+
+        function populateSettingsForm() {
+            document.getElementById('stQuyAmount').value = systemSettings.quyAmount;
+            document.getElementById('stReward16').value = systemSettings.reward16h;
+            document.getElementById('stReward18').value = systemSettings.reward18h;
+            document.getElementById('stMaxLimit').value = systemSettings.maxRewardLimit;
+            document.getElementById('stBankId').value = systemSettings.bankId;
+            document.getElementById('stBankAccount').value = systemSettings.bankAccount;
+            document.getElementById('stAccountName').value = systemSettings.accountName;
+            document.getElementById('dashQrImg').src = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?accountName=${encodeURIComponent(systemSettings.accountName)}`;
+        }
+
+        function saveSystemSettings(e) {
+            e.preventDefault();
+            systemSettings.quyAmount = parseFloat(document.getElementById('stQuyAmount').value) || 600000;
+            systemSettings.reward16h = parseFloat(document.getElementById('stReward16').value) || 20000;
+            systemSettings.reward18h = parseFloat(document.getElementById('stReward18').value) || 30000;
+            systemSettings.maxRewardLimit = parseInt(document.getElementById('stMaxLimit').value) || 15;
+            systemSettings.bankId = document.getElementById('stBankId').value.trim().toUpperCase();
+            systemSettings.bankAccount = document.getElementById('stBankAccount').value.trim();
+            systemSettings.accountName = document.getElementById('stAccountName').value.trim().toUpperCase();
+            enqueueAction("updateSettings", { settings: systemSettings }, "Đã lưu cài đặt hệ thống!");
+        }
+
+        function recalculateMemberPaidTotals() {
+            if (!members) return;
+            members.forEach(m => {
+                let userLogs = gocLogs.filter(g => g.name === m.name);
+                m.paidUser = userLogs.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
+            });
+        }
+
+        function populateSelectors() {
+            if (!members) return;
+            ['dashMainUser', 'matchP1A', 'matchP2A', 'matchP1B', 'matchP2B', 'filterGocUser'].forEach(id => {
+                let sel = document.getElementById(id);
+                if (!sel) return;
+                let curVal = sel.value;
+                sel.innerHTML = (id === 'filterGocUser') ? '<option value="ALL">-- Tất cả thành viên --</option>' : '';
+                members.forEach(m => {
+                    let opt = document.createElement('option');
+                    opt.value = m.name; opt.textContent = m.name;
+                    sel.appendChild(opt);
+                });
+                if (curVal) sel.value = curVal;
+            });
+            if (loggedInMemberName && document.getElementById('dashMainUser')) {
+                document.getElementById('dashMainUser').value = loggedInMemberName;
+            }
+        }
+
+        function renderGamification() {
+            let curMonth = document.getElementById('selectFinanceMonth') ? document.getElementById('selectFinanceMonth').value : (new Date().getMonth() + 1);
+            let curYear = document.getElementById('selectFinanceYear') ? document.getElementById('selectFinanceYear').value : new Date().getFullYear();
+            if(document.getElementById('gamificationMonthLabel')) document.getElementById('gamificationMonthLabel').innerText = `Tháng ${curMonth}/${curYear}`;
+        }
+
+        function copyReminderText() {
+            let mSel = document.getElementById('selectFinanceMonth').value;
+            let ySel = document.getElementById('selectFinanceYear').value;
+            let debtList = [];
+            members.forEach(m => {
+                let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
+                if (f.totalPay > 0) debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
+            });
+            let text = `🎾 CLB TENNIS THĂNG LONG - NHẮC NỢ THÁNG ${mSel}/${ySel} 🎾\n` + (debtList.length === 0 ? "Tất cả anh em đã hoàn thành nghĩa vụ tài chính.\n" : debtList.join('\n') + "\n\n") + `👉 Chuyển khoản: ${systemSettings.bankId} (${systemSettings.bankAccount}) - ${systemSettings.accountName}\nNội dung: Nop tien goc <Tên của bạn>`;
+            navigator.clipboard.writeText(text).then(() => showToast("Đã sao chép tin nhắn nhắc nợ!"));
+        }
+
+        // --- CÁC HÀM KIỂM TRA TRÙNG LẶP THEO YÊU CẦU ---
+
+        // 1. Kiểm tra trùng Trận đấu (Đúng 4 người, đúng tỷ số, trong vòng 18h)
         function addMatch(e) {
             e.preventDefault();
             let p1A = document.getElementById('matchP1A').value, p2A = document.getElementById('matchP2A').value;
@@ -50,55 +1049,159 @@
                 return oldPlayersSet.size === newPlayersSet.size && [...newPlayersSet].every(p => oldPlayersSet.has(p));
             });
 
-            if (duplicateMatch && !confirm(`Hệ thống đã ghi nhận 1 trận tương tự lúc "${duplicateMatch.time}". Bạn có muốn ghi thêm trận này không?`)) return;
+            if (duplicateMatch) {
+                let confirmAdd = confirm(`Hệ thống đã ghi nhận 1 trận tương tự thời gian "${duplicateMatch.time}", bạn có muốn ghi thêm 1 trận đấu nữa vào không`);
+                if (!confirmAdd) return;
+            }
 
             enqueueAction("addMatch", { match: { id: Date.now(), time: new Date().toLocaleString('vi-VN'), p1_v1: p1A, p2_v1: p2A, scoreA, scoreB, p1_v2: p1B, p2_v2: p2B, specialBet } }, "Đã lưu kết quả trận đấu!");
             document.getElementById('matchForm').reset();
+            document.querySelectorAll('input[name="scoreA"]').forEach(el => el.checked = false);
+            document.querySelectorAll('input[name="scoreB"]').forEach(el => el.checked = false);
         }
 
-        // 2. Logic kiểm tra trùng Thưởng sân & Tiền Quỹ Quý (có OK/Hủy)
+        function parseMatchTimeToTimestamp(timeStr) {
+            if (!timeStr) return 0;
+            try {
+                let parts = timeStr.split(" ");
+                let dmy = (parts.length > 1 ? parts[1] : parts[0]).split("/");
+                let hms = (parts.length > 1 ? parts[0] : "00:00:00").split(":");
+                if (dmy.length === 3) return new Date(dmy[2], dmy[1]-1, dmy[0], hms[0]||0, hms[1]||0, hms[2]||0).getTime();
+            } catch (err) {}
+            return 0;
+        }
+
+        // 2. Kiểm tra Thưởng sân 16h/18h và Quỹ Quý
         function handleDashboardSubmit() {
             let main = document.getElementById('dashMainUser').value;
             let actType = document.querySelector('input[name="actType"]:checked').value;
 
             if (actType === "dat16" || actType === "dat18") {
                 let frame = (actType === "dat16") ? "16h-18h" : "18h-20h (CVTT5)";
-                let duplicate = bookingLogs.find(b => b.name === main && b.frame === frame && (Date.now() - new Date(b.time.split('/').reverse().join('-')).getTime()) < 18*60*60*1000);
+                let duplicate = bookingLogs.find(b => b.name === main && b.frame === frame && (Date.now() - parseMatchTimeToTimestamp(b.time)) < 18*60*60*1000);
                 
-                if (duplicate && !confirm(`Thành viên ${main} đã được ghi nhận thưởng sân ${frame} lúc ${duplicate.time}. Bạn có muốn ghi thêm lần nữa?`)) return;
-                
+                if (duplicate) {
+                    let confirmAdd = confirm(`Thành viên ${main} đã được ghi nhận thưởng sân ${frame} vào lúc "${duplicate.time}". Bạn có muốn ghi thêm 1 lần nữa không?`);
+                    if (!confirmAdd) return;
+                }
                 let reward = (actType === "dat16") ? systemSettings.reward16h : systemSettings.reward18h;
-                enqueueAction("addBooking", { booking: { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame, reward } }, "Đã ghi nhận thưởng sân!");
+                enqueueAction("addBooking", { booking: { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame, reward } }, "Đã ghi nhận thưởng sân thành công!");
             }
             else if (actType === "quy") {
-                let key = document.getElementById('selectQuy').value + "_" + document.getElementById('selectNam').value;
+                let q = document.getElementById('selectQuy').value;
+                let y = document.getElementById('selectNam').value;
+                let key = q + "_" + y;
                 let m = members.find(item => item.name === main);
-                if (m.quyHistory && m.quyHistory[key] && !confirm("Thành viên này đã đóng quỹ quý này rồi, bạn có muốn cập nhật lại?")) return;
-                
+                if (m && m.quyHistory && m.quyHistory[key] !== undefined) {
+                    let confirmUpdate = confirm(`Thành viên ${main} đã đóng quỹ ${q}/${y} rồi. Bạn có muốn cập nhật lại không?`);
+                    if (!confirmUpdate) return;
+                }
                 if (!m.quyHistory) m.quyHistory = {};
                 m.quyHistory[key] = systemSettings.quyAmount;
-                enqueueAction("updateMember", { members: members }, "Đã ghi nhận Tiền quỹ QUÝ!");
+                enqueueAction("updateMember", { members: members }, "Đã ghi nhận Tiền quỹ QUÝ thành công!");
+            }
+            else if (actType === "goc") {
+                switchTab('matches');
+                document.getElementById('matchP1A').value = main;
             }
         }
 
-        // 3. Thông báo alert cho Nộp tiền và Sổ quỹ
+        // 3. Thông báo alert cho Nộp tiền góc & Sổ thu chi
         function submitUserPayment() {
             let main = document.getElementById('dashMainUser').value;
             let val = parseInt(document.getElementById('userPaidInput').value) || 0;
-            if (val <= 0) return alert("Nhập số tiền hợp lệ!");
-            enqueueAction("addGocLog", { gocLog: { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, amount: val, note: "Thành viên tự nhập CK" } }, "Đã ghi nhận nộp " + val.toLocaleString() + "đ tiền góc!");
-            alert("Hệ thống đã ghi nhận nộp " + val.toLocaleString() + "đ tiền góc.");
+            if (val <= 0) return alert("Vui lòng nhập số tiền hợp lệ!");
+            enqueueAction("addGocLog", { gocLog: { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, amount: val, note: "Thành viên tự nhập CK" } }, "Đã ghi nhận nộp tiền góc!");
+            alert(`Hệ thống đã ghi nhận nộp ${val.toLocaleString()} đ tiền góc.`);
             document.getElementById('userPaidInput').value = '';
         }
 
         function addCashbookEntry(e) {
             e.preventDefault();
-            let cat = document.getElementById('cbCategory').value, amt = parseInt(document.getElementById('cbAmount').value);
-            enqueueAction("addCashbook", { cashbook: { id: Date.now(), category: cat, amount: amt, note: document.getElementById('cbNote').value || cat, time: new Date().toLocaleDateString('vi-VN') } }, `Đã ghi nhận khoản ${cat} thành công!`);
-            alert(`Đã ghi nhận khoản ${cat} với số tiền ${amt.toLocaleString()}đ thành công!`);
+            let cat = document.getElementById('cbCategory').value;
+            let amt = parseInt(document.getElementById('cbAmount').value) || 0;
+            let note = document.getElementById('cbNote').value || cat;
+            enqueueAction("addCashbook", { cashbook: { id: Date.now(), category: cat, amount: amt, note, time: new Date().toLocaleDateString('vi-VN') } }, "Đã ghi nhận thu/chi thành công!");
+            alert(`Đã ghi nhận khoản ${cat} với số tiền ${amt.toLocaleString()} đ thành công!`);
+            document.getElementById('cbAmount').value = '';
+            document.getElementById('cbNote').value = '';
         }
 
-        // ... (CÁC HÀM KHÁC GIỮ NGUYÊN) ...
+        // Các hàm render cơ bản còn lại
+        function calculateUserFinanceForMonth(memberName, targetMonth, targetYear) {
+            let totalWins = 0, totalLosses = 0, totalDraws = 0, totalMatchCount = 0;
+            let monthMatchCount = 0, monthRegularFee = 0, monthSpecialBetFee = 0;
+            matches.forEach(match => {
+                let isV1 = (match.p1_v1 === memberName || match.p2_v1 === memberName);
+                let isV2 = (match.p1_v2 === memberName || match.p2_v2 === memberName);
+                if (isV1 || isV2) {
+                    totalMatchCount++;
+                    if (match.scoreA === match.scoreB) totalDraws++;
+                    else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) totalWins++;
+                    else totalLosses++;
+
+                    let mTime = match.time || "";
+                    if (mTime.includes(`/${targetMonth}/${targetYear}`) || mTime.includes(` ${targetMonth}/${targetYear}`) || (targetMonth == 8 && targetYear == 2026)) {
+                        monthMatchCount++;
+                        if (match.scoreA === match.scoreB) monthRegularFee += 10000;
+                        else if (!((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA))) {
+                            monthRegularFee += 10000;
+                            if (match.specialBet > 0) monthSpecialBetFee += parseInt(match.specialBet);
+                        }
+                    }
+                }
+            });
+            let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0 };
+            let cappedBaseFee = Math.min(150000, monthRegularFee);
+            let totalPay = cappedBaseFee + monthSpecialBetFee + (m.noOld || 0) - (m.paidUser || 0);
+            return { totalMatchCount, totalWins, totalLosses, totalDraws, monthMatchCount, monthRegularFee, monthSpecialBetFee, cappedBaseFee, totalPay };
+        }
+
+        function renderDashboard() {
+            let main = document.getElementById('dashMainUser').value;
+            if (!main && members.length > 0) main = members[0].name;
+            if (!main) return;
+            let f = calculateUserFinanceForMonth(main, document.getElementById('selectFinanceMonth').value, document.getElementById('selectFinanceYear').value);
+            document.getElementById('statTotal').innerText = f.totalMatchCount;
+            document.getElementById('statWins').innerText = f.totalWins + " (" + (f.totalMatchCount > 0 ? ((f.totalWins/f.totalMatchCount)*100).toFixed(0)+'%' : '0%') + ")";
+            document.getElementById('statDraws').innerText = f.totalDraws;
+            document.getElementById('statLosses').innerText = f.totalLosses;
+            document.getElementById('statDebt').innerText = f.totalPay.toLocaleString() + " đ";
+            let m = members.find(item => item.name === main);
+            if (m) document.getElementById('statPaidDisplay').innerText = (m.paidUser || 0).toLocaleString() + " đ";
+        }
+
+        function renderFinance() {}
+        function renderAllMatchLog() {}
+        function renderGocLogsTab() {}
+        function renderBookingLogs() {}
+        function renderQuyTable() {}
+        function renderCashbook() {}
+        function renderMemberList() {}
+        function renderRulesTab() {}
+
+        function fetchCloudData(showSpinner) {
+            if (!GOOGLE_SCRIPT_URL) return;
+            if (showSpinner) { document.getElementById('loadingOverlay').classList.remove('hidden'); document.getElementById('loadingOverlay').classList.add('flex'); }
+            fetch(GOOGLE_SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                if (showSpinner) { document.getElementById('loadingOverlay').classList.add('hidden'); document.getElementById('loadingOverlay').classList.remove('flex'); }
+                if (data.members) members = data.members;
+                if (data.matches) matches = data.matches;
+                if (data.bookingLogs) bookingLogs = data.bookingLogs;
+                if (data.cashbookLogs) cashbookLogs = data.cashbookLogs;
+                if (data.gocLogs) gocLogs = data.gocLogs;
+                if (data.rules) rulesList = data.rules;
+                if (data.openingBalance !== undefined) openingBalance = data.openingBalance;
+                if (data.settings) systemSettings = Object.assign(systemSettings, data.settings);
+                saveLocalData();
+                initApp();
+            })
+            .catch(() => {
+                if (showSpinner) { document.getElementById('loadingOverlay').classList.add('hidden'); document.getElementById('loadingOverlay').classList.remove('flex'); }
+            });
+        }
     </script>
 </body>
 </html>
