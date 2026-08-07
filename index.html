@@ -14,6 +14,7 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
         .sticky-col { position: sticky; left: 0; background-color: white; z-index: 10; }
         thead th.sticky-col { z-index: 30; background-color: #f1f5f9; }
         thead th { position: sticky; top: 0; z-index: 20; background-color: #f1f5f9; }
@@ -70,9 +71,11 @@
                         <i class="fa-solid fa-bell text-sm"></i>
                         <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full hidden">0</span>
                     </button>
+
                     <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản">
                         <i class="fa-solid fa-user-shield text-sm text-amber-300"></i>
                     </button>
+
                     <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-2.5 py-1.5 rounded-full text-white font-bold text-xs shadow flex items-center gap-1" title="Thoát hệ thống">
                         <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden md:inline">Thoát</span>
                     </button>
@@ -94,6 +97,7 @@
                     <button onclick="switchTab('rules')" id="btn-rules" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy Định CLB</button>
                     <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 admin-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
+
                 <div class="md:hidden flex items-center justify-between w-full">
                     <button onclick="toggleMobileMenu()" class="bg-emerald-800 hover:bg-emerald-700 text-amber-300 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 shadow border border-emerald-700">
                         <i class="fa-solid fa-bars text-sm"></i> <span id="currentActiveTabLabel">Tổng quan</span>
@@ -219,7 +223,7 @@
                         </div>
                     </div>
 
-                    <!-- NHẬT KÝ THI ĐẤU (THÁNG) Ở DƯỚI CÙNG -->
+                    <!-- NHẬT KÝ THI ĐẤU (THÁNG) CHUYỂN XUỐNG DƯỚI CÙNG VÀ HIỂN THỊ ĐẦY ĐỦ TÊN -->
                     <div class="bg-slate-50 p-4 rounded-xl border">
                         <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU (THÁNG)</h3>
                         <div class="overflow-x-auto">
@@ -253,6 +257,7 @@
                                 </h3>
                                 <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Cầu thủ A1:</label><select id="matchP1A" required class="w-full bg-white border rounded-lg p-2 text-xs font-semibold"></select></div>
                                 <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Cầu thủ A2:</label><select id="matchP2A" required class="w-full bg-white border rounded-lg p-2 text-xs font-semibold"></select></div>
+                                
                                 <div class="pt-2 border-t border-emerald-200">
                                     <label class="block text-[11px] font-black text-emerald-900 uppercase mb-1">ĐIỂM VẾ A *</label>
                                     <div class="flex justify-between bg-white p-2 rounded-lg border border-emerald-300">
@@ -274,6 +279,7 @@
                                 </h3>
                                 <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Cầu thủ B1:</label><select id="matchP1B" required class="w-full bg-white border rounded-lg p-2 text-xs font-semibold"></select></div>
                                 <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Cầu thủ B2:</label><select id="matchP2B" required class="w-full bg-white border rounded-lg p-2 text-xs font-semibold"></select></div>
+                                
                                 <div class="pt-2 border-t border-blue-200">
                                     <label class="block text-[11px] font-black text-blue-900 uppercase mb-1">ĐIỂM VẾ B *</label>
                                     <div class="flex justify-between bg-white p-2 rounded-lg border border-blue-300">
@@ -300,6 +306,7 @@
                                 <option value="1000000">Kèo đặc biệt 1.000.000 đ</option>
                             </select>
                         </div>
+
                         <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-lg transition text-xs">LƯU KẾT QUẢ TRẬN ĐẤU</button>
                     </form>
                 </div>
@@ -324,7 +331,9 @@
             <section id="tab-gocLogs" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-3">
-                        <div><h2 class="text-base font-bold text-slate-800 uppercase flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i> NHẬT KÝ NỘP TIỀN GÓC</h2></div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800 uppercase flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i> NHẬT KÝ NỘP TIỀN GÓC</h2>
+                        </div>
                         <div class="flex items-center gap-3">
                             <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-right">
                                 <span class="text-[9px] font-bold text-emerald-800 block uppercase">Tổng thu:</span>
@@ -337,10 +346,18 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Thành Viên</th><th class="p-2.5 text-right">Số Tiền</th><th class="p-2.5">Ghi Chú</th><th class="p-2.5 text-center admin-only">Sửa / Xóa</th></tr>
+                                <tr class="bg-slate-100 text-slate-700 font-bold border-b">
+                                    <th class="p-2.5 text-center">STT</th>
+                                    <th class="p-2.5">Thời Gian</th>
+                                    <th class="p-2.5">Thành Viên</th>
+                                    <th class="p-2.5 text-right">Số Tiền</th>
+                                    <th class="p-2.5">Ghi Chú</th>
+                                    <th class="p-2.5 text-center admin-only">Sửa / Xóa</th>
+                                </tr>
                             </thead>
                             <tbody id="gocLogsTableBody" class="divide-y divide-slate-200"></tbody>
                         </table>
@@ -352,9 +369,12 @@
             <section id="tab-finance" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 pb-3 border-b gap-3">
-                        <div><h2 class="text-base md:text-lg font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THÁNG</h2></div>
+                        <div>
+                            <h2 class="text-base md:text-lg font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THÁNG</h2>
+                        </div>
                         <div class="flex flex-wrap gap-2 items-center">
                             <button onclick="copyReminderText()" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition"><i class="fa-solid fa-copy"></i> Sao chép nhắc nợ Zalo</button>
+
                             <div class="flex gap-2 items-center">
                                 <select id="selectFinanceMonth" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
                                     <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option><option value="4">Tháng 4</option>
@@ -396,7 +416,9 @@
             <section id="tab-booking" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-3 pb-3 border-b">
-                        <div><h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN</h2></div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN</h2>
+                        </div>
                         <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-right">
                             <span class="text-[9px] font-bold text-emerald-800 block uppercase">Tổng thưởng:</span>
                             <div id="totalBookingRewardDisplay" class="text-sm font-black text-emerald-700">0 đ</div>
@@ -404,7 +426,9 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
-                            <thead><tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Thành Viên</th><th class="p-2.5 text-center">Khung</th><th class="p-2.5 text-right">Số Tiền</th><th class="p-2.5 text-center admin-only">Xóa</th></tr></thead>
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Thành Viên</th><th class="p-2.5 text-center">Khung</th><th class="p-2.5 text-right">Số Tiền</th><th class="p-2.5 text-center admin-only">Xóa</th></tr>
+                            </thead>
                             <tbody id="bookingLogTableBody" class="divide-y divide-slate-200"></tbody>
                         </table>
                     </div>
@@ -415,7 +439,9 @@
             <section id="tab-quy" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-3">
-                        <div><h2 class="text-base font-bold text-slate-800 uppercase">QUẢN LÝ ĐÓNG QUỸ QUÝ</h2></div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800 uppercase">QUẢN LÝ ĐÓNG QUỸ QUÝ</h2>
+                        </div>
                         <div class="flex gap-2">
                             <select id="selectQuy" onchange="renderQuyTable()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
                                 <option value="Q1">Quý 1</option><option value="Q2">Quý 2</option><option value="Q3" selected>Quý 3</option><option value="Q4">Quý 4</option>
@@ -425,6 +451,7 @@
                             </select>
                         </div>
                     </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
@@ -447,7 +474,9 @@
             <section id="tab-cashbook" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b gap-3">
-                        <div><h2 class="text-base font-bold text-slate-800">SỔ THU - CHI CLB TENNIS THĂNG LONG</h2></div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">SỔ THU - CHI CLB TENNIS THĂNG LONG</h2>
+                        </div>
                         <div class="flex items-center gap-3">
                             <div class="bg-amber-50 p-2 rounded-xl border border-amber-300 text-right text-xs">
                                 <span class="font-bold text-amber-900 block text-[9px]">DƯ ĐẦU KỲ:</span>
@@ -496,10 +525,13 @@
                             <button onclick="selectCategory('Tiền chi liên hoan ăn nhậu')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">8. Tiền chi liên hoan ăn nhậu</button>
                             <button onclick="selectCategory('Tiền chi khác (Hiếu, Hỷ,...)')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">9. Tiền chi khác (Hiếu, Hỷ,...)</button>
                         </div>
+
                         <div class="md:col-span-2 bg-slate-50 p-3 rounded-xl border space-y-3">
                             <div class="flex justify-between items-center border-b pb-2">
                                 <h3 id="selectedCatTitle" class="font-black text-xs text-slate-800 uppercase">LỊCH SỬ DỮ LIỆU</h3>
-                                <div class="bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-lg text-xs font-black">Tổng: <span id="selectedCatTotal">0 đ</span></div>
+                                <div class="bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-lg text-xs font-black">
+                                    Tổng: <span id="selectedCatTotal">0 đ</span>
+                                </div>
                             </div>
                             <div class="overflow-x-auto max-h-60">
                                 <table class="w-full text-left text-xs border-collapse">
@@ -516,16 +548,27 @@
             <section id="tab-members" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-4 pb-3 border-b">
-                        <div><h2 class="text-base font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB</h2></div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB</h2>
+                        </div>
                         <div class="flex gap-2">
                             <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1"><i class="fa-solid fa-file-excel"></i> Excel</button>
                             <button onclick="openAddMemberModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow admin-only">+ Thêm</button>
                         </div>
                     </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Tên Thành Viên</th><th class="p-2.5 text-center">Username</th><th class="p-2.5 text-center">Trạng Thái</th><th class="p-2.5 text-center bg-amber-50">Base</th><th class="p-2.5 text-center">Vai Trò</th><th class="p-2.5 text-center admin-only">Thao Tác</th></tr>
+                                <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
+                                    <th class="p-2.5 text-center">STT</th>
+                                    <th class="p-2.5">Tên Thành Viên</th>
+                                    <th class="p-2.5 text-center">Username</th>
+                                    <th class="p-2.5 text-center">Trạng Thái</th>
+                                    <th class="p-2.5 text-center bg-amber-50">Base</th>
+                                    <th class="p-2.5 text-center">Vai Trò</th>
+                                    <th class="p-2.5 text-center admin-only">Thao Tác</th>
+                                </tr>
                             </thead>
                             <tbody id="memberTableBody" class="divide-y divide-slate-200"></tbody>
                         </table>
@@ -536,7 +579,12 @@
             <!-- TAB 10: QUY ĐỊNH & THÔNG BÁO CLB -->
             <section id="tab-rules" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-4xl mx-auto space-y-4">
-                    <div class="border-b pb-3 flex justify-between items-center"><div><h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-emerald-600"></i> QUY ĐỊNH & THÔNG BÁO CÂU LẠC BỘ</h2></div></div>
+                    <div class="border-b pb-3 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-emerald-600"></i> QUY ĐỊNH & THÔNG BÁO CÂU LẠC BỘ</h2>
+                        </div>
+                    </div>
+
                     <div id="adminRuleBox" class="bg-emerald-50 p-4 rounded-xl border border-emerald-300 hidden admin-only space-y-2.5">
                         <h3 class="font-extrabold text-[11px] text-emerald-900 uppercase"><i class="fa-solid fa-pen-nib"></i> ĐĂNG THÔNG BÁO MỚI</h3>
                         <form onsubmit="addNewRule(event)" class="space-y-2.5">
@@ -545,6 +593,7 @@
                             <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-4 py-2 rounded-lg shadow transition">+ ĐĂNG LÊN CLOUD</button>
                         </form>
                     </div>
+
                     <div id="rulesContainer" class="space-y-3"></div>
                 </div>
             </section>
@@ -554,65 +603,247 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-xl mx-auto">
                     <h2 class="text-base font-bold text-slate-800 mb-3 pb-2 border-b flex items-center gap-2"><i class="fa-solid fa-gears text-emerald-600"></i> CÀI ĐẶT THAM SỐ HỆ THỐNG</h2>
                     <form onsubmit="saveSystemSettings(event)" class="space-y-3 text-xs font-semibold text-slate-700">
-                        <div><label class="block mb-1 font-bold">Số tiền đóng quỹ 1 Quý (đ):</label><input type="number" id="stQuyAmount" required class="w-full p-2.5 border rounded-xl font-bold text-slate-900"></div>
+                        <div>
+                            <label class="block mb-1 font-bold">Số tiền đóng quỹ 1 Quý (đ):</label>
+                            <input type="number" id="stQuyAmount" required class="w-full p-2.5 border rounded-xl font-bold text-slate-900">
+                        </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <div><label class="block mb-1 font-bold">Thưởng 16h (đ):</label><input type="number" id="stReward16" required class="w-full p-2.5 border rounded-xl font-bold text-emerald-700"></div>
-                            <div><label class="block mb-1 font-bold">Thưởng 18h (đ):</label><input type="number" id="stReward18" required class="w-full p-2.5 border rounded-xl font-bold text-emerald-700"></div>
+                            <div>
+                                <label class="block mb-1 font-bold">Thưởng 16h (đ):</label>
+                                <input type="number" id="stReward16" required class="w-full p-2.5 border rounded-xl font-bold text-emerald-700">
+                            </div>
+                            <div>
+                                <label class="block mb-1 font-bold">Thưởng 18h (đ):</label>
+                                <input type="number" id="stReward18" required class="w-full p-2.5 border rounded-xl font-bold text-emerald-700">
+                            </div>
                         </div>
-                        <div><label class="block mb-1 font-bold">Giới hạn nhận thưởng tối đa / tháng:</label><input type="number" id="stMaxLimit" required class="w-full p-2.5 border rounded-xl font-bold text-amber-800"></div>
+                        <div>
+                            <label class="block mb-1 font-bold">Giới hạn nhận thưởng tối đa / tháng:</label>
+                            <input type="number" id="stMaxLimit" required class="w-full p-2.5 border rounded-xl font-bold text-amber-800">
+                        </div>
                         <div class="grid grid-cols-3 gap-2">
-                            <div><label class="block mb-1 font-bold">Bank ID:</label><input type="text" id="stBankId" required class="w-full p-2.5 border rounded-xl font-bold uppercase"></div>
-                            <div class="col-span-2"><label class="block mb-1 font-bold">Số Tài Khoản:</label><input type="text" id="stBankAccount" required class="w-full p-2.5 border rounded-xl font-bold"></div>
+                            <div>
+                                <label class="block mb-1 font-bold">Bank ID:</label>
+                                <input type="text" id="stBankId" required class="w-full p-2.5 border rounded-xl font-bold uppercase">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block mb-1 font-bold">Số Tài Khoản:</label>
+                                <input type="text" id="stBankAccount" required class="w-full p-2.5 border rounded-xl font-bold">
+                            </div>
                         </div>
-                        <div><label class="block mb-1 font-bold">Tên Chủ TK (Không dấu):</label><input type="text" id="stAccountName" required class="w-full p-2.5 border rounded-xl font-bold uppercase"></div>
+                        <div>
+                            <label class="block mb-1 font-bold">Tên Chủ TK (Không dấu):</label>
+                            <input type="text" id="stAccountName" required class="w-full p-2.5 border rounded-xl font-bold uppercase">
+                        </div>
                         <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow transition">LƯU CÀI ĐẶT</button>
                     </form>
                 </div>
             </section>
+
         </main>
     </div>
 
-    <!-- MODALS -->
+    <!-- MODAL TRUNG TÂM THÔNG BÁO -->
     <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl relative">
             <button onclick="closeNotificationModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <div class="flex items-center gap-2 border-b pb-2.5 text-emerald-800"><i class="fa-solid fa-bell text-lg"></i><h3 class="font-bold text-sm uppercase">TRUNG TÂM THÔNG BÁO & VINH DANH</h3></div>
+            <div class="flex items-center gap-2 border-b pb-2.5 text-emerald-800">
+                <i class="fa-solid fa-bell text-lg"></i>
+                <h3 class="font-bold text-sm uppercase">TRUNG TÂM THÔNG BÁO & VINH DANH</h3>
+            </div>
+            
             <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
                 <button onclick="switchNotifSubTab('san')" id="btnNotifSan" class="flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition">Sân Hôm Nay</button>
                 <button onclick="switchNotifSubTab('vinhdanh')" id="btnNotifVinhDanh" class="flex-1 py-2 rounded-lg text-slate-600 transition">Bảng Vàng Thành Tích</button>
             </div>
-            <div id="notifSubTabSan" class="space-y-2 max-h-72 overflow-y-auto"><div id="yesterdayBookingList" class="space-y-2"></div></div>
+
+            <div id="notifSubTabSan" class="space-y-2 max-h-72 overflow-y-auto">
+                <div id="yesterdayBookingList" class="space-y-2"></div>
+            </div>
+
             <div id="notifSubTabVinhDanh" class="space-y-3 hidden max-h-72 overflow-y-auto">
                 <div class="bg-gradient-to-r from-amber-500 via-emerald-600 to-teal-700 p-4 rounded-xl shadow text-white space-y-3">
-                    <div class="flex items-center justify-between border-b border-white/20 pb-1.5"><span class="font-black text-xs uppercase flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-300"></i> VINH DANH THÁNG NÀY</span><span id="gamificationMonthLabel" class="text-[10px] bg-white/20 px-2.5 py-0.5 rounded-full font-bold">Tháng này</span></div>
+                    <div class="flex items-center justify-between border-b border-white/20 pb-1.5">
+                        <span class="font-black text-xs uppercase flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-300"></i> VINH DANH THÁNG NÀY</span>
+                        <span id="gamificationMonthLabel" class="text-[10px] bg-white/20 px-2.5 py-0.5 rounded-full font-bold">Tháng này</span>
+                    </div>
                     <div class="space-y-2 text-xs">
-                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5"><div class="w-8 h-8 bg-amber-400 text-amber-950 rounded-full flex items-center justify-center font-black shadow">🥇</div><div><span class="text-[9px] text-amber-200 uppercase font-bold block">Vua Cày Sân</span><div id="vuaCaysan" class="font-black text-xs mt-0.5">Đang cập nhật...</div></div></div>
-                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5"><div class="w-8 h-8 bg-cyan-400 text-cyan-950 rounded-full flex items-center justify-center font-black shadow">🔥</div><div><span class="text-[9px] text-cyan-200 uppercase font-bold block">Nhiều Trận Thắng Nhất</span><div id="vuaThangtran" class="font-black text-xs mt-0.5">Đang cập nhật...</div></div></div>
-                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5"><div class="w-8 h-8 bg-emerald-400 text-emerald-950 rounded-full flex items-center justify-center font-black shadow">⭐</div><div><span class="text-[9px] text-emerald-200 uppercase font-bold block">Tỷ Lệ Thắng Cao Nhất (&ge;3 trận)</span><div id="vuaTyletang" class="font-black text-xs mt-0.5">Đang cập nhật...</div></div></div>
+                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-amber-400 text-amber-950 rounded-full flex items-center justify-center font-black shadow">🥇</div>
+                            <div>
+                                <span class="text-[9px] text-amber-200 uppercase font-bold block">Vua Cày Sân</span>
+                                <div id="vuaCaysan" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
+                            </div>
+                        </div>
+                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-cyan-400 text-cyan-950 rounded-full flex items-center justify-center font-black shadow">🔥</div>
+                            <div>
+                                <span class="text-[9px] text-cyan-200 uppercase font-bold block">Nhiều Trận Thắng Nhất</span>
+                                <div id="vuaThangtran" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
+                            </div>
+                        </div>
+                        <div class="bg-white/10 p-2.5 rounded-lg border border-white/20 flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-emerald-400 text-emerald-950 rounded-full flex items-center justify-center font-black shadow">⭐</div>
+                            <div>
+                                <span class="text-[9px] text-emerald-200 uppercase font-bold block">Tỷ Lệ Thắng Cao Nhất (&ge;3 trận)</span>
+                                <div id="vuaTyletang" class="font-black text-xs mt-0.5">Đang cập nhật...</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- MODAL HIỂN THỊ TÊN KHI BẤM ICON THÀNH VIÊN -->
     <div id="userProfileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-6 space-y-4 shadow-2xl text-center relative">
             <button onclick="closeUserProfileModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             <div class="w-14 h-14 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-2xl font-black mx-auto shadow">👤</div>
-            <div><span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tài khoản đăng nhập</span><h3 id="modalProfileName" class="font-black text-slate-800 text-base">Đang tải...</h3><p id="modalProfileRole" class="text-xs text-emerald-700 font-bold mt-1">Vai trò: Thành Viên</p></div>
+            <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tài khoản đăng nhập</span>
+                <h3 id="modalProfileName" class="font-black text-slate-800 text-base">Đang tải...</h3>
+                <p id="modalProfileRole" class="text-xs text-emerald-700 font-bold mt-1">Vai trò: Thành Viên</p>
+            </div>
             <button onclick="closeUserProfileModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-xs">ĐÓNG</button>
         </div>
     </div>
 
+    <!-- MODAL PHÓNG TO MÃ QR CÁ NHÂN -->
     <div id="qrZoomModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeQRZoomModal()">
         <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
             <button onclick="closeQRZoomModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="font-extrabold text-emerald-900 text-xs uppercase mb-3">MÃ QR CHUYỂN KHOẢN</h3>
             <img id="zoomQrImg" src="" alt="VietQR Zoomed" class="w-60 h-60 object-contain rounded-xl border shadow-md mb-2">
+            <p class="text-[10px] text-slate-500 font-semibold">Chạm hoặc chụp màn hình để quét mã</p>
         </div>
     </div>
 
-    <!-- JAVASCRIPT ĐẦY ĐỦ VỚI URL GOOGLE SHEET CHUẨN -->
+    <!-- MODAL THANH TOÁN QR TRONG BẢNG TÀI CHÍNH -->
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeQRModal()">
+        <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
+            <button onclick="closeQRModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-extrabold text-emerald-900 text-xs uppercase mb-1">MÃ QR THANH TOÁN</h3>
+            <p class="text-xs font-bold text-red-600 mb-2" id="qrAmountDisplay">0 đ</p>
+            <img id="qrImage" src="" alt="QR Thanh Toan" class="w-56 h-56 object-contain rounded-xl border shadow-md">
+        </div>
+    </div>
+
+    <!-- MODAL SỬA TRẬN ĐẤU -->
+    <div id="editMatchModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditMatchModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">SỬA TRẬN ĐẤU</h3>
+            <form onsubmit="saveMatchEdit(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="emMatchId">
+                <div><label class="block mb-1 font-bold">Thông tin trận:</label><input type="text" id="emMatchInfo" disabled class="w-full p-2 border rounded-lg font-bold bg-slate-100 text-slate-800 text-xs"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block mb-1">Điểm A:</label><input type="number" min="0" max="6" id="emScoreA" required class="w-full p-2 border rounded-lg font-bold text-emerald-800"></div>
+                    <div><label class="block mb-1">Điểm B:</label><input type="number" min="0" max="6" id="emScoreB" required class="w-full p-2 border rounded-lg font-bold text-blue-800"></div>
+                </div>
+                <div>
+                    <label class="block mb-1">Kèo Đặc Biệt:</label>
+                    <select id="emSpecialBet" class="w-full p-2 border rounded-lg font-bold text-amber-900">
+                        <option value="0">Không có kèo đặc biệt (Thường: 10k)</option>
+                        <option value="50000">Kèo đặc biệt 50.000 đ</option>
+                        <option value="100000">Kèo đặc biệt 100.000 đ</option>
+                        <option value="200000">Kèo đặc biệt 200.000 đ</option>
+                        <option value="500000">Kèo đặc biệt 500.000 đ</option>
+                        <option value="1000000">Kèo đặc biệt 1.000.000 đ</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU CẬP NHẬT</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT TIỀN GÓC NỘP -->
+    <div id="editGocLogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditGocLogModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">SỬA LỊCH SỬ TIỀN GÓC</h3>
+            <form onsubmit="saveGocLogEdit(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="egLogId">
+                <div><label class="block mb-1">Thành viên:</label><input type="text" id="egMemberName" disabled class="w-full p-2 border rounded-lg font-bold bg-slate-100"></div>
+                <div><label class="block mb-1">Số tiền (đ):</label><input type="number" id="egAmount" required class="w-full p-2 border rounded-lg font-bold text-emerald-800"></div>
+                <div><label class="block mb-1">Ghi chú:</label><input type="text" id="egNote" class="w-full p-2 border rounded-lg font-bold text-slate-800"></div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT QUỸ LINH HOẠT -->
+    <div id="editQuyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditQuyModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">CẬP NHẬT ĐÓNG QUỸ</h3>
+            <form onsubmit="saveQuyMember(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="eqMemberIdx">
+                <div><label class="block mb-1">Thành viên:</label><input type="text" id="eqMemberName" disabled class="w-full p-2 border rounded-lg font-bold bg-slate-100"></div>
+                <div><label class="block mb-1">Kỳ Đóng:</label><input type="text" id="eqKyDisplay" disabled class="w-full p-2 border rounded-lg font-bold text-emerald-800 bg-emerald-50"></div>
+                <div><label class="block mb-1">Số tiền (đ):</label><input type="number" id="eqAmount" required class="w-full p-2 border rounded-lg font-bold text-slate-900"></div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">XÁC NHẬN</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM CẦU THỦ MỚI -->
+    <div id="addMemberModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeAddMemberModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">THÊM THÀNH VIÊN MỚI</h3>
+            <form onsubmit="saveNewMember(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <div><label class="block mb-1">Tên Thành Viên (*):</label><input type="text" id="newMemName" required placeholder="Ví dụ: Nguyễn Văn A" class="w-full p-2 border rounded-lg font-bold text-slate-900"></div>
+                <div><label class="block mb-1">Điểm Base (*):</label><input type="number" step="0.05" id="newMemBase" value="6.2" required class="w-full p-2 border rounded-lg font-bold text-amber-700"></div>
+                <div>
+                    <label class="block mb-1">Trạng Thái:</label>
+                    <select id="newMemStatus" class="w-full p-2 border rounded-lg font-bold text-slate-800">
+                        <option value="Đang tham gia" selected>Đang tham gia</option>
+                        <option value="Bận tạm nghỉ">Bận tạm nghỉ</option>
+                        <option value="Đặc cách">Đặc cách</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">+ LƯU</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT THÔNG TIN THÀNH VIÊN -->
+    <div id="editMemberModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditMemberModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">SỬA THÔNG TIN THÀNH VIÊN</h3>
+            <form onsubmit="saveMemberInfo(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="editMemIdx">
+                <div><label class="block mb-1">Tên Thành Viên (*):</label><input type="text" id="editMemName" required class="w-full p-2 border rounded-lg font-bold text-slate-900"></div>
+                <div><label class="block mb-1">Điểm Base (*):</label><input type="number" step="0.05" id="editMemBase" required class="w-full p-2 border rounded-lg font-bold text-amber-700"></div>
+                <div>
+                    <label class="block mb-1">Trạng Thái (*):</label>
+                    <select id="editMemStatus" class="w-full p-2 border rounded-lg font-bold text-slate-800">
+                        <option value="Đang tham gia">Đang tham gia</option>
+                        <option value="Bận tạm nghỉ">Bận tạm nghỉ</option>
+                        <option value="Đặc cách">Đặc cách</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT NỢ CŨ -->
+    <div id="editFinanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl relative">
+            <button onclick="closeEditFinanceModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 uppercase text-emerald-800">SỬA SỐ LIỆU NỢ CŨ</h3>
+            <form onsubmit="saveFinanceData(event)" class="space-y-3 text-xs font-semibold text-slate-600">
+                <input type="hidden" id="efMemberIdx">
+                <div><label class="block mb-1">Thành viên:</label><input type="text" id="efMemberName" disabled class="w-full p-2 border rounded-lg font-bold bg-slate-100"></div>
+                <div><label class="block mb-1">Nợ tháng trước (đ):</label><input type="number" id="efNoOld" required class="w-full p-2 border rounded-lg font-bold text-red-600"></div>
+                <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow">LƯU</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzfqbFiXKuRa9cLvhJvPXR9dnGLmIrasfKTXhJmbyz1mS3Eivu5fJZs4hk99l2dbMXtg/exec";
 
@@ -687,13 +918,39 @@
             let now = new Date();
             let curMonth = now.getMonth() + 1;
             let curYear = now.getFullYear();
+            
             if (document.getElementById('selectFinanceMonth')) document.getElementById('selectFinanceMonth').value = curMonth;
             if (document.getElementById('selectFinanceYear')) document.getElementById('selectFinanceYear').value = curYear;
+
             loadLocalData();
             if (!members || members.length === 0) members = defaultFallbackMembers;
+
+            checkAndRolloverMonth(now);
             initApp();
             fetchCloudData(false);
         });
+
+        function checkAndRolloverMonth(nowDate) {
+            let lastCheckDate = localStorage.getItem('clb_last_rollover_date') || "";
+            let currentMonthKey = `${nowDate.getFullYear()}-${nowDate.getMonth() + 1}`;
+            
+            if (nowDate.getDate() === 1 && lastCheckDate !== currentMonthKey) {
+                let prevMonth = nowDate.getMonth();
+                let prevYear = nowDate.getFullYear();
+                if (prevMonth === 0) { prevMonth = 12; prevYear--; }
+
+                members.forEach(m => {
+                    let fPrev = calculateUserFinanceForMonth(m.name, prevMonth, prevYear);
+                    if (fPrev.totalPay !== 0) {
+                        m.noOld = (m.noOld || 0) + fPrev.totalPay;
+                    }
+                });
+
+                localStorage.setItem('clb_members', JSON.stringify(members));
+                localStorage.setItem('clb_last_rollover_date', currentMonthKey);
+                enqueueAction("updateMember", { members: members }, "Hệ thống đã tự động chuyển số dư tháng trước thành Nợ cũ sang tháng mới!");
+            }
+        }
 
         function showToast(msg) {
             let toast = document.getElementById('appToast');
@@ -733,13 +990,17 @@
         function enqueueAction(actionName, payload, successMessage) {
             payload.action = actionName;
             syncQueue.push(payload);
+
             if (actionName === "addMatch" && payload.match) matches.unshift(payload.match);
+            else if (actionName === "updateMatch" && payload.match) {
+                let m = matches.find(x => x.id == payload.match.id);
+                if (m) { m.scoreA = payload.match.scoreA; m.scoreB = payload.match.scoreB; m.specialBet = payload.match.specialBet; }
+            }
             else if (actionName === "addGocLog" && payload.gocLog) gocLogs.unshift(payload.gocLog);
             else if (actionName === "addBooking" && payload.booking) bookingLogs.unshift(payload.booking);
             else if (actionName === "addCashbook" && payload.cashbook) cashbookLogs.unshift(payload.cashbook);
             else if (actionName === "addRule" && payload.rule) rulesList.unshift(payload.rule);
             else if (actionName === "updateSettings" && payload.settings) systemSettings = payload.settings;
-            else if (actionName === "updateMember" && payload.members) members = payload.members;
             else if (actionName === "deleteItem") {
                 let id = payload.id;
                 if (payload.sheetName === "Matches") matches = matches.filter(x => x.id != id);
@@ -748,6 +1009,7 @@
                 if (payload.sheetName === "GocLogs") gocLogs = gocLogs.filter(x => x.id != id);
                 if (payload.sheetName === "Rules") rulesList = rulesList.filter(x => x.id != id);
             }
+
             saveLocalData();
             initApp();
             showToast(successMessage || "Đã ghi nhận thành công!");
@@ -758,6 +1020,7 @@
             if (isSyncing || syncQueue.length === 0 || !GOOGLE_SCRIPT_URL) return;
             isSyncing = true;
             let item = syncQueue[0];
+
             fetch(GOOGLE_SCRIPT_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -770,39 +1033,71 @@
                 saveLocalData();
                 if (syncQueue.length > 0) processQueue();
             })
-            .catch(() => { isSyncing = false; });
+            .catch(err => {
+                isSyncing = false;
+            });
         }
 
         function handleLogin(e) {
             e.preventDefault();
             let u = document.getElementById('loginUser').value.trim();
             let p = document.getElementById('loginPass').value.trim();
+
             loadLocalData();
             if (!members || members.length === 0) members = defaultFallbackMembers;
+
             let foundMem = members.find(m => m.username && m.username.toLowerCase() === u.toLowerCase());
+
             if (!foundMem) {
                 let match = u.match(/^Thanglong(\d+)$/i);
-                if (match) foundMem = members.find(m => m.stt === parseInt(match[1]));
+                if (match) {
+                    let sttNum = parseInt(match[1]);
+                    foundMem = members.find(m => m.stt === sttNum);
+                }
             }
-            if (!foundMem) { alert("Tài khoản không tồn tại!"); return; }
+
+            if (!foundMem) {
+                alert("Tài khoản không tồn tại trên hệ thống!");
+                return;
+            }
+
             let isSystemAdmin = (foundMem.role === 'admin' || foundMem.stt === 1 || foundMem.stt === 2 || foundMem.stt === 15);
-            if (p !== (isSystemAdmin ? 'admin' : '123456')) { alert("Mật khẩu không chính xác!"); return; }
+            let requiredPass = isSystemAdmin ? 'admin' : '123456';
+
+            if (p !== requiredPass) {
+                alert("Mật khẩu không chính xác!");
+                return;
+            }
 
             currentUserRole = isSystemAdmin ? "admin" : "member";
             loggedInMemberName = foundMem.name;
+
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
             document.getElementById('appScreen').classList.add('flex');
+            
             document.getElementById('mobileHeaderUserDisplay').innerText = loggedInMemberName;
             document.getElementById('modalProfileName').innerText = loggedInMemberName;
             document.getElementById('modalProfileRole').innerText = "Vai trò: " + (currentUserRole === 'admin' ? "Admin Tổng" : "Thành Viên");
+            
             initApp();
+            
             let dashSelect = document.getElementById('dashMainUser');
-            if (dashSelect) { dashSelect.value = loggedInMemberName; dashSelect.disabled = (currentUserRole !== 'admin'); }
+            if (dashSelect) {
+                dashSelect.value = loggedInMemberName;
+                if (currentUserRole !== 'admin') {
+                    dashSelect.disabled = true;
+                } else {
+                    dashSelect.disabled = false;
+                }
+            }
+
             fetchCloudData(true);
+            setInterval(() => { processQueue(); }, 5000);
         }
 
         function logout() { location.reload(); }
+
         function applyRolePermissions() {
             document.querySelectorAll('.admin-only').forEach(el => {
                 if (currentUserRole === 'admin') el.classList.remove('hidden');
@@ -816,13 +1111,39 @@
             document.getElementById('tab-' + tabId).classList.add('active');
             let activeBtn = document.getElementById('btn-' + tabId);
             if (activeBtn) activeBtn.classList.add('border-amber-400', 'text-amber-300', 'font-bold', 'bg-emerald-800');
+            
             document.getElementById('mobileMenuDrawer').classList.add('hidden');
         }
 
-        function switchTabMobile(tabId, label) { document.getElementById('currentActiveTabLabel').innerText = label; switchTab(tabId); }
-        function toggleMobileMenu() { let d = document.getElementById('mobileMenuDrawer'); d.classList.toggle('hidden'); }
-        function openUserProfileModal() { document.getElementById('userProfileModal').classList.remove('hidden'); document.getElementById('userProfileModal').classList.add('flex'); }
-        function closeUserProfileModal() { document.getElementById('userProfileModal').classList.add('hidden'); document.getElementById('userProfileModal').classList.remove('flex'); }
+        function switchTabMobile(tabId, label) {
+            document.getElementById('currentActiveTabLabel').innerText = label;
+            switchTab(tabId);
+        }
+
+        function toggleMobileMenu() {
+            let drawer = document.getElementById('mobileMenuDrawer');
+            if (drawer.classList.contains('hidden')) {
+                drawer.classList.remove('hidden');
+            } else {
+                drawer.classList.add('hidden');
+            }
+        }
+
+        function openUserProfileModal() {
+            let modal = document.getElementById('userProfileModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeUserProfileModal() {
+            let modal = document.getElementById('userProfileModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
 
         function initApp() {
             if (!members || members.length === 0) members = defaultFallbackMembers;
@@ -839,6 +1160,7 @@
             renderCashbook();
             renderMemberList();
             renderRulesTab();
+            checkYesterdayBookingsNotification();
             applyRolePermissions();
         }
 
@@ -850,7 +1172,9 @@
             document.getElementById('stBankId').value = systemSettings.bankId;
             document.getElementById('stBankAccount').value = systemSettings.bankAccount;
             document.getElementById('stAccountName').value = systemSettings.accountName;
-            document.getElementById('dashQrImg').src = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?accountName=${encodeURIComponent(systemSettings.accountName)}`;
+
+            let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?accountName=${encodeURIComponent(systemSettings.accountName)}`;
+            document.getElementById('dashQrImg').src = qrUrl;
         }
 
         function saveSystemSettings(e) {
@@ -862,11 +1186,12 @@
             systemSettings.bankId = document.getElementById('stBankId').value.trim().toUpperCase();
             systemSettings.bankAccount = document.getElementById('stBankAccount').value.trim();
             systemSettings.accountName = document.getElementById('stAccountName').value.trim().toUpperCase();
-            enqueueAction("updateSettings", { settings: systemSettings }, "Đã lưu cài đặt hệ thống!");
+
+            enqueueAction("updateSettings", { settings: systemSettings }, "Đã lưu cài đặt hệ thống lên Cloud thành công!");
         }
 
         function recalculateMemberPaidTotals() {
-            if (!members) return;
+            if (!members || members.length === 0) return;
             members.forEach(m => {
                 let userLogs = gocLogs.filter(g => g.name === m.name);
                 m.paidUser = userLogs.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
@@ -874,147 +1199,173 @@
         }
 
         function populateSelectors() {
-            if (!members) return;
+            if (!members || members.length === 0) return;
             ['dashMainUser', 'matchP1A', 'matchP2A', 'matchP1B', 'matchP2B', 'filterGocUser'].forEach(id => {
                 let sel = document.getElementById(id);
                 if (!sel) return;
-                let curVal = sel.value;
-                sel.innerHTML = (id === 'filterGocUser') ? '<option value="ALL">-- Tất cả thành viên --</option>' : '';
+                let currentVal = sel.value;
+                if (id === 'filterGocUser') {
+                    sel.innerHTML = '<option value="ALL">-- Tất cả thành viên --</option>';
+                } else {
+                    sel.innerHTML = '';
+                }
                 members.forEach(m => {
                     let opt = document.createElement('option');
-                    opt.value = m.name; opt.textContent = m.name;
+                    opt.value = m.name;
+                    opt.textContent = m.name;
                     sel.appendChild(opt);
                 });
-                if (curVal) sel.value = curVal;
+                if (currentVal) sel.value = currentVal;
             });
-            if (loggedInMemberName && document.getElementById('dashMainUser')) {
-                document.getElementById('dashMainUser').value = loggedInMemberName;
+
+            if (loggedInMemberName) {
+                let dashSelect = document.getElementById('dashMainUser');
+                if (dashSelect) {
+                    dashSelect.value = loggedInMemberName;
+                    if (currentUserRole !== 'admin') {
+                        dashSelect.disabled = true;
+                    }
+                }
             }
         }
 
         function renderGamification() {
             let curMonth = document.getElementById('selectFinanceMonth') ? document.getElementById('selectFinanceMonth').value : (new Date().getMonth() + 1);
             let curYear = document.getElementById('selectFinanceYear') ? document.getElementById('selectFinanceYear').value : new Date().getFullYear();
-            if(document.getElementById('gamificationMonthLabel')) document.getElementById('gamificationMonthLabel').innerText = `Tháng ${curMonth}/${curYear}`;
+            
+            document.getElementById('gamificationMonthLabel').innerText = `Tháng ${curMonth}/${curYear}`;
+
+            let statsMap = {};
+            if (members && members.length > 0) {
+                members.forEach(m => {
+                    statsMap[m.name] = { name: m.name, matches: 0, wins: 0 };
+                });
+            }
+
+            matches.forEach(m => {
+                let mTime = m.time || "";
+                let isThisMonth = mTime.includes(`/${curMonth}/${curYear}`) || mTime.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
+                if (!isThisMonth) return;
+
+                let players = [m.p1_v1, m.p2_v1, m.p1_v2, m.p2_v2];
+                players.forEach(p => {
+                    if (!p) return;
+                    if (!statsMap[p]) statsMap[p] = { name: p, matches: 0, wins: 0 };
+                    statsMap[p].matches++;
+                });
+
+                if (m.scoreA !== m.scoreB) {
+                    let winningTeam = m.scoreA > m.scoreB ? [m.p1_v1, m.p2_v1] : [m.p1_v2, m.p2_v2];
+                    winningTeam.forEach(p => {
+                        if (p && statsMap[p]) statsMap[p].wins++;
+                    });
+                }
+            });
+
+            let arr = Object.values(statsMap);
+            
+            let mostMatches = [...arr].sort((a, b) => b.matches - a.matches)[0];
+            document.getElementById('vuaCaysan').innerText = (mostMatches && mostMatches.matches > 0) ? `${mostMatches.name} (${mostMatches.matches} trận)` : "Chưa có dữ liệu";
+
+            let mostWins = [...arr].sort((a, b) => b.wins - a.wins)[0];
+            document.getElementById('vuaThangtran').innerText = (mostWins && mostWins.wins > 0) ? `${mostWins.name} (${mostWins.wins} trận thắng)` : "Chưa có dữ liệu";
+
+            let qualified = arr.filter(x => x.matches >= 3);
+            qualified.sort((a, b) => (b.wins / b.matches) - (a.wins / a.matches));
+            let bestRate = qualified[0];
+            document.getElementById('vuaTyletang').innerText = (bestRate && bestRate.matches > 0) ? `${bestRate.name} (${((bestRate.wins/bestRate.matches)*100).toFixed(0)}%)` : "Cần >= 3 trận";
         }
 
         function copyReminderText() {
             let mSel = document.getElementById('selectFinanceMonth').value;
             let ySel = document.getElementById('selectFinanceYear').value;
+
             let debtList = [];
-            members.forEach(m => {
-                let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
-                if (f.totalPay > 0) debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
-            });
-            let text = `🎾 CLB TENNIS THĂNG LONG - NHẮC NỢ THÁNG ${mSel}/${ySel} 🎾\n` + (debtList.length === 0 ? "Tất cả anh em đã hoàn thành nghĩa vụ tài chính.\n" : debtList.join('\n') + "\n\n") + `👉 Chuyển khoản: ${systemSettings.bankId} (${systemSettings.bankAccount}) - ${systemSettings.accountName}\nNội dung: Nop tien goc <Tên của bạn>`;
-            navigator.clipboard.writeText(text).then(() => showToast("Đã sao chép tin nhắn nhắc nợ!"));
-        }
-
-        // --- HÀM KIỂM TRA TRÙNG LẶP TRẬN ĐẤU (ĐÚNG 4 NGƯỜI, ĐÚNG TỶ SỐ, 18H QUA) ---
-        function addMatch(e) {
-            e.preventDefault();
-            let p1A = document.getElementById('matchP1A').value, p2A = document.getElementById('matchP2A').value;
-            let p1B = document.getElementById('matchP1B').value, p2B = document.getElementById('matchP2B').value;
-            let scoreA = parseInt(document.querySelector('input[name="scoreA"]:checked')?.value) || 0;
-            let scoreB = parseInt(document.querySelector('input[name="scoreB"]:checked')?.value) || 0;
-            let specialBet = parseInt(document.getElementById('specialBet').value);
-
-            let newPlayersSet = new Set([p1A, p2A, p1B, p2B]);
-            let nowTime = Date.now();
-            let limitMs = 18 * 60 * 60 * 1000;
-
-            let duplicateMatch = matches.find(m => {
-                let mTimeMs = parseMatchTimeToTimestamp(m.time);
-                if (nowTime - mTimeMs > limitMs) return false;
-                if (m.scoreA !== scoreA || m.scoreB !== scoreB) return false;
-                let oldPlayersSet = new Set([m.p1_v1, m.p2_v1, m.p1_v2, m.p2_v2]);
-                return oldPlayersSet.size === newPlayersSet.size && [...newPlayersSet].every(p => oldPlayersSet.has(p));
-            });
-
-            if (duplicateMatch) {
-                let confirmAdd = confirm(`Hệ thống đã ghi nhận 1 trận tương tự thời gian "${duplicateMatch.time}", bạn có muốn ghi thêm 1 trận đấu nữa vào không`);
-                if (!confirmAdd) return;
+            if (members && members.length > 0) {
+                members.forEach(m => {
+                    let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
+                    if (f.totalPay > 0) {
+                        debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
+                    }
+                });
             }
 
-            enqueueAction("addMatch", { match: { id: Date.now(), time: new Date().toLocaleString('vi-VN'), p1_v1: p1A, p2_v1: p2A, scoreA, scoreB, p1_v2: p1B, p2_v2: p2B, specialBet } }, "Đã lưu kết quả trận đấu!");
-            document.getElementById('matchForm').reset();
-            document.querySelectorAll('input[name="scoreA"]').forEach(el => el.checked = false);
-            document.querySelectorAll('input[name="scoreB"]').forEach(el => el.checked = false);
+            let text = `🎾 CLB TENNIS THĂNG LONG - NHẮC NỢ TÀI CHÍNH THÁNG ${mSel}/${ySel} 🎾\n`;
+            text += `Thân gửi anh em, hệ thống ghi nhận các khoản đóng góp và góc tháng ${mSel} như sau:\n\n`;
+            if (debtList.length === 0) {
+                text += `Tuyệt vời! Hiện tại tất cả anh em đều đã hoàn thành nghĩa vụ tài chính.\n`;
+            } else {
+                text += debtList.join('\n') + `\n\n`;
+            }
+            text += `👉 Anh em chuyển khoản về:\n`;
+            text += `- Ngân hàng: ${systemSettings.bankId} (${systemSettings.bankAccount})\n`;
+            text += `- Chủ TK: ${systemSettings.accountName}\n`;
+            text += `- Nội dung CK: Nop tien goc <Tên của bạn>\n`;
+            text += `Trân trọng cảm ơn anh em! 🙏`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Đã sao chép nội dung tin nhắn nhắc nợ vào bộ nhớ tạm!");
+            }).catch(err => {
+                alert("Không thể tự động sao chép. Vui lòng thử lại!");
+            });
         }
 
-        function parseMatchTimeToTimestamp(timeStr) {
-            if (!timeStr) return 0;
-            try {
-                let parts = timeStr.split(" ");
-                let dmy = (parts.length > 1 ? parts[1] : parts[0]).split("/");
-                let hms = (parts.length > 1 ? parts[0] : "00:00:00").split(":");
-                if (dmy.length === 3) return new Date(dmy[2], dmy[1]-1, dmy[0], hms[0]||0, hms[1]||0, hms[2]||0).getTime();
-            } catch (err) {}
-            return 0;
-        }
-
-        // --- HÀM KIỂM TRA TRÙNG THƯỞNG SÂN & QUỸ QUÝ ---
         function handleDashboardSubmit() {
             let main = document.getElementById('dashMainUser').value;
             let actType = document.querySelector('input[name="actType"]:checked').value;
+            let q = document.getElementById('selectQuy').value;
+            let y = document.getElementById('selectNam').value;
+            let key = q + "_" + y;
 
-            if (actType === "dat16" || actType === "dat18") {
-                let frame = (actType === "dat16") ? "16h-18h" : "18h-20h (CVTT5)";
-                let duplicate = bookingLogs.find(b => b.name === main && b.frame === frame && (Date.now() - parseMatchTimeToTimestamp(b.time)) < 18*60*60*1000);
-                
-                if (duplicate) {
-                    let confirmAdd = confirm(`Thành viên ${main} đã được ghi nhận thưởng sân ${frame} vào lúc "${duplicate.time}". Bạn có muốn ghi thêm 1 lần nữa không?`);
-                    if (!confirmAdd) return;
+            if (!members || members.length === 0) members = defaultFallbackMembers;
+            let m = members.find(item => item.name === main) || members[0];
+
+            if (actType === "goc") {
+                switchTab('matches');
+                document.getElementById('matchP1A').value = main;
+            } else if (actType === "dat16") {
+                let curMonth = document.getElementById('selectFinanceMonth').value;
+                let curYear = document.getElementById('selectFinanceYear').value;
+                let userBookingsThisMonth = bookingLogs.filter(b => {
+                    if (b.name !== main) return false;
+                    let t = b.time || "";
+                    return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+                });
+                if (userBookingsThisMonth.length >= systemSettings.maxRewardLimit) {
+                    alert(`Thành viên ${main} đã đạt giới hạn tối đa ${systemSettings.maxRewardLimit} lần nhận thưởng đặt sân trong tháng này!`);
+                    return;
                 }
-                let reward = (actType === "dat16") ? systemSettings.reward16h : systemSettings.reward18h;
-                enqueueAction("addBooking", { booking: { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame, reward } }, "Đã ghi nhận thưởng sân thành công!");
-            }
-            else if (actType === "quy") {
-                let q = document.getElementById('selectQuy').value;
-                let y = document.getElementById('selectNam').value;
-                let key = q + "_" + y;
-                let m = members.find(item => item.name === main);
-                if (m && m.quyHistory && m.quyHistory[key] !== undefined) {
-                    let confirmUpdate = confirm(`Thành viên ${main} đã đóng quỹ ${q}/${y} rồi. Bạn có muốn cập nhật lại không?`);
-                    if (!confirmUpdate) return;
-                }
+                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: systemSettings.reward16h };
+                enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Thưởng sân 16h thành công!");
+            } else if (actType === "dat18") {
+                let curMonth = document.getElementById('selectFinanceMonth').value;
+                let curYear = document.getElementById('selectFinanceYear').value;
+                let userBookingsThisMonth = bookingLogs.filter(b => {
+                    if (b.name !== main) return false;
+                    let t = b.time || "";
+                    return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+                });
+
+                let isHoangVanThai = (main.toLowerCase().includes("hoàng văn thái") || m.username === "Thanglong15");
+                let rewardAmount = isHoangVanThai ? 0 : systemSettings.reward18h;
+
+                let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h (CVTT5)", reward: rewardAmount };
+                enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Thưởng sân 18h thành công!");
+            } else if (actType === "quy") {
                 if (!m.quyHistory) m.quyHistory = {};
                 m.quyHistory[key] = systemSettings.quyAmount;
                 enqueueAction("updateMember", { members: members }, "Đã ghi nhận Tiền quỹ QUÝ thành công!");
             }
-            else if (actType === "goc") {
-                switchTab('matches');
-                document.getElementById('matchP1A').value = main;
-            }
-        }
-
-        // --- HÀM THÔNG BÁO ALERT NỘP TIỀN & SỔ QUỸ ---
-        function submitUserPayment() {
-            let main = document.getElementById('dashMainUser').value;
-            let val = parseInt(document.getElementById('userPaidInput').value) || 0;
-            if (val <= 0) return alert("Vui lòng nhập số tiền hợp lệ!");
-            enqueueAction("addGocLog", { gocLog: { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, amount: val, note: "Thành viên tự nhập CK" } }, "Đã ghi nhận nộp tiền góc!");
-            alert(`Hệ thống đã ghi nhận nộp ${val.toLocaleString()} đ tiền góc.`);
-            document.getElementById('userPaidInput').value = '';
-        }
-
-        function addCashbookEntry(e) {
-            e.preventDefault();
-            let cat = document.getElementById('cbCategory').value;
-            let amt = parseInt(document.getElementById('cbAmount').value) || 0;
-            let note = document.getElementById('cbNote').value || cat;
-            enqueueAction("addCashbook", { cashbook: { id: Date.now(), category: cat, amount: amt, note, time: new Date().toLocaleDateString('vi-VN') } }, "Đã ghi nhận thu/chi thành công!");
-            alert(`Hệ thống đã ghi nhận khoản ${cat} với số tiền ${amt.toLocaleString()} đ thành công!`);
-            document.getElementById('cbAmount').value = '';
-            document.getElementById('cbNote').value = '';
         }
 
         function calculateUserFinanceForMonth(memberName, targetMonth, targetYear) {
             let totalWins = 0, totalLosses = 0, totalDraws = 0, totalMatchCount = 0;
             let monthMatchCount = 0, monthRegularFee = 0, monthSpecialBetFee = 0;
+
             matches.forEach(match => {
                 let isV1 = (match.p1_v1 === memberName || match.p2_v1 === memberName);
                 let isV2 = (match.p1_v2 === memberName || match.p2_v2 === memberName);
+                
                 if (isV1 || isV2) {
                     totalMatchCount++;
                     if (match.scoreA === match.scoreB) totalDraws++;
@@ -1022,66 +1373,988 @@
                     else totalLosses++;
 
                     let mTime = match.time || "";
-                    if (mTime.includes(`/${targetMonth}/${targetYear}`) || mTime.includes(` ${targetMonth}/${targetYear}`) || (targetMonth == 8 && targetYear == 2026)) {
+                    let isTargetTime = false;
+                    if (mTime.includes(`/${targetMonth}/${targetYear}`) || mTime.includes(` ${targetMonth}/${targetYear}`)) {
+                        isTargetTime = true;
+                    } else if (targetMonth == 8 && targetYear == 2026 && (!mTime || mTime.includes("4/8/2026") || mTime.includes("2026"))) {
+                        isTargetTime = true;
+                    }
+
+                    if (isTargetTime) {
                         monthMatchCount++;
-                        if (match.scoreA === match.scoreB) monthRegularFee += 10000;
-                        else if (!((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA))) {
+                        if (match.scoreA === match.scoreB) {
+                            monthRegularFee += 10000;
+                        } else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) {
+                            // Thắng không mất góc
+                        } else {
                             monthRegularFee += 10000;
                             if (match.specialBet > 0) monthSpecialBetFee += parseInt(match.specialBet);
                         }
                     }
                 }
             });
+
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0 };
             let cappedBaseFee = Math.min(150000, monthRegularFee);
             let totalPay = cappedBaseFee + monthSpecialBetFee + (m.noOld || 0) - (m.paidUser || 0);
-            return { totalMatchCount, totalWins, totalLosses, totalDraws, monthMatchCount, monthRegularFee, monthSpecialBetFee, cappedBaseFee, totalPay };
+
+            return {
+                totalMatchCount, totalWins, totalLosses, totalDraws,
+                monthMatchCount, monthRegularFee, monthSpecialBetFee, cappedBaseFee,
+                totalPay: totalPay
+            };
+        }
+
+        function calculateUserFinance(memberName) {
+            let mSel = document.getElementById('selectFinanceMonth') ? document.getElementById('selectFinanceMonth').value : "8";
+            let ySel = document.getElementById('selectFinanceYear') ? document.getElementById('selectFinanceYear').value : "2026";
+            return calculateUserFinanceForMonth(memberName, mSel, ySel);
         }
 
         function renderDashboard() {
+            if (!members || members.length === 0) members = defaultFallbackMembers;
             let main = document.getElementById('dashMainUser').value;
             if (!main && members.length > 0) main = members[0].name;
             if (!main) return;
-            let f = calculateUserFinanceForMonth(main, document.getElementById('selectFinanceMonth').value, document.getElementById('selectFinanceYear').value);
+
+            let f = calculateUserFinance(main);
+            let m = members.find(item => item.name === main) || members[0];
+
+            let qSel = document.getElementById('selectQuy').value;
+            let ySel = document.getElementById('selectNam').value;
+            let key = qSel + "_" + ySel;
+            let paidQuy = (m.quyHistory && m.quyHistory[key] !== undefined) ? parseInt(m.quyHistory[key]) : 0;
+            let warningBanner = document.getElementById('quyWarningBanner');
+
+            let hasWarning = (m.status === 'Đang tham gia' && ((m.noOld || 0) > 0 || paidQuy < systemSettings.quyAmount));
+            if (hasWarning) {
+                warningBanner.classList.remove('hidden');
+                warningBanner.classList.add('flex');
+                let warningMsg = [];
+                if ((m.noOld || 0) > 0) warningMsg.push(`có số tiền Nợ cũ là ${m.noOld.toLocaleString()} đ`);
+                if (paidQuy < systemSettings.quyAmount) warningMsg.push(`chưa đóng quỹ ${qSel}/${ySel}`);
+                document.getElementById('quyWarningText').innerText = `${m.name} ơi, bạn ${warningMsg.join(' và ')}. Vui lòng hoàn thành nhé!`;
+            } else {
+                warningBanner.classList.add('hidden');
+                warningBanner.classList.remove('flex');
+            }
+
             document.getElementById('statTotal').innerText = f.totalMatchCount;
-            document.getElementById('statWins').innerText = f.totalWins + " (" + (f.totalMatchCount > 0 ? ((f.totalWins/f.totalMatchCount)*100).toFixed(0)+'%' : '0%') + ")";
+            let winRate = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
+            document.getElementById('statWins').innerText = f.totalWins + " (" + winRate + ")";
             document.getElementById('statDraws').innerText = f.totalDraws;
             document.getElementById('statLosses').innerText = f.totalLosses;
+
+            let curMonth = document.getElementById('selectFinanceMonth').value;
+            let curYear = document.getElementById('selectFinanceYear').value;
+            let userBookingsThisMonth = bookingLogs.filter(b => {
+                if (b.name !== main) return false;
+                let t = b.time || "";
+                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+            });
+
+            let totalReward = userBookingsThisMonth.reduce((sum, b) => sum + parseInt(b.reward), 0);
+            document.getElementById('statReward').innerText = totalReward.toLocaleString() + " đ";
+
             document.getElementById('statDebt').innerText = f.totalPay.toLocaleString() + " đ";
-            let m = members.find(item => item.name === main);
-            if (m) document.getElementById('statPaidDisplay').innerText = (m.paidUser || 0).toLocaleString() + " đ";
+            document.getElementById('statPaidDisplay').innerText = (m.paidUser || 0).toLocaleString() + " đ";
+
+            let matchBody = document.getElementById('userMatchHistoryBody');
+            matchBody.innerHTML = '';
+            let userMatchesThisMonth = matches.filter(match => {
+                let isUserIn = (match.p1_v1 === main || match.p2_v1 === main || match.p1_v2 === main || match.p2_v2 === main);
+                if (!isUserIn) return false;
+                let t = match.time || "";
+                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
+            });
+
+            userMatchesThisMonth.forEach((mItem, idx) => {
+                let isV1 = (mItem.p1_v1 === main || mItem.p2_v1 === main);
+                let teammate = isV1 ? (mItem.p1_v1 === main ? mItem.p2_v1 : mItem.p1_v1) : (mItem.p1_v2 === main ? mItem.p2_v2 : mItem.p1_v2);
+                let opponents = isV1 ? (mItem.p1_v2 + " & " + mItem.p2_v2) : (mItem.p1_v1 + " & " + mItem.p2_v1);
+                matchBody.innerHTML += `<tr class="border-b"><td class="p-2 text-center font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2 font-semibold text-slate-800">${teammate}</td><td class="p-2 font-semibold text-slate-800">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${mItem.scoreA}-${mItem.scoreB}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
+            });
+
+            let rewardBody = document.getElementById('userRewardHistoryBody');
+            rewardBody.innerHTML = '';
+            userBookingsThisMonth.forEach(b => {
+                rewardBody.innerHTML += `<tr class="border-b"><td class="p-1.5">${b.time}</td><td class="p-1.5 text-center font-bold text-amber-700">${b.frame}</td><td class="p-1.5 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td></tr>`;
+            });
+
+            let gocBody = document.getElementById('userGocHistoryBody');
+            gocBody.innerHTML = '';
+            let userGocs = gocLogs.filter(g => g.name === main);
+            if (userGocs.length === 0) {
+                gocBody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-slate-400 italic">Chưa có lượt nộp</td></tr>`;
+            } else {
+                userGocs.forEach(g => {
+                    gocBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-1.5 text-slate-600">${g.time}</td>
+                            <td class="p-1.5 text-right font-bold text-emerald-700">${parseInt(g.amount).toLocaleString()} đ</td>
+                            <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${g.note || '-'}</td>
+                        </tr>
+                    `;
+                });
+            }
         }
 
-        function renderFinance() {}
-        function renderAllMatchLog() {}
-        function renderGocLogsTab() {}
-        function renderBookingLogs() {}
-        function renderQuyTable() {}
-        function renderCashbook() {}
-        function renderMemberList() {}
-        function renderRulesTab() {}
+        function submitUserPayment() {
+            let main = document.getElementById('dashMainUser').value;
+            let val = parseInt(document.getElementById('userPaidInput').value) || 0;
+            if (val === 0) { alert("Vui lòng nhập số tiền hợp lệ!"); return; }
+
+            let newGoc = {
+                id: Date.now(),
+                time: new Date().toLocaleString('vi-VN'),
+                name: main,
+                amount: val,
+                note: val < 0 ? "Điều chỉnh hoàn tiền/bù trừ" : "Thành viên tự nhập CK"
+            };
+
+            document.getElementById('userPaidInput').value = '';
+            enqueueAction("addGocLog", { gocLog: newGoc }, "Đã ghi nhận giao dịch thành công!");
+        }
+
+        function renderGocLogsTab() {
+            let filterUser = document.getElementById('filterGocUser').value;
+            let tbody = document.getElementById('gocLogsTableBody');
+            tbody.innerHTML = '';
+
+            let logsToDisplay = gocLogs;
+            if (filterUser !== 'ALL') {
+                logsToDisplay = gocLogs.filter(g => g.name === filterUser);
+            }
+
+            let totalFiltered = logsToDisplay.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
+            document.getElementById('totalGocCollectedDisplay').innerText = totalFiltered.toLocaleString('vi-VN') + " đ";
+
+            logsToDisplay.forEach((g, idx) => {
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2.5 text-center font-bold text-slate-500">${logsToDisplay.length - idx}</td>
+                        <td class="p-2.5 font-semibold text-slate-600">${g.time}</td>
+                        <td class="p-2.5 font-bold text-slate-900">${g.name}</td>
+                        <td class="p-2.5 text-right font-black ${parseInt(g.amount)<0?'text-red-600':'text-emerald-700'}">${parseInt(g.amount).toLocaleString()} đ</td>
+                        <td class="p-2.5 text-slate-500">${g.note || '-'}</td>
+                        <td class="p-2.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
+                            <button onclick="openEditGocLog(${g.id})" class="text-blue-600 font-bold mr-2"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteGocLog(${g.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            applyRolePermissions();
+        }
+
+        function sortFinanceTable(field) {
+            if (financeSortField === field) {
+                financeSortAsc = !financeSortAsc;
+            } else {
+                financeSortField = field;
+                financeSortAsc = true;
+            }
+            renderFinance();
+        }
+
+        function renderFinance() {
+            let mSel = document.getElementById('selectFinanceMonth').value;
+            let ySel = document.getElementById('selectFinanceYear').value;
+            let tbody = document.getElementById('financeTableBody');
+            tbody.innerHTML = '';
+            
+            ['stt', 'name', 'wins', 'losses', 'draws', 'monthMatches', 'winRate', 'baseFee', 'specialFee', 'paid', 'noOld', 'totalPay'].forEach(f => {
+                let iconEl = document.getElementById('sort-icon-' + f);
+                if (iconEl) iconEl.innerText = '↕';
+            });
+            let activeIcon = document.getElementById('sort-icon-' + financeSortField);
+            if (activeIcon) {
+                activeIcon.innerText = financeSortAsc ? '▲' : '▼';
+            }
+
+            if (!members || members.length === 0) members = defaultFallbackMembers;
+            let dataList = members.map((m, originalIdx) => {
+                let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
+                let winRateVal = f.totalMatchCount > 0 ? (f.totalWins / f.totalMatchCount) : 0;
+                return {
+                    originalIdx: originalIdx + 1,
+                    m, f, winRateVal
+                };
+            });
+
+            dataList.sort((a, b) => {
+                let valA, valB;
+                if (financeSortField === 'stt') { valA = a.originalIdx; valB = b.originalIdx; }
+                else if (financeSortField === 'name') { valA = a.m.name; valB = b.m.name; }
+                else if (financeSortField === 'wins') { valA = a.f.totalWins; valB = b.f.totalWins; }
+                else if (financeSortField === 'losses') { valA = a.f.totalLosses; valB = b.f.totalLosses; }
+                else if (financeSortField === 'draws') { valA = a.f.totalDraws; valB = b.f.totalDraws; }
+                else if (financeSortField === 'monthMatches') { valA = a.f.monthMatchCount; valB = b.f.monthMatchCount; }
+                else if (financeSortField === 'winRate') { valA = a.winRateVal; valB = b.winRateVal; }
+                else if (financeSortField === 'baseFee') { valA = a.f.cappedBaseFee; valB = b.f.cappedBaseFee; }
+                else if (financeSortField === 'specialFee') { valA = a.f.monthSpecialBetFee; valB = b.f.monthSpecialBetFee; }
+                else if (financeSortField === 'paid') { valA = a.m.paidUser || 0; valB = b.m.paidUser || 0; }
+                else if (financeSortField === 'noOld') { valA = a.m.noOld || 0; valB = b.m.noOld || 0; }
+                else if (financeSortField === 'totalPay') { valA = a.f.totalPay; valB = b.f.totalPay; }
+
+                if (typeof valA === 'string') {
+                    return financeSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else {
+                    return financeSortAsc ? (valA - valB) : (valB - valA);
+                }
+            });
+
+            dataList.forEach((item) => {
+                let m = item.m;
+                let f = item.f;
+                let winRateStr = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
+                let totalPayColor = f.totalPay < 0 ? 'text-cyan-700 bg-cyan-50' : (f.totalPay > 0 ? 'text-emerald-800 bg-emerald-50' : 'text-slate-700 bg-slate-50');
+
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 text-center font-bold text-slate-500">${item.originalIdx}</td>
+                        <td class="p-2 sticky-col font-bold text-slate-900 border-r">${m.name}</td>
+                        <td class="p-2 text-center font-bold text-blue-600">${f.totalWins}</td>
+                        <td class="p-2 text-center font-bold text-red-600">${f.totalLosses}</td>
+                        <td class="p-2 text-center font-bold text-amber-600">${f.totalDraws}</td>
+                        <td class="p-2 text-center font-black text-emerald-700 bg-emerald-50/50">${f.monthMatchCount}</td>
+                        <td class="p-2 text-center font-bold">${winRateStr}</td>
+                        <td class="p-2 text-right font-semibold">${f.cappedBaseFee.toLocaleString()} đ</td>
+                        <td class="p-2 text-right font-bold text-amber-800">${f.monthSpecialBetFee.toLocaleString()} đ</td>
+                        <td class="p-2 text-right text-emerald-700 font-black">${(m.paidUser || 0).toLocaleString()} đ</td>
+                        <td class="p-2 text-right font-bold ${m.noOld < 0 ? 'text-cyan-700' : (m.noOld > 0 ? 'text-red-600' : 'text-slate-500')}">${(m.noOld || 0).toLocaleString()} đ</td>
+                        <td class="p-2 text-right font-black ${totalPayColor}">${f.totalPay.toLocaleString()} đ</td>
+                        <td class="p-2 text-center space-x-1">
+                            <button onclick="openQRModal('${m.name}', ${f.totalPay})" class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-blue-700">QR</button>
+                            ${currentUserRole === 'admin' ? `<button onclick="openEditFinanceModal(${members.indexOf(m)})" class="bg-amber-500 text-slate-900 text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-amber-600">Sửa Nợ</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openEditFinanceModal(idx) {
+            let m = members[idx];
+            document.getElementById('efMemberIdx').value = idx;
+            document.getElementById('efMemberName').value = m.name;
+            document.getElementById('efNoOld').value = m.noOld || 0;
+            document.getElementById('editFinanceModal').classList.remove('hidden');
+            document.getElementById('editFinanceModal').classList.add('flex');
+        }
+
+        function closeEditFinanceModal() {
+            document.getElementById('editFinanceModal').classList.add('hidden');
+            document.getElementById('editFinanceModal').classList.remove('flex');
+        }
+
+        function saveFinanceData(e) {
+            e.preventDefault();
+            let idx = parseInt(document.getElementById('efMemberIdx').value);
+            members[idx].noOld = parseInt(document.getElementById('efNoOld').value) || 0;
+
+            closeEditFinanceModal();
+            enqueueAction("updateMember", { members: members }, "Đã cập nhật số liệu thành công!");
+        }
+
+        function openQRModal(memberName, amount) {
+            let payAmt = Math.max(0, amount);
+            let content = "NOP TIEN GOC " + memberName.replace(/[^a-zA-Z0-9]/g, '');
+            let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?amount=${payAmt}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(systemSettings.accountName)}`;
+            document.getElementById('qrImage').src = qrUrl;
+            document.getElementById('qrAmountDisplay').innerText = payAmt.toLocaleString('vi-VN') + " đ" + (amount < 0 ? " (Dư quỹ cấn trừ)" : "");
+            document.getElementById('qrModal').classList.remove('hidden');
+            document.getElementById('qrModal').classList.add('flex');
+        }
+
+        function closeQRModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+            document.getElementById('qrModal').classList.remove('flex');
+        }
+
+        function openQRZoomModal() {
+            let qrUrl = `https://img.vietqr.io/image/${systemSettings.bankId}-${systemSettings.bankAccount}-compact2.png?accountName=${encodeURIComponent(systemSettings.accountName)}`;
+            document.getElementById('zoomQrImg').src = qrUrl;
+            let modal = document.getElementById('qrZoomModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeQRZoomModal() {
+            let modal = document.getElementById('qrZoomModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function renderAllMatchLog() {
+            let tbody = document.getElementById('allMatchTableBody');
+            tbody.innerHTML = '';
+            let reversedMatches = [...matches].reverse();
+            reversedMatches.forEach((m, idx) => {
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2.5 text-center font-bold text-slate-500">${reversedMatches.length - idx}</td>
+                        <td class="p-2.5 text-slate-600">${m.time || '-'}</td>
+                        <td class="p-2.5 font-semibold text-slate-900">${m.p1_v1} & ${m.p2_v1}</td>
+                        <td class="p-2.5 font-semibold text-slate-900">${m.p1_v2} & ${m.p2_v2}</td>
+                        <td class="p-2.5 text-center font-black text-emerald-800">${m.scoreA} - ${m.scoreB}</td>
+                        <td class="p-2.5 text-right font-bold text-amber-800">${m.specialBet > 0 ? parseInt(m.specialBet).toLocaleString() + ' đ' : '-'}</td>
+                        <td class="p-2.5 text-center admin-only ${currentUserRole === 'admin' ? '' : 'hidden'} space-x-2">
+                            <button onclick="openEditMatchModal(${m.id})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteMatch(${m.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            applyRolePermissions();
+        }
+
+        function openEditMatchModal(id) {
+            let m = matches.find(x => x.id == id);
+            if (!m) return;
+            document.getElementById('emMatchId').value = m.id;
+            document.getElementById('emMatchInfo').value = `${m.time} | (${m.p1_v1}&${m.p2_v1}) vs (${m.p1_v2}&${m.p2_v2})`;
+            document.getElementById('emScoreA').value = m.scoreA;
+            document.getElementById('emScoreB').value = m.scoreB;
+            document.getElementById('emSpecialBet').value = m.specialBet || 0;
+
+            document.getElementById('editMatchModal').classList.remove('hidden');
+            document.getElementById('editMatchModal').classList.add('flex');
+        }
+
+        function closeEditMatchModal() {
+            document.getElementById('editMatchModal').classList.add('hidden');
+            document.getElementById('editMatchModal').classList.remove('flex');
+        }
+
+        function saveMatchEdit(e) {
+            e.preventDefault();
+            let id = parseInt(document.getElementById('emMatchId').value);
+            let scoreA = parseInt(document.getElementById('emScoreA').value) || 0;
+            let scoreB = parseInt(document.getElementById('emScoreB').value) || 0;
+            let specialBet = parseInt(document.getElementById('emSpecialBet').value) || 0;
+
+            closeEditMatchModal();
+            enqueueAction("updateMatch", { match: { id, scoreA, scoreB, specialBet } }, "Đã cập nhật trận đấu thành công!");
+        }
+
+        function deleteMatch(id) {
+            if (confirm("Xóa trận đấu này?")) {
+                enqueueAction("deleteItem", { sheetName: "Matches", id: id }, "Đã xóa trận đấu thành công!");
+            }
+        }
+
+        function renderBookingLogs() {
+            let tbody = document.getElementById('bookingLogTableBody');
+            tbody.innerHTML = '';
+            
+            let curMonth = document.getElementById('selectFinanceMonth').value;
+            let curYear = document.getElementById('selectFinanceYear').value;
+
+            let currentMonthBookings = bookingLogs.filter(b => {
+                let t = b.time || "";
+                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`) || (curMonth == 8 && curYear == 2026);
+            });
+
+            currentMonthBookings.sort((a, b) => {
+                let idA = parseInt(a.id) || 0;
+                let idB = parseInt(b.id) || 0;
+                return idA - idB;
+            });
+
+            let totalRewardSum = currentMonthBookings.reduce((sum, b) => sum + parseInt(b.reward || 0), 0);
+            document.getElementById('totalBookingRewardDisplay').innerText = totalRewardSum.toLocaleString('vi-VN') + " đ";
+
+            let reversedBookings = [...currentMonthBookings].reverse();
+            reversedBookings.forEach((b, idx) => {
+                tbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2.5 text-center font-bold">${reversedBookings.length - idx}</td>
+                        <td class="p-2.5">${b.time}</td>
+                        <td class="p-2.5 font-bold">${b.name}</td>
+                        <td class="p-2.5 text-center font-bold text-amber-700">${b.frame}</td>
+                        <td class="p-2.5 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td>
+                        <td class="p-2.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
+                            <button onclick="deleteBooking(${b.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            applyRolePermissions();
+        }
+
+        function deleteBooking(id) {
+            if (confirm("Xóa lịch sử thưởng này?")) {
+                enqueueAction("deleteItem", { sheetName: "Bookings", id: id }, "Đã xóa thưởng đặt sân thành công!");
+            }
+        }
+
+        function renderQuyTable() {
+            if (!members || members.length === 0) members = defaultFallbackMembers;
+            let q = document.getElementById('selectQuy').value;
+            let y = document.getElementById('selectNam').value;
+            let key = q + "_" + y;
+
+            document.getElementById('thQuyTitle').innerText = "Số Tiền " + q.replace('Q', 'Quý ') + "/" + y;
+
+            let tbody = document.getElementById('quyTableBody');
+            tbody.innerHTML = '';
+
+            members.forEach((m, idx) => {
+                let paidAmount = 0;
+                if (m.quyHistory && m.quyHistory[key] !== undefined) {
+                    paidAmount = parseInt(m.quyHistory[key]);
+                }
+
+                let isOk = paidAmount >= systemSettings.quyAmount;
+                let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
+
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2.5 text-center font-bold text-slate-500">${idx + 1}</td>
+                        <td class="p-2.5 font-bold text-slate-900">${m.name}</td>
+                        <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
+                        <td class="p-2.5 text-right font-bold ${isOk ? 'text-emerald-700' : 'text-slate-400'}">${paidAmount.toLocaleString()} đ</td>
+                        <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isOk ? 'bg-cyan-100 text-cyan-800' : 'bg-red-100 text-red-800'}">${isOk ? 'OK' : 'Chưa'}</span></td>
+                        <td class="p-2.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
+                            <button onclick="openEditQuyModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            applyRolePermissions();
+        }
+
+        function openEditQuyModal(idx) {
+            let q = document.getElementById('selectQuy').value;
+            let y = document.getElementById('selectNam').value;
+            let key = q + "_" + y;
+            let m = members[idx];
+
+            let currentPaid = (m.quyHistory && m.quyHistory[key] !== undefined) ? m.quyHistory[key] : 0;
+
+            document.getElementById('eqMemberIdx').value = idx;
+            document.getElementById('eqMemberName').value = m.name;
+            document.getElementById('eqKyDisplay').value = q.replace('Q', 'Quý ') + "/" + y;
+            document.getElementById('eqAmount').value = currentPaid > 0 ? currentPaid : systemSettings.quyAmount;
+
+            document.getElementById('editQuyModal').classList.remove('hidden');
+            document.getElementById('editQuyModal').classList.add('flex');
+        }
+
+        function closeEditQuyModal() {
+            document.getElementById('editQuyModal').classList.add('hidden');
+            document.getElementById('editQuyModal').classList.remove('flex');
+        }
+
+        function saveQuyMember(e) {
+            e.preventDefault();
+            let idx = parseInt(document.getElementById('eqMemberIdx').value);
+            let q = document.getElementById('selectQuy').value;
+            let y = document.getElementById('selectNam').value;
+            let key = q + "_" + y;
+            let amount = parseInt(document.getElementById('eqAmount').value) || 0;
+
+            if (!members[idx].quyHistory) members[idx].quyHistory = {};
+            members[idx].quyHistory[key] = amount;
+
+            closeEditQuyModal();
+            enqueueAction("updateMember", { members: members }, "Đã cập nhật quỹ quý thành công!");
+        }
+
+        function addCashbookEntry(e) {
+            e.preventDefault();
+            let category = document.getElementById('cbCategory').value;
+            let amount = parseInt(document.getElementById('cbAmount').value) || 0;
+            let note = document.getElementById('cbNote').value || category;
+
+            let newCashbook = { id: Date.now(), category, amount, note, time: new Date().toLocaleDateString('vi-VN') };
+            document.getElementById('cbAmount').value = '';
+            document.getElementById('cbNote').value = '';
+            enqueueAction("addCashbook", { cashbook: newCashbook }, "Đã ghi nhận khoản thu/chi thành công!");
+        }
+
+        function deleteCashbookLog(id) {
+            if (confirm("Xóa giao dịch thu/chi này?")) {
+                enqueueAction("deleteItem", { sheetName: "Cashbook", id: id }, "Đã xóa giao dịch thành công!");
+            }
+        }
+
+        function openEditGocLog(id) {
+            let g = gocLogs.find(item => item.id == id);
+            if (!g) return;
+            document.getElementById('egLogId').value = g.id;
+            document.getElementById('egMemberName').value = g.name;
+            document.getElementById('egAmount').value = g.amount;
+            document.getElementById('egNote').value = g.note || '';
+
+            document.getElementById('editGocLogModal').classList.remove('hidden');
+            document.getElementById('editGocLogModal').classList.add('flex');
+        }
+
+        function closeEditGocLogModal() {
+            document.getElementById('editGocLogModal').classList.add('hidden');
+            document.getElementById('editGocLogModal').classList.remove('flex');
+        }
+
+        function saveGocLogEdit(e) {
+            e.preventDefault();
+            let id = parseInt(document.getElementById('egLogId').value);
+            let g = gocLogs.find(item => item.id == id);
+            if (g) {
+                g.amount = parseInt(document.getElementById('egAmount').value) || 0;
+                g.note = document.getElementById('egNote').value;
+                closeEditGocLogModal();
+                enqueueAction("deleteItem", { sheetName: "GocLogs", id: id });
+                setTimeout(() => {
+                    enqueueAction("addGocLog", { gocLog: g }, "Đã cập nhật tiền góc thành công!");
+                }, 100);
+            }
+        }
+
+        function deleteGocLog(id) {
+            if (confirm("Xóa lượt nộp tiền góc này?")) {
+                enqueueAction("deleteItem", { sheetName: "GocLogs", id: id }, "Đã xóa lượt nộp thành công!");
+            }
+        }
+
+        function selectCategory(cat) {
+            document.getElementById('selectedCatTitle').innerText = "LỊCH SỬ: " + cat;
+            let tbody = document.getElementById('categoryLogBody');
+            tbody.innerHTML = '';
+            let catTotal = 0;
+
+            if (cat === 'Tiền quỹ QUÝ') {
+                if (!members || members.length === 0) members = defaultFallbackMembers;
+                members.forEach(m => {
+                    let totalQuy = 0;
+                    if (m.quyHistory) {
+                        Object.values(m.quyHistory).forEach(val => totalQuy += parseInt(val));
+                    }
+                    if (totalQuy > 0) {
+                        catTotal += totalQuy;
+                        tbody.innerHTML += `<tr class="border-b"><td class="p-1.5">Tất cả Quý</td><td class="p-1.5 font-bold">${m.name}</td><td class="p-1.5 text-right font-bold text-emerald-700">${totalQuy.toLocaleString()} đ</td><td class="p-1.5 text-center">-</td></tr>`;
+                    }
+                });
+            } else if (cat === 'Tiền góc thực thu') {
+                gocLogs.forEach(g => {
+                    catTotal += parseInt(g.amount || 0);
+                    tbody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-1.5">${g.time}</td>
+                            <td class="p-1.5 font-bold">${g.name}</td>
+                            <td class="p-1.5 text-right font-bold ${parseInt(g.amount)<0?'text-red-600':'text-emerald-700'}">${parseInt(g.amount).toLocaleString()} đ</td>
+                            <td class="p-1.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
+                                <button onclick="deleteGocLog(${g.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } else {
+                let filtered = cashbookLogs.filter(c => c.category === cat);
+                filtered.forEach(c => {
+                    catTotal += parseInt(c.amount || 0);
+                    tbody.innerHTML += `<tr class="border-b"><td class="p-1.5">${c.time}</td><td class="p-1.5 font-bold">${c.note}</td><td class="p-1.5 text-right font-bold">${parseInt(c.amount).toLocaleString()} đ</td><td class="p-1.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}"><button onclick="deleteCashbookLog(${c.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                });
+            }
+            document.getElementById('selectedCatTotal').innerText = catTotal.toLocaleString('vi-VN') + " đ";
+            applyRolePermissions();
+        }
+
+        function renderCashbook() {
+            if (!members || members.length === 0) members = defaultFallbackMembers;
+            let totalQuyThu = 0;
+            members.forEach(m => {
+                if (m.quyHistory) {
+                    Object.values(m.quyHistory).forEach(val => totalQuyThu += parseInt(val));
+                }
+            });
+
+            let totalGocThu = gocLogs.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
+            let banSan = cashbookLogs.filter(c => c.category === "Tiền bán sân").reduce((s, c) => s + parseInt(c.amount), 0);
+            let ungHo = cashbookLogs.filter(c => c.category === "Tiền ủng hộ / Tài trợ").reduce((s, c) => s + parseInt(c.amount), 0);
+
+            let totalChi = cashbookLogs.filter(c => 
+                c.category.includes("Tiền app") || 
+                c.category.includes("mua bóng") || 
+                c.category.includes("thưởng") || 
+                c.category.includes("liên hoan") ||
+                c.category.includes("chi khác")
+            ).reduce((s, c) => s + parseInt(c.amount), 0);
+
+            let totalThu = totalQuyThu + totalGocThu + banSan + ungHo;
+            let balance = openingBalance + totalThu - totalChi;
+
+            document.getElementById('cashbookBalance').innerText = balance.toLocaleString() + " đ";
+            document.getElementById('openingBalanceDisplay').innerText = openingBalance.toLocaleString() + " đ";
+            selectCategory('Tiền góc thực thu');
+        }
+
+        function renderMemberList() {
+            if (!members || members.length === 0) {
+                members = defaultFallbackMembers;
+            }
+            let tbody = document.getElementById('memberTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            members.forEach((m, idx) => {
+                let stt = m.stt || (idx + 1);
+                let username = m.username || ("Thanglong" + stt);
+                let isSystemAdmin = (m.role === 'admin' || stt === 1 || stt === 2 || stt === 15);
+                let roleBadge = isSystemAdmin ? `<span class="bg-amber-100 text-amber-900 font-extrabold px-2 py-0.5 rounded text-[10px]">Admin</span>` : `<span class="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded text-[10px]">Member</span>`;
+
+                let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
+
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2.5 text-center font-bold text-slate-500">${stt}</td>
+                        <td class="p-2.5 font-bold text-slate-900">${m.name}</td>
+                        <td class="p-2.5 text-center font-mono font-bold text-emerald-700">${username}</td>
+                        <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
+                        <td class="p-2.5 text-center font-extrabold text-amber-700 bg-amber-50">${m.base}</td>
+                        <td class="p-2.5 text-center">${roleBadge}</td>
+                        <td class="p-2.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'} space-x-1">
+                            <button onclick="openEditMemberModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="toggleMemberRole(${idx})" class="text-amber-600 font-bold text-[10px] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Quyền</button>
+                            <button onclick="deleteMember(${idx})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            applyRolePermissions();
+        }
+
+        function deleteMember(idx) {
+            let m = members[idx];
+            if (confirm(`Xóa thành viên [${m.name}]? (Lịch sử trận đấu và nộp tiền góc vẫn được bảo lưu)`)) {
+                members.splice(idx, 1);
+                members.forEach((mem, i) => { mem.stt = i + 1; });
+                enqueueAction("updateMember", { members: members }, "Đã xóa thành viên thành công!");
+            }
+        }
+
+        function toggleMemberRole(idx) {
+            if (currentUserRole !== 'admin') return;
+            let m = members[idx];
+            let currentRole = (m.role === 'admin' || m.stt === 1 || m.stt === 2 || m.stt === 15) ? 'admin' : 'member';
+            let newRole = currentRole === 'admin' ? 'member' : 'admin';
+            
+            if (confirm(`Đổi vai trò của [${m.name}] sang [${newRole.toUpperCase()}]?`)) {
+                m.role = newRole;
+                enqueueAction("updateMember", { members: members }, "Đã cập nhật quyền thành công!");
+            }
+        }
+
+        function openAddMemberModal() {
+            document.getElementById('addMemberModal').classList.remove('hidden');
+            document.getElementById('addMemberModal').classList.add('flex');
+        }
+
+        function closeAddMemberModal() {
+            document.getElementById('addMemberModal').classList.add('hidden');
+            document.getElementById('addMemberModal').classList.remove('flex');
+        }
+
+        function saveNewMember(e) {
+            e.preventDefault();
+            let name = document.getElementById('newMemName').value.trim();
+            let base = parseFloat(document.getElementById('newMemBase').value) || 6.2;
+            let status = document.getElementById('newMemStatus').value;
+            let newStt = members.length + 1;
+
+            members.push({
+                stt: newStt,
+                name: name,
+                status: status,
+                base: base,
+                quyHistory: {},
+                paidUser: 0,
+                noOld: 0,
+                username: "Thanglong" + newStt,
+                role: "member"
+            });
+
+            closeAddMemberModal();
+            document.getElementById('newMemName').value = '';
+            enqueueAction("updateMember", { members: members }, "Đã thêm thành viên mới thành công!");
+        }
+
+        function openEditMemberModal(idx) {
+            let m = members[idx];
+            document.getElementById('editMemIdx').value = idx;
+            document.getElementById('editMemName').value = m.name;
+            document.getElementById('editMemBase').value = m.base;
+            document.getElementById('editMemStatus').value = m.status || 'Đang tham gia';
+            document.getElementById('editMemberModal').classList.remove('hidden');
+            document.getElementById('editMemberModal').classList.add('flex');
+        }
+
+        function closeEditMemberModal() {
+            document.getElementById('editMemberModal').classList.add('hidden');
+            document.getElementById('editMemberModal').classList.remove('flex');
+        }
+
+        function saveMemberInfo(e) {
+            e.preventDefault();
+            let idx = parseInt(document.getElementById('editMemIdx').value);
+            members[idx].name = document.getElementById('editMemName').value.trim();
+            members[idx].base = parseFloat(document.getElementById('editMemBase').value) || 6.2;
+            members[idx].status = document.getElementById('editMemStatus').value;
+
+            closeEditMemberModal();
+            enqueueAction("updateMember", { members: members }, "Đã cập nhật thông tin thành viên thành công!");
+        }
+
+        function addNewRule(e) {
+            e.preventDefault();
+            let title = document.getElementById('ruleTitleInput').value.trim();
+            let content = document.getElementById('ruleContentInput').value.trim();
+            if (!title || !content) return;
+
+            let newRule = {
+                id: Date.now(),
+                time: new Date().toLocaleString('vi-VN'),
+                title: title,
+                content: content
+            };
+
+            document.getElementById('ruleTitleInput').value = '';
+            document.getElementById('ruleContentInput').value = '';
+
+            enqueueAction("addRule", { rule: newRule }, "Đã đăng thông báo mới thành công!");
+        }
+
+        function deleteRule(id) {
+            if (confirm("Xóa thông báo này?")) {
+                enqueueAction("deleteItem", { sheetName: "Rules", id: id }, "Đã xóa thông báo thành công!");
+            }
+        }
+
+        function renderRulesTab() {
+            let container = document.getElementById('rulesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let defaultRules = [
+                {
+                    id: 1,
+                    time: "01/08/2026",
+                    title: "Quy định đặt sân 18h-20h tại CVTT5",
+                    content: "Khung giờ 18h-20h tại CVTT5 do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app. Tiền thưởng đặt sân áp dụng đặc cách = 0 đ."
+                },
+                {
+                    id: 2,
+                    time: "01/05/2026",
+                    title: "Quy định tài chính và phạt trận Hòa",
+                    content: "Trong các trận đấu, nếu kết quả là hòa (Draw), cả 4 thành viên tham gia đều có nghĩa vụ đóng góp tiền quỹ góc theo quy định của CLB."
+                }
+            ];
+
+            let combinedRules = rulesList.length > 0 ? rulesList : defaultRules;
+            combinedRules.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+
+            combinedRules.forEach((r) => {
+                let deleteBtn = (currentUserRole === 'admin') ? `<button onclick="deleteRule(${r.id})" class="text-red-600 font-bold text-xs"><i class="fa-solid fa-trash"></i></button>` : '';
+                container.innerHTML += `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-black text-emerald-900 text-xs md:text-sm flex items-center gap-1.5"><i class="fa-solid fa-circle-chevron-right text-emerald-600 text-xs"></i> ${r.title}</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded border">${r.time}</span>
+                                ${deleteBtn}
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-700 whitespace-pre-line leading-relaxed pl-4">${r.content}</p>
+                    </div>
+                `;
+            });
+            applyRolePermissions();
+        }
+
+        function addMatch(e) {
+            e.preventDefault();
+            let p1A = document.getElementById('matchP1A').value;
+            let p2A = document.getElementById('matchP2A').value;
+            let p1B = document.getElementById('matchP1B').value;
+            let p2B = document.getElementById('matchP2B').value;
+            
+            let checkedScoreA = document.querySelector('input[name="scoreA"]:checked');
+            let checkedScoreB = document.querySelector('input[name="scoreB"]:checked');
+
+            let scoreA = checkedScoreA ? parseInt(checkedScoreA.value) : 0;
+            let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
+            let specialBet = parseInt(document.getElementById('specialBet').value);
+
+            let newMatch = {
+                id: Date.now(),
+                time: new Date().toLocaleString('vi-VN'),
+                p1_v1: p1A, p2_v1: p2A, scoreA, scoreB,
+                p1_v2: p1B, p2_v2: p2B, specialBet
+            };
+
+            enqueueAction("addMatch", { match: newMatch }, "Đã lưu kết quả trận đấu thành công!");
+
+            document.getElementById('matchForm').reset();
+            document.querySelectorAll('input[name="scoreA"]').forEach(el => el.checked = false);
+            document.querySelectorAll('input[name="scoreB"]').forEach(el => el.checked = false);
+            document.getElementById('specialBet').value = "0";
+        }
+
+        function getYesterdayDateObj() {
+            let d = new Date();
+            d.setDate(d.getDate() - 1);
+            return d;
+        }
+
+        function checkYesterdayBookingsNotification() {
+            let yDate = getYesterdayDateObj();
+            let yDay = yDate.getDate();
+            let yMonth = yDate.getMonth() + 1;
+            let yYear = yDate.getFullYear();
+
+            let yesterdayBookings = bookingLogs.filter(b => {
+                let t = b.time || "";
+                let parts = t.split(" ");
+                let datePart = parts.length > 1 ? parts[1] : parts[0];
+                let dateSegments = datePart.split("/");
+                
+                if (dateSegments.length === 3) {
+                    let d = parseInt(dateSegments[0], 10);
+                    let m = parseInt(dateSegments[1], 10);
+                    let y = parseInt(dateSegments[2], 10);
+                    return d === yDay && m === yMonth && y === yYear;
+                }
+                return false;
+            });
+
+            let badge = document.getElementById('notifBadge');
+            if (yesterdayBookings.length > 0) {
+                badge.innerText = yesterdayBookings.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function openNotificationModal() {
+            let yDate = getYesterdayDateObj();
+            let yDay = yDate.getDate();
+            let yMonth = yDate.getMonth() + 1;
+            let yYear = yDate.getFullYear();
+            let dateStrFormatted = `${String(yDay).padStart(2, '0')}/${String(yMonth).padStart(2, '0')}/${yYear}`;
+
+            let yesterdayBookings = bookingLogs.filter(b => {
+                let t = b.time || "";
+                let parts = t.split(" ");
+                let datePart = parts.length > 1 ? parts[1] : parts[0];
+                let dateSegments = datePart.split("/");
+                
+                if (dateSegments.length === 3) {
+                    let d = parseInt(dateSegments[0], 10);
+                    let m = parseInt(dateSegments[1], 10);
+                    let y = parseInt(dateSegments[2], 10);
+                    return d === yDay && m === yMonth && y === yYear;
+                }
+                return false;
+            });
+
+            let listDiv = document.getElementById('yesterdayBookingList');
+            listDiv.innerHTML = '';
+
+            if (yesterdayBookings.length === 0) {
+                listDiv.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Không có lịch đặt sân nào ngày hôm qua (${dateStrFormatted}).</p>`;
+            } else {
+                yesterdayBookings.forEach((b) => {
+                    listDiv.innerHTML += `
+                        <div class="bg-slate-50 p-2.5 rounded-xl border flex justify-between items-center text-xs">
+                            <div>
+                                <span class="font-black text-emerald-800">${b.name}</span>
+                                <p class="text-[10px] text-slate-500">Thời gian: ${b.time}</p>
+                            </div>
+                            <span class="bg-amber-100 text-amber-900 font-extrabold px-2.5 py-1 rounded-full text-[10px]">${b.frame}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            renderGamification();
+            document.getElementById('notificationModal').classList.remove('hidden');
+            document.getElementById('notificationModal').classList.add('flex');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notificationModal').classList.add('hidden');
+            document.getElementById('notificationModal').classList.remove('flex');
+        }
+
+        function switchNotifSubTab(tab) {
+            let btnSan = document.getElementById('btnNotifSan');
+            let btnVinhDanh = document.getElementById('btnNotifVinhDanh');
+            let tabSan = document.getElementById('notifSubTabSan');
+            let tabVinhDanh = document.getElementById('notifSubTabVinhDanh');
+
+            if (tab === 'san') {
+                btnSan.className = "flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition";
+                btnVinhDanh.className = "flex-1 py-2 rounded-lg text-slate-600 transition";
+                tabSan.classList.remove('hidden');
+                tabVinhDanh.classList.add('hidden');
+            } else {
+                btnVinhDanh.className = "flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition";
+                btnSan.className = "flex-1 py-2 rounded-lg text-slate-600 transition";
+                tabVinhDanh.classList.remove('hidden');
+                tabSan.classList.add('hidden');
+            }
+        }
+
+        function exportToExcel() {
+            let wb = XLSX.utils.book_new();
+            let wsMem = XLSX.utils.json_to_sheet(members); XLSX.utils.book_append_sheet(wb, wsMem, "ThanhVien");
+            let wsMatch = XLSX.utils.json_to_sheet(matches); XLSX.utils.book_append_sheet(wb, wsMatch, "TranDau");
+            let wsGoc = XLSX.utils.json_to_sheet(gocLogs); XLSX.utils.book_append_sheet(wb, wsGoc, "NopTienGoc");
+            XLSX.writeFile(wb, "CLB_Tennis_Thang_Long_Backup.xlsx");
+        }
 
         function fetchCloudData(showSpinner) {
             if (!GOOGLE_SCRIPT_URL) return;
-            if (showSpinner) { document.getElementById('loadingOverlay').classList.remove('hidden'); document.getElementById('loadingOverlay').classList.add('flex'); }
+            if (showSpinner) {
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+                document.getElementById('loadingOverlay').classList.add('flex');
+            }
+
             fetch(GOOGLE_SCRIPT_URL)
             .then(res => res.json())
             .then(data => {
-                if (showSpinner) { document.getElementById('loadingOverlay').classList.add('hidden'); document.getElementById('loadingOverlay').classList.remove('flex'); }
-                if (data.members) members = data.members;
-                if (data.matches) matches = data.matches;
-                if (data.bookingLogs) bookingLogs = data.bookingLogs;
-                if (data.cashbookLogs) cashbookLogs = data.cashbookLogs;
-                if (data.gocLogs) gocLogs = data.gocLogs;
-                if (data.rules) rulesList = data.rules;
-                if (data.openingBalance !== undefined) openingBalance = data.openingBalance;
-                if (data.settings) systemSettings = Object.assign(systemSettings, data.settings);
-                saveLocalData();
-                initApp();
+                if (showSpinner) {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    document.getElementById('loadingOverlay').classList.remove('flex');
+                }
+                updateStateFromCloud(data);
             })
-            .catch(() => {
-                if (showSpinner) { document.getElementById('loadingOverlay').classList.add('hidden'); document.getElementById('loadingOverlay').classList.remove('flex'); }
+            .catch(err => {
+                if (showSpinner) {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    document.getElementById('loadingOverlay').classList.remove('flex');
+                }
             });
+        }
+
+        function updateStateFromCloud(data) {
+            if (data.members && data.members.length > 0) members = data.members;
+            if (data.matches) matches = data.matches;
+            if (data.bookingLogs) bookingLogs = data.bookingLogs;
+            if (data.cashbookLogs) cashbookLogs = data.cashbookLogs;
+            if (data.gocLogs) gocLogs = data.gocLogs;
+            if (data.rules) rulesList = data.rules;
+            if (data.openingBalance !== undefined) openingBalance = data.openingBalance;
+            if (data.settings) systemSettings = Object.assign(systemSettings, data.settings);
+
+            saveLocalData();
+            initApp();
         }
     </script>
 </body>
