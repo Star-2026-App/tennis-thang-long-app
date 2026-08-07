@@ -984,13 +984,21 @@
             let storedSets = JSON.parse(localStorage.getItem('clb_settings'));
             if (storedSets) systemSettings = Object.assign(systemSettings, storedSets);
             syncQueue = JSON.parse(localStorage.getItem('clb_syncQueue')) || [];
+
+            // Sắp xếp mảng matches giảm dần theo id thời gian để đảm bảo trận mới nhất luôn ở đầu mảng
+            if (matches && matches.length > 0) {
+                matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+            }
         }
 
         function enqueueAction(actionName, payload, successMessage) {
             payload.action = actionName;
             syncQueue.push(payload);
 
-            if (actionName === "addMatch" && payload.match) matches.unshift(payload.match);
+            if (actionName === "addMatch" && payload.match) {
+                matches.unshift(payload.match);
+                matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+            }
             else if (actionName === "updateMatch" && payload.match) {
                 let m = matches.find(x => x.id == payload.match.id);
                 if (m) { m.scoreA = payload.match.scoreA; m.scoreB = payload.match.scoreB; m.specialBet = payload.match.specialBet; }
@@ -1086,8 +1094,6 @@
                 dashSelect.value = loggedInMemberName;
                 if (currentUserRole !== 'admin') {
                     dashSelect.disabled = true;
-                } else {
-                    dashSelect.disabled = false;
                 }
             }
 
@@ -1728,7 +1734,11 @@
             let tbody = document.getElementById('allMatchTableBody');
             tbody.innerHTML = '';
             
-            // ĐẢO NGƯỢC: Trận mới nhất (index 0 trong mảng matches khi unshift) sẽ nằm ở trên cùng
+            // Sắp xếp giảm dần theo thời gian (id) để trận mới nhất luôn nằm ở trên cùng (STT = Tổng số trận)
+            if (matches && matches.length > 0) {
+                matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+            }
+
             matches.forEach((m, idx) => {
                 let stt = matches.length - idx;
                 tbody.innerHTML += `
@@ -2229,7 +2239,7 @@
             let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
             let specialBet = parseInt(document.getElementById('specialBet').value);
 
-            // KHẮC PHỤC LỖI 1: CHỐNG TRÙNG LẶP TRẬN ĐẤU CHÍNH XÁC (18 GIỜ)
+            // KIỂM TRA TRÙNG LẶP TRẬN ĐẤU (TRONG 18 GIỜ - KHỚP 4 THÀNH VIÊN VÀ TỈ SỐ)
             const NOW = new Date().getTime();
             const TIME_LIMIT = 18 * 60 * 60 * 1000;
 
@@ -2416,6 +2426,10 @@
             if (data.rules) rulesList = data.rules;
             if (data.openingBalance !== undefined) openingBalance = data.openingBalance;
             if (data.settings) systemSettings = Object.assign(systemSettings, data.settings);
+
+            if (matches && matches.length > 0) {
+                matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+            }
 
             saveLocalData();
             initApp();
