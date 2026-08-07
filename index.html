@@ -642,6 +642,21 @@
         </main>
     </div>
 
+    <!-- MODAL CUSTOM CẢNH BÁO TRÙNG LẶP TRẬN ĐẤU -->
+    <div id="customConfirmModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[300] p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 text-center animate-in fade-in zoom-in duration-200">
+            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl font-black mx-auto shadow-inner">⚠️</div>
+            <div>
+                <h3 class="font-black text-slate-900 text-sm uppercase mb-2">CẢNH BÁO TRÙNG TRẬN ĐẤU</h3>
+                <p id="customConfirmText" class="text-xs text-slate-600 leading-relaxed font-semibold">Phát hiện có trận đấu tương tự đã được nhập trong 18 giờ trước đó. Nếu thực sự là trận đấu mới thì chọn OK, nếu không phải chọn Hủy</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button id="customConfirmCancelBtn" type="button" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold py-3 rounded-xl text-xs transition shadow-sm">Hủy</button>
+                <button id="customConfirmOkBtn" type="button" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3 rounded-xl text-xs transition shadow-md">OK đúng trận mới</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL TRUNG TÂM THÔNG BÁO -->
     <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl relative">
@@ -2240,6 +2255,35 @@
             applyRolePermissions();
         }
 
+        // HÀM HIỂN THỊ MODAL XÁC NHẬN TRÙNG LẶP TÙY CHỈNH TÊN NÚT
+        function showCustomConfirm(message, onConfirm) {
+            let modal = document.getElementById('customConfirmModal');
+            let textEl = document.getElementById('customConfirmText');
+            let okBtn = document.getElementById('customConfirmOkBtn');
+            let cancelBtn = document.getElementById('customConfirmCancelBtn');
+
+            textEl.innerText = message;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            let newOkBtn = okBtn.cloneNode(true);
+            let newCancelBtn = cancelBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+            newOkBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                onConfirm(true);
+            });
+
+            newCancelBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                onConfirm(false);
+            });
+        }
+
         function addMatch(e) {
             e.preventDefault();
             let p1A = document.getElementById('matchP1A').value;
@@ -2254,7 +2298,6 @@
             let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
             let specialBet = parseInt(document.getElementById('specialBet').value);
 
-            // KIỂM TRA TRÙNG LẶP VỚI CÂU THÔNG BÁO MỚI THEO YÊU CẦU CỦA ANH
             const NOW = new Date().getTime();
             const TIME_LIMIT = 18 * 60 * 60 * 1000;
 
@@ -2285,10 +2328,16 @@
             });
 
             if (isDuplicateMatch) {
-                let confirmMatch = confirm("Phát hiện có trận đấu tương tự đã được nhập trong 18 giờ trước đó. Nếu thực sự là trận đấu mới thì chọn OK, nếu không phải chọn Hủy");
-                if (!confirmMatch) return;
+                showCustomConfirm("Phát hiện có trận đấu tương tự đã được nhập trong 18 giờ trước đó. Nếu thực sự là trận đấu mới thì chọn OK, nếu không phải chọn Hủy", (confirmed) => {
+                    if (!confirmed) return;
+                    saveNewMatchData(p1A, p2A, p1B, p2B, scoreA, scoreB, specialBet);
+                });
+            } else {
+                saveNewMatchData(p1A, p2A, p1B, p2B, scoreA, scoreB, specialBet);
             }
+        }
 
+        function saveNewMatchData(p1A, p2A, p1B, p2B, scoreA, scoreB, specialBet) {
             let newMatch = {
                 id: Date.now(),
                 time: new Date().toLocaleString('vi-VN'),
