@@ -1524,7 +1524,11 @@
                 let isV1 = (mItem.p1_v1 === main || mItem.p2_v1 === main);
                 let teammate = isV1 ? (mItem.p1_v1 === main ? mItem.p2_v1 : mItem.p1_v1) : (mItem.p1_v2 === main ? mItem.p2_v2 : mItem.p1_v2);
                 let opponents = isV1 ? (mItem.p1_v2 + " & " + mItem.p2_v2) : (mItem.p1_v1 + " & " + mItem.p2_v1);
-                matchBody.innerHTML += `<tr class="border-b"><td class="p-2 text-center font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2 font-semibold text-slate-800">${teammate}</td><td class="p-2 font-semibold text-slate-800">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${mItem.scoreA}-${mItem.scoreB}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
+                
+                // Chuẩn hóa tỷ số theo góc nhìn cá nhân (Đội của mình bên trái, đối thủ bên phải)
+                let displayScore = isV1 ? `${mItem.scoreA}-${mItem.scoreB}` : `${mItem.scoreB}-${mItem.scoreA}`;
+
+                matchBody.innerHTML += `<tr class="border-b"><td class="p-2 text-center font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2 font-semibold text-slate-800">${teammate}</td><td class="p-2 font-semibold text-slate-800">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${displayScore}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
             });
 
             let rewardBody = document.getElementById('userRewardHistoryBody');
@@ -1581,7 +1585,6 @@
                 logsToDisplay = gocLogs.filter(g => g.name === filterUser);
             }
 
-            // Sắp xếp giảm dần theo thời gian (id) để mới nhất lên trên
             logsToDisplay.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
 
             let totalFiltered = logsToDisplay.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
@@ -2252,11 +2255,10 @@
             let scoreB = checkedScoreB ? parseInt(checkedScoreB.value) : 0;
             let specialBet = parseInt(document.getElementById('specialBet').value);
 
-            // XỬ LÝ CHỐNG TRÙNG LẶP TUYỆT ĐỐI (QUÉT ĐẢO VỊ TRÍ NỘI BỘ VÀ ĐẢO VẾ TRONG 18 GIỜ)
+            // XỬ LÝ CHỐNG TRÙNG LẶP TUYỆT ĐỐI VỚI NỘI DUNG THÔNG BÁO RÚT GỌN
             const NOW = new Date().getTime();
             const TIME_LIMIT = 18 * 60 * 60 * 1000;
 
-            // Sắp xếp tên trong mỗi đội để dù chọn A1/A2 hay A2/A1 thì thứ tự mảng vẫn giống nhau
             let teamANew = [p1A, p2A].sort();
             let teamBNew = [p1B, p2B].sort();
 
@@ -2274,7 +2276,6 @@
                     item.scoreA === scoreA && item.scoreB === scoreB
                 );
 
-                // Trường hợp đảo vế A và vế B cho nhau
                 let sameAsSwapped = (
                     teamAOld[0] === teamBNew[0] && teamAOld[1] === teamBNew[1] &&
                     teamBOld[0] === teamANew[0] && teamBOld[1] === teamANew[1] &&
@@ -2285,7 +2286,7 @@
             });
 
             if (isDuplicateMatch) {
-                let confirmMatch = confirm("⚠️ Phát hiện trận đấu này (hoặc đảo vị trí 2 người chơi cùng đội/đổi vế) đã được ghi nhận trong 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?");
+                let confirmMatch = confirm("⚠️ Phát hiện có trận đấu tương tự trong 18 giờ trước đó.\n\nBạn có muốn tiếp tục ghi nhận thêm không?");
                 if (!confirmMatch) return;
             }
 
