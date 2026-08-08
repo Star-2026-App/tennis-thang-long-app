@@ -67,7 +67,7 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button onclick="openTodayCourtsModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Các sân ngày hôm nay">
+                    <button onclick="openTodayCourtsModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Các sân ngày hôm hôm nay">
                         <i class="fa-solid fa-calendar-days text-sm"></i>
                     </button>
 
@@ -81,13 +81,12 @@
                 </div>
             </div>
 
-            <!-- MENU ĐIỀU HƯỚNG (ĐÃ SẮP XẾP LẠI VỊ TRÍ TAB PHÂN TÍCH) -->
+            <!-- MENU ĐIỀU HƯỚNG: TAB PHÂN TÍCH Ở GIỮA NHẬT KÝ TRẬN VÀ NỘP TIỀN -->
             <nav class="bg-emerald-900 text-emerald-100 px-3 py-1.5 border-t border-emerald-700/50 flex items-center justify-between">
                 <div class="hidden md:flex flex-wrap gap-1 text-xs md:text-sm font-medium items-center w-full">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Tổng quan</button>
                     <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Ghi Trận</button>
                     <button onclick="switchTab('matchLog')" id="btn-matchLog" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Nhật Ký Trận</button>
-                    <!-- TAB PHÂN TÍCH ĐÃ ĐƯỢC ĐẶT GIỮA NHẬT KÝ TRẬN VÀ NỘP TIỀN -->
                     <button onclick="switchTab('analytics')" id="btn-analytics" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> Phân tích</button>
                     <button onclick="switchTab('gocLogs')" id="btn-gocLogs" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-receipt"></i> Nộp Tiền</button>
                     <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Tiền Góc</button>
@@ -245,9 +244,8 @@
                 </div>
             </section>
 
-            <!-- TAB PHÂN TÍCH (GÓC THÁM TỬ - ĐÃ TỐI ƯU BANNER GỌN GÀNG, THÊM NÚT TRA CỨU CÁ NHÂN & FIRE 🔥) -->
+            <!-- TAB PHÂN TÍCH -->
             <section id="tab-analytics" class="tab-content space-y-6">
-                <!-- BANNER TỐI ƯU GỌN GÀNG TRÊN DI ĐỘNG & NÚT BẤM TRA CỨU -->
                 <div class="bg-gradient-to-r from-emerald-800 to-teal-900 p-3.5 md:p-5 rounded-2xl shadow-md text-white flex flex-col md:flex-row justify-between items-center gap-3">
                     <div>
                         <h2 class="text-sm md:text-lg font-black uppercase flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> GÓC THÁM TỬ - PHÂN TÍCH ĐỈNH CAO</h2>
@@ -260,7 +258,6 @@
                     </div>
                 </div>
 
-                <!-- BẢNG 1: CẠ CỨNG ĂN Ý NHẤT (TOP CẶP ĐÔI) -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                     <div class="flex items-center justify-between border-b pb-3">
                         <h3 class="font-black text-sm md:text-base text-slate-800 uppercase flex items-center gap-2">
@@ -286,9 +283,7 @@
                     </div>
                 </div>
 
-                <!-- BẢNG 2: ĐỐI THỦ CỨNG (KÈO DUYÊN NỢ & KHẮC TINH VỚI ICON NGỌN LỬA TO 🔥) -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- TIÊU CHÍ 1: CẶP ĐẤU DUYÊN NỢ NHẤT -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                         <div class="border-b pb-2 flex items-center justify-between">
                             <h4 class="font-extrabold text-xs text-slate-800 uppercase flex items-center gap-1.5"><i class="fa-solid fa-fire text-amber-500"></i> Cặp đấu duyên nợ nhất</h4>
@@ -302,7 +297,6 @@
                         </div>
                     </div>
 
-                    <!-- TIÊU CHÍ 2: KẺ TÁM LẠNG NGƯỜI NỬA CÂN (CÂN SỨC NHẤT) -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                         <div class="border-b pb-2 flex items-center justify-between">
                             <h4 class="font-extrabold text-xs text-slate-800 uppercase flex items-center gap-1.5"><i class="fa-solid fa-scale-balanced text-blue-600"></i> Kẻ tám lạng người nửa cân</h4>
@@ -316,7 +310,6 @@
                         </div>
                     </div>
 
-                    <!-- TIÊU CHÍ 3: KHẮC TINH THỰC SỰ -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                         <div class="border-b pb-2 flex items-center justify-between">
                             <h4 class="font-extrabold text-xs text-slate-800 uppercase flex items-center gap-1.5"><i class="fa-solid fa-ghost text-purple-600"></i> Khắc tinh thực sự</h4>
@@ -332,7 +325,7 @@
                 </div>
             </section>
 
-            <!-- TAB 2: GHI NHẬN TRẬN ĐẤU -->
+            <!-- TAB 2: GHI NHẬN TRẬN ĐẤU (Ô NHẬP TÊN CẦU THỦ MẶC ĐỊNH TRỐNG) -->
             <section id="tab-matches" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 pb-2 border-b flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-emerald-600"></i> GHI KẾT QUẢ TRẬN ĐẤU MỚI</h2>
@@ -684,7 +677,7 @@
                         <form onsubmit="addNewRule(event)" class="space-y-2.5">
                             <div><input type="text" id="ruleTitleInput" required placeholder="Tiêu đề..." class="w-full p-2 bg-white border rounded-lg font-bold text-slate-900 text-xs"></div>
                             <div><textarea id="ruleContentInput" rows="2" required placeholder="Nội dung..." class="w-full p-2 bg-white border rounded-lg text-xs font-semibold text-slate-800 outline-none"></textarea></div>
-                            <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-4 py-2 rounded-lg shadow transition">+ ĐĂNG LÊN CLOUD</button>
+                            <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-4 py-2 rounded-lg shadow transition">+ ĐĂNG LÊN CLOUD</button>
                         </form>
                     </div>
 
@@ -737,7 +730,7 @@
         </main>
     </div>
 
-    <!-- MODAL TRA CỨU CÁ NHÂN (TÌM ĐỒNG ĐỘI & ĐỐI THỦ) -->
+    <!-- MODAL TRA CỨU CÁ NHÂN (TÍCH HỢP NÚT TOP 5 CẠ CỨNG & KHẮC TINH) -->
     <div id="personalMatchFinderModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[250] p-4">
         <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closePersonalMatchFinderModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -749,14 +742,19 @@
                 </div>
             </div>
 
-            <!-- CHỌN THÀNH VIÊN GỐC -->
-            <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200">
-                <label class="block text-xs font-black text-emerald-900 uppercase mb-1.5">Thành viên tra cứu:</label>
-                <select id="finderMainUser" onchange="updatePersonalMatchFinder()" class="w-full p-2.5 bg-white border border-emerald-300 rounded-xl font-extrabold text-emerald-900 text-xs"></select>
+            <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200 flex flex-col md:flex-row items-center justify-between gap-3">
+                <div class="w-full">
+                    <label class="block text-xs font-black text-emerald-900 uppercase mb-1.5">Thành viên tra cứu:</label>
+                    <select id="finderMainUser" onchange="updatePersonalMatchFinder()" class="w-full p-2.5 bg-white border border-emerald-300 rounded-xl font-extrabold text-emerald-900 text-xs"></select>
+                </div>
+                <div class="w-full md:w-auto pt-5">
+                    <button onclick="openTop5PersonalModal()" class="w-full md:w-auto bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl shadow flex items-center justify-center gap-1.5 transition whitespace-nowrap">
+                        <i class="fa-solid fa-trophy"></i> Top 5 Cạ cứng & Khắc tinh
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- KHU VỰC CHỌN ĐỒNG ĐỘI -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
                     <h4 class="font-black text-xs text-slate-800 uppercase flex items-center gap-1.5"><i class="fa-solid fa-handshake-angle text-emerald-600"></i> Tra cứu đồng đội (Cạ cứng)</h4>
                     <div>
@@ -777,7 +775,6 @@
                     </div>
                 </div>
 
-                <!-- KHU VỰC CHỌN ĐỐI THỦ -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
                     <h4 class="font-black text-xs text-slate-800 uppercase flex items-center gap-1.5"><i class="fa-solid fa-fire text-red-600"></i> Tra cứu đối thủ (Đối đầu)</h4>
                     <div>
@@ -800,6 +797,44 @@
             </div>
 
             <button onclick="closePersonalMatchFinderModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold py-2.5 rounded-xl text-xs transition">ĐÓNG</button>
+        </div>
+    </div>
+
+    <!-- MODAL HIỂN THỊ TOP 5 CẠ CỨNG & KHẮC TINH RIÊNG CHO NGƯỜI CHƠI -->
+    <div id="top5PersonalModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm hidden items-center justify-center z-[280] p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeTop5PersonalModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-2.5 border-b pb-3 text-emerald-900">
+                <i class="fa-solid fa-medal text-2xl text-amber-500"></i>
+                <div>
+                    <h3 class="font-black text-sm md:text-base uppercase" id="top5ModalTitle">TOP 5 CẠ CỨNG & KHẮC TINH</h3>
+                    <p class="text-[11px] text-slate-500 font-semibold">Thống kê chuyên sâu chỉ tính các trận đấu của thành viên này</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <h4 class="font-extrabold text-xs text-emerald-900 uppercase flex items-center gap-1.5"><i class="fa-solid fa-handshake-angle text-emerald-600"></i> Top 5 Đồng đội ăn ý nhất (Cạ cứng)</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead><tr class="bg-slate-100 text-slate-700"><th class="p-2">Đồng Đội</th><th class="p-2 text-center">Trận</th><th class="p-2 text-center">Thắng</th><th class="p-2 text-right">Tỷ Lệ Thắng</th></tr></thead>
+                            <tbody id="top5PartnerBody" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="font-extrabold text-xs text-red-900 uppercase flex items-center gap-1.5"><i class="fa-solid fa-ghost text-purple-600"></i> Top 5 Khắc tinh (Đối đầu khó nhằn nhất)</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead><tr class="bg-slate-100 text-slate-700"><th class="p-2">Đối Thủ</th><th class="p-2 text-center">Trận</th><th class="p-2 text-center">Thua</th><th class="p-2 text-right">Tỷ Lệ Thua</th></tr></thead>
+                            <tbody id="top5RivalBody" class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeTop5PersonalModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold py-2.5 rounded-xl text-xs transition">ĐÓNG</button>
         </div>
     </div>
 
@@ -1412,7 +1447,6 @@
             });
         }
 
-        // KẾT HỢP ICON NGỌN LỬA TO BÙNG CHÁY 🔥 CHO CÁC KÈO ĐỐI ĐẦU
         function renderRivalsAnalytics() {
             let duyenNoBody = document.getElementById('rivalsDuyenNoBody');
             let canSucBody = document.getElementById('rivalsCanSucBody');
@@ -1460,7 +1494,6 @@
                 }
             });
 
-            // 1. Cặp đấu duyên nợ nhất
             let duyenNoArr = Object.values(pairDuyenNoMap).sort((a, b) => b.count - a.count).slice(0, 5);
             if (duyenNoArr.length === 0) {
                 duyenNoBody.innerHTML = `<tr><td colspan="2" class="p-3 text-center text-slate-400 italic">Chưa có dữ liệu</td></tr>`;
@@ -1478,7 +1511,6 @@
                 });
             }
 
-            // 2. Kẻ tám lạng người nửa cân
             let h2hArr = Object.values(headToHeadMap).filter(h => h.matches >= 2);
             h2hArr.sort((a, b) => {
                 let rateA = Math.abs((a.wins / a.matches) - 0.5);
@@ -1504,7 +1536,6 @@
                 });
             }
 
-            // 3. Khắc tinh thực sự
             let khacTinhArr = Object.values(headToHeadMap).filter(h => h.matches >= 2);
             khacTinhArr.sort((a, b) => {
                 let lossRateA = a.losses / a.matches;
@@ -1532,7 +1563,6 @@
             }
         }
 
-        // HÀM QUẢN LÝ MODAL TÌM CẠ CỨNG & ĐỐI THỦ CHO MÌNH
         function openPersonalMatchFinderModal() {
             populateFinderSelectors();
             updatePersonalMatchFinder();
@@ -1586,7 +1616,6 @@
             let partnerUser = document.getElementById('finderPartnerUser').value;
             let rivalUser = document.getElementById('finderRivalUser').value;
 
-            // 1. Thống kê đồng đội (Cạ cứng)
             let partnerBox = document.getElementById('partnerResultBox');
             if (!partnerUser) {
                 partnerBox.classList.add('hidden');
@@ -1615,7 +1644,6 @@
                 document.getElementById('resPartnerRate').innerText = pRate;
             }
 
-            // 2. Thống kê đối thủ (Đối đầu trực tiếp)
             let rivalBox = document.getElementById('rivalResultBox');
             if (!rivalUser) {
                 rivalBox.classList.add('hidden');
@@ -1630,7 +1658,6 @@
                     let rivalInV1 = (m.p1_v1 === rivalUser || m.p2_v1 === rivalUser);
                     let rivalInV2 = (m.p1_v2 === rivalUser || m.p2_v2 === rivalUser);
 
-                    // Chỉ tính khi 2 người ở 2 chiến tuyến khác nhau
                     if ((inV1 && rivalInV2) || (inV2 && rivalInV1)) {
                         rTotal++;
                         if (m.scoreA === m.scoreB) rDraws++;
@@ -1645,6 +1672,118 @@
                 document.getElementById('resRivalLosses').innerText = rLosses;
                 let rRate = rTotal > 0 ? ((rWins / rTotal) * 100).toFixed(0) + '%' : '0%';
                 document.getElementById('resRivalRate').innerText = rRate;
+            }
+        }
+
+        // HÀM MỞ MODAL TOP 5 CẠ CỨNG & KHẮC TINH RIÊNG CHO NGƯỜI CHƠI ĐƯỢC CHỌN
+        function openTop5PersonalModal() {
+            let mainUser = document.getElementById('finderMainUser').value;
+            if (!mainUser) {
+                alert("Vui lòng chọn thành viên tra cứu!");
+                return;
+            }
+
+            document.getElementById('top5ModalTitle').innerText = `TOP 5 CẠ CỨNG & KHẮC TINH: ${mainUser}`;
+            
+            let partnerMap = {};
+            let rivalMap = {};
+
+            matches.forEach(m => {
+                let teamA = [m.p1_v1, m.p2_v1].filter(Boolean);
+                let teamB = [m.p1_v2, m.p2_v2].filter(Boolean);
+
+                let inA = teamA.includes(mainUser);
+                let inB = teamB.includes(mainUser);
+
+                if (inA) {
+                    let partner = teamA.find(p => p !== mainUser);
+                    if (partner) {
+                        if (!partnerMap[partner]) partnerMap[partner] = { name: partner, total: 0, wins: 0 };
+                        partnerMap[partner].total++;
+                        if (m.scoreA > m.scoreB) partnerMap[partner].wins++;
+                    }
+                    teamB.forEach(opp => {
+                        if (!rivalMap[opp]) rivalMap[opp] = { name: opp, total: 0, losses: 0 };
+                        rivalMap[opp].total++;
+                        if (m.scoreB > m.scoreA) rivalMap[opp].losses++;
+                    });
+                } else if (inB) {
+                    let partner = teamB.find(p => p !== mainUser);
+                    if (partner) {
+                        if (!partnerMap[partner]) partnerMap[partner] = { name: partner, total: 0, wins: 0 };
+                        partnerMap[partner].total++;
+                        if (m.scoreB > m.scoreA) partnerMap[partner].wins++;
+                    }
+                    teamA.forEach(opp => {
+                        if (!rivalMap[opp]) rivalMap[opp] = { name: opp, total: 0, losses: 0 };
+                        rivalMap[opp].total++;
+                        if (m.scoreA > m.scoreB) rivalMap[opp].losses++;
+                    });
+                }
+            });
+
+            // Top 5 Cạ Cứng (ưu tiên số trận chung và tỷ lệ thắng cao)
+            let partnersArr = Object.values(partnerMap).sort((a, b) => {
+                let rateA = a.total > 0 ? (a.wins / a.total) : 0;
+                let rateB = b.total > 0 ? (b.wins / b.total) : 0;
+                if (rateB !== rateA) return rateB - rateA;
+                return b.total - a.total;
+            }).slice(0, 5);
+
+            let partBody = document.getElementById('top5PartnerBody');
+            partBody.innerHTML = '';
+            if (partnersArr.length === 0) {
+                partBody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400 italic">Chưa có dữ liệu phối hợp đồng đội.</td></tr>`;
+            } else {
+                partnersArr.forEach(p => {
+                    let rate = p.total > 0 ? ((p.wins / p.total) * 100).toFixed(0) + '%' : '0%';
+                    partBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold text-slate-900">${p.name}</td>
+                            <td class="p-2 text-center font-semibold">${p.total}</td>
+                            <td class="p-2 text-center font-bold text-blue-600">${p.wins}</td>
+                            <td class="p-2 text-right font-black text-emerald-700">${rate}</td>
+                        </tr>`;
+                });
+            }
+
+            // Top 5 Khắc Tinh (ưu tiên số trận thua nhiều nhất hoặc tỷ lệ thua cao)
+            let rivalsArr = Object.values(rivalMap).sort((a, b) => {
+                let rateA = a.total > 0 ? (a.losses / a.total) : 0;
+                let rateB = b.total > 0 ? (b.losses / b.total) : 0;
+                if (rateB !== rateA) return rateB - rateA;
+                return b.total - a.total;
+            }).slice(0, 5);
+
+            let rivalBody = document.getElementById('top5RivalBody');
+            rivalBody.innerHTML = '';
+            if (rivalsArr.length === 0) {
+                rivalBody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400 italic">Chưa có dữ liệu đối đầu.</td></tr>`;
+            } else {
+                rivalsArr.forEach(r => {
+                    let lossRate = r.total > 0 ? ((r.losses / r.total) * 100).toFixed(0) + '%' : '0%';
+                    rivalBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold text-slate-900">${r.name}</td>
+                            <td class="p-2 text-center font-semibold">${r.total}</td>
+                            <td class="p-2 text-center font-bold text-red-600">${r.losses}</td>
+                            <td class="p-2 text-right font-black text-purple-700">${lossRate}</td>
+                        </tr>`;
+                });
+            }
+
+            let modal = document.getElementById('top5PersonalModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeTop5PersonalModal() {
+            let modal = document.getElementById('top5PersonalModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
             }
         }
 
@@ -1708,9 +1847,11 @@
             });
         }
 
+        // ĐIỀU CHỈNH: CÁC Ô SELECT TÊN CẦU THỦ TRONG TAB GHI TRẬN MẶC ĐỊNH LÀ TRỐNG ĐỂ TRÁNH NHẦM LẪN
         function populateSelectors() {
             if (!members || members.length === 0) return;
-            ['dashMainUser', 'matchP1A', 'matchP2A', 'matchP1B', 'matchP2B', 'filterGocUser'].forEach(id => {
+            
+            ['dashMainUser', 'filterGocUser'].forEach(id => {
                 let sel = document.getElementById(id);
                 if (!sel) return;
                 let currentVal = sel.value;
@@ -1724,6 +1865,18 @@
                     sel.appendChild(opt);
                 });
                 if (currentVal) sel.value = currentVal;
+            });
+
+            ['matchP1A', 'matchP2A', 'matchP1B', 'matchP2B'].forEach(id => {
+                let sel = document.getElementById(id);
+                if (!sel) return;
+                sel.innerHTML = '<option value="" disabled selected>-- Chọn thành viên --</option>';
+                members.forEach(m => {
+                    let opt = document.createElement('option');
+                    opt.value = m.name;
+                    opt.textContent = m.name;
+                    sel.appendChild(opt);
+                });
             });
 
             if (loggedInMemberName) {
@@ -1818,7 +1971,6 @@
 
             if (actType === "goc") {
                 switchTab('matches');
-                document.getElementById('matchP1A').value = main;
             } else if (actType === "dat16") {
                 showActionConfirm(`Xác nhận ghi nhận Thưởng sân 16h cho thành viên [${main}]?`, () => {
                     let NOW = new Date().getTime();
@@ -2725,6 +2877,11 @@
             let p1B = document.getElementById('matchP1B').value;
             let p2B = document.getElementById('matchP2B').value;
             
+            if (!p1A || !p2A || !p1B || !p2B) {
+                alert("⚠️ Vui lòng chọn đầy đủ tên của cả 4 cầu thủ trước khi lưu trận đấu!");
+                return;
+            }
+
             let playersSet = new Set([p1A, p2A, p1B, p2B]);
             if (playersSet.size < 4) {
                 alert("⚠️ Lỗi: 4 cầu thủ trong một trận đấu đôi phải là 4 cá nhân khác nhau hoàn toàn! Vui lòng kiểm tra lại danh sách lựa chọn.");
@@ -2795,6 +2952,7 @@
             enqueueAction("addMatch", { match: newMatch }, "Đã lưu kết quả trận đấu thành công!");
 
             document.getElementById('matchForm').reset();
+            populateSelectors(); // Đưa các ô select về mặc định trống
             document.querySelectorAll('input[name="scoreA"]').forEach(el => el.checked = false);
             document.querySelectorAll('input[name="scoreB"]').forEach(el => el.checked = false);
             document.getElementById('specialBet').value = "0";
