@@ -67,7 +67,6 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <!-- ICON CÁC SÂN NGÀY HÔM NAY (LẤY DỮ LIỆU NGÀY HÔM TRƯỚC) -->
                     <button onclick="openTodayCourtsModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Các sân ngày hôm nay">
                         <i class="fa-solid fa-calendar-days text-sm"></i>
                     </button>
@@ -82,13 +81,14 @@
                 </div>
             </div>
 
-            <!-- MENU ĐIỀU HƯỚNG -->
+            <!-- MENU ĐIỀU HƯỚNG (ĐÃ SẮP XẾP LẠI VỊ TRÍ TAB PHÂN TÍCH) -->
             <nav class="bg-emerald-900 text-emerald-100 px-3 py-1.5 border-t border-emerald-700/50 flex items-center justify-between">
                 <div class="hidden md:flex flex-wrap gap-1 text-xs md:text-sm font-medium items-center w-full">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Tổng quan</button>
-                    <button onclick="switchTab('analytics')" id="btn-analytics" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> Phân tích</button>
                     <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Ghi Trận</button>
                     <button onclick="switchTab('matchLog')" id="btn-matchLog" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Nhật Ký Trận</button>
+                    <!-- TAB PHÂN TÍCH ĐÃ ĐƯỢC ĐẶT GIỮA NHẬT KÝ TRẬN VÀ NỘP TIỀN -->
+                    <button onclick="switchTab('analytics')" id="btn-analytics" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> Phân tích</button>
                     <button onclick="switchTab('gocLogs')" id="btn-gocLogs" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-receipt"></i> Nộp Tiền</button>
                     <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Tiền Góc</button>
                     <button onclick="switchTab('booking')" id="btn-booking" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-calendar-check"></i> Thưởng Sân</button>
@@ -109,9 +109,9 @@
 
             <div id="mobileMenuDrawer" class="hidden md:hidden bg-emerald-950 border-t border-emerald-800 px-3 py-2 space-y-1 text-xs font-medium">
                 <button onclick="switchTabMobile('dashboard', 'Tổng quan')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-amber-300"></i> Tổng quan</button>
-                <button onclick="switchTabMobile('analytics', 'Phân tích')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> Phân tích</button>
                 <button onclick="switchTabMobile('matches', 'Ghi Trận')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-amber-300"></i> Ghi Trận</button>
                 <button onclick="switchTabMobile('matchLog', 'Nhật Ký Trận')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-list-check text-amber-300"></i> Nhật Ký Trận</button>
+                <button onclick="switchTabMobile('analytics', 'Phân tích')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> Phân tích</button>
                 <button onclick="switchTabMobile('gocLogs', 'Nộp Tiền')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-receipt text-amber-300"></i> Nộp Tiền</button>
                 <button onclick="switchTabMobile('finance', 'Tiền Góc')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-amber-300"></i> Tiền Góc</button>
                 <button onclick="switchTabMobile('booking', 'Thưởng Sân')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-amber-300"></i> Thưởng Sân</button>
@@ -245,16 +245,18 @@
                 </div>
             </section>
 
-            <!-- TAB PHÂN TÍCH (GÓC THÁM TỬ - CẠ CỨNG & ĐỐI THỦ CỨNG) -->
+            <!-- TAB PHÂN TÍCH (GÓC THÁM TỬ - ĐÃ TỐI ƯU BANNER GỌN GÀNG, THÊM NÚT TRA CỨU CÁ NHÂN & FIRE 🔥) -->
             <section id="tab-analytics" class="tab-content space-y-6">
-                <div class="bg-gradient-to-r from-emerald-800 to-teal-900 p-6 rounded-2xl shadow-md text-white flex flex-col md:flex-row justify-between items-center gap-4">
+                <!-- BANNER TỐI ƯU GỌN GÀNG TRÊN DI ĐỘNG & NÚT BẤM TRA CỨU -->
+                <div class="bg-gradient-to-r from-emerald-800 to-teal-900 p-3.5 md:p-5 rounded-2xl shadow-md text-white flex flex-col md:flex-row justify-between items-center gap-3">
                     <div>
-                        <h2 class="text-lg md:text-xl font-black uppercase flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> GÓC THÁM TỬ - PHÂN TÍCH ĐỈNH CAO</h2>
-                        <p class="text-xs text-emerald-200 mt-1">Khám phá bộ đôi ăn ý nhất và những cặp đối thủ duyên nợ, khắc tinh trong CLB.</p>
+                        <h2 class="text-sm md:text-lg font-black uppercase flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> GÓC THÁM TỬ - PHÂN TÍCH ĐỈNH CAO</h2>
+                        <p class="text-[11px] text-emerald-200 mt-0.5">Khám phá bộ đôi ăn ý nhất và những cặp đối thủ duyên nợ, khắc tinh trong CLB.</p>
                     </div>
-                    <div class="flex items-center gap-2 bg-emerald-900/60 p-2 rounded-xl border border-emerald-600/50">
-                        <span class="text-xs font-bold text-amber-300">Ngưỡng tối thiểu cạ cứng:</span>
-                        <span class="text-xs font-black bg-white/20 px-2.5 py-1 rounded-lg">>= 3 trận</span>
+                    <div>
+                        <button onclick="openPersonalMatchFinderModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 transition transform hover:scale-105 whitespace-nowrap">
+                            <i class="fa-solid fa-user-secret text-sm"></i> Tìm đồng đội và đối thủ cho mình
+                        </button>
                     </div>
                 </div>
 
@@ -264,7 +266,7 @@
                         <h3 class="font-black text-sm md:text-base text-slate-800 uppercase flex items-center gap-2">
                             <i class="fa-solid fa-handshake-angle text-emerald-600"></i> 1. Bảng Xếp Hạng "Cạ Cứng Ăn Ý Nhất" (Top Cặp Đôi)
                         </h3>
-                        <span class="text-[11px] font-semibold text-slate-500">Ưu tiên tỷ lệ thắng (%) -> Tổng trận thắng -> Số trận chung</span>
+                        <span class="text-[11px] font-semibold text-slate-500">Ngưỡng tối thiểu >= 3 trận chung</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
@@ -284,7 +286,7 @@
                     </div>
                 </div>
 
-                <!-- BẢNG 2: ĐỐI THỦ CỨNG (KÈO DUYÊN NỢ & KHẮC TINH) -->
+                <!-- BẢNG 2: ĐỐI THỦ CỨNG (KÈO DUYÊN NỢ & KHẮC TINH VỚI ICON NGỌN LỬA TO 🔥) -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- TIÊU CHÍ 1: CẶP ĐẤU DUYÊN NỢ NHẤT -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
@@ -733,6 +735,72 @@
             </section>
 
         </main>
+    </div>
+
+    <!-- MODAL TRA CỨU CÁ NHÂN (TÌM ĐỒNG ĐỘI & ĐỐI THỦ) -->
+    <div id="personalMatchFinderModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[250] p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closePersonalMatchFinderModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-2.5 border-b pb-3 text-emerald-900">
+                <i class="fa-solid fa-user-secret text-2xl text-amber-500"></i>
+                <div>
+                    <h3 class="font-black text-sm md:text-base uppercase">GIAO DIỆN TRA CỨU CẠ CỨNG & ĐỐI THỦ</h3>
+                    <p class="text-[11px] text-slate-500 font-semibold">Tự tra cứu lịch sử phối hợp đồng đội và đối đầu trực tiếp của bạn</p>
+                </div>
+            </div>
+
+            <!-- CHỌN THÀNH VIÊN GỐC -->
+            <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200">
+                <label class="block text-xs font-black text-emerald-900 uppercase mb-1.5">Thành viên tra cứu:</label>
+                <select id="finderMainUser" onchange="updatePersonalMatchFinder()" class="w-full p-2.5 bg-white border border-emerald-300 rounded-xl font-extrabold text-emerald-900 text-xs"></select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- KHU VỰC CHỌN ĐỒNG ĐỘI -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <h4 class="font-black text-xs text-slate-800 uppercase flex items-center gap-1.5"><i class="fa-solid fa-handshake-angle text-emerald-600"></i> Tra cứu đồng đội (Cạ cứng)</h4>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Chọn tên đồng đội:</label>
+                        <select id="finderPartnerUser" onchange="updatePersonalMatchFinder()" class="w-full p-2 border rounded-xl text-xs font-bold bg-white"></select>
+                    </div>
+                    <div id="partnerResultBox" class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-xs space-y-1.5 hidden">
+                        <p class="font-bold text-slate-700 text-center border-b pb-1" id="partnerNameTitle">Kết quả phối hợp</p>
+                        <div class="grid grid-cols-4 gap-1 text-center pt-1">
+                            <div class="bg-slate-100 p-1 rounded"><span class="block text-[9px] text-slate-500">Trận</span><span id="resPartnerTotal" class="font-black text-xs">0</span></div>
+                            <div class="bg-blue-50 p-1 rounded"><span class="block text-[9px] text-blue-600">Thắng</span><span id="resPartnerWins" class="font-black text-xs text-blue-800">0</span></div>
+                            <div class="bg-amber-50 p-1 rounded"><span class="block text-[9px] text-amber-600">Hòa</span><span id="resPartnerDraws" class="font-black text-xs text-amber-800">0</span></div>
+                            <div class="bg-red-50 p-1 rounded"><span class="block text-[9px] text-red-600">Thua</span><span id="resPartnerLosses" class="font-black text-xs text-red-800">0</span></div>
+                        </div>
+                        <div class="text-center pt-1">
+                            <span class="text-[10px] text-slate-500">Tỷ lệ thắng chung: </span><span id="resPartnerRate" class="font-black text-emerald-700 text-sm">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KHU VỰC CHỌN ĐỐI THỦ -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <h4 class="font-black text-xs text-slate-800 uppercase flex items-center gap-1.5"><i class="fa-solid fa-fire text-red-600"></i> Tra cứu đối thủ (Đối đầu)</h4>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Chọn tên đối thủ:</label>
+                        <select id="finderRivalUser" onchange="updatePersonalMatchFinder()" class="w-full p-2 border rounded-xl text-xs font-bold bg-white"></select>
+                    </div>
+                    <div id="rivalResultBox" class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-xs space-y-1.5 hidden">
+                        <p class="font-bold text-slate-700 text-center border-b pb-1" id="rivalNameTitle">Kết quả đối đầu</p>
+                        <div class="grid grid-cols-4 gap-1 text-center pt-1">
+                            <div class="bg-slate-100 p-1 rounded"><span class="block text-[9px] text-slate-500">Trận</span><span id="resRivalTotal" class="font-black text-xs">0</span></div>
+                            <div class="bg-blue-50 p-1 rounded"><span class="block text-[9px] text-blue-600">Thắng</span><span id="resRivalWins" class="font-black text-xs text-blue-800">0</span></div>
+                            <div class="bg-amber-50 p-1 rounded"><span class="block text-[9px] text-amber-600">Hòa</span><span id="resRivalDraws" class="font-black text-xs text-amber-800">0</span></div>
+                            <div class="bg-red-50 p-1 rounded"><span class="block text-[9px] text-red-600">Thua</span><span id="resRivalLosses" class="font-black text-xs text-red-800">0</span></div>
+                        </div>
+                        <div class="text-center pt-1">
+                            <span class="text-[10px] text-slate-500">Tỷ lệ thắng đối đầu: </span><span id="resRivalRate" class="font-black text-emerald-700 text-sm">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closePersonalMatchFinderModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold py-2.5 rounded-xl text-xs transition">ĐÓNG</button>
+        </div>
     </div>
 
     <!-- MODAL BẢNG VÀNG VINH DANH -->
@@ -1277,7 +1345,6 @@
             applyRolePermissions();
         }
 
-        // HÀM XỬ LÝ GÓC THÁM TỬ - PHÂN TÍCH (CẠ CỨNG & ĐỐI THỦ CỨNG)
         function renderAnalyticsTab() {
             renderBestDuosTable();
             renderRivalsAnalytics();
@@ -1291,7 +1358,6 @@
             let duoMap = {};
 
             matches.forEach(m => {
-                // Đội A
                 let teamA = [m.p1_v1, m.p2_v1].filter(Boolean).sort();
                 if (teamA.length === 2) {
                     let keyA = teamA[0] + " & " + teamA[1];
@@ -1302,7 +1368,6 @@
                     else duoMap[keyA].losses++;
                 }
 
-                // Đội B
                 let teamB = [m.p1_v2, m.p2_v2].filter(Boolean).sort();
                 if (teamB.length === 2) {
                     let keyB = teamB[0] + " & " + teamB[1];
@@ -1314,10 +1379,8 @@
                 }
             });
 
-            // Lọc điều kiện tối thiểu >= 3 trận chung
             let duosArr = Object.values(duoMap).filter(d => d.total >= 3);
 
-            // Sắp xếp theo tiêu chí: Tỷ lệ thắng cao nhất (%) -> Tổng số trận thắng -> Tổng số trận đã đánh chung
             duosArr.sort((a, b) => {
                 let rateA = a.wins / a.total;
                 let rateB = b.wins / b.total;
@@ -1349,6 +1412,7 @@
             });
         }
 
+        // KẾT HỢP ICON NGỌN LỬA TO BÙNG CHÁY 🔥 CHO CÁC KÈO ĐỐI ĐẦU
         function renderRivalsAnalytics() {
             let duyenNoBody = document.getElementById('rivalsDuyenNoBody');
             let canSucBody = document.getElementById('rivalsCanSucBody');
@@ -1360,8 +1424,8 @@
             canSucBody.innerHTML = '';
             khacTinhBody.innerHTML = '';
 
-            let headToHeadMap = {}; // Thống kê cá nhân đối đầu: playerA vs playerB
-            let pairDuyenNoMap = {}; // Cặp đấu giữa 2 chiến tuyến
+            let headToHeadMap = {};
+            let pairDuyenNoMap = {};
 
             matches.forEach(m => {
                 let teamA = [m.p1_v1, m.p2_v1].filter(Boolean);
@@ -1396,22 +1460,30 @@
                 }
             });
 
-            // Tiêu chí 1: Cặp đấu duyên nợ nhất (Đụng độ nhiều nhất)
+            // 1. Cặp đấu duyên nợ nhất
             let duyenNoArr = Object.values(pairDuyenNoMap).sort((a, b) => b.count - a.count).slice(0, 5);
             if (duyenNoArr.length === 0) {
                 duyenNoBody.innerHTML = `<tr><td colspan="2" class="p-3 text-center text-slate-400 italic">Chưa có dữ liệu</td></tr>`;
             } else {
                 duyenNoArr.forEach(d => {
-                    duyenNoBody.innerHTML += `<tr class="border-b"><td class="p-1.5 font-semibold truncate max-w-[140px]">${d.t1}<br><span class="text-slate-400">vs</span> ${d.t2}</td><td class="p-1.5 text-center font-black text-amber-600">${d.count} trận</td></tr>`;
+                    duyenNoBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-1.5 font-semibold text-xs text-slate-800">
+                                <span class="text-emerald-800 font-bold">${d.t1}</span>
+                                <div class="text-center my-0.5"><span class="text-lg">🔥</span></div>
+                                <span class="text-blue-800 font-bold">${d.t2}</span>
+                            </td>
+                            <td class="p-1.5 text-center font-black text-amber-600 align-middle">${d.count} trận</td>
+                        </tr>`;
                 });
             }
 
-            // Tiêu chí 2: Kẻ tám lạng người nửa cân (Tỷ lệ thắng/thua xấp xỉ 50%-50% hoặc nhiều trận giằng co, min >= 2 trận)
+            // 2. Kẻ tám lạng người nửa cân
             let h2hArr = Object.values(headToHeadMap).filter(h => h.matches >= 2);
             h2hArr.sort((a, b) => {
                 let rateA = Math.abs((a.wins / a.matches) - 0.5);
                 let rateB = Math.abs((b.wins / b.matches) - 0.5);
-                return rateA - rateB; // Càng sát 0.5 thì càng cân sức
+                return rateA - rateB;
             });
             let canSucArr = h2hArr.slice(0, 5);
 
@@ -1420,11 +1492,19 @@
             } else {
                 canSucArr.forEach(c => {
                     let winR = ((c.wins / c.matches) * 100).toFixed(0);
-                    canSucBody.innerHTML += `<tr class="border-b"><td class="p-1.5 font-semibold truncate max-w-[140px]">${c.player}<br><span class="text-slate-400">vs</span> ${c.vs}</td><td class="p-1.5 text-center font-bold text-blue-700">${c.wins}T - ${c.losses}B (${winR}%)</td></tr>`;
+                    canSucBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-1.5 font-semibold text-xs text-slate-800">
+                                <span class="text-emerald-800 font-bold">${c.player}</span>
+                                <div class="text-center my-0.5"><span class="text-lg">🔥</span></div>
+                                <span class="text-blue-800 font-bold">${c.vs}</span>
+                            </td>
+                            <td class="p-1.5 text-center font-bold text-blue-700 align-middle">${c.wins}T - ${c.losses}B (${winR}%)</td>
+                        </tr>`;
                 });
             }
 
-            // Tiêu chí 3: Khắc tinh thực sự (Cầu thủ A gặp cầu thủ B có tỷ lệ thua cao nhất, min >= 2 trận)
+            // 3. Khắc tinh thực sự
             let khacTinhArr = Object.values(headToHeadMap).filter(h => h.matches >= 2);
             khacTinhArr.sort((a, b) => {
                 let lossRateA = a.losses / a.matches;
@@ -1439,8 +1519,132 @@
             } else {
                 topKhacTinh.forEach(k => {
                     let lossRate = ((k.losses / k.matches) * 100).toFixed(0);
-                    khacTinhBody.innerHTML += `<tr class="border-b"><td class="p-1.5 font-semibold truncate max-w-[130px]">${k.player} <span class="text-red-500 font-bold">vs</span> ${k.vs}</td><td class="p-1.5 text-right font-black text-purple-700">${lossRate}% (${k.losses}T)</td></tr>`;
+                    khacTinhBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-1.5 font-semibold text-xs text-slate-800">
+                                <span class="text-purple-800 font-bold">${k.player}</span>
+                                <div class="text-center my-0.5"><span class="text-lg">🔥</span></div>
+                                <span class="text-red-700 font-bold">${k.vs}</span>
+                            </td>
+                            <td class="p-1.5 text-right font-black text-purple-700 align-middle">${lossRate}% (${k.losses}T)</td>
+                        </tr>`;
                 });
+            }
+        }
+
+        // HÀM QUẢN LÝ MODAL TÌM CẠ CỨNG & ĐỐI THỦ CHO MÌNH
+        function openPersonalMatchFinderModal() {
+            populateFinderSelectors();
+            updatePersonalMatchFinder();
+            let modal = document.getElementById('personalMatchFinderModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closePersonalMatchFinderModal() {
+            let modal = document.getElementById('personalMatchFinderModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function populateFinderSelectors() {
+            if (!members || members.length === 0) return;
+            ['finderMainUser', 'finderPartnerUser', 'finderRivalUser'].forEach(id => {
+                let sel = document.getElementById(id);
+                if (!sel) return;
+                let currentVal = sel.value;
+                sel.innerHTML = '';
+                
+                if (id !== 'finderMainUser') {
+                    let optDefault = document.createElement('option');
+                    optDefault.value = "";
+                    optDefault.textContent = "-- Chọn thành viên --";
+                    sel.appendChild(optDefault);
+                }
+
+                members.forEach(m => {
+                    let opt = document.createElement('option');
+                    opt.value = m.name;
+                    opt.textContent = m.name;
+                    sel.appendChild(opt);
+                });
+
+                if (id === 'finderMainUser' && loggedInMemberName) {
+                    sel.value = loggedInMemberName;
+                } else if (currentVal) {
+                    sel.value = currentVal;
+                }
+            });
+        }
+
+        function updatePersonalMatchFinder() {
+            let mainUser = document.getElementById('finderMainUser').value;
+            let partnerUser = document.getElementById('finderPartnerUser').value;
+            let rivalUser = document.getElementById('finderRivalUser').value;
+
+            // 1. Thống kê đồng đội (Cạ cứng)
+            let partnerBox = document.getElementById('partnerResultBox');
+            if (!partnerUser) {
+                partnerBox.classList.add('hidden');
+            } else {
+                partnerBox.classList.remove('hidden');
+                document.getElementById('partnerNameTitle').innerText = `${mainUser} & ${partnerUser}`;
+
+                let pTotal = 0, pWins = 0, pDraws = 0, pLosses = 0;
+                matches.forEach(m => {
+                    let isV1 = (m.p1_v1 === mainUser && m.p2_v1 === partnerUser) || (m.p1_v1 === partnerUser && m.p2_v1 === mainUser);
+                    let isV2 = (m.p1_v2 === mainUser && m.p2_v2 === partnerUser) || (m.p1_v2 === partnerUser && m.p2_v2 === mainUser);
+
+                    if (isV1 || isV2) {
+                        pTotal++;
+                        if (m.scoreA === m.scoreB) pDraws++;
+                        else if ((isV1 && m.scoreA > m.scoreB) || (isV2 && m.scoreB > m.scoreA)) pWins++;
+                        else pLosses++;
+                    }
+                });
+
+                document.getElementById('resPartnerTotal').innerText = pTotal;
+                document.getElementById('resPartnerWins').innerText = pWins;
+                document.getElementById('resPartnerDraws').innerText = pDraws;
+                document.getElementById('resPartnerLosses').innerText = pLosses;
+                let pRate = pTotal > 0 ? ((pWins / pTotal) * 100).toFixed(0) + '%' : '0%';
+                document.getElementById('resPartnerRate').innerText = pRate;
+            }
+
+            // 2. Thống kê đối thủ (Đối đầu trực tiếp)
+            let rivalBox = document.getElementById('rivalResultBox');
+            if (!rivalUser) {
+                rivalBox.classList.add('hidden');
+            } else {
+                rivalBox.classList.remove('hidden');
+                document.getElementById('rivalNameTitle').innerText = `${mainUser} vs ${rivalUser}`;
+
+                let rTotal = 0, rWins = 0, rDraws = 0, rLosses = 0;
+                matches.forEach(m => {
+                    let inV1 = (m.p1_v1 === mainUser || m.p2_v1 === mainUser);
+                    let inV2 = (m.p1_v2 === mainUser || m.p2_v2 === mainUser);
+                    let rivalInV1 = (m.p1_v1 === rivalUser || m.p2_v1 === rivalUser);
+                    let rivalInV2 = (m.p1_v2 === rivalUser || m.p2_v2 === rivalUser);
+
+                    // Chỉ tính khi 2 người ở 2 chiến tuyến khác nhau
+                    if ((inV1 && rivalInV2) || (inV2 && rivalInV1)) {
+                        rTotal++;
+                        if (m.scoreA === m.scoreB) rDraws++;
+                        else if ((inV1 && m.scoreA > m.scoreB) || (inV2 && m.scoreB > m.scoreA)) rWins++;
+                        else rLosses++;
+                    }
+                });
+
+                document.getElementById('resRivalTotal').innerText = rTotal;
+                document.getElementById('resRivalWins').innerText = rWins;
+                document.getElementById('resRivalDraws').innerText = rDraws;
+                document.getElementById('resRivalLosses').innerText = rLosses;
+                let rRate = rTotal > 0 ? ((rWins / rTotal) * 100).toFixed(0) + '%' : '0%';
+                document.getElementById('resRivalRate').innerText = rRate;
             }
         }
 
