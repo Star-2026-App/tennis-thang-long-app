@@ -81,7 +81,7 @@
                 </div>
             </div>
 
-            <!-- MENU ĐIỀU HƯỚNG: TAB PHÂN TÍCH Ở GIỮA NHẬT KÝ TRẬN VÀ NỘP TIỀN -->
+            <!-- MENU ĐIỀU HƯỚNG -->
             <nav class="bg-emerald-900 text-emerald-100 px-3 py-1.5 border-t border-emerald-700/50 flex items-center justify-between">
                 <div class="hidden md:flex flex-wrap gap-1 text-xs md:text-sm font-medium items-center w-full">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Tổng quan</button>
@@ -304,7 +304,7 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-[11px] border-collapse">
-                                <thead><tr class="bg-slate-100 text-slate-700"><th class="p-1.5">Cặp Đấu</th><th class="p-1.5 text-center">Tỉ Lệ Đối Đầu</th></tr></thead>
+                                <thead><tr class="bg-slate-100 text-slate-700"><th class="p-1.5">Cặp Đấu</th><th class="p-1.5 text-center">Tỷ Lệ Đối Đầu</th></tr></thead>
                                 <tbody id="rivalsCanSucBody" class="divide-y divide-slate-200"></tbody>
                             </table>
                         </div>
@@ -393,11 +393,19 @@
                 </div>
             </section>
 
-            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU -->
+            <!-- TAB 3: NHẬT KÝ TRẬN ĐẤU (BỔ SUNG BỘ LỌC NGÀY THÁNG NĂM HOẶC TẤT CẢ Ở GIỮA) -->
             <section id="tab-matchLog" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border space-y-3">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-3 gap-2">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 gap-3">
                         <h2 class="text-base font-bold text-slate-800">NHẬT KÝ TẤT CẢ CÁC TRẬN ĐẤU</h2>
+                        
+                        <!-- BỘ LỌC NGÀY/THÁNG/NĂM HOẶC TẤT CẢ Ở GIỮA -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-bold text-slate-600">Lọc trận:</span>
+                            <input type="date" id="filterMatchDate" onchange="renderAllMatchLog()" class="bg-emerald-50 border border-emerald-300 rounded-xl p-1.5 text-xs font-bold text-emerald-900 outline-none">
+                            <button onclick="clearMatchDateFilter()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-extrabold px-3 py-1.5 rounded-xl transition">Tất cả các ngày</button>
+                        </div>
+
                         <div id="todayMatchCounterBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm">
                             <i class="fa-solid fa-bolt text-amber-500"></i>
                             <span id="todayMatchCountText">Ngày hôm nay có thêm 0 trận đấu được ghi nhận</span>
@@ -463,12 +471,12 @@
                             <button onclick="copyReminderText()" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition"><i class="fa-solid fa-copy"></i> Sao chép nhắc nợ Zalo</button>
 
                             <div class="flex gap-2 items-center">
-                                <select id="selectFinanceMonth" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                <select id="selectFinanceMonth" onchange="onFinanceMonthYearChange()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
                                     <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option><option value="4">Tháng 4</option>
                                     <option value="5">Tháng 5</option><option value="6">Tháng 6</option><option value="7">Tháng 7</option><option value="8" selected>Tháng 8</option>
                                     <option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
                                 </select>
-                                <select id="selectFinanceYear" onchange="renderFinance()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                <select id="selectFinanceYear" onchange="onFinanceMonthYearChange()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
                                     <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
                                 </select>
                             </div>
@@ -499,22 +507,41 @@
                 </div>
             </section>
 
-            <!-- TAB 6: THƯỞNG ĐẶT SÂN -->
+            <!-- TAB 6: THƯỞNG ĐẶT SÂN (LƯU TẤT CẢ, HIỂN THỊ THEO THÁNG/NĂM CHỌN) -->
             <section id="tab-booking" class="tab-content space-y-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center mb-3 pb-3 border-b">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 pb-3 border-b gap-3">
                         <div>
                             <h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-600"></i> NHẬT KÝ THƯỞNG ĐẶT SÂN VINHOMES</h2>
                         </div>
-                        <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-right">
-                            <span class="text-[9px] font-bold text-emerald-800 block uppercase">Tổng thưởng:</span>
-                            <div id="totalBookingRewardDisplay" class="text-sm font-black text-emerald-700">0 đ</div>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <div class="flex gap-2 items-center">
+                                <select id="selectBookingMonth" onchange="renderBookingLogs()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                    <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option><option value="4">Tháng 4</option>
+                                    <option value="5">Tháng 5</option><option value="6">Tháng 6</option><option value="7">Tháng 7</option><option value="8" selected>Tháng 8</option>
+                                    <option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
+                                </select>
+                                <select id="selectBookingYear" onchange="renderBookingLogs()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                    <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                                </select>
+                            </div>
+                            <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-right">
+                                <span class="text-[9px] font-bold text-emerald-800 block uppercase">Tổng thưởng:</span>
+                                <div id="totalBookingRewardDisplay" class="text-sm font-black text-emerald-700">0 đ</div>
+                            </div>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Thành Viên</th><th class="p-2.5 text-center">Khung Sân</th><th class="p-2.5 text-right">Số Tiền Thưởng</th><th class="p-2.5 text-center admin-only">Xóa</th></tr>
+                                <tr class="bg-slate-100 text-slate-700 font-bold border-b">
+                                    <th class="p-2.5 text-center">STT</th>
+                                    <th class="p-2.5">Thời Gian</th>
+                                    <th class="p-2.5">Thành Viên</th>
+                                    <th class="p-2.5 text-center">Khung Sân</th>
+                                    <th class="p-2.5 text-right">Số Tiền Thưởng</th>
+                                    <th class="p-2.5 text-center admin-only">Xóa</th>
+                                </tr>
                             </thead>
                             <tbody id="bookingLogTableBody" class="divide-y divide-slate-200"></tbody>
                         </table>
@@ -730,7 +757,7 @@
         </main>
     </div>
 
-    <!-- MODAL TRA CỨU CÁ NHÂN (TÍCH HỢP NÚT TOP 5 CẠ CỨNG & KHẮC TINH) -->
+    <!-- MODAL TRA CỨU CÁ NHÂN -->
     <div id="personalMatchFinderModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[250] p-4">
         <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closePersonalMatchFinderModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -800,7 +827,7 @@
         </div>
     </div>
 
-    <!-- MODAL HIỂN THỊ TOP 5 CẠ CỨNG & KHẮC TINH RIÊNG CHO NGƯỜI CHƠI -->
+    <!-- MODAL HIỂN THỊ TOP 5 CẠ CỨNG & KHẮC TINH -->
     <div id="top5PersonalModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm hidden items-center justify-center z-[280] p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeTop5PersonalModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -951,7 +978,7 @@
         </div>
     </div>
 
-    <!-- MODAL THANH TOÁN QR TRONG BẢNG TÀI CHÍNH -->
+    <!-- MODAL THANH TOÁN QR -->
     <div id="qrModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeQRModal()">
         <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
             <button onclick="closeQRModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
@@ -1155,6 +1182,8 @@
             
             if (document.getElementById('selectFinanceMonth')) document.getElementById('selectFinanceMonth').value = curMonth;
             if (document.getElementById('selectFinanceYear')) document.getElementById('selectFinanceYear').value = curYear;
+            if (document.getElementById('selectBookingMonth')) document.getElementById('selectBookingMonth').value = curMonth;
+            if (document.getElementById('selectBookingYear')) document.getElementById('selectBookingYear').value = curYear;
 
             loadLocalData();
             if (!members || members.length === 0) members = defaultFallbackMembers;
@@ -1378,6 +1407,15 @@
             renderRulesTab();
             renderAnalyticsTab();
             applyRolePermissions();
+        }
+
+        function onFinanceMonthYearChange() {
+            let m = document.getElementById('selectFinanceMonth').value;
+            let y = document.getElementById('selectFinanceYear').value;
+            if (document.getElementById('selectBookingMonth')) document.getElementById('selectBookingMonth').value = m;
+            if (document.getElementById('selectBookingYear')) document.getElementById('selectBookingYear').value = y;
+            renderFinance();
+            renderBookingLogs();
         }
 
         function renderAnalyticsTab() {
@@ -1675,7 +1713,6 @@
             }
         }
 
-        // HÀM MỞ MODAL TOP 5 CẠ CỨNG & KHẮC TINH RIÊNG CHO NGƯỜI CHƠI ĐƯỢC CHỌN
         function openTop5PersonalModal() {
             let mainUser = document.getElementById('finderMainUser').value;
             if (!mainUser) {
@@ -1722,7 +1759,6 @@
                 }
             });
 
-            // Top 5 Cạ Cứng (ưu tiên số trận chung và tỷ lệ thắng cao)
             let partnersArr = Object.values(partnerMap).sort((a, b) => {
                 let rateA = a.total > 0 ? (a.wins / a.total) : 0;
                 let rateB = b.total > 0 ? (b.wins / b.total) : 0;
@@ -1747,7 +1783,6 @@
                 });
             }
 
-            // Top 5 Khắc Tinh (ưu tiên số trận thua nhiều nhất hoặc tỷ lệ thua cao)
             let rivalsArr = Object.values(rivalMap).sort((a, b) => {
                 let rateA = a.total > 0 ? (a.losses / a.total) : 0;
                 let rateB = b.total > 0 ? (b.losses / b.total) : 0;
@@ -1847,7 +1882,6 @@
             });
         }
 
-        // ĐIỀU CHỈNH: CÁC Ô SELECT TÊN CẦU THỦ TRONG TAB GHI TRẬN MẶC ĐỊNH LÀ TRỐNG ĐỂ TRÁNH NHẦM LẪN
         function populateSelectors() {
             if (!members || members.length === 0) return;
             
@@ -2022,7 +2056,10 @@
                     let isHoangVanThai = (main.toLowerCase().includes("hoàng văn thái") || m.username === "Thanglong15");
                     let rewardAmount = isHoangVanThai ? 0 : systemSettings.reward18h;
 
-                    let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "18h-20h (CVTT5)", reward: rewardAmount };
+                    // YÊU CẦU MỚI: Chỉ duy nhất Hoàng Văn Thái 94 (Thanglong15) hiển thị "18-20h (CVTT5)", còn lại chỉ hiện "18-20h"
+                    let frameLabel = isHoangVanThai ? "18h-20h (CVTT5)" : "18h-20h";
+
+                    let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: frameLabel, reward: rewardAmount };
                     enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Thưởng sân 18h thành công!");
                 });
             } else if (actType === "quy") {
@@ -2354,11 +2391,30 @@
             if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
         }
 
+        // BỔ SUNG BỘ LỌC NGÀY TRONG TAB NHẬT KÝ TRẬN
+        function clearMatchDateFilter() {
+            let dateInput = document.getElementById('filterMatchDate');
+            if (dateInput) dateInput.value = '';
+            renderAllMatchLog();
+        }
+
         function renderAllMatchLog() {
             let tbody = document.getElementById('allMatchTableBody');
             tbody.innerHTML = '';
             
             if (matches && matches.length > 0) matches.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+
+            let selectedDateVal = document.getElementById('filterMatchDate') ? document.getElementById('filterMatchDate').value : '';
+            let filteredMatches = matches;
+
+            if (selectedDateVal) {
+                // selectedDateVal dạng "YYYY-MM-DD", chuyển sang "DD/MM/YYYY" để so khớp với chuỗi time
+                let parts = selectedDateVal.split('-');
+                if (parts.length === 3) {
+                    let formattedFilterDate = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parts[0]}`;
+                    filteredMatches = matches.filter(m => (m.time || "").includes(formattedFilterDate));
+                }
+            }
 
             let todayDateStr = new Date().toLocaleDateString('vi-VN');
             let todayCount = matches.filter(m => {
@@ -2368,8 +2424,8 @@
 
             document.getElementById('todayMatchCountText').innerText = `Ngày hôm nay có thêm ${todayCount} trận đấu được ghi nhận`;
 
-            matches.forEach((m, idx) => {
-                let stt = matches.length - idx;
+            filteredMatches.forEach((m, idx) => {
+                let stt = filteredMatches.length - idx;
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
                         <td class="p-2.5 text-center font-bold text-slate-500">${stt}</td>
@@ -2423,12 +2479,13 @@
             }
         }
 
+        // TAB THƯỞNG SÂN: LƯU TẤT CẢ NHƯNG HIỂN THỊ THEO THÁNG/NĂM CHỌN
         function renderBookingLogs() {
             let tbody = document.getElementById('bookingLogTableBody');
             tbody.innerHTML = '';
             
-            let curMonth = document.getElementById('selectFinanceMonth').value;
-            let curYear = document.getElementById('selectFinanceYear').value;
+            let curMonth = document.getElementById('selectBookingMonth').value;
+            let curYear = document.getElementById('selectBookingYear').value;
 
             let currentMonthBookings = bookingLogs.filter(b => {
                 let t = b.time || "";
@@ -2952,7 +3009,7 @@
             enqueueAction("addMatch", { match: newMatch }, "Đã lưu kết quả trận đấu thành công!");
 
             document.getElementById('matchForm').reset();
-            populateSelectors(); // Đưa các ô select về mặc định trống
+            populateSelectors();
             document.querySelectorAll('input[name="scoreA"]').forEach(el => el.checked = false);
             document.querySelectorAll('input[name="scoreB"]').forEach(el => el.checked = false);
             document.getElementById('specialBet').value = "0";
