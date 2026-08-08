@@ -477,7 +477,7 @@
                                     <option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
                                 </select>
                                 <select id="selectFinanceYear" onchange="onFinanceMonthYearChange()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
-                                    <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                                    <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option><option value="2036">2036</option>
                                 </select>
                             </div>
                         </div>
@@ -522,7 +522,7 @@
                                     <option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
                                 </select>
                                 <select id="selectBookingYear" onchange="renderBookingLogs()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
-                                    <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                                    <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option><option value="2036">2036</option>
                                 </select>
                             </div>
                             <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-right">
@@ -561,7 +561,7 @@
                                 <option value="Q1">Quý 1</option><option value="Q2">Quý 2</option><option value="Q3" selected>Quý 3</option><option value="Q4">Quý 4</option>
                             </select>
                             <select id="selectNam" onchange="renderQuyTable()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
-                                <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                                <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option><option value="2036">2036</option>
                             </select>
                         </div>
                     </div>
@@ -2056,7 +2056,6 @@
                     let isHoangVanThai = (main.toLowerCase().includes("hoàng văn thái") || m.username === "Thanglong15");
                     let rewardAmount = isHoangVanThai ? 0 : systemSettings.reward18h;
 
-                    // YÊU CẦU MỚI: Chỉ duy nhất Hoàng Văn Thái 94 (Thanglong15) hiển thị "18-20h (CVTT5)", còn lại chỉ hiện "18-20h"
                     let frameLabel = isHoangVanThai ? "18h-20h (CVTT5)" : "18h-20h";
 
                     let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: frameLabel, reward: rewardAmount };
@@ -2391,7 +2390,6 @@
             if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
         }
 
-        // BỔ SUNG BỘ LỌC NGÀY TRONG TAB NHẬT KÝ TRẬN
         function clearMatchDateFilter() {
             let dateInput = document.getElementById('filterMatchDate');
             if (dateInput) dateInput.value = '';
@@ -2408,7 +2406,6 @@
             let filteredMatches = matches;
 
             if (selectedDateVal) {
-                // selectedDateVal dạng "YYYY-MM-DD", chuyển sang "DD/MM/YYYY" để so khớp với chuỗi time
                 let parts = selectedDateVal.split('-');
                 if (parts.length === 3) {
                     let formattedFilterDate = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parts[0]}`;
@@ -2479,7 +2476,6 @@
             }
         }
 
-        // TAB THƯỞNG SÂN: LƯU TẤT CẢ NHƯNG HIỂN THỊ THEO THÁNG/NĂM CHỌN
         function renderBookingLogs() {
             let tbody = document.getElementById('bookingLogTableBody');
             tbody.innerHTML = '';
