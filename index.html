@@ -1,761 +1,369 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản Lý Câu Lạc Bộ Thăng Long - Ver Cúp</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; }
-  </style>
-</head>
-<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify(getAllData()))
+    .setMimeType(ContentService.MimeType.JSON);
+}
 
-  <!-- Header -->
-  <header class="bg-emerald-700 text-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
-      <div class="flex items-center space-x-3">
-        <i class="fa-solid fa-futbol text-2xl animate-bounce"></i>
-        <h1 class="text-xl font-bold tracking-wide">CLB BÓNG ĐÁ THĂNG LONG</h1>
-      </div>
-      <div class="flex items-center space-x-4 mt-2 sm:mt-0">
-        <span id="userInfoDisplay" class="text-sm bg-emerald-800 px-3 py-1 rounded-full">Đang tải...</span>
-        <button onclick="syncData()" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded text-sm font-medium transition flex items-center gap-1">
-          <i class="fa-solid fa-rotate" id="syncIcon"></i> Đồng bộ
-        </button>
-      </div>
-    </div>
-  </header>
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(5000);
 
-  <!-- Navigation Tabs -->
-  <nav class="bg-white shadow border-b sticky top-0 z-20">
-    <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto space-x-2 sm:space-x-6 py-2">
-      <button onclick="switchTab('dashboard')" class="tab-btn px-3 py-2 font-medium text-sm text-emerald-600 border-b-2 border-emerald-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Tổng Quan</button>
-      <button onclick="switchTab('matches')" class="tab-btn px-3 py-2 font-medium text-sm text-gray-500 hover:text-emerald-600 whitespace-nowrap"><i class="fa-solid fa-futbol mr-1"></i> Trận Đấu</button>
-      <button onclick="switchTab('tournaments')" class="tab-btn px-3 py-2 font-medium text-sm text-gray-500 hover:text-emerald-600 whitespace-nowrap"><i class="fa-solid fa-trophy mr-1"></i> Giải Đấu Cúp</button>
-      <button onclick="switchTab('members')" class="tab-btn px-3 py-2 font-medium text-sm text-gray-500 hover:text-emerald-600 whitespace-nowrap"><i class="fa-solid fa-users mr-1"></i> Thành Viên & Quỹ</button>
-      <button onclick="switchTab('cashbook')" class="tab-btn px-3 py-2 font-medium text-sm text-gray-500 hover:text-emerald-600 whitespace-nowrap"><i class="fa-solid fa-wallet mr-1"></i> Thu Chi</button>
-      <button onclick="switchTab('rules')" class="tab-btn px-3 py-2 font-medium text-sm text-gray-500 hover:text-emerald-600 whitespace-nowrap"><i class="fa-solid fa-book mr-1"></i> Nội Quy</button>
-      <button onclick="switchTab('settings')" class="tab-btn px-3 py-2 font-medium text-sm text-gray-500 hover:text-emerald-600 whitespace-nowrap"><i class="fa-solid fa-gear mr-1"></i> Cài Đặt</button>
-    </div>
-  </nav>
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var action = data.action;
 
-  <!-- Main Content Container -->
-  <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
-
-    <!-- TAB: DASHBOARD -->
-    <section id="tab-dashboard" class="tab-content space-y-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
-          <p class="text-xs text-gray-500 font-semibold uppercase">Tổng Quỹ Hiện Tại</p>
-          <h3 id="statTotalQuy" class="text-2xl font-bold text-gray-800 mt-1">0 đ</h3>
-        </div>
-        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-          <p class="text-xs text-gray-500 font-semibold uppercase">Số Trận Đã Đấu</p>
-          <h3 id="statTotalMatches" class="text-2xl font-bold text-gray-800 mt-1">0</h3>
-        </div>
-        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-amber-500">
-          <p class="text-xs text-gray-500 font-semibold uppercase">Thành Viên Tham Gia</p>
-          <h3 id="statTotalMembers" class="text-2xl font-bold text-gray-800 mt-1">0</h3>
-        </div>
-        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-          <p class="text-xs text-gray-500 font-semibold uppercase">Giải Đấu Cúp Đang Diễn Ra</p>
-          <h3 id="statActiveTournaments" class="text-2xl font-bold text-gray-800 mt-1">0</h3>
-        </div>
-      </div>
-      <div class="bg-white p-6 rounded-lg shadow">
-        <h3 class="text-lg font-semibold mb-4 text-emerald-700"><i class="fa-solid fa-bullhorn mr-2"></i> Thông Báo & Hoạt Động Gần Đây</h3>
-        <div id="recentActivityList" class="space-y-3 text-sm text-gray-600">Đang tải dữ liệu...</div>
-      </div>
-    </section>
-
-    <!-- TAB: MATCHES -->
-    <section id="tab-matches" class="tab-content hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-800">Quản Lý Trận Đấu</h2>
-        <button onclick="openAddMatchModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium transition shadow">
-          <i class="fa-solid fa-plus mr-1"></i> Thêm Trận Đấu
-        </button>
-      </div>
-      <div class="bg-white shadow rounded-lg overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 border-b text-xs font-semibold text-gray-600 uppercase">
-                <th class="p-3">Thời gian</th>
-                <th class="p-3">Đội A</th>
-                <th class="p-3 text-center">Tỷ số</th>
-                <th class="p-3">Đội B</th>
-                <th class="p-3 text-center">Kèo Đặc Biệt</th>
-                <th class="p-3 text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="matchesTableBody" class="divide-y text-sm">
-              <tr><td colspan="6" class="p-4 text-center text-gray-500">Chưa có trận đấu nào.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB: TOURNAMENTS (GIẢI ĐẤU CÚP MỚI) -->
-    <section id="tab-tournaments" class="tab-content hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-trophy text-amber-500 mr-2"></i> Quản Lý Giải Đấu Cúp</h2>
-        <button onclick="openCreateTournamentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium transition shadow">
-          <i class="fa-solid fa-plus mr-1"></i> Tạo Giải Cúp Mới
-        </button>
-      </div>
-      <div id="tournamentsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Danh sách cúp sẽ render ở đây -->
-        <div class="bg-white p-6 rounded-lg shadow text-center text-gray-500 col-span-2">Chưa có giải đấu cúp nào được tạo.</div>
-      </div>
-    </section>
-
-    <!-- TAB: MEMBERS -->
-    <section id="tab-members" class="tab-content hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-800">Danh Sách Thành Viên & Quỹ</h2>
-        <button onclick="openAddMemberModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium transition shadow">
-          <i class="fa-solid fa-user-plus mr-1"></i> Thêm Thành Viên
-        </button>
-      </div>
-      <div class="bg-white shadow rounded-lg overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 border-b text-xs font-semibold text-gray-600 uppercase">
-                <th class="p-3">STT</th>
-                <th class="p-3">Tên Thành Viên</th>
-                <th class="p-3">Trạng Thái</th>
-                <th class="p-3">Điểm Base</th>
-                <th class="p-3">Quý 3 (2026)</th>
-                <th class="p-3 text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="membersTableBody" class="divide-y text-sm">
-              <tr><td colspan="6" class="p-4 text-center text-gray-500">Đang tải thành viên...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB: CASHBOOK -->
-    <section id="tab-cashbook" class="tab-content hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-800">Sổ Thu Chi & Quỹ CLB</h2>
-        <button onclick="openAddCashbookModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium transition shadow">
-          <i class="fa-solid fa-receipt mr-1"></i> Ghi Nhận Thu/Chi
-        </button>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="bg-white p-4 rounded shadow">
-          <p class="text-xs text-gray-500 uppercase font-semibold">Số Dư Đầu Kỳ</p>
-          <p id="cbOpening" class="text-lg font-bold text-gray-700 mt-1">0 đ</p>
-        </div>
-        <div class="bg-white p-4 rounded shadow">
-          <p class="text-xs text-gray-500 uppercase font-semibold">Tổng Thu</p>
-          <p id="cbTotalIn" class="text-lg font-bold text-emerald-600 mt-1">0 đ</p>
-        </div>
-        <div class="bg-white p-4 rounded shadow">
-          <p class="text-xs text-gray-500 uppercase font-semibold">Tổng Chi</p>
-          <p id="cbTotalOut" class="text-lg font-bold text-red-600 mt-1">0 đ</p>
-        </div>
-      </div>
-      <div class="bg-white shadow rounded-lg overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 border-b text-xs font-semibold text-gray-600 uppercase">
-                <th class="p-3">Thời gian</th>
-                <th class="p-3">Danh mục</th>
-                <th class="p-3">Số tiền</th>
-                <th class="p-3">Ghi chú</th>
-                <th class="p-3 text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="cashbookTableBody" class="divide-y text-sm">
-              <tr><td colspan="5" class="p-4 text-center text-gray-500">Chưa có giao dịch thu chi nào.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB: RULES -->
-    <section id="tab-rules" class="tab-content hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-800">Nội Quy & Thể Thức CLB</h2>
-        <button onclick="openAddRuleModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium transition shadow">
-          <i class="fa-solid fa-plus mr-1"></i> Thêm Quy Định
-        </button>
-      </div>
-      <div id="rulesContainer" class="space-y-4">
-        <div class="bg-white p-4 rounded shadow text-gray-500 text-center">Đang tải nội quy...</div>
-      </div>
-    </section>
-
-    <!-- TAB: SETTINGS -->
-    <section id="tab-settings" class="tab-content hidden space-y-6">
-      <div class="bg-white p-6 rounded-lg shadow max-w-xl mx-auto space-y-4">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Cài Đặt Hệ Thống</h2>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Mức đóng Quý (VNĐ)</label>
-            <input type="number" id="settingQuyAmount" class="mt-1 w-full border rounded p-2 text-sm">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Mã Ngân Hàng nhận tiền (Bank ID)</label>
-            <input type="text" id="settingBankId" class="mt-1 w-full border rounded p-2 text-sm">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Số tài khoản</label>
-            <input type="text" id="settingBankAccount" class="mt-1 w-full border rounded p-2 text-sm">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Chủ tài khoản</label>
-            <input type="text" id="settingAccountName" class="mt-1 w-full border rounded p-2 text-sm">
-          </div>
-          <button onclick="saveSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded font-medium transition">Lưu Cài Đặt</button>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- MODAL XEM CHI TIẾT CÚP (KNOCK-OUT / VÒNG BẢNG) -->
-  <div id="tournamentDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-lg max-w-4xl w-full p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
-      <button onclick="closeTournamentDetailModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl font-bold"><i class="fa-solid fa-xmark"></i></button>
-      <h3 id="modalTourName" class="text-xl font-bold text-emerald-700">Chi Tiết Giải Cúp</h3>
-      <div id="modalTourBody" class="space-y-4">
-        <!-- Render chi tiết sơ đồ cúp tại đây -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Script logic tích hợp toàn diện -->
-  <script>
-    // URL Web App Google Apps Script của bạn (Hãy thay thế bằng URL triển khai thực tế)
-    const API_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL";
-
-    let appData = {
-      members: [],
-      matches: [],
-      bookingLogs: [],
-      cashbookLogs: [],
-      gocLogs: [],
-      rules: [],
-      openingBalance: 2656160,
-      settings: { quyAmount: 600000, bankId: "TCB", bankAccount: "19726868686868", accountName: "NGUYEN ANH THI" },
-      tournaments: []
-    };
-
-    let currentUser = { name: "Sao (Admin)", role: "admin" };
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById('tab-' + tabId).classList.remove('hidden');
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('text-emerald-600', 'border-b-2', 'border-emerald-600');
-        btn.classList.add('text-gray-500');
-      });
-      event.currentTarget.classList.remove('text-gray-500');
-      event.currentTarget.classList.add('text-emerald-600', 'border-b-2', 'border-emerald-600');
+    if (action === "addMatch") {
+      var sheet = getOrCreateSheet(ss, "Matches", ["ID", "Thời Gian", "Đội A (P1)", "Đội A (P2)", "Điểm A", "Điểm B", "Đội B (P1)", "Đội B (P2)", "Kèo Đặc Biệt"]);
+      var m = data.match;
+      sheet.appendRow([m.id, m.time || new Date().toLocaleString('vi-VN'), m.p1_v1, m.p2_v1, m.scoreA, m.scoreB, m.p1_v2, m.p2_v2, m.specialBet || 0]);
     }
-
-    async function syncData() {
-      const icon = document.getElementById('syncIcon');
-      icon.classList.add('fa-spin');
-      try {
-        if(API_URL.includes("YOUR_")) {
-          throw new Error("Chưa cấu hình API_URL Web App chính xác!");
-        }
-        let res = await fetch(API_URL);
-        let data = await res.json();
-        appData = data;
-        renderAll();
-        Swal.fire({ icon: 'success', title: 'Đồng bộ dữ liệu thành công!', timer: 1500, showConfirmButton: false });
-      } catch (err) {
-        console.warn("Lỗi fetch API, dùng dữ liệu mẫu cục bộ:", err);
-        // Dữ liệu mẫu khởi tạo phòng hờ
-        appData.members = [
-          { stt: 1, name: "Nguyễn Anh Thi", status: "Đang tham gia", base: 6.2, role: "admin" },
-          { stt: 2, name: "Sao", status: "Đang tham gia", base: 6.5, role: "admin" },
-          { stt: 3, name: "Thành Viên Mẫu 3", status: "Đang tham gia", base: 6.0, role: "member" },
-          { stt: 4, name: "Thành Viên Mẫu 4", status: "Đang tham gia", base: 5.8, role: "member" }
-        ];
-        renderAll();
-      } finally {
-        icon.classList.remove('fa-spin');
-      }
-    }
-
-    function renderAll() {
-      document.getElementById('userInfoDisplay').innerText = `${currentUser.name} (${currentUser.role.toUpperCase()})`;
-      
-      // Dashboard stats
-      let totalQuy = appData.openingBalance;
-      appData.cashbookLogs.forEach(c => totalQuy += c.amount);
-      document.getElementById('statTotalQuy').innerText = totalQuy.toLocaleString('vi-VN') + ' đ';
-      document.getElementById('statTotalMatches').innerText = appData.matches.length;
-      document.getElementById('statTotalMembers').innerText = appData.members.length;
-      document.getElementById('statActiveTournaments').innerText = appData.tournaments.filter(t => t.status === 'ongoing').length;
-
-      renderMatches();
-      renderTournaments();
-      renderMembers();
-      renderCashbook();
-      renderRules();
-      renderSettings();
-    }
-
-    // --- RENDER MATCHES ---
-    function renderMatches() {
-      let tbody = document.getElementById('matchesTableBody');
-      if (!appData.matches.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Chưa có trận đấu nào.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = appData.matches.map(m => `
-        <tr class="hover:bg-gray-50">
-          <td class="p-3 text-xs text-gray-500">${m.time}</td>
-          <td class="p-3 font-medium">${m.p1_v1} & ${m.p2_v1}</td>
-          <td class="p-3 text-center font-bold text-emerald-600">${m.scoreA} - ${m.scoreB}</td>
-          <td class="p-3 font-medium">${m.p1_v2} & ${m.p2_v2}</td>
-          <td class="p-3 text-center text-xs text-purple-600 font-semibold">${m.specialBet ? m.specialBet.toLocaleString('vi-VN') + ' đ' : '-'}</td>
-          <td class="p-3 text-right">
-            <button onclick="deleteMatch('${m.id}')" class="text-red-500 hover:text-red-700 text-xs font-semibold"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // --- RENDER TOURNAMENTS (GIẢI ĐẤU CÚP) ---
-    function renderTournaments() {
-      let container = document.getElementById('tournamentsContainer');
-      if (!appData.tournaments.length) {
-        container.innerHTML = `<div class="bg-white p-6 rounded-lg shadow text-center text-gray-500 col-span-2">Chưa có giải đấu cúp nào được tạo. Nhấn "Tạo Giải Cúp Mới" để bắt đầu.</div>`;
-        return;
-      }
-      container.innerHTML = appData.tournaments.map(t => `
-        <div class="bg-white p-5 rounded-lg shadow border border-gray-200 flex flex-col justify-between space-y-4">
-          <div>
-            <div class="flex justify-between items-start">
-              <h3 class="font-bold text-lg text-emerald-700"><i class="fa-solid fa-trophy mr-1 text-amber-500"></i> ${t.name}</h3>
-              <span class="px-2 py-1 text-xs rounded font-semibold ${t.status === 'ongoing' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}">${t.status === 'ongoing' ? 'Đang diễn ra' : 'Đã kết thúc'}</span>
-            </div>
-            <p class="text-xs text-gray-500 mt-1">Thể thức: <span class="font-semibold text-gray-700">${t.format === 'knockout' ? 'Đấu loại trực tiếp (Knock-out)' : 'Vòng bảng & Bán kết/Chung kết'}</span></p>
-          </div>
-          <div class="flex justify-end space-x-2">
-            <button onclick="openTournamentDetail('${t.id}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded text-xs font-medium transition border border-emerald-300">Xem / Quản Lý Cúp</button>
-            <button onclick="deleteTournament('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded text-xs font-medium transition"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function openCreateTournamentModal() {
-      Swal.fire({
-        title: 'Tạo Giải Đấu Cúp Mới',
-        html: `
-          <input id="swalTourName" class="swal2-input text-sm" placeholder="Tên giải đấu (VD: Cúp Mùa Hè 2026)">
-          <select id="swalTourFormat" class="swal2-select text-sm w-3/4">
-            <option value="knockout">Đấu loại trực tiếp (4 hoặc 8 đội)</option>
-            <option value="groups">Vòng bảng + Knock-out</option>
-          </select>
-        `,
-        confirmButtonText: 'Tạo Ngay',
-        confirmButtonColor: '#059669',
-        focusConfirm: false,
-        preConfirm: () => {
-          let name = document.getElementById('swalTourName').value;
-          let format = document.getElementById('swalTourFormat').value;
-          if (!name) { Swal.showValidationMessage('Vui lòng nhập tên giải đấu!'); }
-          return { name, format };
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          let newTour = {
-            id: 'TOUR_' + Date.now(),
-            name: result.value.name,
-            format: result.value.format,
-            status: 'ongoing',
-            data: generateTournamentData(result.value.format)
-          };
-          appData.tournaments.push(newTour);
-          saveTournamentsToServer();
-          renderTournaments();
-          Swal.fire('Thành công!', 'Đã khởi tạo giải đấu cúp.', 'success');
-        }
-      });
-    }
-
-    function generateTournamentData(format) {
-      // Mẫu cấu trúc dữ liệu cho cúp loại trực tiếp (Bán kết -> Chung kết cho 4 đội)
-      if (format === 'knockout') {
-        return {
-          rounds: [
-            {
-              title: "Vòng Bán Kết",
-              matches: [
-                { id: 'm1', teamA: 'Cặp 1 (Đội A)', teamB: 'Cặp 1 (Đội B)', scoreA: '', scoreB: '', winner: '' },
-                { id: 'm2', teamA: 'Cặp 2 (Đội A)', teamB: 'Cặp 2 (Đội B)', scoreA: '', scoreB: '', winner: '' }
-              ]
-            },
-            {
-              title: "Trận Chung Kết",
-              matches: [
-                { id: 'm3', teamA: 'Thắng Bán Kết 1', teamB: 'Thắng Bán Kết 2', scoreA: '', scoreB: '', winner: '' }
-              ]
-            }
-          ]
-        };
-      } else {
-        return {
-          groups: [
-            { name: "Bảng A", teams: ["Đội 1", "Đội 2", "Đội 3"], matches: [] },
-            { name: "Bảng B", teams: ["Đội 4", "Đội 5", "Đội 6"], matches: [] }
-          ],
-          knockout: {
-            title: "Chung Kết Bảng",
-            matches: [{ id: 'mk1', teamA: 'Nhất Bảng A', teamB: 'Nhất Bảng B', scoreA: '', scoreB: '', winner: '' }]
-          }
-        };
-      }
-    }
-
-    function openTournamentDetail(tourId) {
-      let t = appData.tournaments.find(x => x.id === tourId);
-      if (!t) return;
-      document.getElementById('modalTourName').innerText = t.name + " (" + (t.format === 'knockout' ? 'Loại Trực Tiếp' : 'Vòng Bảng') + ")";
-      let body = document.getElementById('modalTourBody');
-      
-      if (t.format === 'knockout') {
-        body.innerHTML = t.data.rounds.map((r, rIdx) => `
-          <div class="border p-4 rounded bg-gray-50 space-y-3">
-            <h4 class="font-bold text-emerald-800">${r.title}</h4>
-            <div class="space-y-2">
-              ${r.matches.map((m, mIdx) => `
-                <div class="flex flex-wrap items-center justify-between bg-white p-3 rounded shadow-sm gap-2">
-                  <div class="flex-1 min-w-[120px]">
-                    <input type="text" value="${m.teamA}" onchange="updateTourTeam('${tourId}', ${rIdx}, ${mIdx}, 'teamA', this.value)" class="border rounded p-1 text-xs w-full font-medium">
-                  </div>
-                  <div class="flex items-center space-x-1">
-                    <input type="number" value="${m.scoreA}" onchange="updateTourScore('${tourId}', ${rIdx}, ${mIdx}, 'scoreA', this.value)" class="border rounded p-1 text-xs w-12 text-center font-bold">
-                    <span>-</span>
-                    <input type="number" value="${m.scoreB}" onchange="updateTourScore('${tourId}', ${rIdx}, ${mIdx}, 'scoreB', this.value)" class="border rounded p-1 text-xs w-12 text-center font-bold">
-                  </div>
-                  <div class="flex-1 min-w-[120px] text-right">
-                    <input type="text" value="${m.teamB}" onchange="updateTourTeam('${tourId}', ${rIdx}, ${mIdx}, 'teamB', this.value)" class="border rounded p-1 text-xs w-full font-medium text-right">
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `).join('');
-      } else {
-        body.innerHTML = `<div class="text-sm text-gray-600">Đang hiển thị thể thức Vòng bảng & Knock-out. Cấu hình bảng đấu linh hoạt.</div>`;
-      }
-
-      document.getElementById('tournamentDetailModal').classList.remove('hidden');
-    }
-
-    function closeTournamentDetailModal() {
-      document.getElementById('tournamentDetailModal').classList.add('hidden');
-      saveTournamentsToServer();
-      renderTournaments();
-    }
-
-    function updateTourTeam(tourId, rIdx, mIdx, field, val) {
-      let t = appData.tournaments.find(x => x.id === tourId);
-      if(t) {
-        t.data.rounds[rIdx].matches[mIdx][field] = val;
-      }
-    }
-
-    function updateTourScore(tourId, rIdx, mIdx, field, val) {
-      let t = appData.tournaments.find(x => x.id === tourId);
-      if(t) {
-        t.data.rounds[rIdx].matches[mIdx][field] = parseInt(val) || 0;
-        // Tự động chuyển đội thắng lên vòng sau nếu là bán kết
-        let m = t.data.rounds[rIdx].matches[mIdx];
-        if (rIdx === 0 && t.data.rounds.length > 1) {
-          if (m.scoreA !== '' && m.scoreB !== '') {
-            let winner = m.scoreA > m.scoreB ? m.teamA : (m.scoreB > m.scoreA ? m.teamB : 'Hoà (Penalty)');
-            if (mIdx === 0) t.data.rounds[1].matches[0].teamA = winner;
-            if (mIdx === 1) t.data.rounds[1].matches[0].teamB = winner;
+    else if (action === "updateMatch") {
+      var sheet = ss.getSheetByName("Matches");
+      if (sheet) {
+        var values = sheet.getDataRange().getValues();
+        var m = data.match;
+        for (var i = 1; i < values.length; i++) {
+          if (values[i][0] == m.id) {
+            sheet.getRange(i + 1, 5).setValue(m.scoreA);
+            sheet.getRange(i + 1, 6).setValue(m.scoreB);
+            sheet.getRange(i + 1, 9).setValue(m.specialBet || 0);
+            break;
           }
         }
       }
     }
+    else if (action === "addGocLog") {
+      var sheet = getOrCreateSheet(ss, "GocLogs", ["ID", "Thời Gian", "Tên Thành Viên", "Số Tiền", "Ghi Chú"]);
+      var g = data.gocLog;
+      sheet.appendRow([g.id, g.time, g.name, g.amount, g.note || "Nộp tiền góc/phạt"]);
+    }
+    else if (action === "addBooking") {
+      var sheet = getOrCreateSheet(ss, "Bookings", ["ID", "Thời Gian", "Tên Thành Viên", "Khung Giờ", "Số Tiền Thưởng"]);
+      var b = data.booking;
+      sheet.appendRow([b.id, b.time, b.name, b.frame, b.reward]);
+    }
+    else if (action === "addCashbook") {
+      var sheet = getOrCreateSheet(ss, "Cashbook", ["ID", "Thời Gian", "Danh Mục", "Số Tiền", "Ghi Chú"]);
+      var c = data.cashbook;
+      sheet.appendRow([c.id, c.time, c.category, c.amount, c.note]);
+    }
+    else if (action === "addRule") {
+      var sheet = getOrCreateSheet(ss, "Rules", ["ID", "Thời Gian", "Tiêu Đề", "Nội Dung"]);
+      var r = data.rule;
+      sheet.appendRow([r.id, r.time, r.title, r.content]);
+    }
+    else if (action === "updateMember") {
+      saveMembersSheet(ss, data.members);
+    }
+    else if (action === "updateSettings") {
+      saveSettingsSheet(ss, data.settings);
+    }
+    else if (action === "deleteItem") {
+      deleteRowById(ss, data.sheetName, data.id);
+    }
+    else if (action === "saveTournaments") {
+      saveTournamentsSheet(ss, data.tournaments);
+    }
 
-    function deleteTournament(tourId) {
-      Swal.fire({
-        title: 'Xóa giải đấu này?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        confirmButtonText: 'Xóa'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          appData.tournaments = appData.tournaments.filter(t => t.id !== tourId);
-          saveTournamentsToServer();
-          renderTournaments();
-          Swal.fire('Đã xóa!', '', 'success');
-        }
+    return ContentService.createTextOutput(JSON.stringify({status: "SUCCESS"}))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "ERROR", message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function getOrCreateSheet(ss, name, headers) {
+  var sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    sheet.appendRow(headers);
+  }
+  return sheet;
+}
+
+function deleteRowById(ss, sheetName, id) {
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return;
+  var values = sheet.getDataRange().getValues();
+  for (var i = 1; i < values.length; i++) {
+    if (values[i][0] == id) {
+      sheet.deleteRow(i + 1);
+      break;
+    }
+  }
+}
+
+function getAllData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  return {
+    members: getMembersData(ss),
+    matches: getMatchesData(ss),
+    bookingLogs: getBookingsData(ss),
+    cashbookLogs: getCashbookData(ss),
+    gocLogs: getGocLogsData(ss),
+    rules: getRulesData(ss),
+    openingBalance: getOpeningBalance(ss),
+    settings: getSettingsData(ss),
+    tournaments: getTournamentsData(ss)
+  };
+}
+
+function getOpeningBalance(ss) {
+  var sheet = ss.getSheetByName("Settings");
+  if (!sheet) return 2656160;
+  var values = sheet.getDataRange().getValues();
+  for (var i = 1; i < values.length; i++) {
+    if (values[i][0] === "DU_QUY_DAU") {
+      return parseFloat(values[i][1]) || 2656160;
+    }
+  }
+  return 2656160;
+}
+
+function getSettingsData(ss) {
+  var sheet = ss.getSheetByName("Settings");
+  var defaultSettings = {
+    quyAmount: 600000,
+    reward16h: 20000,
+    reward18h: 30000,
+    maxRewardLimit: 15,
+    bankId: "TCB",
+    bankAccount: "19726868686868",
+    accountName: "NGUYEN ANH THI"
+  };
+  if (!sheet) return defaultSettings;
+  var values = sheet.getDataRange().getValues();
+  var settings = Object.assign({}, defaultSettings);
+  for (var i = 1; i < values.length; i++) {
+    var k = values[i][0];
+    var v = values[i][1];
+    if (k === "QUY_AMOUNT") settings.quyAmount = parseFloat(v) || 600000;
+    if (k === "REWARD_16H") settings.reward16h = parseFloat(v) || 20000;
+    if (k === "REWARD_18H") settings.reward18h = parseFloat(v) || 30000;
+    if (k === "MAX_REWARD_LIMIT") settings.maxRewardLimit = parseInt(v) || 15;
+    if (k === "BANK_ID") settings.bankId = String(v || "TCB");
+    if (k === "BANK_ACCOUNT") settings.bankAccount = String(v || "19726868686868");
+    if (k === "ACCOUNT_NAME") settings.accountName = String(v || "NGUYEN ANH THI");
+  }
+  return settings;
+}
+
+function saveSettingsSheet(ss, settings) {
+  var sheet = getOrCreateSheet(ss, "Settings", ["Khóa", "Giá Trị"]);
+  sheet.clear();
+  sheet.appendRow(["Khóa", "Giá Trị"]);
+  sheet.appendRow(["DU_QUY_DAU", 2656160]);
+  sheet.appendRow(["QUY_AMOUNT", settings.quyAmount]);
+  sheet.appendRow(["REWARD_16H", settings.reward16h]);
+  sheet.appendRow(["REWARD_18H", settings.reward18h]);
+  sheet.appendRow(["MAX_REWARD_LIMIT", settings.maxRewardLimit]);
+  sheet.appendRow(["BANK_ID", settings.bankId]);
+  sheet.appendRow(["BANK_ACCOUNT", settings.bankAccount]);
+  sheet.appendRow(["ACCOUNT_NAME", settings.accountName]);
+}
+
+function getMembersData(ss) {
+  var sheet = ss.getSheetByName("Members");
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  
+  var result = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (!row[1]) continue;
+    var stt = parseInt(row[0]) || i;
+    var qH = {};
+    if (row[4] >= 600000) qH["Q2_2026"] = row[4];
+    if (row[5] >= 600000 || String(row[6]).toUpperCase() === "OK") qH["Q3_2026"] = 600000;
+
+    var rawStatus = row[2] || "Đang tham gia";
+    var assignedUser = "Thanglong" + stt;
+    var assignedRole = (stt === 1 || stt === 2 || stt === 15) ? "admin" : "member";
+    if (row[9]) assignedRole = String(row[9]).toLowerCase();
+
+    result.push({
+      stt: stt,
+      name: String(row[1]).trim(),
+      status: rawStatus,
+      base: parseFloat(row[3]) || 6.2,
+      paidUser: parseInt(row[7]) || 0,
+      noOld: parseInt(row[8]) || 0,
+      quyHistory: qH,
+      username: assignedUser,
+      role: assignedRole
+    });
+  }
+  return result;
+}
+
+function getMatchesData(ss) {
+  var sheet = ss.getSheetByName("Matches");
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  
+  var result = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (!row[1] && !row[2]) continue;
+    var hasTimeCol = String(row[1]).includes("/") || String(row[1]).includes(":");
+    var timeVal = hasTimeCol ? row[1] : (new Date().toLocaleString('vi-VN'));
+    var p1v1 = hasTimeCol ? row[2] : row[1];
+    var p2v1 = hasTimeCol ? row[3] : row[2];
+    var sA = hasTimeCol ? row[4] : row[3];
+    var sB = hasTimeCol ? row[5] : row[4];
+    var p1v2 = hasTimeCol ? row[6] : row[5];
+    var p2v2 = hasTimeCol ? row[7] : row[6];
+    var sBet = hasTimeCol ? row[8] : row[7];
+
+    result.push({
+      id: row[0] || i,
+      time: timeVal,
+      p1_v1: String(p1v1 || "").trim(),
+      p2_v1: String(p2v1 || "").trim(),
+      scoreA: parseInt(sA) || 0,
+      scoreB: parseInt(sB) || 0,
+      p1_v2: String(p1v2 || "").trim(),
+      p2_v2: String(p2v2 || "").trim(),
+      specialBet: parseInt(sBet) || 0
+    });
+  }
+  return result;
+}
+
+function getBookingsData(ss) {
+  var sheet = ss.getSheetByName("Bookings");
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  
+  var result = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (!row[2]) continue;
+    result.push({
+      id: row[0] || i,
+      time: row[1] ? String(row[1]) : "",
+      name: String(row[2]).trim(),
+      frame: String(row[3] || ""),
+      reward: parseInt(row[4]) || 0
+    });
+  }
+  return result;
+}
+
+function getCashbookData(ss) {
+  var sheet = ss.getSheetByName("Cashbook");
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  
+  var result = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (!row[2]) continue;
+    result.push({
+      id: row[0] || i,
+      time: row[1] ? String(row[1]) : "",
+      category: String(row[2]).trim(),
+      amount: parseInt(row[3]) || 0,
+      note: String(row[4] || "")
+    });
+  }
+  return result;
+}
+
+function getGocLogsData(ss) {
+  var sheet = ss.getSheetByName("GocLogs");
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  
+  var result = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (!row[2]) continue;
+    result.push({
+      id: row[0] || i,
+      time: String(row[1] || ""),
+      name: String(row[2]).trim(),
+      amount: parseInt(row[3]) || 0,
+      note: String(row[4] || "")
+    });
+  }
+  return result;
+}
+
+function getRulesData(ss) {
+  var sheet = ss.getSheetByName("Rules");
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  
+  var result = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (!row[2]) continue;
+    result.push({
+      id: row[0] || i,
+      time: String(row[1] || ""),
+      title: String(row[2] || ""),
+      content: String(row[3] || "")
+    });
+  }
+  return result;
+}
+
+function saveMembersSheet(ss, members) {
+  var sheet = ss.getSheetByName("Members");
+  if (!sheet) return;
+  sheet.clear();
+  sheet.appendRow(["STT", "Tên Thành Viên", "Trạng Thái", "Điểm Base", "Quý 2", "Quý 3", "Trạng Thái Quý", "Thực Đóng", "Nợ Tháng Trước", "Quyền"]);
+  if (members) {
+    members.forEach(function(m) {
+      var q2 = (m.quyHistory && m.quyHistory["Q2_2026"]) ? m.quyHistory["Q2_2026"] : 0;
+      var q3 = (m.quyHistory && m.quyHistory["Q3_2026"]) ? m.quyHistory["Q3_2026"] : 0;
+      var statusQuy = q3 >= 600000 ? "OK" : "Chưa đóng";
+      sheet.appendRow([m.stt, m.name, m.status || "Đang tham gia", m.base, q2, q3, statusQuy, m.paidUser || 0, m.noOld || 0, m.role || "member"]);
+    });
+  }
+}
+
+function getTournamentsData(ss) {
+  var sheet = ss.getSheetByName("Tournaments");
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  
+  var result = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (!row[0]) continue;
+    try {
+      result.push({
+        id: row[0],
+        name: row[1],
+        format: row[2],
+        status: row[3],
+        data: JSON.parse(row[4] || "{}")
       });
-    }
+    } catch(e) {}
+  }
+  return result;
+}
 
-    async function saveTournamentsToServer() {
-      if(API_URL.includes("YOUR_")) return;
-      try {
-        await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: "saveTournaments", tournaments: appData.tournaments })
-        });
-      } catch(e) { console.error(e); }
-    }
-
-    // --- RENDER MEMBERS ---
-    function renderMembers() {
-      let tbody = document.getElementById('membersTableBody');
-      if (!appData.members.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Chưa có thành viên nào.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = appData.members.map(m => `
-        <tr class="hover:bg-gray-50">
-          <td class="p-3">${m.stt}</td>
-          <td class="p-3 font-medium">${m.name}</td>
-          <td class="p-3"><span class="px-2 py-0.5 text-xs rounded bg-green-100 text-green-800">${m.status}</span></td>
-          <td class="p-3">${m.base}</td>
-          <td class="p-3"><span class="px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-800 font-semibold">OK (600k)</span></td>
-          <td class="p-3 text-right">
-            <button onclick="deleteMember(${m.stt})" class="text-red-500 hover:text-red-700 text-xs font-semibold"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // --- RENDER CASHBOOK ---
-    function renderCashbook() {
-      let tbody = document.getElementById('cashbookTableBody');
-      let totalIn = 0, totalOut = 0;
-      appData.cashbookLogs.forEach(c => {
-        if(c.amount > 0) totalIn += c.amount;
-        else totalOut += Math.abs(c.amount);
-      });
-      document.getElementById('cbOpening').innerText = appData.openingBalance.toLocaleString('vi-VN') + ' đ';
-      document.getElementById('cbTotalIn').innerText = totalIn.toLocaleString('vi-VN') + ' đ';
-      document.getElementById('cbTotalOut').innerText = totalOut.toLocaleString('vi-VN') + ' đ';
-
-      if (!appData.cashbookLogs.length) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">Chưa có giao dịch thu chi nào.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = appData.cashbookLogs.map(c => `
-        <tr class="hover:bg-gray-50">
-          <td class="p-3 text-xs text-gray-500">${c.time}</td>
-          <td class="p-3 font-medium">${c.category}</td>
-          <td class="p-3 font-semibold ${c.amount >= 0 ? 'text-emerald-600' : 'text-red-600'}">${c.amount.toLocaleString('vi-VN')} đ</td>
-          <td class="p-3 text-xs text-gray-600">${c.note}</td>
-          <td class="p-3 text-right">
-            <button onclick="deleteCashbook('${c.id}')" class="text-red-500 hover:text-red-700 text-xs font-semibold"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // --- RENDER RULES ---
-    function renderRules() {
-      let container = document.getElementById('rulesContainer');
-      let defaultRules = [
-        { title: "Quy Định Quỹ CLB", content: "Mỗi thành viên đóng 600.000đ/quý. Các khoản phạt góc/trận hòa sẽ được đóng góp trực tiếp vào quỹ chung." },
-        { title: "Thể Thức Trận Đấu", content: "Thi đấu bóng đá mini, tính điểm thắng/thua rõ ràng. Các đội trưởng phân chia cặp đấu công bằng." }
-      ];
-      let rules = appData.rules.length ? appData.rules : defaultRules;
-      container.innerHTML = rules.map(r => `
-        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
-          <h4 class="font-bold text-gray-800">${r.title}</h4>
-          <p class="text-sm text-gray-600 mt-1">${r.content}</p>
-        </div>
-      `).join('');
-    }
-
-    function renderSettings() {
-      document.getElementById('settingQuyAmount').value = appData.settings.quyAmount || 600000;
-      document.getElementById('settingBankId').value = appData.settings.bankId || "TCB";
-      document.getElementById('settingBankAccount').value = appData.settings.bankAccount || "19726868686868";
-      document.getElementById('settingAccountName').value = appData.settings.accountName || "NGUYEN ANH THI";
-    }
-
-    // --- MODALS & ACTIONS ---
-    function openAddMatchModal() {
-      Swal.fire({
-        title: 'Thêm Trận Đấu Mới',
-        html: `
-          <input id="m_p1v1" class="swal2-input text-sm" placeholder="Đội A - Cầu thủ 1">
-          <input id="m_p2v1" class="swal2-input text-sm" placeholder="Đội A - Cầu thủ 2">
-          <input id="m_scoreA" type="number" class="swal2-input text-sm" placeholder="Điểm Đội A">
-          <input id="m_scoreB" type="number" class="swal2-input text-sm" placeholder="Điểm Đội B">
-          <input id="m_p1v2" class="swal2-input text-sm" placeholder="Đội B - Cầu thủ 1">
-          <input id="m_p2v2" class="swal2-input text-sm" placeholder="Đội B - Cầu thủ 2">
-        `,
-        confirmButtonText: 'Thêm Trận',
-        confirmButtonColor: '#059669',
-        preConfirm: () => {
-          return {
-            id: 'MATCH_' + Date.now(),
-            time: new Date().toLocaleString('vi-VN'),
-            p1_v1: document.getElementById('m_p1v1').value,
-            p2_v1: document.getElementById('m_p2v1').value,
-            scoreA: parseInt(document.getElementById('m_scoreA').value) || 0,
-            scoreB: parseInt(document.getElementById('m_scoreB').value) || 0,
-            p1_v2: document.getElementById('m_p1v2').value,
-            p2_v2: document.getElementById('m_p2v2').value,
-            specialBet: 0
-          }
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          appData.matches.push(result.value);
-          renderMatches();
-          sendPostAction("addMatch", { match: result.value });
-          Swal.fire('Thành công!', 'Đã thêm trận đấu.', 'success');
-        }
-      });
-    }
-
-    function openAddMemberModal() {
-      Swal.fire({
-        title: 'Thêm Thành Viên Mới',
-        html: `
-          <input id="mem_name" class="swal2-input text-sm" placeholder="Tên thành viên">
-          <input id="mem_base" type="number" step="0.1" class="swal2-input text-sm" placeholder="Điểm Base (VD: 6.2)">
-        `,
-        confirmButtonText: 'Thêm',
-        confirmButtonColor: '#059669',
-        preConfirm: () => {
-          return {
-            stt: appData.members.length + 1,
-            name: document.getElementById('mem_name').value,
-            status: "Đang tham gia",
-            base: parseFloat(document.getElementById('mem_base').value) || 6.0,
-            role: "member"
-          }
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          appData.members.push(result.value);
-          renderMembers();
-          sendPostAction("updateMember", { members: appData.members });
-          Swal.fire('Thành công!', 'Đã thêm thành viên.', 'success');
-        }
-      });
-    }
-
-    function openAddCashbookModal() {
-      Swal.fire({
-        title: 'Ghi Nhận Thu/Chi',
-        html: `
-          <input id="cb_cat" class="swal2-input text-sm" placeholder="Danh mục (VD: Đóng quỹ / Tiền sân)">
-          <input id="cb_amt" type="number" class="swal2-input text-sm" placeholder="Số tiền (Dương: Thu, Âm: Chi)">
-          <input id="cb_note" class="swal2-input text-sm" placeholder="Ghi chú">
-        `,
-        confirmButtonText: 'Xác Nhận',
-        confirmButtonColor: '#059669',
-        preConfirm: () => {
-          return {
-            id: 'CB_' + Date.now(),
-            time: new Date().toLocaleString('vi-VN'),
-            category: document.getElementById('cb_cat').value,
-            amount: parseInt(document.getElementById('cb_amt').value) || 0,
-            note: document.getElementById('cb_note').value
-          }
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          appData.cashbookLogs.push(result.value);
-          renderCashbook();
-          sendPostAction("addCashbook", { cashbook: result.value });
-          Swal.fire('Thành công!', 'Đã ghi nhận giao dịch.', 'success');
-        }
-      });
-    }
-
-    function openAddRuleModal() {
-      Swal.fire({
-        title: 'Thêm Quy Định Mới',
-        html: `
-          <input id="r_title" class="swal2-input text-sm" placeholder="Tiêu đề quy định">
-          <textarea id="r_content" class="swal2-textarea text-sm" placeholder="Nội dung chi tiết"></textarea>
-        `,
-        confirmButtonText: 'Thêm',
-        confirmButtonColor: '#059669',
-        preConfirm: () => {
-          return {
-            id: 'RULE_' + Date.now(),
-            time: new Date().toLocaleString('vi-VN'),
-            title: document.getElementById('r_title').value,
-            content: document.getElementById('r_content').value
-          }
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          appData.rules.push(result.value);
-          renderRules();
-          sendPostAction("addRule", { rule: result.value });
-          Swal.fire('Thành công!', 'Đã thêm quy định.', 'success');
-        }
-      });
-    }
-
-    function saveSettings() {
-      appData.settings.quyAmount = parseFloat(document.getElementById('settingQuyAmount').value) || 600000;
-      appData.settings.bankId = document.getElementById('settingBankId').value;
-      appData.settings.bankAccount = document.getElementById('settingBankAccount').value;
-      appData.settings.accountName = document.getElementById('settingAccountName').value;
-      sendPostAction("updateSettings", { settings: appData.settings });
-      Swal.fire('Thành công!', 'Đã lưu cài đặt hệ thống.', 'success');
-    }
-
-    function deleteMatch(id) {
-      appData.matches = appData.matches.filter(m => m.id !== id);
-      renderMatches();
-      sendPostAction("deleteItem", { sheetName: "Matches", id: id });
-    }
-
-    function deleteMember(stt) {
-      appData.members = appData.members.filter(m => m.stt !== stt);
-      renderMembers();
-      sendPostAction("updateMember", { members: appData.members });
-    }
-
-    function deleteCashbook(id) {
-      appData.cashbookLogs = appData.cashbookLogs.filter(c => c.id !== id);
-      renderCashbook();
-      sendPostAction("deleteItem", { sheetName: "Cashbook", id: id });
-    }
-
-    async function sendPostAction(action, payload) {
-      if(API_URL.includes("YOUR_")) return;
-      try {
-        await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify(Object.assign({ action: action }, payload))
-        });
-      } catch(e) { console.error("Lỗi gửi dữ liệu lên server:", e); }
-    }
-
-    // Khởi chạy đồng bộ lần đầu
-    window.onload = function() {
-      syncData();
-    };
-  </script>
-</body>
-</html>
+function saveTournamentsSheet(ss, tournaments) {
+  var sheet = getOrCreateSheet(ss, "Tournaments", ["ID", "Tên Cúp", "Thể Thức", "Trạng Thái", "Dữ Liệu JSON"]);
+  sheet.clear();
+  sheet.appendRow(["ID", "Tên Cúp", "Thể Thức", "Trạng Thái", "Dữ Liệu JSON"]);
+  if (tournaments && Array.isArray(tournaments)) {
+    tournaments.forEach(function(t) {
+      sheet.appendRow([t.id, t.name, t.format, t.status, JSON.stringify(t.data)]);
+    });
+  }
+}
