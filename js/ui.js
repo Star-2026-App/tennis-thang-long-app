@@ -1,0 +1,114 @@
+function showToast(msg) {
+    let toast = document.getElementById('appToast');
+    let msgSpan = document.getElementById('toastMsg');
+    if (!toast || !msgSpan) return;
+    msgSpan.innerText = msg;
+    toast.classList.remove('translate-y-12', 'opacity-0');
+    setTimeout(() => { toast.classList.add('translate-y-12', 'opacity-0'); }, 2500);
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('border-amber-400', 'text-amber-300', 'font-bold', 'bg-emerald-800'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    let activeBtn = document.getElementById('btn-' + tabId);
+    if (activeBtn) activeBtn.classList.add('border-amber-400', 'text-amber-300', 'font-bold', 'bg-emerald-800');
+    
+    document.getElementById('mobileMenuDrawer').classList.add('hidden');
+
+    if (tabId === 'analytics') {
+        renderAnalyticsTab();
+    }
+}
+
+function switchTabMobile(tabId, label) {
+    document.getElementById('currentActiveTabLabel').innerText = label;
+    switchTab(tabId);
+}
+
+function toggleMobileMenu() {
+    let drawer = document.getElementById('mobileMenuDrawer');
+    if (drawer.classList.contains('hidden')) drawer.classList.remove('hidden');
+    else drawer.classList.add('hidden');
+}
+
+function openUserProfileModal() {
+    let modal = document.getElementById('userProfileModal');
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+}
+
+function closeUserProfileModal() {
+    let modal = document.getElementById('userProfileModal');
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+
+function showActionConfirm(message, callback) {
+    document.getElementById('actionConfirmText').innerText = message;
+    pendingActionCallback = callback;
+    let modal = document.getElementById('actionConfirmModal');
+    
+    let okBtn = document.getElementById('actionConfirmOkBtn');
+    okBtn.onclick = function() {
+        closeActionConfirmModal(true);
+    };
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeActionConfirmModal(isConfirmed) {
+    let modal = document.getElementById('actionConfirmModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    if (isConfirmed && typeof pendingActionCallback === 'function') {
+        pendingActionCallback();
+    }
+    pendingActionCallback = null;
+}
+
+function showCustomConfirm(message, onConfirm) {
+    let modal = document.getElementById('customConfirmModal');
+    let textEl = document.getElementById('customConfirmText');
+    let okBtn = document.getElementById('customConfirmOkBtn');
+    let cancelBtn = document.getElementById('customConfirmCancelBtn');
+
+    textEl.innerText = message;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    let newOkBtn = okBtn.cloneNode(true);
+    let newCancelBtn = cancelBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+    newOkBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        onConfirm(true);
+    });
+
+    newCancelBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        onConfirm(false);
+    });
+}
+
+function openNotificationModal() {
+    renderGamification();
+    document.getElementById('notificationModal').classList.remove('hidden');
+    document.getElementById('notificationModal').classList.add('flex');
+}
+
+function closeNotificationModal() {
+    document.getElementById('notificationModal').classList.add('hidden');
+    document.getElementById('notificationModal').classList.remove('flex');
+}
+
+function exportToExcel() {
+    let wb = XLSX.utils.book_new();
+    let wsMem = XLSX.utils.json_to_sheet(members); XLSX.utils.book_append_sheet(wb, wsMem, "ThanhVien");
+    let wsMatch = XLSX.utils.json_to_sheet(matches); XLSX.utils.book_append_sheet(wb, wsMatch, "TranDau");
+    let wsGoc = XLSX.utils.json_to_sheet(gocLogs); XLSX.utils.book_append_sheet(wb, wsGoc, "NopTienGoc");
+    XLSX.writeFile(wb, "CLB_Tennis_Thang_Long_Ver1.2_Backup.xlsx");
+}
