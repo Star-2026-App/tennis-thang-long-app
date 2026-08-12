@@ -265,77 +265,304 @@ function closeQRZoomModal() {
     if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
 }
 
-function renderQuyTable() {
-    if (!members || members.length === 0) members = defaultFallbackMembers;
-    let q = document.getElementById('selectQuy').value;
-    let y = document.getElementById('selectNam').value;
-    let key = q + "_" + y;
+// ======================================================
+// QUẢN LÝ ĐÓNG QUỸ QUÝ - DỮ LIỆU CHÍNH THỨC TỪ QuyLogs
+// ======================================================
 
-    document.getElementById('thQuyTitle').innerText = "Số Tiền " + q.replace('Q', 'Quý ') + "/" + y;
+function initQuyPeriodSelectors() {
+    let qSelect = document.getElementById('selectQuy');
+    let ySelect = document.getElementById('selectNam');
+
+    if (!qSelect || !ySelect) return;
+
+    // Chỉ tự động thiết lập 1 lần khi app mở
+    if (qSelect.dataset.autoInitialized === '1') return;
+
+    let now = new Date();
+    let currentQuarter = "Q" + Math.ceil((now.getMonth() + 1) / 3);
+    let currentYear = now.getFullYear();
+
+    // Quý hiện tại
+    qSelect.value = currentQuarter;
+
+    // Tạo danh sách năm động:
+    // giữ lịch sử từ 2026 và luôn mở trước 10 năm
+    let firstYear = 2026;
+    let lastYear = Math.max(2036, currentYear + 10);
+
+    ySelect.innerHTML = '';
+
+    for (let year = firstYear; year <= lastYear; year++) {
+        let option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+
+        if (year === currentYear) {
+            option.selected = true;
+        }
+
+        ySelect.appendChild(option);
+    }
+
+    qSelect.dataset.autoInitialized = '1';
+}
+
+
+function renderQuyTable() {
+    if (!members || members.length === 0) {
+        members = defaultFallbackMembers;
+    }
+
+    initQuyPeriodSelectors();
+
+    let qSelect = document.getElementById('selectQuy');
+    let ySelect = document.getElementById('selectNam');
+
+    if (!qSelect || !ySelect) return;
+
+    let q = qSelect.value;
+    let y = ySelect.value;
+
+    document.getElementById('thQuyTitle').innerText =
+        "Số Tiền " + q.replace('Q', 'Quý ') + "/" + y;
 
     let tbody = document.getElementById('quyTableBody');
     tbody.innerHTML = '';
 
     members.forEach((m, idx) => {
-        let paidAmount = 0;
-        if (m.quyHistory && m.quyHistory[key] !== undefined) paidAmount = parseInt(m.quyHistory[key]);
 
-        let isOk = paidAmount >= systemSettings.quyAmount;
-        let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
+        // ==================================================
+        // CHỈ ĐỌC QuyLogs
+        // Không còn đọc m.quyHistory
+        // ==================================================
+
+        let quyLog = (quyLogs || []).find(function(log) {
+            return (
+                String(log.name || '').trim().toLowerCase() ===
+                    String(m.name || '').trim().toLowerCase() &&
+
+                String(log.quarter || '').trim().toUpperCase() === q &&
+
+                parseInt(log.year) === parseInt(y)
+            );
+        });
+
+        let paidAmount = quyLog
+            ? (parseInt(quyLog.amount) || 0)
+            : 0;
+
+        // Có bản ghi QuyLogs = đã hoàn thành quỹ quý đó
+        // Không so sánh với mức quỹ hiện tại
+        let isOk = !!quyLog;
+
+
+        // ==================================================
+        // MÀU TRẠNG THÁI THÀNH VIÊN
+        // ==================================================
+
+        let statusColor =
+            m.status === 'Đang tham gia'
+                ? 'bg-emerald-100 text-emerald-800'
+                : (
+                    m.status === 'Bận tạm nghỉ'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-purple-100 text-purple-800'
+                );
+
+
+        // ==================================================
+        // ADMIN CHỈ ĐƯỢC XÓA BẢN GHI MỚI
+        // Không xóa dữ liệu migration lịch sử
+        // ==================================================
+
+        let actionHtml =
+            '<span class="text-slate-300">-</span>';
+
+        if (currentUserRole === 'admin' && quyLog) {
+
+            let isMigration =
+                String(quyLog.id || '').startsWith('MIG_') ||
+                String(quyLog.note || '').includes('Migration từ Members');
+
+            if (!isMigration) {
+
+                actionHtml = `
+                    <button
+                        onclick='deleteQuyLog(${JSON.stringify(String(quyLog.id))})'
+                        class="text-red-600 hover:text-red-800 font-bold"
+                        title="Xóa xác nhận đóng quỹ">
+
+                        <i class="fa-solid fa-trash"></i>
+
+                    </button>
+                `;
+            }
+        }
+
+
+        // ==================================================
+        // HIỂN THỊ
+        // ==================================================
 
         tbody.innerHTML += `
             <tr class="border-b hover:bg-slate-50">
-                <td class="p-2.5 text-center font-bold text-slate-500">${idx + 1}</td>
-                <td class="p-2.5 font-bold text-slate-900">${m.name}</td>
-                <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
-                <td class="p-2.5 text-right font-bold ${isOk ? 'text-emerald-700' : 'text-slate-400'}">${paidAmount.toLocaleString()} đ</td>
-                <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isOk ? 'bg-cyan-100 text-cyan-800' : 'bg-red-100 text-red-800'}">${isOk ? 'OK' : 'Chưa'}</span></td>
-                <td class="p-2.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
-                    <button onclick="openEditQuyModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i></button>
+
+                <td class="p-2.5 text-center font-bold text-slate-500">
+                    ${idx + 1}
                 </td>
+
+                <td class="p-2.5 font-bold text-slate-900">
+                    ${m.name}
+                </td>
+
+                <td class="p-2.5 text-center">
+
+                    <span class="
+                        px-2 py-0.5 rounded text-[10px] font-bold
+                        ${statusColor}
+                    ">
+                        ${m.status || 'Đang tham gia'}
+                    </span>
+
+                </td>
+
+                <td class="
+                    p-2.5 text-right font-bold
+                    ${isOk ? 'text-emerald-700' : 'text-slate-400'}
+                ">
+                    ${paidAmount.toLocaleString('vi-VN')} đ
+                </td>
+
+                <td class="p-2.5 text-center">
+
+                    <span class="
+                        px-2 py-0.5 rounded-full text-[10px] font-bold
+                        ${
+                            isOk
+                                ? 'bg-cyan-100 text-cyan-800'
+                                : 'bg-red-100 text-red-800'
+                        }
+                    ">
+                        ${isOk ? 'OK' : 'Chưa'}
+                    </span>
+
+                </td>
+
+                <td class="
+                    p-2.5 text-center admin-only
+                    ${currentUserRole === 'admin' ? '' : 'hidden'}
+                ">
+                    ${actionHtml}
+                </td>
+
             </tr>
         `;
     });
+
     applyRolePermissions();
 }
 
-function openEditQuyModal(idx) {
-    let q = document.getElementById('selectQuy').value;
-    let y = document.getElementById('selectNam').value;
-    let key = q + "_" + y;
-    let m = members[idx];
 
-    let currentPaid = (m.quyHistory && m.quyHistory[key] !== undefined) ? m.quyHistory[key] : 0;
+function deleteQuyLog(id) {
 
-    document.getElementById('eqMemberIdx').value = idx;
-    document.getElementById('eqMemberName').value = m.name;
-    document.getElementById('eqKyDisplay').value = q.replace('Q', 'Quý ') + "/" + y;
-    document.getElementById('eqAmount').value = currentPaid > 0 ? currentPaid : systemSettings.quyAmount;
+    if (currentUserRole !== 'admin') {
+        alert("Chỉ Admin mới được xóa xác nhận đóng quỹ.");
+        return;
+    }
 
-    document.getElementById('editQuyModal').classList.remove('hidden');
-    document.getElementById('editQuyModal').classList.add('flex');
+    let log = (quyLogs || []).find(function(item) {
+        return String(item.id) === String(id);
+    });
+
+    if (!log) {
+        alert("Không tìm thấy bản ghi đóng quỹ.");
+        return;
+    }
+
+    // Không cho xóa lịch sử migration
+    let isMigration =
+        String(log.id || '').startsWith('MIG_') ||
+        String(log.note || '').includes('Migration từ Members');
+
+    if (isMigration) {
+        alert("Không được xóa dữ liệu lịch sử đã migration.");
+        return;
+    }
+
+    showActionConfirm(
+        `Xóa xác nhận đóng quỹ ${log.quarter}/${log.year} của [${log.name}]?`,
+        () => {
+
+            fetch(GOOGLE_SCRIPT_URL, {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+
+                body: JSON.stringify({
+                    action: "deleteItem",
+                    sheetName: "QuyLogs",
+                    id: log.id
+                })
+            })
+
+            .then(res => res.json())
+
+            .then(data => {
+
+                if (data.status !== "SUCCESS") {
+
+                    let message =
+                        data.message ||
+                        "Không thể xóa xác nhận đóng quỹ.";
+
+                    message =
+                        message.replace(/^Error:\s*/i, "");
+
+                    alert(message);
+
+                    return;
+                }
+
+
+                // ==========================================
+                // XÓA LOCAL - KHÔNG FETCH TOÀN BỘ CLOUD
+                // ==========================================
+
+                quyLogs = (quyLogs || []).filter(function(item) {
+                    return String(item.id) !== String(id);
+                });
+
+
+                // Chỉ render màn hình liên quan
+                renderQuyTable();
+
+                if (typeof renderDashboard === "function") {
+                    renderDashboard();
+                }
+
+                if (typeof renderCashbook === "function") {
+                    renderCashbook();
+                }
+
+
+                showToast(
+                    "Đã xóa xác nhận đóng quỹ!"
+                );
+            })
+
+            .catch(() => {
+
+                alert(
+                    "Không thể kết nối hệ thống. Vui lòng thử lại."
+                );
+
+            });
+        }
+    );
 }
-
-function closeEditQuyModal() {
-    document.getElementById('editQuyModal').classList.add('hidden');
-    document.getElementById('editQuyModal').classList.remove('flex');
-}
-
-function saveQuyMember(e) {
-    e.preventDefault();
-    let idx = parseInt(document.getElementById('eqMemberIdx').value);
-    let q = document.getElementById('selectQuy').value;
-    let y = document.getElementById('selectNam').value;
-    let key = q + "_" + y;
-    let amount = parseInt(document.getElementById('eqAmount').value) || 0;
-
-    if (!members[idx].quyHistory) members[idx].quyHistory = {};
-    members[idx].quyHistory[key] = amount;
-
-    closeEditQuyModal();
-    enqueueAction("updateMember", { members: members }, "Đã cập nhật quỹ quý thành công!");
-}
-
 function addCashbookEntry(e) {
     e.preventDefault();
     let category = document.getElementById('cbCategory').value;
@@ -402,16 +629,44 @@ function selectCategory(cat) {
     let catTotal = 0;
 
     if (cat === 'Tiền quỹ QUÝ') {
-        if (!members || members.length === 0) members = defaultFallbackMembers;
-        members.forEach(m => {
-            let totalQuy = 0;
-            if (m.quyHistory) Object.values(m.quyHistory).forEach(val => totalQuy += parseInt(val));
-            if (totalQuy > 0) {
-                catTotal += totalQuy;
-                tbody.innerHTML += `<tr class="border-b"><td class="p-1.5">Tất cả Quý</td><td class="p-1.5 font-bold">${m.name}</td><td class="p-1.5 text-right font-bold text-emerald-700">${totalQuy.toLocaleString()} đ</td><td class="p-1.5 text-center">-</td></tr>`;
-            }
+
+        let logs = (quyLogs || []).slice();
+    
+        logs.sort(function(a, b) {
+            let yearDiff = (parseInt(b.year) || 0) - (parseInt(a.year) || 0);
+            if (yearDiff !== 0) return yearDiff;
+    
+            let qA = parseInt(String(a.quarter || '').replace('Q', '')) || 0;
+            let qB = parseInt(String(b.quarter || '').replace('Q', '')) || 0;
+    
+            return qB - qA;
         });
-    } else if (cat === 'Tiền góc thực thu') {
+    
+        logs.forEach(function(log) {
+            let amount = parseInt(log.amount) || 0;
+    
+            catTotal += amount;
+    
+            tbody.innerHTML += `
+                <tr class="border-b">
+                    <td class="p-1.5">${log.quarter}/${log.year}</td>
+    
+                    <td class="p-1.5 font-bold">
+                        ${log.name}
+                    </td>
+    
+                    <td class="p-1.5 text-right font-bold text-emerald-700">
+                        ${amount.toLocaleString('vi-VN')} đ
+                    </td>
+    
+                    <td class="p-1.5 text-center">
+                        -
+                    </td>
+                </tr>
+            `;
+        });
+    }    
+    else if (cat === 'Tiền góc thực thu') {
         gocLogs.forEach(g => {
             catTotal += parseInt(g.amount || 0);
             tbody.innerHTML += `
@@ -437,11 +692,9 @@ function selectCategory(cat) {
 }
 
 function renderCashbook() {
-    if (!members || members.length === 0) members = defaultFallbackMembers;
-    let totalQuyThu = 0;
-    members.forEach(m => {
-        if (m.quyHistory) Object.values(m.quyHistory).forEach(val => totalQuyThu += parseInt(val));
-    });
+   let totalQuyThu = (quyLogs || []).reduce(function(sum, log) {
+        return sum + (parseInt(log.amount) || 0);
+    }, 0);
 
     let totalGocThu = gocLogs.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
     let banSan = cashbookLogs.filter(c => c.category === "Tiền bán sân").reduce((s, c) => s + parseInt(c.amount), 0);

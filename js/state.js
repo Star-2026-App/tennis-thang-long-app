@@ -17,6 +17,7 @@ let matches = [];
 let bookingLogs = [];
 let cashbookLogs = [];
 let gocLogs = [];
+let quyLogs = [];
 let rulesList = [];
 
 let syncQueue = [];
