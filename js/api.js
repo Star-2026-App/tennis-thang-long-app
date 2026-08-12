@@ -78,6 +78,7 @@ function updateStateFromCloud(data) {
     if (data.bookingLogs) bookingLogs = data.bookingLogs;
     if (data.cashbookLogs) cashbookLogs = data.cashbookLogs;
     if (data.gocLogs) gocLogs = data.gocLogs;
+    if (data.quyLogs) quyLogs = data.quyLogs;
     if (data.rules) rulesList = data.rules;
     if (data.openingBalance !== undefined) openingBalance = data.openingBalance;
     if (data.settings) systemSettings = Object.assign(systemSettings, data.settings);
