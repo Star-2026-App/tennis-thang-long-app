@@ -425,8 +425,23 @@ function deleteQuyLog(id) {
                     return;
                 }
 
+                // Xóa ngay khỏi dữ liệu trên trình duyệt
+                quyLogs = (quyLogs || []).filter(function(item) {
+                    return String(item.id) !== String(id);
+                });
+                
+                // Cập nhật ngay các màn hình liên quan
+                renderQuyTable();
+                
+                if (typeof renderDashboard === "function") {
+                    renderDashboard();
+                }
+                
+                if (typeof renderCashbook === "function") {
+                    renderCashbook();
+                }
+                
                 showToast("Đã xóa xác nhận đóng quỹ!");
-                fetchCloudData(true);
             })
             .catch(() => {
                 alert("Không thể kết nối hệ thống. Vui lòng thử lại.");
