@@ -43,11 +43,23 @@ function enqueueAction(actionName, payload, successMessage) {
     
         applyRolePermissions();
     
-    } else {
-    
-        // Các nghiệp vụ khác tạm thời giữ nguyên
-        initApp();
-    }
+   } else if (
+            actionName === "deleteItem" &&
+            payload.sheetName === "Bookings"
+        ) {
+        
+            // Booking đã được xóa khỏi bookingLogs ở phía trên
+            // Chỉ render các màn hình liên quan
+            renderBookingLogs();
+            renderDashboard();
+        
+            applyRolePermissions();
+        
+        } else {
+        
+            initApp();
+        }
+
     
     showToast(successMessage || "Đã ghi nhận thành công!");
     processQueue();
