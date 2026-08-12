@@ -68,142 +68,349 @@ function copyReminderText() {
         showToast("Đã sao chép nội dung tin nhắn nhắc nợ vào bộ nhớ tạm!");
     }).catch(err => { alert("Không thể tự động sao chép. Vui lòng thử lại!"); });
 }
+// ======================================================
+// QUỸ QUÝ - HÀM DÙNG CHUNG
+// ======================================================
+
+function getCurrentQuyPeriod() {
+    let now = new Date();
+
+    return {
+        quarter: "Q" + Math.ceil((now.getMonth() + 1) / 3),
+        year: now.getFullYear()
+    };
+}
+
+
+function findQuyLogForMember(memberName, quarter, year) {
+    return (quyLogs || []).find(function(log) {
+        return (
+            String(log.name || '').trim().toLowerCase() ===
+                String(memberName || '').trim().toLowerCase() &&
+
+            String(log.quarter || '').trim().toUpperCase() ===
+                String(quarter || '').trim().toUpperCase() &&
+
+            parseInt(log.year) === parseInt(year)
+        );
+    });
+}
 
 function handleDashboardSubmit() {
+
     let main = document.getElementById('dashMainUser').value;
     let actType = document.querySelector('input[name="actType"]:checked').value;
-    let q = document.getElementById('selectQuy').value;
-    let y = document.getElementById('selectNam').value;
-    let key = q + "_" + y;
 
-    if (!members || members.length === 0) members = defaultFallbackMembers;
+    if (!members || members.length === 0) {
+        members = defaultFallbackMembers;
+    }
+
     let m = members.find(item => item.name === main) || members[0];
 
+
+    // ==================================================
+    // TIỀN GÓC
+    // ==================================================
+
     if (actType === "goc") {
+
         switchTab('matches');
+
+
+    // ==================================================
+    // THƯỞNG SÂN 16H
+    // ==================================================
+
     } else if (actType === "dat16") {
-        showActionConfirm(`Xác nhận ghi nhận Thưởng sân 16h cho thành viên [${main}]?`, () => {
-            let NOW = new Date().getTime();
-            let TIME_LIMIT = 18 * 60 * 60 * 1000;
-            let duplicateReward = bookingLogs.find(b => {
-                return b.name === main && b.frame === "16h-18h" && (NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
-            });
 
-            if (duplicateReward) {
-                let confirmDup = confirm(`⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 16h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`);
-                if (!confirmDup) return;
-            }
+        showActionConfirm(
+            `Xác nhận ghi nhận Thưởng sân 16h cho thành viên [${main}]?`,
+            () => {
 
-            let curMonth = document.getElementById('selectFinanceMonth').value;
-            let curYear = document.getElementById('selectFinanceYear').value;
-            let userBookingsThisMonth = bookingLogs.filter(b => {
-                if (b.name !== main) return false;
-                let t = b.time || "";
-                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
-            });
-            if (userBookingsThisMonth.length >= systemSettings.maxRewardLimit) {
-                alert(`Thành viên ${main} đã đạt giới hạn tối đa ${systemSettings.maxRewardLimit} lần nhận thưởng đặt sân trong tháng này!`);
-                return;
-            }
-            let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: "16h-18h", reward: systemSettings.reward16h };
-            enqueueAction("addBooking", { booking: newBooking }, "Đã ghi nhận Thưởng sân 16h thành công!");
-        });
-    } else if (actType === "dat18") {
-        showActionConfirm(`Xác nhận ghi nhận Thưởng sân 18h cho thành viên [${main}]?`, () => {
-            let NOW = new Date().getTime();
-            let TIME_LIMIT = 18 * 60 * 60 * 1000;
-            let duplicateReward = bookingLogs.find(b => {
-                return b.name === main && b.frame.includes("18h") && (NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT || b.time.includes(new Date().toLocaleDateString('vi-VN')));
-            });
+                let NOW = new Date().getTime();
+                let TIME_LIMIT = 18 * 60 * 60 * 1000;
 
-            if (duplicateReward) {
-                let confirmDup = confirm(`⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 18h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`);
-                if (!confirmDup) return;
-            }
+                let duplicateReward = bookingLogs.find(b => {
+                    return (
+                        b.name === main &&
+                        b.frame === "16h-18h" &&
+                        (
+                            NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT ||
+                            b.time.includes(new Date().toLocaleDateString('vi-VN'))
+                        )
+                    );
+                });
 
-            let curMonth = document.getElementById('selectFinanceMonth').value;
-            let curYear = document.getElementById('selectFinanceYear').value;
-            let userBookingsThisMonth = bookingLogs.filter(b => {
-                if (b.name !== main) return false;
-                let t = b.time || "";
-                return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
-            });
+                if (duplicateReward) {
 
-            let isHoangVanThai = (main.toLowerCase().includes("hoàng văn thái") || m.username === "Thanglong15");
-            let rewardAmount = isHoangVanThai ? 0 : systemSettings.reward18h;
+                    let confirmDup = confirm(
+                        `⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 16h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`
+                    );
 
-            let frameLabel = isHoangVanThai ? "18h-20h (CVTT5)" : "18h-20h";
+                    if (!confirmDup) return;
+                }
 
-            let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: frameLabel, reward: rewardAmount };
-            enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Thưởng sân 18h thành công!");
-        });
-} else if (actType === "quy") {
 
-    showActionConfirm(
-        `Xác nhận thành viên [${main}] đã chuyển khoản tiền quỹ quý hiện tại?`,
-        () => {
+                let curMonth =
+                    document.getElementById('selectFinanceMonth').value;
 
-            fetch(GOOGLE_SCRIPT_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-                body: JSON.stringify({
-                    action: "addQuyLog",
-                    quyLog: {
-                        name: main
-                    }
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
+                let curYear =
+                    document.getElementById('selectFinanceYear').value;
 
-                if (data.status !== "SUCCESS") {
-                    let message = data.message || "Không thể ghi nhận đóng quỹ.";
 
-                    // Bỏ chữ "Error:" cho thông báo dễ đọc
-                    message = message.replace(/^Error:\s*/i, "");
+                let userBookingsThisMonth = bookingLogs.filter(b => {
 
-                    alert(message);
+                    if (b.name !== main) return false;
+
+                    let t = b.time || "";
+
+                    return (
+                        t.includes(`/${curMonth}/${curYear}`) ||
+                        t.includes(` ${curMonth}/${curYear}`)
+                    );
+                });
+
+
+                if (
+                    userBookingsThisMonth.length >=
+                    systemSettings.maxRewardLimit
+                ) {
+
+                    alert(
+                        `Thành viên ${main} đã đạt giới hạn tối đa ${systemSettings.maxRewardLimit} lần nhận thưởng đặt sân trong tháng này!`
+                    );
+
                     return;
                 }
 
-             // Backend Version 11 trả lại chính bản ghi vừa ghi vào QuyLogs
-            let newLog = data.result;
-            
-            if (!newLog || !newLog.id) {
-                alert("Đã ghi dữ liệu nhưng không nhận được bản ghi trả về.");
-                return;
+
+                let newBooking = {
+                    id: Date.now(),
+                    time: new Date().toLocaleString('vi-VN'),
+                    name: main,
+                    frame: "16h-18h",
+                    reward: systemSettings.reward16h
+                };
+
+
+                enqueueAction(
+                    "addBooking",
+                    { booking: newBooking },
+                    "Đã ghi nhận Thưởng sân 16h thành công!"
+                );
             }
-            
-            // Cập nhật QuyLogs ngay trên trình duyệt
-            quyLogs = (quyLogs || []).filter(function(item) {
-                return String(item.id) !== String(newLog.id);
-            });
-            
-            quyLogs.push(newLog);
-            
-            // Cập nhật ngay các màn hình liên quan
-            if (typeof renderDashboard === "function") {
-                renderDashboard();
+        );
+
+
+    // ==================================================
+    // THƯỞNG SÂN 18H
+    // ==================================================
+
+    } else if (actType === "dat18") {
+
+        showActionConfirm(
+            `Xác nhận ghi nhận Thưởng sân 18h cho thành viên [${main}]?`,
+            () => {
+
+                let NOW = new Date().getTime();
+                let TIME_LIMIT = 18 * 60 * 60 * 1000;
+
+
+                let duplicateReward = bookingLogs.find(b => {
+
+                    return (
+                        b.name === main &&
+                        b.frame.includes("18h") &&
+                        (
+                            NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT ||
+                            b.time.includes(new Date().toLocaleDateString('vi-VN'))
+                        )
+                    );
+                });
+
+
+                if (duplicateReward) {
+
+                    let confirmDup = confirm(
+                        `⚠️ Thành viên [${main}] đã được ghi nhận Thưởng sân 18h trong vòng 18 giờ qua!\n\nBạn có muốn tiếp tục lưu (OK) hay hủy bỏ (Hủy)?`
+                    );
+
+                    if (!confirmDup) return;
+                }
+
+
+                let isHoangVanThai =
+                    main.toLowerCase().includes("hoàng văn thái") ||
+                    m.username === "Thanglong15";
+
+
+                let rewardAmount =
+                    isHoangVanThai
+                        ? 0
+                        : systemSettings.reward18h;
+
+
+                let frameLabel =
+                    isHoangVanThai
+                        ? "18h-20h (CVTT5)"
+                        : "18h-20h";
+
+
+                let newBooking = {
+                    id: Date.now(),
+                    time: new Date().toLocaleString('vi-VN'),
+                    name: main,
+                    frame: frameLabel,
+                    reward: rewardAmount
+                };
+
+
+                enqueueAction(
+                    "addBooking",
+                    { booking: newBooking },
+
+                    isHoangVanThai
+                        ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!"
+                        : "Đã ghi nhận Thưởng sân 18h thành công!"
+                );
             }
-            
-            if (typeof renderQuyTable === "function") {
-                renderQuyTable();
-            }
-            
-            if (typeof renderCashbook === "function") {
-                renderCashbook();
-            }
-            
-            showToast("Đã ghi nhận Tiền quỹ QUÝ thành công!");
-            })
-            .catch(err => {
-                alert("Không thể kết nối hệ thống. Vui lòng thử lại.");
-            });
+        );
+
+
+    // ==================================================
+    // XÁC NHẬN ĐÓNG QUỸ QUÝ
+    // ==================================================
+
+    } else if (actType === "quy") {
+
+        let period = getCurrentQuyPeriod();
+
+
+        // Kiểm tra LOCAL trước để không gọi Backend thừa
+        let existingLog = findQuyLogForMember(
+            main,
+            period.quarter,
+            period.year
+        );
+
+
+        if (existingLog) {
+
+            alert(
+                `${main} đã xác nhận đóng quỹ ${period.quarter}/${period.year}.`
+            );
+
+            return;
         }
-    );
-}
+
+
+        showActionConfirm(
+
+            `Xác nhận thành viên [${main}] đã chuyển khoản tiền quỹ ${period.quarter}/${period.year}?`,
+
+            () => {
+
+                fetch(GOOGLE_SCRIPT_URL, {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8"
+                    },
+
+                    body: JSON.stringify({
+                        action: "addQuyLog",
+
+                        // Frontend CHỈ gửi tên
+                        quyLog: {
+                            name: main
+                        }
+                    })
+                })
+
+                .then(res => res.json())
+
+                .then(data => {
+
+                    if (data.status !== "SUCCESS") {
+
+                        let message =
+                            data.message ||
+                            "Không thể ghi nhận đóng quỹ.";
+
+                        message =
+                            message.replace(/^Error:\s*/i, "");
+
+                        alert(message);
+
+                        return;
+                    }
+
+
+                    // Backend trả đúng bản ghi vừa tạo
+                    let newLog = data.result;
+
+
+                    if (!newLog || !newLog.id) {
+
+                        alert(
+                            "Đã ghi dữ liệu nhưng không nhận được bản ghi trả về."
+                        );
+
+                        return;
+                    }
+
+
+                    // ======================================
+                    // CẬP NHẬT LOCAL
+                    // Không tải lại toàn bộ Cloud
+                    // ======================================
+
+                    quyLogs = (quyLogs || []).filter(function(item) {
+
+                        return !(
+                            String(item.name || '').trim().toLowerCase() ===
+                                String(newLog.name || '').trim().toLowerCase() &&
+
+                            String(item.quarter || '').toUpperCase() ===
+                                String(newLog.quarter || '').toUpperCase() &&
+
+                            parseInt(item.year) ===
+                                parseInt(newLog.year)
+                        );
+                    });
+
+
+                    quyLogs.push(newLog);
+
+
+                    // Chỉ render màn hình liên quan
+                    renderDashboard();
+
+                    if (typeof renderQuyTable === "function") {
+                        renderQuyTable();
+                    }
+
+                    if (typeof renderCashbook === "function") {
+                        renderCashbook();
+                    }
+
+
+                    showToast(
+                        `Đã ghi nhận Tiền quỹ ${newLog.quarter}/${newLog.year} thành công!`
+                    );
+                })
+
+                .catch(() => {
+
+                    alert(
+                        "Không thể kết nối hệ thống. Vui lòng thử lại."
+                    );
+
+                });
+            }
+        );
+    }
 }
 
 function renderDashboard() {
@@ -215,22 +422,23 @@ function renderDashboard() {
     let f = calculateUserFinance(main);
     let m = members.find(item => item.name === main) || members[0];
 
-    // Xác định QUÝ HIỆN TẠI theo ngày thực tế
-let now = new Date();
-let currentQuarter = "Q" + Math.ceil((now.getMonth() + 1) / 3);
-let currentYear = now.getFullYear();
+   // ======================================================
+// KIỂM TRA QUỸ QUÝ HIỆN TẠI
+// ======================================================
 
-// Kiểm tra lịch sử xác nhận đóng quỹ trong QuyLogs
-let hasPaidCurrentQuarter = (quyLogs || []).some(function(log) {
-    return (
-        String(log.name || '').trim().toLowerCase() ===
-            String(m.name || '').trim().toLowerCase() &&
-        String(log.quarter || '').trim().toUpperCase() === currentQuarter &&
-        parseInt(log.year) === currentYear
-    );
-});
+let period = getCurrentQuyPeriod();
 
-let warningBanner = document.getElementById('quyWarningBanner');
+let hasPaidCurrentQuarter = !!findQuyLogForMember(
+    m.name,
+    period.quarter,
+    period.year
+);
+
+let currentQuarter = period.quarter;
+let currentYear = period.year;
+
+let warningBanner =
+    document.getElementById('quyWarningBanner');
 
 let hasOldDebt = (m.noOld || 0) > 0;
 
