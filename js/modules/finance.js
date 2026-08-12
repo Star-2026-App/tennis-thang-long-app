@@ -529,11 +529,9 @@ function selectCategory(cat) {
 }
 
 function renderCashbook() {
-    if (!members || members.length === 0) members = defaultFallbackMembers;
-    let totalQuyThu = 0;
-    members.forEach(m => {
-        if (m.quyHistory) Object.values(m.quyHistory).forEach(val => totalQuyThu += parseInt(val));
-    });
+   let totalQuyThu = (quyLogs || []).reduce(function(sum, log) {
+        return sum + (parseInt(log.amount) || 0);
+    }, 0);
 
     let totalGocThu = gocLogs.reduce((sum, g) => sum + parseInt(g.amount || 0), 0);
     let banSan = cashbookLogs.filter(c => c.category === "Tiền bán sân").reduce((s, c) => s + parseInt(c.amount), 0);
