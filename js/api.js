@@ -2,69 +2,169 @@ function enqueueAction(actionName, payload, successMessage) {
     payload.action = actionName;
     syncQueue.push(payload);
 
-    if (actionName === "addMatch" && payload.match) matches.unshift(payload.match);
-    else if (actionName === "updateMatch" && payload.match) {
+    // =========================
+    // 1. CẬP NHẬT STATE CỤC BỘ
+    // =========================
+
+    if (actionName === "addMatch" && payload.match) {
+
+        matches.unshift(payload.match);
+
+    } else if (actionName === "updateMatch" && payload.match) {
+
         let m = matches.find(x => x.id == payload.match.id);
-        if (m) { m.scoreA = payload.match.scoreA; m.scoreB = payload.match.scoreB; m.specialBet = payload.match.specialBet; }
-    }
-    else if (actionName === "addGocLog" && payload.gocLog) gocLogs.unshift(payload.gocLog);
-    else if (actionName === "addBooking" && payload.booking) bookingLogs.unshift(payload.booking);
-    else if (actionName === "addCashbook" && payload.cashbook) cashbookLogs.unshift(payload.cashbook);
-    else if (actionName === "addRule" && payload.rule) rulesList.unshift(payload.rule);
-    else if (actionName === "updateSettings" && payload.settings) systemSettings = payload.settings;
-    else if (actionName === "deleteItem") {
+
+        if (m) {
+            m.scoreA = payload.match.scoreA;
+            m.scoreB = payload.match.scoreB;
+            m.specialBet = payload.match.specialBet;
+        }
+
+    } else if (actionName === "addGocLog" && payload.gocLog) {
+
+        gocLogs.unshift(payload.gocLog);
+
+    } else if (actionName === "addBooking" && payload.booking) {
+
+        bookingLogs.unshift(payload.booking);
+
+    } else if (actionName === "addCashbook" && payload.cashbook) {
+
+        cashbookLogs.unshift(payload.cashbook);
+
+    } else if (actionName === "addRule" && payload.rule) {
+
+        rulesList.unshift(payload.rule);
+
+    } else if (actionName === "updateSettings" && payload.settings) {
+
+        systemSettings = payload.settings;
+
+    } else if (actionName === "deleteItem") {
+
         let id = payload.id;
-        if (payload.sheetName === "Matches") matches = matches.filter(x => x.id != id);
-        if (payload.sheetName === "Bookings") bookingLogs = bookingLogs.filter(x => x.id != id);
-        if (payload.sheetName === "Cashbook") cashbookLogs = cashbookLogs.filter(x => x.id != id);
-        if (payload.sheetName === "GocLogs") gocLogs = gocLogs.filter(x => x.id != id);
-        if (payload.sheetName === "Rules") rulesList = rulesList.filter(x => x.id != id);
+
+        if (payload.sheetName === "Matches") {
+            matches = matches.filter(x => x.id != id);
+        }
+
+        if (payload.sheetName === "Bookings") {
+            bookingLogs = bookingLogs.filter(x => x.id != id);
+        }
+
+        if (payload.sheetName === "Cashbook") {
+            cashbookLogs = cashbookLogs.filter(x => x.id != id);
+        }
+
+        if (payload.sheetName === "GocLogs") {
+            gocLogs = gocLogs.filter(x => x.id != id);
+        }
+
+        if (payload.sheetName === "Rules") {
+            rulesList = rulesList.filter(x => x.id != id);
+        }
     }
 
     sortCollectionsByTime();
     saveLocalData();
-    
-   if (actionName === "addGocLog") {
+
+
+    // ==========================================
+    // 2. CHỈ RENDER NHỮNG MÀN HÌNH CÓ THAY ĐỔI
+    // ==========================================
+
+    // ---- TIỀN GÓC: thêm / sửa / xóa ----
+    if (
+        actionName === "addGocLog" ||
+        (
+            actionName === "deleteItem" &&
+            payload.sheetName === "GocLogs"
+        )
+    ) {
 
         recalculateMemberPaidTotals();
-    
+
         renderGocLogsTab();
         renderDashboard();
         renderFinance();
         renderCashbook();
-    
+
         applyRolePermissions();
-    
-    } else if (actionName === "addBooking") {
-    
-        // Chỉ cập nhật các màn hình liên quan đến thưởng đặt sân
-        renderBookingLogs();
-        renderDashboard();
-    
-        applyRolePermissions();
-    
-   } else if (
+
+
+    // ---- THƯỞNG ĐẶT SÂN: thêm / xóa ----
+    } else if (
+        actionName === "addBooking" ||
+        (
             actionName === "deleteItem" &&
             payload.sheetName === "Bookings"
-        ) {
-        
-            // Booking đã được xóa khỏi bookingLogs ở phía trên
-            // Chỉ render các màn hình liên quan
-            renderBookingLogs();
-            renderDashboard();
-        
-            applyRolePermissions();
-        
-        } else {
-        
-            initApp();
-        }
+        )
+    ) {
 
-    
-    showToast(successMessage || "Đã ghi nhận thành công!");
-    processQueue();
+        renderBookingLogs();
+        renderDashboard();
+
+        applyRolePermissions();
+
+
+    // ---- TRẬN ĐẤU: thêm / sửa / xóa ----
+    } else if (
+        actionName === "addMatch" ||
+        actionName === "updateMatch" ||
+        (
+            actionName === "deleteItem" &&
+            payload.sheetName === "Matches"
+        )
+    ) {
+
+        renderAllMatchLog();
+        renderGamification();
+        renderDashboard();
+        renderFinance();
+        renderAnalyticsTab();
+
+        applyRolePermissions();
+
+
+    // ---- SỔ THU CHI: thêm / xóa ----
+    } else if (
+        actionName === "addCashbook" ||
+        (
+            actionName === "deleteItem" &&
+            payload.sheetName === "Cashbook"
+        )
+    ) {
+
+        renderCashbook();
+
+        applyRolePermissions();
+
+
+    // ---- QUY ĐỊNH / THÔNG BÁO: thêm / xóa ----
+    } else if (
+        actionName === "addRule" ||
+        (
+            actionName === "deleteItem" &&
+            payload.sheetName === "Rules"
+        )
+    ) {
+
+        renderRulesTab();
+
+        applyRolePermissions();
+
+
+    // ---- CÁC NGHIỆP VỤ CHƯA TỐI ƯU ----
+    } else {
+
+        initApp();
     }
 
+
+    showToast(successMessage || "Đã ghi nhận thành công!");
+
+    processQueue();
+}
 function processQueue() {
     if (isSyncing || syncQueue.length === 0 || !GOOGLE_SCRIPT_URL) return;
     isSyncing = true;
