@@ -24,16 +24,22 @@ function enqueueAction(actionName, payload, successMessage) {
     sortCollectionsByTime();
     saveLocalData();
     
-    if (actionName === "addGocLog") {
-    
-        // Tiền góc thay đổi số tiền đã nộp của thành viên
+   if (actionName === "addGocLog") {
+
         recalculateMemberPaidTotals();
     
-        // Chỉ render các màn hình thực sự liên quan
         renderGocLogsTab();
         renderDashboard();
         renderFinance();
         renderCashbook();
+    
+        applyRolePermissions();
+    
+    } else if (actionName === "addBooking") {
+    
+        // Chỉ cập nhật các màn hình liên quan đến thưởng đặt sân
+        renderBookingLogs();
+        renderDashboard();
     
         applyRolePermissions();
     
