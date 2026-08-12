@@ -267,35 +267,99 @@ function closeQRZoomModal() {
 
 function renderQuyTable() {
     if (!members || members.length === 0) members = defaultFallbackMembers;
+
     let q = document.getElementById('selectQuy').value;
     let y = document.getElementById('selectNam').value;
     let key = q + "_" + y;
 
-    document.getElementById('thQuyTitle').innerText = "Số Tiền " + q.replace('Q', 'Quý ') + "/" + y;
+    document.getElementById('thQuyTitle').innerText =
+        "Số Tiền " + q.replace('Q', 'Quý ') + "/" + y;
 
     let tbody = document.getElementById('quyTableBody');
     tbody.innerHTML = '';
 
     members.forEach((m, idx) => {
         let paidAmount = 0;
-        if (m.quyHistory && m.quyHistory[key] !== undefined) paidAmount = parseInt(m.quyHistory[key]);
+        let isOk = false;
 
-        let isOk = paidAmount >= systemSettings.quyAmount;
-        let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
+        // Ưu tiên dữ liệu mới trong QuyLogs
+        let quyLog = (quyLogs || []).find(function(log) {
+            return (
+                String(log.name || '').trim().toLowerCase() ===
+                    String(m.name || '').trim().toLowerCase() &&
+                String(log.quarter || '').toUpperCase() === q &&
+                parseInt(log.year) === parseInt(y)
+            );
+        });
+
+        if (quyLog) {
+            paidAmount = parseInt(quyLog.amount) || 0;
+
+            // Có bản ghi QuyLogs = đã xác nhận đóng đủ quý đó.
+            // Không so với mức quỹ hiện tại.
+            isOk = true;
+        } else {
+            // Tạm thời giữ khả năng đọc dữ liệu cũ Q2/Q3 từ Members
+            // cho đến khi migration toàn bộ dữ liệu cũ sang QuyLogs.
+            let legacyAmount =
+                (m.quyHistory && m.quyHistory[key] !== undefined)
+                    ? parseInt(m.quyHistory[key]) || 0
+                    : 0;
+
+            paidAmount = legacyAmount;
+
+            // Quy định CLB là đóng đủ 100% một lần,
+            // nên lịch sử cũ > 0 được coi là đã hoàn thành.
+            isOk = legacyAmount > 0;
+        }
+
+        let statusColor =
+            m.status === 'Đang tham gia'
+                ? 'bg-emerald-100 text-emerald-800'
+                : (
+                    m.status === 'Bận tạm nghỉ'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-purple-100 text-purple-800'
+                );
 
         tbody.innerHTML += `
             <tr class="border-b hover:bg-slate-50">
                 <td class="p-2.5 text-center font-bold text-slate-500">${idx + 1}</td>
-                <td class="p-2.5 font-bold text-slate-900">${m.name}</td>
-                <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
-                <td class="p-2.5 text-right font-bold ${isOk ? 'text-emerald-700' : 'text-slate-400'}">${paidAmount.toLocaleString()} đ</td>
-                <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isOk ? 'bg-cyan-100 text-cyan-800' : 'bg-red-100 text-red-800'}">${isOk ? 'OK' : 'Chưa'}</span></td>
-                <td class="p-2.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
-                    <button onclick="openEditQuyModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i></button>
+
+                <td class="p-2.5 font-bold text-slate-900">
+                    ${m.name}
+                </td>
+
+                <td class="p-2.5 text-center">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusColor}">
+                        ${m.status || 'Đang tham gia'}
+                    </span>
+                </td>
+
+                <td class="p-2.5 text-right font-bold ${isOk ? 'text-emerald-700' : 'text-slate-400'}">
+                    ${paidAmount.toLocaleString('vi-VN')} đ
+                </td>
+
+                <td class="p-2.5 text-center">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        isOk
+                            ? 'bg-cyan-100 text-cyan-800'
+                            : 'bg-red-100 text-red-800'
+                    }">
+                        ${isOk ? 'OK' : 'Chưa'}
+                    </span>
+                </td>
+
+                <td class="p-2.5 text-center admin-only ${currentUserRole === 'admin' ? '' : 'hidden'}">
+                    <button onclick="openEditQuyModal(${idx})"
+                        class="text-blue-600 font-bold">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
                 </td>
             </tr>
         `;
     });
+
     applyRolePermissions();
 }
 
