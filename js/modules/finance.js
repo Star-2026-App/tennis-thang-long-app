@@ -35,7 +35,6 @@ function calculateUserFinanceForMonth(memberName, targetMonth, targetYear) {
                         monthRegularFee += 10000;
                     }
                 }
-                }
             }
         }
     });
