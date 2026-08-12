@@ -168,10 +168,35 @@ function handleDashboardSubmit() {
                     return;
                 }
 
-                showToast("Đã ghi nhận Tiền quỹ QUÝ thành công!");
-
-                // Đọc lại dữ liệu thật từ Google Sheet
-                fetchCloudData(true);
+             // Backend Version 11 trả lại chính bản ghi vừa ghi vào QuyLogs
+            let newLog = data.result;
+            
+            if (!newLog || !newLog.id) {
+                alert("Đã ghi dữ liệu nhưng không nhận được bản ghi trả về.");
+                return;
+            }
+            
+            // Cập nhật QuyLogs ngay trên trình duyệt
+            quyLogs = (quyLogs || []).filter(function(item) {
+                return String(item.id) !== String(newLog.id);
+            });
+            
+            quyLogs.push(newLog);
+            
+            // Cập nhật ngay các màn hình liên quan
+            if (typeof renderDashboard === "function") {
+                renderDashboard();
+            }
+            
+            if (typeof renderQuyTable === "function") {
+                renderQuyTable();
+            }
+            
+            if (typeof renderCashbook === "function") {
+                renderCashbook();
+            }
+            
+            showToast("Đã ghi nhận Tiền quỹ QUÝ thành công!");
             })
             .catch(err => {
                 alert("Không thể kết nối hệ thống. Vui lòng thử lại.");
