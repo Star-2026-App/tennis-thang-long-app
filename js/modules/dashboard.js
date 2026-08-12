@@ -190,24 +190,54 @@ function renderDashboard() {
     let f = calculateUserFinance(main);
     let m = members.find(item => item.name === main) || members[0];
 
-    let qSel = document.getElementById('selectQuy').value;
-    let ySel = document.getElementById('selectNam').value;
-    let key = qSel + "_" + ySel;
-    let paidQuy = (m.quyHistory && m.quyHistory[key] !== undefined) ? parseInt(m.quyHistory[key]) : 0;
-    let warningBanner = document.getElementById('quyWarningBanner');
+    // Xác định QUÝ HIỆN TẠI theo ngày thực tế
+let now = new Date();
+let currentQuarter = "Q" + Math.ceil((now.getMonth() + 1) / 3);
+let currentYear = now.getFullYear();
 
-    let hasWarning = (m.status === 'Đang tham gia' && ((m.noOld || 0) > 0 || paidQuy < systemSettings.quyAmount));
-    if (hasWarning) {
-        warningBanner.classList.remove('hidden');
-        warningBanner.classList.add('flex');
-        let warningMsg = [];
-        if ((m.noOld || 0) > 0) warningMsg.push(`có số tiền Nợ cũ là ${m.noOld.toLocaleString()} đ`);
-        if (paidQuy < systemSettings.quyAmount) warningMsg.push(`chưa đóng quỹ ${qSel}/${ySel}`);
-        document.getElementById('quyWarningText').innerText = `${m.name} ơi, bạn ${warningMsg.join(' và ')}. Vui lòng hoàn thành nhé!`;
-    } else {
-        warningBanner.classList.add('hidden');
-        warningBanner.classList.remove('flex');
+// Kiểm tra lịch sử xác nhận đóng quỹ trong QuyLogs
+let hasPaidCurrentQuarter = (quyLogs || []).some(function(log) {
+    return (
+        String(log.name || '').trim().toLowerCase() ===
+            String(m.name || '').trim().toLowerCase() &&
+        String(log.quarter || '').trim().toUpperCase() === currentQuarter &&
+        parseInt(log.year) === currentYear
+    );
+});
+
+let warningBanner = document.getElementById('quyWarningBanner');
+
+let hasOldDebt = (m.noOld || 0) > 0;
+
+let hasWarning =
+    m.status === 'Đang tham gia' &&
+    (hasOldDebt || !hasPaidCurrentQuarter);
+
+if (hasWarning) {
+    warningBanner.classList.remove('hidden');
+    warningBanner.classList.add('flex');
+
+    let warningMsg = [];
+
+    if (hasOldDebt) {
+        warningMsg.push(
+            `có số tiền Nợ cũ là ${m.noOld.toLocaleString()} đ`
+        );
     }
+
+    if (!hasPaidCurrentQuarter) {
+        warningMsg.push(
+            `chưa đóng quỹ ${currentQuarter}/${currentYear}`
+        );
+    }
+
+    document.getElementById('quyWarningText').innerText =
+        `${m.name} ơi, bạn ${warningMsg.join(' và ')}. Vui lòng hoàn thành nhé!`;
+
+} else {
+    warningBanner.classList.add('hidden');
+    warningBanner.classList.remove('flex');
+}
 
     document.getElementById('statTotal').innerText = f.totalMatchCount;
     let winRate = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
