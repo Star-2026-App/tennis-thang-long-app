@@ -461,8 +461,6 @@ function renderQuyTable() {
 
     applyRolePermissions();
 }
-
-
 function deleteQuyLog(id) {
 
     if (currentUserRole !== 'admin') {
@@ -470,16 +468,22 @@ function deleteQuyLog(id) {
         return;
     }
 
+
     let log = (quyLogs || []).find(function(item) {
         return String(item.id) === String(id);
     });
+
 
     if (!log) {
         alert("Không tìm thấy bản ghi đóng quỹ.");
         return;
     }
 
-    // Không cho xóa lịch sử migration
+
+    // ==================================================
+    // KHÔNG CHO XÓA DỮ LIỆU MIGRATION
+    // ==================================================
+
     let isMigration =
         String(log.id || '').startsWith('MIG_') ||
         String(log.note || '').includes('Migration từ Members');
@@ -489,9 +493,44 @@ function deleteQuyLog(id) {
         return;
     }
 
+
     showActionConfirm(
         `Xóa xác nhận đóng quỹ ${log.quarter}/${log.year} của [${log.name}]?`,
+
         () => {
+
+            // Giữ bản sao để rollback nếu Backend lỗi
+            let backupLog = { ...log };
+
+
+            // ==================================================
+            // 1. XÓA LOCAL NGAY
+            // ==================================================
+
+            quyLogs = (quyLogs || []).filter(function(item) {
+                return String(item.id) !== String(id);
+            });
+
+
+            renderQuyTable();
+
+            if (typeof renderDashboard === "function") {
+                renderDashboard();
+            }
+
+            if (typeof renderCashbook === "function") {
+                renderCashbook();
+            }
+
+
+            showToast(
+                `Đang xóa xác nhận quỹ ${log.quarter}/${log.year}...`
+            );
+
+
+            // ==================================================
+            // 2. BACKEND XÓA PHÍA SAU
+            // ==================================================
 
             fetch(GOOGLE_SCRIPT_URL, {
 
@@ -512,7 +551,31 @@ function deleteQuyLog(id) {
 
             .then(data => {
 
+                // ==================================================
+                // BACKEND LỖI → KHÔI PHỤC BẢN GHI
+                // ==================================================
+
                 if (data.status !== "SUCCESS") {
+
+                    let exists = (quyLogs || []).some(function(item) {
+                        return String(item.id) === String(backupLog.id);
+                    });
+
+                    if (!exists) {
+                        quyLogs.push(backupLog);
+                    }
+
+
+                    renderQuyTable();
+
+                    if (typeof renderDashboard === "function") {
+                        renderDashboard();
+                    }
+
+                    if (typeof renderCashbook === "function") {
+                        renderCashbook();
+                    }
+
 
                     let message =
                         data.message ||
@@ -521,22 +584,41 @@ function deleteQuyLog(id) {
                     message =
                         message.replace(/^Error:\s*/i, "");
 
-                    alert(message);
+
+                    alert(
+                        message +
+                        "\n\nDữ liệu đã được khôi phục trên màn hình."
+                    );
 
                     return;
                 }
 
 
-                // ==========================================
-                // XÓA LOCAL - KHÔNG FETCH TOÀN BỘ CLOUD
-                // ==========================================
+                // ==================================================
+                // BACKEND SUCCESS
+                // Local đã xóa rồi → không cần làm gì thêm
+                // ==================================================
 
-                quyLogs = (quyLogs || []).filter(function(item) {
-                    return String(item.id) !== String(id);
+                showToast(
+                    `Đã xóa quỹ ${log.quarter}/${log.year} của ${log.name}!`
+                );
+            })
+
+            .catch(() => {
+
+                // ==================================================
+                // MẤT KẾT NỐI → ROLLBACK
+                // ==================================================
+
+                let exists = (quyLogs || []).some(function(item) {
+                    return String(item.id) === String(backupLog.id);
                 });
 
+                if (!exists) {
+                    quyLogs.push(backupLog);
+                }
 
-                // Chỉ render màn hình liên quan
+
                 renderQuyTable();
 
                 if (typeof renderDashboard === "function") {
@@ -548,21 +630,15 @@ function deleteQuyLog(id) {
                 }
 
 
-                showToast(
-                    "Đã xóa xác nhận đóng quỹ!"
-                );
-            })
-
-            .catch(() => {
-
                 alert(
-                    "Không thể kết nối hệ thống. Vui lòng thử lại."
+                    "Không thể kết nối hệ thống.\n\n" +
+                    "Lệnh xóa đã được hoàn tác."
                 );
-
             });
         }
     );
 }
+
 function addCashbookEntry(e) {
     e.preventDefault();
     let category = document.getElementById('cbCategory').value;
