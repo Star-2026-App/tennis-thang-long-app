@@ -18,11 +18,23 @@ function calculateUserFinanceForMonth(memberName, targetMonth, targetYear) {
 
             if (isTargetTime) {
                 monthMatchCount++;
-                if (match.scoreA === match.scoreB) monthRegularFee += 10000;
-                else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) { }
-                else {
-                    monthRegularFee += 10000;
-                    if (match.specialBet > 0) monthSpecialBetFee += parseInt(match.specialBet);
+                let isWin =
+                    (isV1 && match.scoreA > match.scoreB) ||
+                    (isV2 && match.scoreB > match.scoreA);
+                
+                let mustPayGoc = (match.scoreA === match.scoreB) || !isWin;
+                
+                if (mustPayGoc) {
+                    let specialBet = parseInt(match.specialBet) || 0;
+                
+                    if (specialBet > 0) {
+                        // Trận có kèo đặc biệt: chỉ tính kèo ĐB, không cộng thêm 10.000đ
+                        monthSpecialBetFee += specialBet;
+                    } else {
+                        // Trận thường thua hoặc hòa: tính 10.000đ góc cơ bản
+                        monthRegularFee += 10000;
+                    }
+                }
                 }
             }
         }
