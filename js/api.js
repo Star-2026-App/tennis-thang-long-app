@@ -23,10 +23,29 @@ function enqueueAction(actionName, payload, successMessage) {
 
     sortCollectionsByTime();
     saveLocalData();
-    initApp();
+    
+    if (actionName === "addGocLog") {
+    
+        // Tiền góc thay đổi số tiền đã nộp của thành viên
+        recalculateMemberPaidTotals();
+    
+        // Chỉ render các màn hình thực sự liên quan
+        renderGocLogsTab();
+        renderDashboard();
+        renderFinance();
+        renderCashbook();
+    
+        applyRolePermissions();
+    
+    } else {
+    
+        // Các nghiệp vụ khác tạm thời giữ nguyên
+        initApp();
+    }
+    
     showToast(successMessage || "Đã ghi nhận thành công!");
     processQueue();
-}
+    }
 
 function processQueue() {
     if (isSyncing || syncQueue.length === 0 || !GOOGLE_SCRIPT_URL) return;
