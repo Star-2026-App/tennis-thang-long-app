@@ -137,19 +137,48 @@ function handleDashboardSubmit() {
             let newBooking = { id: Date.now(), time: new Date().toLocaleString('vi-VN'), name: main, frame: frameLabel, reward: rewardAmount };
             enqueueAction("addBooking", { booking: newBooking }, isHoangVanThai ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!" : "Đã ghi nhận Thưởng sân 18h thành công!");
         });
-    } else if (actType === "quy") {
-        showActionConfirm(`Xác nhận ghi nhận đóng Tiền quỹ ${q}/${y} cho thành viên [${main}]?`, () => {
-            let alreadyPaid = (m.quyHistory && m.quyHistory[key] !== undefined && m.quyHistory[key] >= systemSettings.quyAmount);
-            if (alreadyPaid) {
-                alert("Hệ thống đã ghi nhận bạn đã đóng quỹ rồi!");
-                return;
-            }
+} else if (actType === "quy") {
 
-            if (!m.quyHistory) m.quyHistory = {};
-            m.quyHistory[key] = systemSettings.quyAmount;
-            enqueueAction("updateMember", { members: members }, "Đã ghi nhận Tiền quỹ QUÝ thành công!");
-        });
-    }
+    showActionConfirm(
+        `Xác nhận thành viên [${main}] đã chuyển khoản tiền quỹ quý hiện tại?`,
+        () => {
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify({
+                    action: "addQuyLog",
+                    quyLog: {
+                        name: main
+                    }
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                if (data.status !== "SUCCESS") {
+                    let message = data.message || "Không thể ghi nhận đóng quỹ.";
+
+                    // Bỏ chữ "Error:" cho thông báo dễ đọc
+                    message = message.replace(/^Error:\s*/i, "");
+
+                    alert(message);
+                    return;
+                }
+
+                showToast("Đã ghi nhận Tiền quỹ QUÝ thành công!");
+
+                // Đọc lại dữ liệu thật từ Google Sheet
+                fetchCloudData(true);
+            })
+            .catch(err => {
+                alert("Không thể kết nối hệ thống. Vui lòng thử lại.");
+            });
+        }
+    );
+}
 }
 
 function renderDashboard() {
