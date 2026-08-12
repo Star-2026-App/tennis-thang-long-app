@@ -466,16 +466,44 @@ function selectCategory(cat) {
     let catTotal = 0;
 
     if (cat === 'Tiền quỹ QUÝ') {
-        if (!members || members.length === 0) members = defaultFallbackMembers;
-        members.forEach(m => {
-            let totalQuy = 0;
-            if (m.quyHistory) Object.values(m.quyHistory).forEach(val => totalQuy += parseInt(val));
-            if (totalQuy > 0) {
-                catTotal += totalQuy;
-                tbody.innerHTML += `<tr class="border-b"><td class="p-1.5">Tất cả Quý</td><td class="p-1.5 font-bold">${m.name}</td><td class="p-1.5 text-right font-bold text-emerald-700">${totalQuy.toLocaleString()} đ</td><td class="p-1.5 text-center">-</td></tr>`;
-            }
+
+        let logs = (quyLogs || []).slice();
+    
+        logs.sort(function(a, b) {
+            let yearDiff = (parseInt(b.year) || 0) - (parseInt(a.year) || 0);
+            if (yearDiff !== 0) return yearDiff;
+    
+            let qA = parseInt(String(a.quarter || '').replace('Q', '')) || 0;
+            let qB = parseInt(String(b.quarter || '').replace('Q', '')) || 0;
+    
+            return qB - qA;
         });
-    } else if (cat === 'Tiền góc thực thu') {
+    
+        logs.forEach(function(log) {
+            let amount = parseInt(log.amount) || 0;
+    
+            catTotal += amount;
+    
+            tbody.innerHTML += `
+                <tr class="border-b">
+                    <td class="p-1.5">${log.quarter}/${log.year}</td>
+    
+                    <td class="p-1.5 font-bold">
+                        ${log.name}
+                    </td>
+    
+                    <td class="p-1.5 text-right font-bold text-emerald-700">
+                        ${amount.toLocaleString('vi-VN')} đ
+                    </td>
+    
+                    <td class="p-1.5 text-center">
+                        -
+                    </td>
+                </tr>
+            `;
+        });
+    }    
+    else if (cat === 'Tiền góc thực thu') {
         gocLogs.forEach(g => {
             catTotal += parseInt(g.amount || 0);
             tbody.innerHTML += `
