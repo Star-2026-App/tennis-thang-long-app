@@ -280,111 +280,107 @@ function handleDashboardSubmit() {
     // ==================================================
     // XÁC NHẬN ĐÓNG QUỸ QUÝ
     // ==================================================
+} else if (actType === "quy") {
 
-    } else if (actType === "quy") {
+    let period = getCurrentQuyPeriod();
 
-        let period = getCurrentQuyPeriod();
+    // ==================================================
+    // 1. CHẶN TRÙNG NGAY TRÊN TRÌNH DUYỆT
+    // ==================================================
 
+    let existingLog = findQuyLogForMember(
+        main,
+        period.quarter,
+        period.year
+    );
 
-        // Kiểm tra LOCAL trước để không gọi Backend thừa
-        let existingLog = findQuyLogForMember(
-            main,
-            period.quarter,
-            period.year
+    if (existingLog) {
+        alert(
+            `${main} đã xác nhận đóng quỹ ${period.quarter}/${period.year}.`
         );
+        return;
+    }
 
 
-        if (existingLog) {
+    showActionConfirm(
+        `Xác nhận thành viên [${main}] đã chuyển khoản tiền quỹ ${period.quarter}/${period.year}?`,
 
-            alert(
-                `${main} đã xác nhận đóng quỹ ${period.quarter}/${period.year}.`
+        () => {
+
+            // ==================================================
+            // 2. TẠO BẢN GHI TẠM TRÊN TRÌNH DUYỆT
+            // Backend vẫn là nơi quyết định dữ liệu chính thức
+            // ==================================================
+
+            let tempId = "PENDING_QUY_" + Date.now();
+
+            let tempLog = {
+                id: tempId,
+                time: new Date().toLocaleString('vi-VN'),
+                name: main,
+                quarter: period.quarter,
+                year: period.year,
+                amount: parseInt(systemSettings.quyAmount) || 0,
+                note: "Đang đồng bộ...",
+                pending: true
+            };
+
+
+            // ==================================================
+            // 3. CẬP NHẬT GIAO DIỆN NGAY
+            // ==================================================
+
+            quyLogs.push(tempLog);
+
+            renderDashboard();
+
+            if (typeof renderQuyTable === "function") {
+                renderQuyTable();
+            }
+
+            if (typeof renderCashbook === "function") {
+                renderCashbook();
+            }
+
+            showToast(
+                `Đang ghi nhận quỹ ${period.quarter}/${period.year}...`
             );
 
-            return;
-        }
 
+            // ==================================================
+            // 4. BACKEND CHẠY PHÍA SAU
+            // ==================================================
 
-        showActionConfirm(
+            fetch(GOOGLE_SCRIPT_URL, {
 
-            `Xác nhận thành viên [${main}] đã chuyển khoản tiền quỹ ${period.quarter}/${period.year}?`,
+                method: "POST",
 
-            () => {
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
 
-                fetch(GOOGLE_SCRIPT_URL, {
-
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8"
-                    },
-
-                    body: JSON.stringify({
-                        action: "addQuyLog",
-
-                        // Frontend CHỈ gửi tên
-                        quyLog: {
-                            name: main
-                        }
-                    })
+                body: JSON.stringify({
+                    action: "addQuyLog",
+                    quyLog: {
+                        name: main
+                    }
                 })
+            })
 
-                .then(res => res.json())
+            .then(res => res.json())
 
-                .then(data => {
+            .then(data => {
 
-                    if (data.status !== "SUCCESS") {
+                // ==================================================
+                // BACKEND BÁO LỖI → HOÀN TÁC LOCAL
+                // ==================================================
 
-                        let message =
-                            data.message ||
-                            "Không thể ghi nhận đóng quỹ.";
-
-                        message =
-                            message.replace(/^Error:\s*/i, "");
-
-                        alert(message);
-
-                        return;
-                    }
-
-
-                    // Backend trả đúng bản ghi vừa tạo
-                    let newLog = data.result;
-
-
-                    if (!newLog || !newLog.id) {
-
-                        alert(
-                            "Đã ghi dữ liệu nhưng không nhận được bản ghi trả về."
-                        );
-
-                        return;
-                    }
-
-
-                    // ======================================
-                    // CẬP NHẬT LOCAL
-                    // Không tải lại toàn bộ Cloud
-                    // ======================================
+                if (data.status !== "SUCCESS") {
 
                     quyLogs = (quyLogs || []).filter(function(item) {
-
-                        return !(
-                            String(item.name || '').trim().toLowerCase() ===
-                                String(newLog.name || '').trim().toLowerCase() &&
-
-                            String(item.quarter || '').toUpperCase() ===
-                                String(newLog.quarter || '').toUpperCase() &&
-
-                            parseInt(item.year) ===
-                                parseInt(newLog.year)
-                        );
+                        return String(item.id) !== String(tempId);
                     });
 
-
-                    quyLogs.push(newLog);
-
-
-                    // Chỉ render màn hình liên quan
                     renderDashboard();
 
                     if (typeof renderQuyTable === "function") {
@@ -396,21 +392,117 @@ function handleDashboardSubmit() {
                     }
 
 
-                    showToast(
-                        `Đã ghi nhận Tiền quỹ ${newLog.quarter}/${newLog.year} thành công!`
-                    );
-                })
+                    let message =
+                        data.message ||
+                        "Không thể ghi nhận đóng quỹ.";
 
-                .catch(() => {
+                    message =
+                        message.replace(/^Error:\s*/i, "");
+
+
+                    // Nếu lỗi do dữ liệu local cũ nhưng Backend đã có bản ghi
+                    // thì tải lại Cloud để đồng bộ chính xác.
+                    if (
+                        message.toLowerCase().includes("đã xác nhận đóng quỹ")
+                    ) {
+                        alert(message);
+                        fetchCloudData(true);
+                        return;
+                    }
 
                     alert(
-                        "Không thể kết nối hệ thống. Vui lòng thử lại."
+                        message +
+                        "\n\nGiao diện đã tự hoàn tác."
                     );
 
+                    return;
+                }
+
+
+                // ==================================================
+                // 5. BACKEND THÀNH CÔNG
+                // Thay bản ghi tạm bằng bản ghi thật
+                // ==================================================
+
+                let newLog = data.result;
+
+                if (!newLog || !newLog.id) {
+
+                    // Trường hợp hiếm: Backend đã ghi nhưng không trả result
+                    // tải lại Cloud để đảm bảo dữ liệu chính xác
+                    fetchCloudData(true);
+                    return;
+                }
+
+
+                quyLogs = (quyLogs || []).filter(function(item) {
+                    return String(item.id) !== String(tempId);
                 });
-            }
-        );
-    }
+
+                // Tránh duplicate local
+                quyLogs = quyLogs.filter(function(item) {
+                    return !(
+                        String(item.name || '').trim().toLowerCase() ===
+                            String(newLog.name || '').trim().toLowerCase() &&
+
+                        String(item.quarter || '').toUpperCase() ===
+                            String(newLog.quarter || '').toUpperCase() &&
+
+                        parseInt(item.year) ===
+                            parseInt(newLog.year)
+                    );
+                });
+
+                quyLogs.push(newLog);
+
+
+                // Không cần render toàn bộ app
+                renderDashboard();
+
+                if (typeof renderQuyTable === "function") {
+                    renderQuyTable();
+                }
+
+                if (typeof renderCashbook === "function") {
+                    renderCashbook();
+                }
+
+
+                showToast(
+                    `Đã lưu quỹ ${newLog.quarter}/${newLog.year} thành công!`
+                );
+            })
+
+            .catch(() => {
+
+                // ==================================================
+                // MẤT MẠNG / BACKEND KHÔNG KẾT NỐI
+                // → HOÀN TÁC
+                // ==================================================
+
+                quyLogs = (quyLogs || []).filter(function(item) {
+                    return String(item.id) !== String(tempId);
+                });
+
+                renderDashboard();
+
+                if (typeof renderQuyTable === "function") {
+                    renderQuyTable();
+                }
+
+                if (typeof renderCashbook === "function") {
+                    renderCashbook();
+                }
+
+                alert(
+                    "Không thể kết nối hệ thống.\n\n" +
+                    "Xác nhận đóng quỹ đã được hoàn tác trên màn hình."
+                );
+            });
+        }
+    );
+}
+    
 }
 
 function renderDashboard() {
