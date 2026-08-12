@@ -5,41 +5,85 @@ function calculateUserFinanceForMonth(memberName, targetMonth, targetYear) {
     matches.forEach(match => {
         let isV1 = (match.p1_v1 === memberName || match.p2_v1 === memberName);
         let isV2 = (match.p1_v2 === memberName || match.p2_v2 === memberName);
-        
+
         if (isV1 || isV2) {
             totalMatchCount++;
+
             if (match.scoreA === match.scoreB) totalDraws++;
-            else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) totalWins++;
-            else totalLosses++;
+            else if (
+                (isV1 && match.scoreA > match.scoreB) ||
+                (isV2 && match.scoreB > match.scoreA)
+            ) {
+                totalWins++;
+            } else {
+                totalLosses++;
+            }
 
             let mTime = match.time || "";
             let isTargetTime = false;
-            if (mTime.includes(`/${targetMonth}/${targetYear}`) || mTime.includes(` ${targetMonth}/${targetYear}`)) isTargetTime = true;
+
+            if (
+                mTime.includes(`/${targetMonth}/${targetYear}`) ||
+                mTime.includes(` ${targetMonth}/${targetYear}`)
+            ) {
+                isTargetTime = true;
+            }
 
             if (isTargetTime) {
                 monthMatchCount++;
-                if (match.scoreA === match.scoreB) monthRegularFee += 10000;
-                else if ((isV1 && match.scoreA > match.scoreB) || (isV2 && match.scoreB > match.scoreA)) { }
-                else {
-                    monthRegularFee += 10000;
-                    if (match.specialBet > 0) monthSpecialBetFee += parseInt(match.specialBet);
+
+                let isWin =
+                    (isV1 && match.scoreA > match.scoreB) ||
+                    (isV2 && match.scoreB > match.scoreA);
+
+                let mustPayGoc =
+                    (match.scoreA === match.scoreB) || !isWin;
+
+                if (mustPayGoc) {
+                    let specialBet = parseInt(match.specialBet) || 0;
+
+                    if (specialBet > 0) {
+                        // Có kèo đặc biệt:
+                        // chỉ tính kèo ĐB, không cộng thêm 10.000đ góc cơ bản
+                        monthSpecialBetFee += specialBet;
+                    } else {
+                        // Trận thường thua hoặc hòa
+                        monthRegularFee += 10000;
+                    }
                 }
             }
         }
     });
 
-    if (!members || members.length === 0) members = defaultFallbackMembers;
-    let m = members.find(item => item.name === memberName) || { paidUser: 0, noOld: 0 };
+    if (!members || members.length === 0) {
+        members = defaultFallbackMembers;
+    }
+
+    let m = members.find(item => item.name === memberName) || {
+        paidUser: 0,
+        noOld: 0
+    };
+
     let cappedBaseFee = Math.min(150000, monthRegularFee);
-    let totalPay = cappedBaseFee + monthSpecialBetFee + (m.noOld || 0) - (m.paidUser || 0);
+
+    let totalPay =
+        cappedBaseFee +
+        monthSpecialBetFee +
+        (m.noOld || 0) -
+        (m.paidUser || 0);
 
     return {
-        totalMatchCount, totalWins, totalLosses, totalDraws,
-        monthMatchCount, monthRegularFee, monthSpecialBetFee, cappedBaseFee,
+        totalMatchCount,
+        totalWins,
+        totalLosses,
+        totalDraws,
+        monthMatchCount,
+        monthRegularFee,
+        monthSpecialBetFee,
+        cappedBaseFee,
         totalPay: totalPay
     };
 }
-
 function calculateUserFinance(memberName) {
     let mSel = document.getElementById('selectFinanceMonth') ? document.getElementById('selectFinanceMonth').value : "8";
     let ySel = document.getElementById('selectFinanceYear') ? document.getElementById('selectFinanceYear').value : "2026";
