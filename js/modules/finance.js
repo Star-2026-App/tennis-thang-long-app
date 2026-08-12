@@ -276,6 +276,7 @@ function renderQuyTable() {
         "Số Tiền " + q.replace('Q', 'Quý ') + "/" + y;
 
     let tbody = document.getElementById('quyTableBody');
+    
     tbody.innerHTML = '';
 
     members.forEach((m, idx) => {
@@ -322,6 +323,24 @@ function renderQuyTable() {
                         : 'bg-purple-100 text-purple-800'
                 );
 
+        let actionHtml = '<span class="text-slate-300">-</span>';
+
+        if (currentUserRole === 'admin' && quyLog) {
+            let isMigration =
+                String(quyLog.id || '').startsWith('MIG_') ||
+                String(quyLog.note || '').includes('Migration từ Members');
+        
+            if (!isMigration) {
+                actionHtml = `
+                    <button
+                        onclick='deleteQuyLog(${JSON.stringify(String(quyLog.id))})'
+                        class="text-red-600 hover:text-red-800 font-bold"
+                        title="Xóa xác nhận đóng quỹ">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+            }
+        }
         tbody.innerHTML += `
             <tr class="border-b hover:bg-slate-50">
                 <td class="p-2.5 text-center font-bold text-slate-500">${idx + 1}</td>
@@ -351,10 +370,7 @@ function renderQuyTable() {
                 </td>
 
                 <td class="p-2.5 text-center admin-only ${currentUserRole === 'admin' ? '' : 'hidden'}">
-                    <button onclick="openEditQuyModal(${idx})"
-                        class="text-blue-600 font-bold">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
+                ${actionHtml}
                 </td>
             </tr>
         `;
@@ -362,7 +378,62 @@ function renderQuyTable() {
 
     applyRolePermissions();
 }
+function deleteQuyLog(id) {
+    if (currentUserRole !== 'admin') {
+        alert("Chỉ Admin mới được xóa xác nhận đóng quỹ.");
+        return;
+    }
 
+    let log = (quyLogs || []).find(function(item) {
+        return String(item.id) === String(id);
+    });
+
+    if (!log) {
+        alert("Không tìm thấy bản ghi đóng quỹ.");
+        return;
+    }
+
+    let isMigration =
+        String(log.id || '').startsWith('MIG_') ||
+        String(log.note || '').includes('Migration từ Members');
+
+    if (isMigration) {
+        alert("Không được xóa dữ liệu lịch sử đã migration.");
+        return;
+    }
+
+    showActionConfirm(
+        `Xóa xác nhận đóng quỹ ${log.quarter}/${log.year} của [${log.name}]?`,
+        () => {
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify({
+                    action: "deleteItem",
+                    sheetName: "QuyLogs",
+                    id: log.id
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status !== "SUCCESS") {
+                    let message = data.message || "Không thể xóa xác nhận đóng quỹ.";
+                    message = message.replace(/^Error:\s*/i, "");
+                    alert(message);
+                    return;
+                }
+
+                showToast("Đã xóa xác nhận đóng quỹ!");
+                fetchCloudData(true);
+            })
+            .catch(() => {
+                alert("Không thể kết nối hệ thống. Vui lòng thử lại.");
+            });
+        }
+    );
+}
 function openEditQuyModal(idx) {
     let q = document.getElementById('selectQuy').value;
     let y = document.getElementById('selectNam').value;
