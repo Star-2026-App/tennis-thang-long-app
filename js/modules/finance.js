@@ -236,6 +236,58 @@ function isMonthClosed_(
 
 
 // ======================================================
+// CHỈ CHO PHÉP CHỐT THÁNG ĐÃ KẾT THÚC
+// ======================================================
+
+function isMonthClosePeriodEnded_(
+    month,
+    year
+) {
+
+    let m =
+        parseInt(
+            month
+        );
+
+
+    let y =
+        parseInt(
+            year
+        );
+
+
+    if (
+        !m ||
+        m < 1 ||
+        m > 12 ||
+        !y
+    ) {
+        return false;
+    }
+
+
+    let now =
+        new Date();
+
+
+    let selectedPeriod =
+        y * 12 +
+        (m - 1);
+
+
+    let currentPeriod =
+        now.getFullYear() * 12 +
+        now.getMonth();
+
+
+    return (
+        selectedPeriod <
+        currentPeriod
+    );
+}
+
+
+// ======================================================
 // GET NHẸ - KIỂM TRA TRẠNG THÁI CHỐT THÁNG
 // ======================================================
 
@@ -627,6 +679,30 @@ function setMonthCloseButtonState_(
 
         button.title =
             `Tháng ${month}/${year} đã được chốt.`;
+
+        return;
+    }
+
+
+    if (
+        state ===
+        'not_due'
+    ) {
+
+        button.disabled =
+            true;
+
+
+        button.innerHTML =
+            '<i class="fa-solid fa-clock"></i> CHƯA ĐẾN KỲ CHỐT';
+
+
+        button.className =
+            'ml-2 px-3 py-2 rounded-lg bg-slate-200 text-slate-600 text-xs font-black cursor-not-allowed';
+
+
+        button.title =
+            `Tháng ${month}/${year} chưa kết thúc nên chưa được phép chốt.`;
 
         return;
     }
@@ -4293,6 +4369,26 @@ function ensureMonthCloseAdminUI_() {
     }
 
 
+    // Tháng hiện tại hoặc tương lai:
+    // chỉ được xem/chỉnh Dư/Nợ nếu chưa khóa,
+    // nhưng tuyệt đối không được chốt tài chính.
+    if (
+        !isMonthClosePeriodEnded_(
+            month,
+            year
+        )
+    ) {
+
+        setMonthCloseButtonState_(
+            'not_due',
+            month,
+            year
+        );
+
+        return;
+    }
+
+
     if (
         !window.monthCloseStatusPending
     ) {
@@ -5073,6 +5169,28 @@ function openMonthClosePreview_() {
     }
 
 
+    if (
+        !isMonthClosePeriodEnded_(
+            month,
+            year
+        )
+    ) {
+
+        setMonthCloseButtonState_(
+            'not_due',
+            month,
+            year
+        );
+
+
+        alert(
+            `Tháng ${month}/${year} chưa kết thúc.\n\nChỉ được chốt tài chính sau khi tháng đã kết thúc.`
+        );
+
+        return;
+    }
+
+
     setMonthCloseButtonState_(
         'checking',
         month,
@@ -5236,6 +5354,31 @@ function executeMonthClose_() {
 
         alert(
             `Tháng ${month}/${year} đã được chốt.`
+        );
+
+        return;
+    }
+
+
+    if (
+        !isMonthClosePeriodEnded_(
+            month,
+            year
+        )
+    ) {
+
+        closeMonthCloseModal_();
+
+
+        setMonthCloseButtonState_(
+            'not_due',
+            month,
+            year
+        );
+
+
+        alert(
+            `Tháng ${month}/${year} chưa kết thúc.\n\nHệ thống không gửi lệnh chốt tháng.`
         );
 
         return;
