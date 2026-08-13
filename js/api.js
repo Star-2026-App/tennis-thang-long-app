@@ -460,7 +460,7 @@ function processQueue() {
 // JSONP CLOUD LOADER
 // ======================================================
 
-function fetchCloudData(showSpinner) {
+function fetchCloudData(showSpinner){
 
     if (!GOOGLE_SCRIPT_URL) {
         return;
@@ -586,9 +586,11 @@ function fetchCloudData(showSpinner) {
         }
 
 
-        updateStateFromCloud(
-            data
-        );
+        updateStateFromCloud(data);
+
+        if (typeof onSuccess === "function") {
+            onSuccess(data);
+        }
     };
 
 
@@ -740,7 +742,7 @@ function hideCloudLoading_() {
 // UPDATE STATE FROM CLOUD
 // ======================================================
 
-function updateStateFromCloud(data) {
+function fetchCloudData(showSpinner, onSuccess) {
 
     if (
         data.members &&
@@ -785,7 +787,9 @@ function updateStateFromCloud(data) {
         quyLogs =
             data.quyLogs;
     }
-
+    if (data.monthlyBalances) {
+        window.monthlyBalances = data.monthlyBalances;
+    }
 
     if (data.rules) {
 
