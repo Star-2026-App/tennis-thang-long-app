@@ -393,102 +393,67 @@ function processQueue() {
         syncQueue.length === 0 ||
         !GOOGLE_SCRIPT_URL
     ) {
-
         return;
     }
 
+    isSyncing = true;
 
-    isSyncing =
-        true;
+    let item = syncQueue[0];
 
 
-    let item =
-        syncQueue[0];
-
+    // ==================================================
+    // POST QUA no-cors
+    //
+    // Apps Script vẫn nhận được request.
+    // Browser không cần đọc response nên không bị
+    // CORS làm hiểu nhầm là gửi thất bại.
+    // ==================================================
 
     fetch(
         GOOGLE_SCRIPT_URL,
         {
+            method: "POST",
 
-            method:
-                "POST",
+            mode: "no-cors",
 
             headers: {
-
                 "Content-Type":
                     "text/plain;charset=utf-8"
             },
 
             body:
-                JSON.stringify(
-                    item
-                )
+                JSON.stringify(item)
         }
     )
 
-    .then(
-        function(res) {
+    .then(function() {
 
-            return res.json();
+        // Request đã được browser gửi thành công.
+        // Bỏ khỏi queue để KHÔNG gửi lại cùng payload.
+
+        syncQueue.shift();
+
+        isSyncing = false;
+
+        saveLocalData();
+
+
+        if (syncQueue.length > 0) {
+            processQueue();
         }
-    )
+    })
 
-    .then(
-        function(data) {
+    .catch(function(err) {
 
-            // Apps Script thường trả HTTP 200
-            // ngay cả khi nghiệp vụ ERROR.
-            if (
-                data &&
-                data.status ===
-                "ERROR"
-            ) {
+        console.error(
+            "POST CLOUD NETWORK ERROR:",
+            err
+        );
 
-                throw new Error(
-                    data.message ||
-                    "Backend báo lỗi."
-                );
-            }
-
-
-            syncQueue.shift();
-
-            isSyncing =
-                false;
-
-
-            saveLocalData();
-
-
-            if (
-                syncQueue.length >
-                0
-            ) {
-
-                processQueue();
-            }
-        }
-    )
-
-    .catch(
-        function(err) {
-
-            console.error(
-                "POST CLOUD ERROR:",
-                err
-            );
-
-
-            isSyncing =
-                false;
-
-
-            // Không tự xóa item khỏi queue.
-            // Giữ lại để tránh mất thao tác.
-        }
-    );
+        // Chỉ giữ lại queue nếu thật sự lỗi mạng.
+        isSyncing = false;
+    });
 }
-
 
 
 // ======================================================
