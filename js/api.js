@@ -460,7 +460,7 @@ function processQueue() {
 // JSONP CLOUD LOADER
 // ======================================================
 
-function fetchCloudData(showSpinner){
+function fetchCloudData(showSpinner, onSuccess) {
 
     if (!GOOGLE_SCRIPT_URL) {
         return;
@@ -564,34 +564,32 @@ function fetchCloudData(showSpinner){
     // CALLBACK JSONP
     // ==================================================
 
-    window[
-        callbackName
-    ] = function(data) {
+   window[callbackName] = function(data) {
 
-        if (finished) {
-            return;
-        }
+    if (finished) {
+        return;
+    }
 
+    cleanup_();
 
-        cleanup_();
+    if (!data) {
 
+        console.error(
+            "JSONP CLOUD ERROR: Không có dữ liệu."
+        );
 
-        if (!data) {
+        return;
+    }
 
-            console.error(
-                "JSONP CLOUD ERROR: Không có dữ liệu."
-            );
+    updateStateFromCloud(data);
 
-            return;
-        }
-
-
-        updateStateFromCloud(data);
-
-        if (typeof onSuccess === "function") {
-            onSuccess(data);
-        }
-    };
+    if (
+        typeof onSuccess ===
+        "function"
+    ) {
+        onSuccess(data);
+    }
+};
 
 
 
@@ -787,10 +785,7 @@ function fetchCloudData(showSpinner, onSuccess) {
         quyLogs =
             data.quyLogs;
     }
-    if (data.monthlyBalances) {
-        window.monthlyBalances = data.monthlyBalances;
-    }
-
+    
     if (data.rules) {
 
         rulesList =
@@ -817,6 +812,137 @@ function fetchCloudData(showSpinner, onSuccess) {
             );
     }
 
+
+    sortCollectionsByTime();
+
+    saveLocalData();
+
+    initApp();
+}
+// ======================================================
+// UPDATE STATE FROM CLOUD
+// ======================================================
+
+function updateStateFromCloud(data) {
+
+    if (!data) {
+        console.error(
+            "updateStateFromCloud: Không có dữ liệu."
+        );
+        return;
+    }
+
+
+    // =========================
+    // MEMBERS
+    // =========================
+
+    if (
+        data.members &&
+        data.members.length > 0
+    ) {
+        members = data.members;
+    }
+
+
+    // =========================
+    // MATCHES
+    // =========================
+
+    if (data.matches) {
+        matches = data.matches;
+    }
+
+
+    // =========================
+    // BOOKINGS
+    // =========================
+
+    if (data.bookingLogs) {
+        bookingLogs = data.bookingLogs;
+    }
+
+
+    // =========================
+    // CASHBOOK
+    // =========================
+
+    if (data.cashbookLogs) {
+        cashbookLogs = data.cashbookLogs;
+    }
+
+
+    // =========================
+    // GOC LOGS
+    // =========================
+
+    if (data.gocLogs) {
+        gocLogs = data.gocLogs;
+    }
+
+
+    // =========================
+    // QUY LOGS
+    // =========================
+
+    if (data.quyLogs) {
+        quyLogs = data.quyLogs;
+    }
+
+
+    // =========================
+    // MONTHLY BALANCES
+    // =========================
+
+    if (data.monthlyBalances) {
+        window.monthlyBalances =
+            data.monthlyBalances;
+    } else {
+        window.monthlyBalances =
+            [];
+    }
+
+
+    // =========================
+    // RULES
+    // =========================
+
+    if (data.rules) {
+        rulesList = data.rules;
+    }
+
+
+    // =========================
+    // OPENING BALANCE
+    // =========================
+
+    if (
+        data.openingBalance !==
+        undefined
+    ) {
+        openingBalance =
+            data.openingBalance;
+    }
+
+
+    // =========================
+    // SETTINGS
+    // =========================
+
+    if (data.settings) {
+
+        systemSettings =
+            Object.assign(
+                {},
+                systemSettings,
+                data.settings
+            );
+    }
+
+
+    // =========================
+    // FINALIZE
+    // =========================
 
     sortCollectionsByTime();
 
