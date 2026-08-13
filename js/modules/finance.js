@@ -112,6 +112,52 @@ function getMonthlyBalanceSnapshot_(
     
     
     
+function mergeMonthlyBalanceSnapshots_(
+    snapshots,
+    month,
+    year
+) {
+
+    if (!Array.isArray(snapshots)) {
+        return;
+    }
+
+
+    if (!Array.isArray(window.monthlyBalances)) {
+        window.monthlyBalances = [];
+    }
+
+
+    let targetMonth =
+        parseInt(month);
+
+
+    let targetYear =
+        parseInt(year);
+
+
+    // Xóa snapshot cũ của đúng kỳ này rồi nạp lại
+    // dữ liệu Backend vừa xác nhận.
+    window.monthlyBalances =
+        window.monthlyBalances
+            .filter(function(item) {
+
+                return !(
+                    parseInt(item.month) === targetMonth &&
+                    parseInt(item.year) === targetYear
+                );
+            });
+
+
+    snapshots.forEach(function(item) {
+
+        window.monthlyBalances.push(
+            item
+        );
+    });
+}
+
+
 function getMonthCloseStatusCache_() {
 
     if (
@@ -506,6 +552,23 @@ function fetchMonthCloseStatusLight_(
                 );
 
                 return;
+            }
+
+
+            // Nếu đây là tháng được chốt chính xác, Backend
+            // trả kèm snapshot lịch sử của tháng đó.
+            // Nạp snapshot trước khi render để Nợ cũ / Góc /
+            // Thực đóng / Tổng cần đóng giữ đúng số lúc chốt.
+            if (
+                data.isExactClosed === true &&
+                Array.isArray(data.snapshots)
+            ) {
+
+                mergeMonthlyBalanceSnapshots_(
+                    data.snapshots,
+                    month,
+                    year
+                );
             }
 
 
@@ -4354,6 +4417,7 @@ function ensureMonthCloseAdminUI_() {
         );
 
 
+    // Nếu local đã có snapshot/trạng thái khóa thì xử lý ngay.
     if (
         localStatus ===
         true
@@ -4361,26 +4425,6 @@ function ensureMonthCloseAdminUI_() {
 
         setMonthCloseButtonState_(
             'closed',
-            month,
-            year
-        );
-
-        return;
-    }
-
-
-    // Tháng hiện tại hoặc tương lai:
-    // chỉ được xem/chỉnh Dư/Nợ nếu chưa khóa,
-    // nhưng tuyệt đối không được chốt tài chính.
-    if (
-        !isMonthClosePeriodEnded_(
-            month,
-            year
-        )
-    ) {
-
-        setMonthCloseButtonState_(
-            'not_due',
             month,
             year
         );
@@ -4421,6 +4465,9 @@ function ensureMonthCloseAdminUI_() {
             ];
 
 
+    // Nếu vừa kiểm tra Cloud trong 15 giây gần nhất,
+    // dùng lại kết quả. Với tháng chưa chốt, trạng thái nút
+    // còn phụ thuộc kỳ đó đã kết thúc hay chưa.
     if (
         lastCheck &&
         (
@@ -4429,13 +4476,35 @@ function ensureMonthCloseAdminUI_() {
         ) < 15000
     ) {
 
-        setMonthCloseButtonState_(
-            lastCheck.closed
-                ? 'closed'
-                : 'open',
-            month,
-            year
-        );
+        if (lastCheck.closed) {
+
+            setMonthCloseButtonState_(
+                'closed',
+                month,
+                year
+            );
+
+        } else if (
+            isMonthClosePeriodEnded_(
+                month,
+                year
+            )
+        ) {
+
+            setMonthCloseButtonState_(
+                'open',
+                month,
+                year
+            );
+
+        } else {
+
+            setMonthCloseButtonState_(
+                'not_due',
+                month,
+                year
+            );
+        }
 
         return;
     }
@@ -4458,6 +4527,11 @@ function ensureMonthCloseAdminUI_() {
     }
 
 
+    // QUAN TRỌNG:
+    // Luôn hỏi Backend trước, kể cả tháng hiện tại/tương lai.
+    // Vì tháng hiện tại có thể đã được chốt trong dữ liệu TEST
+    // hoặc một thiết bị khác vừa chốt. Chỉ sau khi Backend xác
+    // nhận CHƯA chốt mới xét "chưa đến kỳ chốt".
     window
         .monthCloseStatusPending[
             key
@@ -4525,18 +4599,40 @@ function ensureMonthCloseAdminUI_() {
                 };
 
 
-            setMonthCloseButtonState_(
-                closed
-                    ? 'closed'
-                    : 'open',
-                month,
-                year
-            );
+            if (closed) {
+
+                setMonthCloseButtonState_(
+                    'closed',
+                    month,
+                    year
+                );
+
+            } else if (
+                isMonthClosePeriodEnded_(
+                    month,
+                    year
+                )
+            ) {
+
+                setMonthCloseButtonState_(
+                    'open',
+                    month,
+                    year
+                );
+
+            } else {
+
+                setMonthCloseButtonState_(
+                    'not_due',
+                    month,
+                    year
+                );
+            }
 
 
-            // Cập nhật lại cột thao tác:
-            // tháng đã chốt -> Đã khóa;
-            // tháng chưa chốt -> Sửa Dư/Nợ.
+            // fetchMonthCloseStatusLight_ đã nạp snapshot nếu
+            // đây là tháng chốt chính xác. Render lại để bảng
+            // sử dụng dữ liệu lịch sử thay vì Members.noOld hiện tại.
             if (
                 typeof renderFinance ===
                 'function'
@@ -4547,7 +4643,6 @@ function ensureMonthCloseAdminUI_() {
         }
     );
 }
-
 
 function ensureMonthCloseModal_() {
 
