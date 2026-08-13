@@ -111,25 +111,672 @@ function getMonthlyBalanceSnapshot_(
     }
     
     
-    function isMonthClosed_(
-        month,
-        year
+    
+function getMonthCloseStatusCache_() {
+
+    if (
+        !window.monthCloseStatusCache ||
+        typeof window.monthCloseStatusCache !== 'object'
     ) {
-    
-        return (window.monthlyBalances || [])
+
+        window.monthCloseStatusCache = {};
+    }
+
+
+    return window.monthCloseStatusCache;
+}
+
+
+function getMonthCloseStatusKey_(
+    month,
+    year
+) {
+
+    return (
+        parseInt(month) +
+        "_" +
+        parseInt(year)
+    );
+}
+
+
+function setMonthCloseStatusLocal_(
+    month,
+    year,
+    isClosed
+) {
+
+    let cache =
+        getMonthCloseStatusCache_();
+
+
+    cache[
+        getMonthCloseStatusKey_(
+            month,
+            year
+        )
+    ] = !!isClosed;
+}
+
+
+function getMonthCloseStatusLocal_(
+    month,
+    year
+) {
+
+    let hasSnapshot =
+        (window.monthlyBalances || [])
             .some(function(item) {
-    
+
                 return (
                     parseInt(item.month) ===
                         parseInt(month)
-    
+
                     &&
-    
+
                     parseInt(item.year) ===
                         parseInt(year)
                 );
             });
+
+
+    if (hasSnapshot) {
+
+        setMonthCloseStatusLocal_(
+            month,
+            year,
+            true
+        );
+
+        return true;
+    }
+
+
+    let cache =
+        getMonthCloseStatusCache_();
+
+
+    let key =
+        getMonthCloseStatusKey_(
+            month,
+            year
+        );
+
+
+    if (
+        Object.prototype.hasOwnProperty.call(
+            cache,
+            key
+        )
+    ) {
+
+        return (
+            cache[key] ===
+            true
+        );
+    }
+
+
+    return null;
 }
+
+
+function isMonthClosed_(
+    month,
+    year
+) {
+
+    return (
+        getMonthCloseStatusLocal_(
+            month,
+            year
+        ) === true
+    );
+}
+
+
+// ======================================================
+// GET NHẸ - KIỂM TRA TRẠNG THÁI CHỐT THÁNG
+// ======================================================
+
+function fetchMonthCloseStatusLight_(
+    month,
+    year,
+    callback,
+    options
+) {
+
+    options =
+        options || {};
+
+
+    let maxAttempts =
+        parseInt(
+            options.maxAttempts
+        ) || 3;
+
+
+    let timeoutMs =
+        parseInt(
+            options.timeoutMs
+        ) || 8000;
+
+
+    let retryDelayMs =
+        parseInt(
+            options.retryDelayMs
+        ) || 1200;
+
+
+    let attempt =
+        0;
+
+
+    let finished =
+        false;
+
+
+    function finish_(
+        error,
+        result
+    ) {
+
+        if (finished) {
+            return;
+        }
+
+
+        finished =
+            true;
+
+
+        if (
+            typeof callback ===
+            'function'
+        ) {
+
+            callback(
+                error,
+                result
+            );
+        }
+    }
+
+
+    function runAttempt_() {
+
+        if (finished) {
+            return;
+        }
+
+
+        attempt++;
+
+
+        let callbackName =
+            "__thanglong_month_close_" +
+            Date.now() +
+            "_" +
+            Math.floor(
+                Math.random() * 100000
+            );
+
+
+        let script =
+            document.createElement(
+                'script'
+            );
+
+
+        let attemptDone =
+            false;
+
+
+        let timer =
+            null;
+
+
+        function cleanupAttempt_() {
+
+            if (timer) {
+
+                clearTimeout(
+                    timer
+                );
+            }
+
+
+            try {
+
+                delete window[
+                    callbackName
+                ];
+
+            } catch (e) {
+
+                window[
+                    callbackName
+                ] =
+                    undefined;
+            }
+
+
+            if (
+                script &&
+                script.parentNode
+            ) {
+
+                script.parentNode
+                    .removeChild(
+                        script
+                    );
+            }
+        }
+
+
+        function retryOrFail_(
+            error
+        ) {
+
+            if (attemptDone) {
+                return;
+            }
+
+
+            attemptDone =
+                true;
+
+
+            cleanupAttempt_();
+
+
+            if (
+                attempt <
+                maxAttempts
+            ) {
+
+                setTimeout(
+                    runAttempt_,
+                    retryDelayMs
+                );
+
+                return;
+            }
+
+
+            finish_(
+                error ||
+                new Error(
+                    "Không kiểm tra được trạng thái chốt tháng."
+                ),
+                null
+            );
+        }
+
+
+        window[
+            callbackName
+        ] = function(data) {
+
+            if (
+                attemptDone ||
+                finished
+            ) {
+                return;
+            }
+
+
+            attemptDone =
+                true;
+
+
+            cleanupAttempt_();
+
+
+            if (
+                !data ||
+                data.status !==
+                    "SUCCESS"
+            ) {
+
+                let message =
+                    data &&
+                    data.message
+                        ? data.message
+                        : "Backend không trả trạng thái hợp lệ.";
+
+
+                finish_(
+                    new Error(
+                        message
+                    ),
+                    data || null
+                );
+
+                return;
+            }
+
+
+            let closed =
+                data.isClosed ===
+                true;
+
+
+            setMonthCloseStatusLocal_(
+                month,
+                year,
+                closed
+            );
+
+
+            finish_(
+                null,
+                data
+            );
+        };
+
+
+        script.onerror =
+            function() {
+
+                retryOrFail_(
+                    new Error(
+                        "Không tải được API trạng thái chốt tháng."
+                    )
+                );
+            };
+
+
+        timer =
+            setTimeout(
+                function() {
+
+                    retryOrFail_(
+                        new Error(
+                            "API trạng thái chốt tháng phản hồi quá chậm."
+                        )
+                    );
+
+                },
+                timeoutMs
+            );
+
+
+        let separator =
+            GOOGLE_SCRIPT_URL
+                .includes("?")
+                    ? "&"
+                    : "?";
+
+
+        script.src =
+            GOOGLE_SCRIPT_URL +
+
+            separator +
+
+            "action=monthCloseStatus" +
+
+            "&month=" +
+            encodeURIComponent(
+                month
+            ) +
+
+            "&year=" +
+            encodeURIComponent(
+                year
+            ) +
+
+            "&prefix=" +
+            encodeURIComponent(
+                callbackName
+            ) +
+
+            "&_=" +
+            Date.now();
+
+
+        script.async =
+            true;
+
+
+        document.head.appendChild(
+            script
+        );
+    }
+
+
+    runAttempt_();
+}
+
+
+// ======================================================
+// TRẠNG THÁI NÚT CHỐT THÁNG
+// ======================================================
+
+function setMonthCloseButtonState_(
+    state,
+    month,
+    year
+) {
+
+    let button =
+        document.getElementById(
+            'btnMonthCloseAdmin'
+        );
+
+
+    if (!button) {
+        return;
+    }
+
+
+    let monthSelect =
+        document.getElementById(
+            'selectFinanceMonth'
+        );
+
+
+    let yearSelect =
+        document.getElementById(
+            'selectFinanceYear'
+        );
+
+
+    if (
+        !monthSelect ||
+        !yearSelect
+    ) {
+        return;
+    }
+
+
+    if (
+        parseInt(
+            monthSelect.value
+        ) !==
+            parseInt(month)
+
+        ||
+
+        parseInt(
+            yearSelect.value
+        ) !==
+            parseInt(year)
+    ) {
+
+        return;
+    }
+
+
+    if (
+        state ===
+        'closed'
+    ) {
+
+        button.disabled =
+            true;
+
+
+        button.innerHTML =
+            '<i class="fa-solid fa-lock"></i> ĐÃ CHỐT';
+
+
+        button.className =
+            'ml-2 px-3 py-2 rounded-lg bg-slate-300 text-slate-600 text-xs font-black cursor-not-allowed';
+
+
+        button.title =
+            `Tháng ${month}/${year} đã được chốt.`;
+
+        return;
+    }
+
+
+    if (
+        state ===
+        'checking'
+    ) {
+
+        button.disabled =
+            true;
+
+
+        button.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> KIỂM TRA...';
+
+
+        button.className =
+            'ml-2 px-3 py-2 rounded-lg bg-amber-100 text-amber-800 text-xs font-black cursor-wait';
+
+
+        button.title =
+            'Đang kiểm tra trạng thái chốt tháng trên Cloud.';
+
+        return;
+    }
+
+
+    if (
+        state ===
+        'error'
+    ) {
+
+        button.disabled =
+            true;
+
+
+        button.innerHTML =
+            '<i class="fa-solid fa-triangle-exclamation"></i> CHƯA KIỂM TRA ĐƯỢC';
+
+
+        button.className =
+            'ml-2 px-3 py-2 rounded-lg bg-amber-200 text-amber-900 text-xs font-black cursor-not-allowed';
+
+
+        button.title =
+            'Không kiểm tra được trạng thái Cloud. Tạm khóa nút để tránh chốt trùng.';
+
+        return;
+    }
+
+
+    button.disabled =
+        false;
+
+
+    button.innerHTML =
+        '<i class="fa-solid fa-lock"></i> CHỐT THÁNG';
+
+
+    button.className =
+        'ml-2 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow';
+
+
+    button.title =
+        `Chốt tài chính tháng ${month}/${year}.`;
+}
+
+
+// ======================================================
+// POLL SAU KHI GỬI LỆNH CHỐT
+// ======================================================
+
+function pollMonthCloseStatus_(
+    month,
+    year,
+    callback
+) {
+
+    let maxPolls =
+        8;
+
+
+    let pollCount =
+        0;
+
+
+    function poll_() {
+
+        pollCount++;
+
+
+        fetchMonthCloseStatusLight_(
+            month,
+            year,
+
+            function(
+                error,
+                result
+            ) {
+
+                if (
+                    !error &&
+                    result &&
+                    result.isClosed ===
+                        true
+                ) {
+
+                    callback(
+                        true,
+                        result
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    pollCount >=
+                    maxPolls
+                ) {
+
+                    callback(
+                        false,
+                        result || null
+                    );
+
+                    return;
+                }
+
+
+                setTimeout(
+                    poll_,
+                    1800
+                );
+            },
+
+            {
+                maxAttempts: 1,
+                timeoutMs: 6000,
+                retryDelayMs: 500
+            }
+        );
+    }
+
+
+    poll_();
+}
+
 
 function calculateUserFinanceForMonth(
     memberName,
@@ -3314,6 +3961,7 @@ function renderCashbook() {
 // ADMIN - CHỐT THÁNG
 // ======================================================
 
+
 function ensureMonthCloseAdminUI_() {
 
     let oldButton =
@@ -3367,13 +4015,6 @@ function ensureMonthCloseAdminUI_() {
         );
 
 
-    let closed =
-        isMonthClosed_(
-            month,
-            year
-        );
-
-
     if (!oldButton) {
 
         oldButton =
@@ -3401,38 +4042,175 @@ function ensureMonthCloseAdminUI_() {
     }
 
 
-    if (closed) {
-
-        oldButton.disabled =
-            true;
-
-
-        oldButton.innerHTML =
-            '<i class="fa-solid fa-lock"></i> ĐÃ CHỐT';
+    let localStatus =
+        getMonthCloseStatusLocal_(
+            month,
+            year
+        );
 
 
-        oldButton.className =
-            'ml-2 px-3 py-2 rounded-lg bg-slate-300 text-slate-600 text-xs font-black cursor-not-allowed';
+    if (
+        localStatus ===
+        true
+    ) {
 
-    } else {
+        setMonthCloseButtonState_(
+            'closed',
+            month,
+            year
+        );
 
-        oldButton.disabled =
-            false;
-
-
-        oldButton.innerHTML =
-            '<i class="fa-solid fa-lock"></i> CHỐT THÁNG';
-
-
-        oldButton.className =
-            'ml-2 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow';
+        return;
     }
+
+
+    if (
+        !window.monthCloseStatusPending
+    ) {
+
+        window.monthCloseStatusPending =
+            {};
+    }
+
+
+    if (
+        !window.monthCloseStatusLastCheck
+    ) {
+
+        window.monthCloseStatusLastCheck =
+            {};
+    }
+
+
+    let key =
+        getMonthCloseStatusKey_(
+            month,
+            year
+        );
+
+
+    let lastCheck =
+        window
+            .monthCloseStatusLastCheck[
+                key
+            ];
+
+
+    if (
+        lastCheck &&
+        (
+            Date.now() -
+            lastCheck.time
+        ) < 15000
+    ) {
+
+        setMonthCloseButtonState_(
+            lastCheck.closed
+                ? 'closed'
+                : 'open',
+            month,
+            year
+        );
+
+        return;
+    }
+
+
+    if (
+        window
+            .monthCloseStatusPending[
+                key
+            ]
+    ) {
+
+        setMonthCloseButtonState_(
+            'checking',
+            month,
+            year
+        );
+
+        return;
+    }
+
+
+    window
+        .monthCloseStatusPending[
+            key
+        ] = true;
+
+
+    setMonthCloseButtonState_(
+        'checking',
+        month,
+        year
+    );
+
+
+    fetchMonthCloseStatusLight_(
+        month,
+        year,
+
+        function(
+            error,
+            result
+        ) {
+
+            delete window
+                .monthCloseStatusPending[
+                    key
+                ];
+
+
+            if (error) {
+
+                console.warn(
+                    'MONTH CLOSE STATUS CHECK ERROR:',
+                    error
+                );
+
+
+                setMonthCloseButtonState_(
+                    'error',
+                    month,
+                    year
+                );
+
+                return;
+            }
+
+
+            let closed =
+                !!(
+                    result &&
+                    result.isClosed ===
+                        true
+                );
+
+
+            window
+                .monthCloseStatusLastCheck[
+                    key
+                ] = {
+
+                    time:
+                        Date.now(),
+
+                    closed:
+                        closed
+                };
+
+
+            setMonthCloseButtonState_(
+                closed
+                    ? 'closed'
+                    : 'open',
+                month,
+                year
+            );
+        }
+    );
 }
 
-
-// ======================================================
-// TẠO MODAL ĐỘNG
-// ======================================================
 
 function ensureMonthCloseModal_() {
 
@@ -3591,101 +4369,305 @@ function ensureMonthCloseModal_() {
 // PREVIEW
 // ======================================================
 
-function openMonthClosePreview_() {
 
-    if (
-        currentUserRole !==
-        'admin'
-    ) {
-        return;
-    }
+function buildMonthCloseClientPreview_(
+    month,
+    year
+) {
 
-
-    let month =
-        parseInt(
-            document.getElementById(
-                'selectFinanceMonth'
-            ).value
-        );
+    let rows =
+        [];
 
 
-    let year =
-        parseInt(
-            document.getElementById(
-                'selectFinanceYear'
-            ).value
-        );
+    let totals = {
 
+        opening:
+            0,
 
-    if (
-        isMonthClosed_(
-            month,
-            year
-        )
-    ) {
+        base:
+            0,
 
-        alert(
-            `Tháng ${month}/${year} đã được chốt.`
-        );
+        special:
+            0,
 
-        return;
-    }
+        paid:
+            0,
 
+        reward:
+            0,
 
-    let totalOpening = 0;
-    let totalBase = 0;
-    let totalSpecial = 0;
-    let totalPaid = 0;
-    let totalReward = 0;
-    let totalClosing = 0;
+        closing:
+            0
+    };
 
 
     (members || [])
-        .forEach(function(member) {
+        .forEach(
+            function(member) {
 
-            let f =
-                calculateUserFinanceForMonth(
-                    member.name,
-                    month,
-                    year
+                let f =
+                    calculateUserFinanceForMonth(
+                        member.name,
+                        month,
+                        year
+                    );
+
+
+                let row = {
+
+                    name:
+                        member.name,
+
+                    openingBalance:
+                        parseInt(
+                            f.carryBalance
+                        ) || 0,
+
+                    baseFee:
+                        parseInt(
+                            f.cappedBaseFee
+                        ) || 0,
+
+                    specialFee:
+                        parseInt(
+                            f.monthSpecialBetFee
+                        ) || 0,
+
+                    paid:
+                        parseInt(
+                            f.monthPaidAmount
+                        ) || 0,
+
+                    reward:
+                        parseInt(
+                            f.monthRewardAmount
+                        ) || 0,
+
+                    closingBalance:
+                        parseInt(
+                            f.totalPay
+                        ) || 0
+                };
+
+
+                rows.push(
+                    row
                 );
 
 
-            totalOpening +=
-                parseInt(
-                    f.carryBalance
-                ) || 0;
+                totals.opening +=
+                    row.openingBalance;
 
 
-            totalBase +=
-                parseInt(
-                    f.cappedBaseFee
-                ) || 0;
+                totals.base +=
+                    row.baseFee;
 
 
-            totalSpecial +=
-                parseInt(
-                    f.monthSpecialBetFee
-                ) || 0;
+                totals.special +=
+                    row.specialFee;
 
 
-            totalPaid +=
-                parseInt(
-                    f.monthPaidAmount
-                ) || 0;
+                totals.paid +=
+                    row.paid;
 
 
-            totalReward +=
-                parseInt(
-                    f.monthRewardAmount
-                ) || 0;
+                totals.reward +=
+                    row.reward;
 
 
-            totalClosing +=
-                parseInt(
-                    f.totalPay
-                ) || 0;
-        });
+                totals.closing +=
+                    row.closingBalance;
+            }
+        );
+
+
+    return {
+
+        month:
+            parseInt(month),
+
+        year:
+            parseInt(year),
+
+        memberCount:
+            rows.length,
+
+        rows:
+            rows,
+
+        totals:
+            totals
+    };
+}
+
+
+function applyMonthCloseLocalSnapshot_(
+    preview
+) {
+
+    if (
+        !preview ||
+        !preview.rows
+    ) {
+        return;
+    }
+
+
+    if (
+        !Array.isArray(
+            window.monthlyBalances
+        )
+    ) {
+
+        window.monthlyBalances =
+            [];
+    }
+
+
+    preview.rows.forEach(
+        function(row, idx) {
+
+            let exists =
+                window.monthlyBalances
+                    .some(
+                        function(item) {
+
+                            return (
+                                String(
+                                    item.name || ''
+                                )
+                                .trim()
+                                .toLowerCase() ===
+
+                                String(
+                                    row.name || ''
+                                )
+                                .trim()
+                                .toLowerCase()
+
+                                &&
+
+                                parseInt(
+                                    item.month
+                                ) ===
+                                parseInt(
+                                    preview.month
+                                )
+
+                                &&
+
+                                parseInt(
+                                    item.year
+                                ) ===
+                                parseInt(
+                                    preview.year
+                                )
+                            );
+                        }
+                    );
+
+
+            if (!exists) {
+
+                window.monthlyBalances.push({
+
+                    id:
+                        "LOCAL_" +
+                        preview.year +
+                        "_" +
+                        preview.month +
+                        "_" +
+                        idx,
+
+                    name:
+                        row.name,
+
+                    month:
+                        preview.month,
+
+                    year:
+                        preview.year,
+
+                    openingBalance:
+                        row.openingBalance,
+
+                    baseFee:
+                        row.baseFee,
+
+                    specialFee:
+                        row.specialFee,
+
+                    paid:
+                        row.paid,
+
+                    reward:
+                        row.reward,
+
+                    closingBalance:
+                        row.closingBalance,
+
+                    note:
+                        "Local snapshot sau khi Backend xác nhận đã chốt",
+
+                    localOnly:
+                        true
+                });
+            }
+
+
+            let member =
+                (members || [])
+                    .find(
+                        function(item) {
+
+                            return (
+                                String(
+                                    item.name || ''
+                                )
+                                .trim()
+                                .toLowerCase() ===
+
+                                String(
+                                    row.name || ''
+                                )
+                                .trim()
+                                .toLowerCase()
+                            );
+                        }
+                    );
+
+
+            if (member) {
+
+                member.noOld =
+                    row.closingBalance;
+            }
+        }
+    );
+
+
+    setMonthCloseStatusLocal_(
+        preview.month,
+        preview.year,
+        true
+    );
+}
+
+
+function showMonthClosePreviewModal_(
+    month,
+    year
+) {
+
+    let preview =
+        buildMonthCloseClientPreview_(
+            month,
+            year
+        );
+
+
+    window.pendingMonthClosePreview =
+        preview;
 
 
     ensureMonthCloseModal_();
@@ -3694,7 +4676,7 @@ function openMonthClosePreview_() {
     document.getElementById(
         'monthClosePeriod'
     ).innerText =
-        `Tháng ${month}/${year} • ${members.length} thành viên`;
+        `Tháng ${month}/${year} • ${preview.memberCount} thành viên`;
 
 
     function card_(
@@ -3738,7 +4720,7 @@ function openMonthClosePreview_() {
 
         card_(
             'Dư/Nợ đầu kỳ',
-            totalOpening,
+            preview.totals.opening,
             'bg-slate-50'
         )
 
@@ -3746,7 +4728,7 @@ function openMonthClosePreview_() {
 
         card_(
             'Góc cơ bản',
-            totalBase,
+            preview.totals.base,
             'bg-amber-50'
         )
 
@@ -3754,7 +4736,7 @@ function openMonthClosePreview_() {
 
         card_(
             'Kèo đặc biệt',
-            totalSpecial,
+            preview.totals.special,
             'bg-orange-50'
         )
 
@@ -3762,7 +4744,7 @@ function openMonthClosePreview_() {
 
         card_(
             'Đã nộp',
-            totalPaid,
+            preview.totals.paid,
             'bg-emerald-50'
         )
 
@@ -3770,7 +4752,7 @@ function openMonthClosePreview_() {
 
         card_(
             'Thưởng sân',
-            totalReward,
+            preview.totals.reward,
             'bg-purple-50'
         )
 
@@ -3778,8 +4760,8 @@ function openMonthClosePreview_() {
 
         card_(
             'Dư/Nợ cuối kỳ',
-            totalClosing,
-            totalClosing < 0
+            preview.totals.closing,
+            preview.totals.closing < 0
                 ? 'bg-cyan-50 text-cyan-800'
                 : 'bg-red-50 text-red-800'
         );
@@ -3798,6 +4780,131 @@ function openMonthClosePreview_() {
 
     modal.classList.add(
         'flex'
+    );
+}
+
+
+function openMonthClosePreview_() {
+
+    if (
+        currentUserRole !==
+        'admin'
+    ) {
+        return;
+    }
+
+
+    let month =
+        parseInt(
+            document.getElementById(
+                'selectFinanceMonth'
+            ).value
+        );
+
+
+    let year =
+        parseInt(
+            document.getElementById(
+                'selectFinanceYear'
+            ).value
+        );
+
+
+    if (
+        isMonthClosed_(
+            month,
+            year
+        )
+    ) {
+
+        setMonthCloseButtonState_(
+            'closed',
+            month,
+            year
+        );
+
+
+        alert(
+            `Tháng ${month}/${year} đã được chốt.`
+        );
+
+        return;
+    }
+
+
+    setMonthCloseButtonState_(
+        'checking',
+        month,
+        year
+    );
+
+
+    fetchMonthCloseStatusLight_(
+        month,
+        year,
+
+        function(
+            error,
+            result
+        ) {
+
+            if (error) {
+
+                console.warn(
+                    'MONTH CLOSE PREVIEW STATUS ERROR:',
+                    error
+                );
+
+
+                setMonthCloseButtonState_(
+                    'error',
+                    month,
+                    year
+                );
+
+
+                alert(
+                    "Chưa kiểm tra được trạng thái chốt tháng trên Cloud.\n\n" +
+                    "Hệ thống tạm khóa thao tác để tránh chốt trùng."
+                );
+
+                return;
+            }
+
+
+            if (
+                result &&
+                result.isClosed ===
+                    true
+            ) {
+
+                setMonthCloseButtonState_(
+                    'closed',
+                    month,
+                    year
+                );
+
+
+                alert(
+                    `Tháng ${month}/${year} đã được chốt.`
+                );
+
+                return;
+            }
+
+
+            setMonthCloseButtonState_(
+                'open',
+                month,
+                year
+            );
+
+
+            showMonthClosePreviewModal_(
+                month,
+                year
+            );
+        }
     );
 }
 
@@ -3830,6 +4937,7 @@ function closeMonthCloseModal_() {
 // THỰC HIỆN CHỐT
 // ======================================================
 
+
 function executeMonthClose_() {
 
     let month =
@@ -3848,6 +4956,26 @@ function executeMonthClose_() {
         );
 
 
+    let confirmButton =
+        document.getElementById(
+            'btnConfirmMonthClose'
+        );
+
+
+    function resetConfirmButton_() {
+
+        if (confirmButton) {
+
+            confirmButton.disabled =
+                false;
+
+
+            confirmButton.innerText =
+                'XÁC NHẬN CHỐT';
+        }
+    }
+
+
     if (
         isMonthClosed_(
             month,
@@ -3855,149 +4983,348 @@ function executeMonthClose_() {
         )
     ) {
 
+        closeMonthCloseModal_();
+
+
+        setMonthCloseButtonState_(
+            'closed',
+            month,
+            year
+        );
+
+
         alert(
             `Tháng ${month}/${year} đã được chốt.`
         );
-
-        closeMonthCloseModal_();
 
         return;
     }
 
 
-    let button =
-        document.getElementById(
-            'btnConfirmMonthClose'
-        );
+    if (confirmButton) {
 
-
-    if (button) {
-
-        button.disabled =
+        confirmButton.disabled =
             true;
 
-        button.innerText =
-            'ĐANG CHỐT...';
+
+        confirmButton.innerText =
+            'ĐANG KIỂM TRA...';
     }
 
 
-    showToast(
-        `Đang chốt tháng ${month}/${year}...`
+    setMonthCloseButtonState_(
+        'checking',
+        month,
+        year
     );
 
 
-    fetch(
-        GOOGLE_SCRIPT_URL,
-        {
+    // ==================================================
+    // KIỂM TRA BACKEND LẦN CUỐI TRƯỚC KHI POST
+    // ==================================================
 
-            method:
-                'POST',
+    fetchMonthCloseStatusLight_(
+        month,
+        year,
 
-            mode:
-                'no-cors',
+        function(
+            statusError,
+            statusResult
+        ) {
 
-            headers: {
+            if (statusError) {
 
-                'Content-Type':
-                    'text/plain;charset=utf-8'
-            },
-
-            body:
-                JSON.stringify({
-
-                    action:
-                        'closeMonth',
-
-                    monthClose: {
-
-                        month:
-                            month,
-
-                        year:
-                            year
-                    }
-                })
-        }
-    )
-
-    .then(function() {
-
-        closeMonthCloseModal_();
+                console.warn(
+                    'MONTH CLOSE PRECHECK ERROR:',
+                    statusError
+                );
 
 
-        // Chờ Backend ghi xong rồi đọc lại Cloud.
-        setTimeout(
-            function() {
+                resetConfirmButton_();
 
-                fetchCloudData(
-                    true,
 
-                    function() {
+                setMonthCloseButtonState_(
+                    'error',
+                    month,
+                    year
+                );
 
-                        if (
-                            isMonthClosed_(
+
+                alert(
+                    "Chưa kiểm tra được trạng thái chốt tháng trên Cloud.\n\n" +
+                    "Hệ thống không gửi lệnh chốt để tránh chốt trùng."
+                );
+
+                return;
+            }
+
+
+            if (
+                statusResult &&
+                statusResult.isClosed ===
+                    true
+            ) {
+
+                closeMonthCloseModal_();
+
+
+                setMonthCloseButtonState_(
+                    'closed',
+                    month,
+                    year
+                );
+
+
+                resetConfirmButton_();
+
+
+                alert(
+                    `Tháng ${month}/${year} đã được chốt trước đó.`
+                );
+
+                return;
+            }
+
+
+            let preview =
+                window.pendingMonthClosePreview;
+
+
+            if (
+                !preview ||
+                parseInt(
+                    preview.month
+                ) !== month ||
+                parseInt(
+                    preview.year
+                ) !== year
+            ) {
+
+                preview =
+                    buildMonthCloseClientPreview_(
+                        month,
+                        year
+                    );
+            }
+
+
+            if (confirmButton) {
+
+                confirmButton.innerText =
+                    'ĐANG CHỐT...';
+            }
+
+
+            showToast(
+                `Đang chốt tháng ${month}/${year}...`
+            );
+
+
+            // ==================================================
+            // POST CHỐT THÁNG
+            // ==================================================
+
+            fetch(
+                GOOGLE_SCRIPT_URL,
+                {
+
+                    method:
+                        'POST',
+
+                    mode:
+                        'no-cors',
+
+                    headers: {
+
+                        'Content-Type':
+                            'text/plain;charset=utf-8'
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            action:
+                                'closeMonth',
+
+                            monthClose: {
+
+                                month:
+                                    month,
+
+                                year:
+                                    year
+                            }
+                        })
+                }
+            )
+
+            .then(
+                function() {
+
+                    closeMonthCloseModal_();
+
+
+                    setMonthCloseButtonState_(
+                        'checking',
+                        month,
+                        year
+                    );
+
+
+                    showToast(
+                        `Đã gửi lệnh chốt tháng ${month}/${year}. Đang xác nhận trên Cloud...`
+                    );
+
+
+                    // ==========================================
+                    // POLL API NHẸ CHO ĐẾN KHI BACKEND XÁC NHẬN
+                    // ==========================================
+
+                    pollMonthCloseStatus_(
+                        month,
+                        year,
+
+                        function(
+                            confirmed,
+                            result
+                        ) {
+
+                            resetConfirmButton_();
+
+
+                            if (!confirmed) {
+
+                                setMonthCloseButtonState_(
+                                    'error',
+                                    month,
+                                    year
+                                );
+
+
+                                alert(
+                                    "Đã gửi lệnh chốt nhưng chưa xác nhận được trạng thái trên Cloud.\n\n" +
+                                    "KHÔNG bấm chốt lại.\n" +
+                                    "Vui lòng kiểm tra sheet MonthlyBalances hoặc thử tải lại trang sau."
+                                );
+
+                                return;
+                            }
+
+
+                            // ==================================
+                            // BACKEND ĐÃ XÁC NHẬN THÁNG ĐÃ CHỐT
+                            // ==================================
+
+                            applyMonthCloseLocalSnapshot_(
+                                preview
+                            );
+
+
+                            if (
+                                !window.monthCloseStatusLastCheck
+                            ) {
+
+                                window.monthCloseStatusLastCheck =
+                                    {};
+                            }
+
+
+                            window
+                                .monthCloseStatusLastCheck[
+                                    getMonthCloseStatusKey_(
+                                        month,
+                                        year
+                                    )
+                                ] = {
+
+                                    time:
+                                        Date.now(),
+
+                                    closed:
+                                        true
+                                };
+
+
+                            setMonthCloseButtonState_(
+                                'closed',
                                 month,
                                 year
-                            )
-                        ) {
+                            );
+
 
                             showToast(
                                 `Đã chốt tháng ${month}/${year} thành công!`
                             );
 
 
-                            renderFinance();
+                            if (
+                                typeof renderFinance ===
+                                'function'
+                            ) {
 
-                            renderDashboard();
+                                renderFinance();
+                            }
 
-                            renderCashbook();
 
-                            ensureMonthCloseAdminUI_();
+                            if (
+                                typeof renderDashboard ===
+                                'function'
+                            ) {
 
-                        } else {
+                                renderDashboard();
+                            }
 
-                            alert(
-                                "Chưa xác nhận được kết quả chốt tháng trên Cloud.\n\nVui lòng tải lại dữ liệu và kiểm tra trước khi thao tác lại."
+
+                            if (
+                                typeof renderCashbook ===
+                                'function'
+                            ) {
+
+                                renderCashbook();
+                            }
+
+
+                            setMonthCloseButtonState_(
+                                'closed',
+                                month,
+                                year
                             );
                         }
+                    );
+                }
+            )
+
+            .catch(
+                function(err) {
+
+                    console.error(
+                        'MONTH CLOSE POST ERROR:',
+                        err
+                    );
 
 
-                        if (button) {
-
-                            button.disabled =
-                                false;
-
-                            button.innerText =
-                                'XÁC NHẬN CHỐT';
-                        }
-                    }
-                );
-
-            },
-            5000
-        );
-    })
-
-    .catch(function(err) {
-
-        console.error(
-            'MONTH CLOSE POST ERROR:',
-            err
-        );
+                    resetConfirmButton_();
 
 
-        if (button) {
+                    setMonthCloseButtonState_(
+                        'error',
+                        month,
+                        year
+                    );
 
-            button.disabled =
-                false;
 
-            button.innerText =
-                'XÁC NHẬN CHỐT';
+                    alert(
+                        "Không thể gửi yêu cầu chốt tháng.\n\n" +
+                        "Chưa có xác nhận rằng Backend đã nhận lệnh."
+                    );
+                }
+            );
+        },
+
+        {
+            maxAttempts: 3,
+            timeoutMs: 7000,
+            retryDelayMs: 1000
         }
-
-
-        alert(
-            "Không thể gửi yêu cầu chốt tháng."
-        );
-    });
+    );
 }
