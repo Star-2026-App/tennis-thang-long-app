@@ -653,28 +653,29 @@ function fetchCloudData(showSpinner) {
     // ==================================================
     // TIMEOUT
     // ==================================================
-
     timeoutId =
-        setTimeout(
-            function() {
+    setTimeout(
+        function() {
 
-                if (finished) {
-                    return;
-                }
+            if (finished) {
+                return;
+            }
 
+            // Google Apps Script đôi lúc khởi động chậm.
+            // Chỉ ẩn vòng loading, KHÔNG xóa callback.
+            // Khi dữ liệu về sau đó, app vẫn nhận bình thường.
 
-                cleanup_();
+            if (showSpinner) {
+                hideCloudLoading_();
+            }
 
+            console.warn(
+                "JSONP CLOUD SLOW - vẫn tiếp tục chờ dữ liệu..."
+            );
 
-                console.error(
-                    "JSONP CLOUD TIMEOUT"
-                );
-
-            },
-            15000
-        );
-
-
+        },
+        15000
+    );
 
     // ==================================================
     // BUILD URL
