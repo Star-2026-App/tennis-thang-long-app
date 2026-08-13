@@ -468,39 +468,25 @@ function fetchCloudData(showSpinner, onSuccess) {
 
 
     if (showSpinner) {
-
         showCloudLoading_();
     }
 
 
-    // Callback duy nhất cho mỗi request
+    // Callback riêng cho mỗi lần tải
     let callbackName =
-
         "__thanglong_cloud_" +
-
         Date.now() +
-
         "_" +
-
-        Math.floor(
-            Math.random() *
-            100000
-        );
+        Math.floor(Math.random() * 100000);
 
 
     let script =
-        document.createElement(
-            "script"
-        );
+        document.createElement("script");
 
 
-    let timeoutId =
-        null;
+    let finished = false;
 
-
-    let finished =
-        false;
-
+    let timeoutId = null;
 
 
     // ==================================================
@@ -513,30 +499,22 @@ function fetchCloudData(showSpinner, onSuccess) {
             return;
         }
 
-
-        finished =
-            true;
+        finished = true;
 
 
         if (timeoutId) {
-
-            clearTimeout(
-                timeoutId
-            );
+            clearTimeout(timeoutId);
         }
 
 
         try {
 
-            delete window[
-                callbackName
-            ];
+            delete window[callbackName];
 
         } catch (e) {
 
-            window[
-                callbackName
-            ] = undefined;
+            window[callbackName] =
+                undefined;
         }
 
 
@@ -545,56 +523,68 @@ function fetchCloudData(showSpinner, onSuccess) {
             script.parentNode
         ) {
 
-            script.parentNode
-                .removeChild(
-                    script
-                );
+            script.parentNode.removeChild(
+                script
+            );
         }
 
 
         if (showSpinner) {
-
             hideCloudLoading_();
         }
     }
 
 
+    // ==================================================
+    // JSONP CALLBACK
+    //
+    // CHỈ TẠI ĐÂY mới có biến "data"
+    // ==================================================
+
+    window[callbackName] =
+        function(data) {
+
+            if (finished) {
+                return;
+            }
+
+
+            if (!data) {
+
+                cleanup_();
+
+                console.error(
+                    "JSONP CLOUD ERROR: Không có dữ liệu."
+                );
+
+                return;
+            }
+
+
+            // Nhận dữ liệu Cloud
+            updateStateFromCloud(
+                data
+            );
+
+
+            // Callback phụ nếu caller cần
+            if (
+                typeof onSuccess ===
+                "function"
+            ) {
+
+                onSuccess(
+                    data
+                );
+            }
+
+
+            cleanup_();
+        };
+
 
     // ==================================================
-    // CALLBACK JSONP
-    // ==================================================
-
-   window[callbackName] = function(data) {
-
-    if (finished) {
-        return;
-    }
-
-    cleanup_();
-
-    if (!data) {
-
-        console.error(
-            "JSONP CLOUD ERROR: Không có dữ liệu."
-        );
-
-        return;
-    }
-
-    updateStateFromCloud(data);
-
-    if (
-        typeof onSuccess ===
-        "function"
-    ) {
-        onSuccess(data);
-    }
-};
-
-
-
-    // ==================================================
-    // SCRIPT LOAD ERROR
+    // SCRIPT ERROR
     // ==================================================
 
     script.onerror =
@@ -614,62 +604,53 @@ function fetchCloudData(showSpinner, onSuccess) {
         };
 
 
+    // ==================================================
+    // GOOGLE APPS SCRIPT CÓ THỂ LOAD CHẬM
+    //
+    // Sau 15 giây chỉ ẩn spinner.
+    // KHÔNG xóa callback.
+    // ==================================================
 
-    // ==================================================
-    // TIMEOUT
-    // ==================================================
     timeoutId =
-    setTimeout(
-        function() {
+        setTimeout(
+            function() {
 
-            if (finished) {
-                return;
-            }
+                if (finished) {
+                    return;
+                }
 
-            // Google Apps Script đôi lúc khởi động chậm.
-            // Chỉ ẩn vòng loading, KHÔNG xóa callback.
-            // Khi dữ liệu về sau đó, app vẫn nhận bình thường.
 
-            if (showSpinner) {
-                hideCloudLoading_();
-            }
+                if (showSpinner) {
+                    hideCloudLoading_();
+                }
 
-            console.warn(
-                "JSONP CLOUD SLOW - vẫn tiếp tục chờ dữ liệu..."
-            );
 
-        },
-        15000
-    );
+                console.warn(
+                    "JSONP CLOUD SLOW - vẫn tiếp tục chờ dữ liệu..."
+                );
+
+            },
+            15000
+        );
+
 
     // ==================================================
-    // BUILD URL
+    // BUILD JSONP URL
     // ==================================================
 
     let separator =
-        GOOGLE_SCRIPT_URL.includes(
-            "?"
-        )
+        GOOGLE_SCRIPT_URL.includes("?")
             ? "&"
             : "?";
 
 
     script.src =
-
         GOOGLE_SCRIPT_URL +
-
         separator +
-
         "prefix=" +
-
-        encodeURIComponent(
-            callbackName
-        ) +
-
+        encodeURIComponent(callbackName) +
         "&_=" +
-
         Date.now();
-
 
 
     script.async =
@@ -680,7 +661,6 @@ function fetchCloudData(showSpinner, onSuccess) {
         script
     );
 }
-
 
 
 // ======================================================
