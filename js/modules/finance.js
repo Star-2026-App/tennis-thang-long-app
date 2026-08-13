@@ -1348,6 +1348,17 @@ function renderFinance() {
             .value;
 
 
+    // Trạng thái khóa của tháng đang xem.
+    // true  = đã chốt -> không cho sửa Dư/Nợ.
+    // false = chưa chốt -> Admin được phép sửa.
+    // null  = chưa xác minh -> tạm khóa để an toàn.
+    let financeMonthCloseStatus =
+        getMonthCloseStatusLocal_(
+            mSel,
+            ySel
+        );
+
+
     let tbody =
         document.getElementById(
             'financeTableBody'
@@ -1767,22 +1778,69 @@ function renderFinance() {
                         ${
                             currentUserRole === 'admin'
 
-                                ? `
-                                    <button
-                                        onclick="openEditFinanceModal(${members.indexOf(m)})"
-                                        class="
-                                            bg-amber-500
-                                            text-slate-900
-                                            text-[10px]
-                                            font-bold
-                                            px-2 py-1
-                                            rounded shadow
-                                            hover:bg-amber-600
-                                        "
-                                    >
-                                        Sửa Dư/Nợ
-                                    </button>
-                                `
+                                ? (
+                                    financeMonthCloseStatus === true
+
+                                        ? `
+                                            <button
+                                                type="button"
+                                                disabled
+                                                class="
+                                                    bg-slate-200
+                                                    text-slate-500
+                                                    text-[10px]
+                                                    font-bold
+                                                    px-2 py-1
+                                                    rounded
+                                                    cursor-not-allowed
+                                                "
+                                                title="Tháng ${mSel}/${ySel} đã chốt, Dư/Nợ lịch sử đã khóa"
+                                            >
+                                                <i class="fa-solid fa-lock mr-1"></i>
+                                                Đã khóa
+                                            </button>
+                                        `
+
+                                        : (
+                                            financeMonthCloseStatus === false
+
+                                                ? `
+                                                    <button
+                                                        onclick="openEditFinanceModal(${members.indexOf(m)})"
+                                                        class="
+                                                            bg-amber-500
+                                                            text-slate-900
+                                                            text-[10px]
+                                                            font-bold
+                                                            px-2 py-1
+                                                            rounded shadow
+                                                            hover:bg-amber-600
+                                                        "
+                                                    >
+                                                        Sửa Dư/Nợ
+                                                    </button>
+                                                `
+
+                                                : `
+                                                    <button
+                                                        type="button"
+                                                        disabled
+                                                        class="
+                                                            bg-amber-100
+                                                            text-amber-700
+                                                            text-[10px]
+                                                            font-bold
+                                                            px-2 py-1
+                                                            rounded
+                                                            cursor-wait
+                                                        "
+                                                        title="Đang kiểm tra trạng thái chốt tháng"
+                                                    >
+                                                        Kiểm tra...
+                                                    </button>
+                                                `
+                                        )
+                                )
 
                                 : ''
                         }
@@ -1798,8 +1856,165 @@ function renderFinance() {
 
 function openEditFinanceModal(idx) {
 
+    if (
+        currentUserRole !==
+        'admin'
+    ) {
+        return;
+    }
+
+
+    let monthSelect =
+        document.getElementById(
+            'selectFinanceMonth'
+        );
+
+
+    let yearSelect =
+        document.getElementById(
+            'selectFinanceYear'
+        );
+
+
+    if (
+        !monthSelect ||
+        !yearSelect
+    ) {
+
+        alert(
+            "Không xác định được tháng đang xem."
+        );
+
+        return;
+    }
+
+
+    let month =
+        parseInt(
+            monthSelect.value
+        );
+
+
+    let year =
+        parseInt(
+            yearSelect.value
+        );
+
+
+    // Nếu local đã biết tháng đã chốt thì khóa ngay.
+    if (
+        isMonthClosed_(
+            month,
+            year
+        )
+    ) {
+
+        alert(
+            `Tháng ${month}/${year} đã chốt.\n\nKhông được sửa Dư/Nợ của tháng lịch sử.`
+        );
+
+        renderFinance();
+
+        return;
+    }
+
+
+    // Trước khi mở form sửa, luôn kiểm tra lại Backend bằng API nhẹ.
+    // Mục đích: tránh trường hợp một tháng vừa được chốt ở thiết bị khác.
+    showToast(
+        `Đang kiểm tra tháng ${month}/${year}...`
+    );
+
+
+    fetchMonthCloseStatusLight_(
+        month,
+        year,
+
+        function(
+            error,
+            result
+        ) {
+
+            if (error) {
+
+                console.warn(
+                    'EDIT CARRY MONTH STATUS ERROR:',
+                    error
+                );
+
+
+                alert(
+                    "Chưa xác minh được trạng thái tháng trên Cloud.\n\nTạm thời không cho sửa Dư/Nợ để tránh thay đổi dữ liệu của tháng đã chốt."
+                );
+
+                return;
+            }
+
+
+            if (
+                result &&
+                result.isClosed === true
+            ) {
+
+                setMonthCloseStatusLocal_(
+                    month,
+                    year,
+                    true
+                );
+
+
+                renderFinance();
+
+
+                alert(
+                    `Tháng ${month}/${year} đã chốt.\n\nKhông được sửa Dư/Nợ của tháng lịch sử.`
+                );
+
+                return;
+            }
+
+
+            setMonthCloseStatusLocal_(
+                month,
+                year,
+                false
+            );
+
+
+            openEditFinanceModalConfirmed_(
+                idx,
+                month,
+                year
+            );
+        },
+
+        {
+            maxAttempts: 2,
+            timeoutMs: 6000,
+            retryDelayMs: 1000
+        }
+    );
+}
+
+
+function openEditFinanceModalConfirmed_(
+    idx,
+    month,
+    year
+) {
+
     let m =
         members[idx];
+
+
+    if (!m) {
+
+        alert(
+            "Không tìm thấy thành viên."
+        );
+
+        return;
+    }
 
 
     document
@@ -1824,18 +2039,32 @@ function openEditFinanceModal(idx) {
             m.noOld || 0;
 
 
-    document
-        .getElementById(
+    let modal =
+        document.getElementById(
             'editFinanceModal'
-        )
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    // Ghi lại kỳ đang sửa để dễ kiểm soát và debug.
+    modal.dataset.financeMonth =
+        String(month);
+
+
+    modal.dataset.financeYear =
+        String(year);
+
+
+    modal
         .classList
         .remove('hidden');
 
 
-    document
-        .getElementById(
-            'editFinanceModal'
-        )
+    modal
         .classList
         .add('flex');
 }
@@ -4207,6 +4436,18 @@ function ensureMonthCloseAdminUI_() {
                 month,
                 year
             );
+
+
+            // Cập nhật lại cột thao tác:
+            // tháng đã chốt -> Đã khóa;
+            // tháng chưa chốt -> Sửa Dư/Nợ.
+            if (
+                typeof renderFinance ===
+                'function'
+            ) {
+
+                renderFinance();
+            }
         }
     );
 }
