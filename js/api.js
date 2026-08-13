@@ -1,14 +1,16 @@
 // ======================================================
-// API.JS V2
+// API.JS - CLEAN VERSION
+// ======================================================
 //
-// GET Cloud:
-//   JSONP -> tránh CORS của Google Apps Script
-//
-// POST:
-//   giữ cơ chế hiện tại
+// GET  : JSONP -> tránh CORS Google Apps Script
+// POST : no-cors + Backend chống trùng theo ID
 //
 // ======================================================
 
+
+// ======================================================
+// ACTION QUEUE
+// ======================================================
 
 function enqueueAction(actionName, payload, successMessage) {
 
@@ -26,9 +28,7 @@ function enqueueAction(actionName, payload, successMessage) {
         payload.match
     ) {
 
-        matches.unshift(
-            payload.match
-        );
+        matches.unshift(payload.match);
 
     }
 
@@ -40,11 +40,8 @@ function enqueueAction(actionName, payload, successMessage) {
 
         let m =
             matches.find(
-                x =>
-                    x.id ==
-                    payload.match.id
+                x => x.id == payload.match.id
             );
-
 
         if (m) {
 
@@ -57,6 +54,7 @@ function enqueueAction(actionName, payload, successMessage) {
             m.specialBet =
                 payload.match.specialBet;
         }
+
     }
 
 
@@ -114,7 +112,11 @@ function enqueueAction(actionName, payload, successMessage) {
     ) {
 
         systemSettings =
-            payload.settings;
+            Object.assign(
+                {},
+                systemSettings,
+                payload.settings
+            );
 
     }
 
@@ -134,8 +136,7 @@ function enqueueAction(actionName, payload, successMessage) {
 
             matches =
                 matches.filter(
-                    x =>
-                        x.id != id
+                    x => x.id != id
                 );
         }
 
@@ -147,8 +148,7 @@ function enqueueAction(actionName, payload, successMessage) {
 
             bookingLogs =
                 bookingLogs.filter(
-                    x =>
-                        x.id != id
+                    x => x.id != id
                 );
         }
 
@@ -160,8 +160,7 @@ function enqueueAction(actionName, payload, successMessage) {
 
             cashbookLogs =
                 cashbookLogs.filter(
-                    x =>
-                        x.id != id
+                    x => x.id != id
                 );
         }
 
@@ -173,8 +172,7 @@ function enqueueAction(actionName, payload, successMessage) {
 
             gocLogs =
                 gocLogs.filter(
-                    x =>
-                        x.id != id
+                    x => x.id != id
                 );
         }
 
@@ -186,8 +184,19 @@ function enqueueAction(actionName, payload, successMessage) {
 
             rulesList =
                 rulesList.filter(
-                    x =>
-                        x.id != id
+                    x => x.id != id
+                );
+        }
+
+
+        if (
+            payload.sheetName ===
+            "QuyLogs"
+        ) {
+
+            quyLogs =
+                quyLogs.filter(
+                    x => x.id != id
                 );
         }
     }
@@ -199,23 +208,17 @@ function enqueueAction(actionName, payload, successMessage) {
 
 
     // ==================================================
-    // 2. CHỈ RENDER MÀN HÌNH LIÊN QUAN
+    // 2. RENDER CỤC BỘ
     // ==================================================
 
 
-    // --------------------------------------------------
     // TIỀN GÓC
-    // --------------------------------------------------
-
     if (
         actionName === "addGocLog" ||
 
         (
-            actionName ===
-                "deleteItem" &&
-
-            payload.sheetName ===
-                "GocLogs"
+            actionName === "deleteItem" &&
+            payload.sheetName === "GocLogs"
         )
     ) {
 
@@ -228,143 +231,248 @@ function enqueueAction(actionName, payload, successMessage) {
         }
 
 
-        renderGocLogsTab();
+        if (
+            typeof renderGocLogsTab ===
+            "function"
+        ) {
+            renderGocLogsTab();
+        }
 
-        renderDashboard();
 
-        renderFinance();
+        if (
+            typeof renderDashboard ===
+            "function"
+        ) {
+            renderDashboard();
+        }
 
-        renderCashbook();
+
+        if (
+            typeof renderFinance ===
+            "function"
+        ) {
+            renderFinance();
+        }
+
+
+        if (
+            typeof renderCashbook ===
+            "function"
+        ) {
+            renderCashbook();
+        }
+
 
         applyRolePermissions();
     }
 
 
-    // --------------------------------------------------
     // THƯỞNG ĐẶT SÂN
-    // --------------------------------------------------
-
     else if (
         actionName === "addBooking" ||
 
         (
-            actionName ===
-                "deleteItem" &&
-
-            payload.sheetName ===
-                "Bookings"
+            actionName === "deleteItem" &&
+            payload.sheetName === "Bookings"
         )
     ) {
 
-        renderBookingLogs();
+        if (
+            typeof renderBookingLogs ===
+            "function"
+        ) {
+            renderBookingLogs();
+        }
 
-        renderDashboard();
 
-        renderFinance();
+        if (
+            typeof renderDashboard ===
+            "function"
+        ) {
+            renderDashboard();
+        }
+
+
+        if (
+            typeof renderFinance ===
+            "function"
+        ) {
+            renderFinance();
+        }
+
 
         applyRolePermissions();
     }
 
 
-    // --------------------------------------------------
     // TRẬN ĐẤU
-    // --------------------------------------------------
-
     else if (
         actionName === "addMatch" ||
 
         actionName === "updateMatch" ||
 
         (
-            actionName ===
-                "deleteItem" &&
-
-            payload.sheetName ===
-                "Matches"
+            actionName === "deleteItem" &&
+            payload.sheetName === "Matches"
         )
     ) {
 
-        renderAllMatchLog();
+        if (
+            typeof renderAllMatchLog ===
+            "function"
+        ) {
+            renderAllMatchLog();
+        }
 
-        renderGamification();
 
-        renderDashboard();
+        if (
+            typeof renderGamification ===
+            "function"
+        ) {
+            renderGamification();
+        }
 
-        renderFinance();
 
-        renderAnalyticsTab();
+        if (
+            typeof renderDashboard ===
+            "function"
+        ) {
+            renderDashboard();
+        }
+
+
+        if (
+            typeof renderFinance ===
+            "function"
+        ) {
+            renderFinance();
+        }
+
+
+        if (
+            typeof renderAnalyticsTab ===
+            "function"
+        ) {
+            renderAnalyticsTab();
+        }
+
 
         applyRolePermissions();
     }
 
 
-    // --------------------------------------------------
     // SỔ THU CHI
-    // --------------------------------------------------
-
     else if (
         actionName === "addCashbook" ||
 
         (
-            actionName ===
-                "deleteItem" &&
-
-            payload.sheetName ===
-                "Cashbook"
+            actionName === "deleteItem" &&
+            payload.sheetName === "Cashbook"
         )
     ) {
 
-        renderCashbook();
+        if (
+            typeof renderCashbook ===
+            "function"
+        ) {
+            renderCashbook();
+        }
+
 
         applyRolePermissions();
     }
 
 
-    // --------------------------------------------------
     // QUY ĐỊNH
-    // --------------------------------------------------
-
     else if (
         actionName === "addRule" ||
 
         (
-            actionName ===
-                "deleteItem" &&
-
-            payload.sheetName ===
-                "Rules"
+            actionName === "deleteItem" &&
+            payload.sheetName === "Rules"
         )
     ) {
 
-        renderRulesTab();
+        if (
+            typeof renderRulesTab ===
+            "function"
+        ) {
+            renderRulesTab();
+        }
+
 
         applyRolePermissions();
     }
 
 
-    // --------------------------------------------------
-    // SETTINGS
-    // --------------------------------------------------
-
+    // QUỸ QUÝ
     else if (
-        actionName ===
-        "updateSettings"
+        actionName === "deleteItem" &&
+        payload.sheetName === "QuyLogs"
     ) {
 
-        populateSettingsForm();
+        if (
+            typeof renderQuyTable ===
+            "function"
+        ) {
+            renderQuyTable();
+        }
 
-        renderDashboard();
 
-        renderFinance();
+        if (
+            typeof renderDashboard ===
+            "function"
+        ) {
+            renderDashboard();
+        }
+
+
+        if (
+            typeof renderCashbook ===
+            "function"
+        ) {
+            renderCashbook();
+        }
+
 
         applyRolePermissions();
     }
 
 
-    // --------------------------------------------------
-    // CÁC ACTION KHÁC
-    // --------------------------------------------------
+    // SETTINGS
+    else if (
+        actionName === "updateSettings"
+    ) {
 
+        if (
+            typeof populateSettingsForm ===
+            "function"
+        ) {
+            populateSettingsForm();
+        }
+
+
+        if (
+            typeof renderDashboard ===
+            "function"
+        ) {
+            renderDashboard();
+        }
+
+
+        if (
+            typeof renderFinance ===
+            "function"
+        ) {
+            renderFinance();
+        }
+
+
+        applyRolePermissions();
+    }
+
+
+    // ACTION KHÁC
     else {
 
         initApp();
@@ -381,7 +489,6 @@ function enqueueAction(actionName, payload, successMessage) {
 }
 
 
-
 // ======================================================
 // POST QUEUE
 // ======================================================
@@ -393,30 +500,31 @@ function processQueue() {
         syncQueue.length === 0 ||
         !GOOGLE_SCRIPT_URL
     ) {
+
         return;
     }
 
-    isSyncing = true;
 
-    let item = syncQueue[0];
+    isSyncing =
+        true;
 
 
-    // ==================================================
-    // POST QUA no-cors
-    //
-    // Apps Script vẫn nhận được request.
-    // Browser không cần đọc response nên không bị
-    // CORS làm hiểu nhầm là gửi thất bại.
-    // ==================================================
+    let item =
+        syncQueue[0];
+
 
     fetch(
         GOOGLE_SCRIPT_URL,
         {
-            method: "POST",
 
-            mode: "no-cors",
+            method:
+                "POST",
+
+            mode:
+                "no-cors",
 
             headers: {
+
                 "Content-Type":
                     "text/plain;charset=utf-8"
             },
@@ -428,17 +536,22 @@ function processQueue() {
 
     .then(function() {
 
-        // Request đã được browser gửi thành công.
-        // Bỏ khỏi queue để KHÔNG gửi lại cùng payload.
+        // Browser đã gửi request.
+        // Backend có lớp chống trùng theo ID.
 
         syncQueue.shift();
 
-        isSyncing = false;
+        isSyncing =
+            false;
+
 
         saveLocalData();
 
 
-        if (syncQueue.length > 0) {
+        if (
+            syncQueue.length > 0
+        ) {
+
             processQueue();
         }
     })
@@ -450,17 +563,73 @@ function processQueue() {
             err
         );
 
-        // Chỉ giữ lại queue nếu thật sự lỗi mạng.
-        isSyncing = false;
+
+        isSyncing =
+            false;
     });
 }
 
 
 // ======================================================
-// JSONP CLOUD LOADER
+// CLOUD LOADING
 // ======================================================
 
-function fetchCloudData(showSpinner, onSuccess) {
+function showCloudLoading_() {
+
+    let overlay =
+        document.getElementById(
+            "loadingOverlay"
+        );
+
+
+    if (!overlay) {
+        return;
+    }
+
+
+    overlay.classList.remove(
+        "hidden"
+    );
+
+
+    overlay.classList.add(
+        "flex"
+    );
+}
+
+
+function hideCloudLoading_() {
+
+    let overlay =
+        document.getElementById(
+            "loadingOverlay"
+        );
+
+
+    if (!overlay) {
+        return;
+    }
+
+
+    overlay.classList.add(
+        "hidden"
+    );
+
+
+    overlay.classList.remove(
+        "flex"
+    );
+}
+
+
+// ======================================================
+// JSONP GET CLOUD DATA
+// ======================================================
+
+function fetchCloudData(
+    showSpinner,
+    onSuccess
+) {
 
     if (!GOOGLE_SCRIPT_URL) {
         return;
@@ -468,25 +637,36 @@ function fetchCloudData(showSpinner, onSuccess) {
 
 
     if (showSpinner) {
+
         showCloudLoading_();
     }
 
 
-    // Callback riêng cho mỗi lần tải
     let callbackName =
+
         "__thanglong_cloud_" +
+
         Date.now() +
+
         "_" +
-        Math.floor(Math.random() * 100000);
+
+        Math.floor(
+            Math.random() * 100000
+        );
 
 
     let script =
-        document.createElement("script");
+        document.createElement(
+            "script"
+        );
 
 
-    let finished = false;
+    let finished =
+        false;
 
-    let timeoutId = null;
+
+    let timeoutId =
+        null;
 
 
     // ==================================================
@@ -499,21 +679,30 @@ function fetchCloudData(showSpinner, onSuccess) {
             return;
         }
 
-        finished = true;
+
+        finished =
+            true;
 
 
         if (timeoutId) {
-            clearTimeout(timeoutId);
+
+            clearTimeout(
+                timeoutId
+            );
         }
 
 
         try {
 
-            delete window[callbackName];
+            delete window[
+                callbackName
+            ];
 
         } catch (e) {
 
-            window[callbackName] =
+            window[
+                callbackName
+            ] =
                 undefined;
         }
 
@@ -530,6 +719,7 @@ function fetchCloudData(showSpinner, onSuccess) {
 
 
         if (showSpinner) {
+
             hideCloudLoading_();
         }
     }
@@ -538,36 +728,38 @@ function fetchCloudData(showSpinner, onSuccess) {
     // ==================================================
     // JSONP CALLBACK
     //
-    // CHỈ TẠI ĐÂY mới có biến "data"
+    // BIẾN data CHỈ TỒN TẠI TRONG HÀM NÀY
     // ==================================================
 
-    window[callbackName] =
-        function(data) {
+    window[
+        callbackName
+    ] = function(data) {
 
-            if (finished) {
-                return;
-            }
-
-
-            if (!data) {
-
-                cleanup_();
-
-                console.error(
-                    "JSONP CLOUD ERROR: Không có dữ liệu."
-                );
-
-                return;
-            }
+        if (finished) {
+            return;
+        }
 
 
-            // Nhận dữ liệu Cloud
+        if (!data) {
+
+            console.error(
+                "JSONP CLOUD ERROR: Không có dữ liệu."
+            );
+
+
+            cleanup_();
+
+            return;
+        }
+
+
+        try {
+
             updateStateFromCloud(
                 data
             );
 
 
-            // Callback phụ nếu caller cần
             if (
                 typeof onSuccess ===
                 "function"
@@ -578,13 +770,22 @@ function fetchCloudData(showSpinner, onSuccess) {
                 );
             }
 
+        } catch (err) {
+
+            console.error(
+                "UPDATE CLOUD STATE ERROR:",
+                err
+            );
+
+        } finally {
 
             cleanup_();
-        };
+        }
+    };
 
 
     // ==================================================
-    // SCRIPT ERROR
+    // LOAD ERROR
     // ==================================================
 
     script.onerror =
@@ -595,20 +796,20 @@ function fetchCloudData(showSpinner, onSuccess) {
             }
 
 
-            cleanup_();
-
-
             console.error(
                 "JSONP CLOUD ERROR: Không tải được Apps Script."
             );
+
+
+            cleanup_();
         };
 
 
     // ==================================================
-    // GOOGLE APPS SCRIPT CÓ THỂ LOAD CHẬM
+    // SLOW CLOUD
     //
-    // Sau 15 giây chỉ ẩn spinner.
-    // KHÔNG xóa callback.
+    // 15 giây chỉ ẩn loading.
+    // Không xóa callback.
     // ==================================================
 
     timeoutId =
@@ -621,6 +822,7 @@ function fetchCloudData(showSpinner, onSuccess) {
 
 
                 if (showSpinner) {
+
                     hideCloudLoading_();
                 }
 
@@ -635,7 +837,7 @@ function fetchCloudData(showSpinner, onSuccess) {
 
 
     // ==================================================
-    // BUILD JSONP URL
+    // JSONP URL
     // ==================================================
 
     let separator =
@@ -645,11 +847,19 @@ function fetchCloudData(showSpinner, onSuccess) {
 
 
     script.src =
+
         GOOGLE_SCRIPT_URL +
+
         separator +
+
         "prefix=" +
-        encodeURIComponent(callbackName) +
+
+        encodeURIComponent(
+            callbackName
+        ) +
+
         "&_=" +
+
         Date.now();
 
 
@@ -664,64 +874,22 @@ function fetchCloudData(showSpinner, onSuccess) {
 
 
 // ======================================================
-// LOADING OVERLAY
+// UPDATE TOÀN BỘ STATE TỪ CLOUD
 // ======================================================
 
-function showCloudLoading_() {
+function updateStateFromCloud(data) {
 
-    let overlay =
-        document.getElementById(
-            'loadingOverlay'
+    if (!data) {
+
+        console.error(
+            "updateStateFromCloud: Không có dữ liệu."
         );
 
-
-    if (!overlay) {
         return;
     }
 
 
-    overlay.classList.remove(
-        'hidden'
-    );
-
-
-    overlay.classList.add(
-        'flex'
-    );
-}
-
-
-function hideCloudLoading_() {
-
-    let overlay =
-        document.getElementById(
-            'loadingOverlay'
-        );
-
-
-    if (!overlay) {
-        return;
-    }
-
-
-    overlay.classList.add(
-        'hidden'
-    );
-
-
-    overlay.classList.remove(
-        'flex'
-    );
-}
-
-
-
-// ======================================================
-// UPDATE STATE FROM CLOUD
-// ======================================================
-
-function fetchCloudData(showSpinner, onSuccess) {
-
+    // MEMBERS
     if (
         data.members &&
         data.members.length > 0
@@ -732,184 +900,110 @@ function fetchCloudData(showSpinner, onSuccess) {
     }
 
 
-    if (data.matches) {
+    // MATCHES
+    if (
+        Array.isArray(
+            data.matches
+        )
+    ) {
 
         matches =
             data.matches;
     }
 
 
-    if (data.bookingLogs) {
+    // BOOKINGS
+    if (
+        Array.isArray(
+            data.bookingLogs
+        )
+    ) {
 
         bookingLogs =
             data.bookingLogs;
     }
 
 
-    if (data.cashbookLogs) {
+    // CASHBOOK
+    if (
+        Array.isArray(
+            data.cashbookLogs
+        )
+    ) {
 
         cashbookLogs =
             data.cashbookLogs;
     }
 
 
-    if (data.gocLogs) {
+    // GOC LOGS
+    if (
+        Array.isArray(
+            data.gocLogs
+        )
+    ) {
 
         gocLogs =
             data.gocLogs;
     }
 
 
-    if (data.quyLogs) {
+    // QUY LOGS
+    if (
+        Array.isArray(
+            data.quyLogs
+        )
+    ) {
 
         quyLogs =
             data.quyLogs;
     }
-    
-    if (data.rules) {
+
+
+    // MONTHLY BALANCES
+    if (
+        Array.isArray(
+            data.monthlyBalances
+        )
+    ) {
+
+        window.monthlyBalances =
+            data.monthlyBalances;
+
+    } else {
+
+        window.monthlyBalances =
+            [];
+    }
+
+
+    // RULES
+    if (
+        Array.isArray(
+            data.rules
+        )
+    ) {
 
         rulesList =
             data.rules;
     }
 
 
-    if (
-        data.openingBalance !==
-        undefined
-    ) {
-
-        openingBalance =
-            data.openingBalance;
-    }
-
-
-    if (data.settings) {
-
-        systemSettings =
-            Object.assign(
-                systemSettings,
-                data.settings
-            );
-    }
-
-
-    sortCollectionsByTime();
-
-    saveLocalData();
-
-    initApp();
-}
-// ======================================================
-// UPDATE STATE FROM CLOUD
-// ======================================================
-
-function updateStateFromCloud(data) {
-
-    if (!data) {
-        console.error(
-            "updateStateFromCloud: Không có dữ liệu."
-        );
-        return;
-    }
-
-
-    // =========================
-    // MEMBERS
-    // =========================
-
-    if (
-        data.members &&
-        data.members.length > 0
-    ) {
-        members = data.members;
-    }
-
-
-    // =========================
-    // MATCHES
-    // =========================
-
-    if (data.matches) {
-        matches = data.matches;
-    }
-
-
-    // =========================
-    // BOOKINGS
-    // =========================
-
-    if (data.bookingLogs) {
-        bookingLogs = data.bookingLogs;
-    }
-
-
-    // =========================
-    // CASHBOOK
-    // =========================
-
-    if (data.cashbookLogs) {
-        cashbookLogs = data.cashbookLogs;
-    }
-
-
-    // =========================
-    // GOC LOGS
-    // =========================
-
-    if (data.gocLogs) {
-        gocLogs = data.gocLogs;
-    }
-
-
-    // =========================
-    // QUY LOGS
-    // =========================
-
-    if (data.quyLogs) {
-        quyLogs = data.quyLogs;
-    }
-
-
-    // =========================
-    // MONTHLY BALANCES
-    // =========================
-
-    if (data.monthlyBalances) {
-        window.monthlyBalances =
-            data.monthlyBalances;
-    } else {
-        window.monthlyBalances =
-            [];
-    }
-
-
-    // =========================
-    // RULES
-    // =========================
-
-    if (data.rules) {
-        rulesList = data.rules;
-    }
-
-
-    // =========================
     // OPENING BALANCE
-    // =========================
-
     if (
         data.openingBalance !==
         undefined
     ) {
+
         openingBalance =
             data.openingBalance;
     }
 
 
-    // =========================
     // SETTINGS
-    // =========================
-
-    if (data.settings) {
+    if (
+        data.settings
+    ) {
 
         systemSettings =
             Object.assign(
@@ -920,9 +1014,9 @@ function updateStateFromCloud(data) {
     }
 
 
-    // =========================
-    // FINALIZE
-    // =========================
+    // ==================================================
+    // HOÀN TẤT
+    // ==================================================
 
     sortCollectionsByTime();
 
