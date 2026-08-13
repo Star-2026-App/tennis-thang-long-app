@@ -210,27 +210,62 @@ function getMonthCloseStatusLocal_(
     year
 ) {
 
-    let hasSnapshot =
+    let targetMonth =
+        parseInt(month);
+
+
+    let targetYear =
+        parseInt(year);
+
+
+    let targetPeriod =
+        targetYear * 12 +
+        (targetMonth - 1);
+
+
+    // Nếu hệ thống đã có snapshot của một tháng bằng hoặc sau
+    // tháng đang xem, thì tháng đang xem thuộc vùng lịch sử đã khóa.
+    // Ví dụ đã chốt 8/2026 thì 7/2026 và 8/2026 đều phải khóa.
+    let latestClosedPeriod =
         (window.monthlyBalances || [])
-            .some(function(item) {
+            .reduce(function(maxPeriod, item) {
 
-                return (
-                    parseInt(item.month) ===
-                        parseInt(month)
+                let itemMonth =
+                    parseInt(item.month) || 0;
 
-                    &&
 
-                    parseInt(item.year) ===
-                        parseInt(year)
+                let itemYear =
+                    parseInt(item.year) || 0;
+
+
+                if (
+                    !itemMonth ||
+                    !itemYear
+                ) {
+                    return maxPeriod;
+                }
+
+
+                let itemPeriod =
+                    itemYear * 12 +
+                    (itemMonth - 1);
+
+
+                return Math.max(
+                    maxPeriod,
+                    itemPeriod
                 );
-            });
+            }, -1);
 
 
-    if (hasSnapshot) {
+    if (
+        latestClosedPeriod >=
+        targetPeriod
+    ) {
 
         setMonthCloseStatusLocal_(
-            month,
-            year,
+            targetMonth,
+            targetYear,
             true
         );
 
@@ -244,8 +279,8 @@ function getMonthCloseStatusLocal_(
 
     let key =
         getMonthCloseStatusKey_(
-            month,
-            year
+            targetMonth,
+            targetYear
         );
 
 
@@ -333,6 +368,50 @@ function isMonthClosePeriodEnded_(
 }
 
 
+function isMonthClosePeriodFuture_(
+    month,
+    year
+) {
+
+    let m =
+        parseInt(month);
+
+
+    let y =
+        parseInt(year);
+
+
+    if (
+        !m ||
+        m < 1 ||
+        m > 12 ||
+        !y
+    ) {
+        return false;
+    }
+
+
+    let now =
+        new Date();
+
+
+    let selectedPeriod =
+        y * 12 +
+        (m - 1);
+
+
+    let currentPeriod =
+        now.getFullYear() * 12 +
+        now.getMonth();
+
+
+    return (
+        selectedPeriod >
+        currentPeriod
+    );
+}
+
+
 // ======================================================
 // GET NHẸ - KIỂM TRA TRẠNG THÁI CHỐT THÁNG
 // ======================================================
@@ -357,7 +436,7 @@ function fetchMonthCloseStatusLight_(
     let timeoutMs =
         parseInt(
             options.timeoutMs
-        ) || 8000;
+        ) || 10000;
 
 
     let retryDelayMs =
@@ -366,12 +445,8 @@ function fetchMonthCloseStatusLight_(
         ) || 1200;
 
 
-    let attempt =
-        0;
-
-
-    let finished =
-        false;
+    let attempt = 0;
+    let finished = false;
 
 
     function finish_(
@@ -384,8 +459,7 @@ function fetchMonthCloseStatusLight_(
         }
 
 
-        finished =
-            true;
+        finished = true;
 
 
         if (
@@ -396,6 +470,41 @@ function fetchMonthCloseStatusLight_(
             callback(
                 error,
                 result
+            );
+        }
+    }
+
+
+    function applyValidResponse_(
+        data
+    ) {
+
+        if (
+            data &&
+            data.isExactClosed === true &&
+            Array.isArray(
+                data.snapshots
+            )
+        ) {
+
+            mergeMonthlyBalanceSnapshots_(
+                data.snapshots,
+                month,
+                year
+            );
+        }
+
+
+        if (
+            data &&
+            data.status ===
+                'SUCCESS'
+        ) {
+
+            setMonthCloseStatusLocal_(
+                month,
+                year,
+                data.isClosed === true
             );
         }
     }
@@ -412,9 +521,9 @@ function fetchMonthCloseStatusLight_(
 
 
         let callbackName =
-            "__thanglong_month_close_" +
+            '__thanglong_month_close_' +
             Date.now() +
-            "_" +
+            '_' +
             Math.floor(
                 Math.random() * 100000
             );
@@ -426,38 +535,12 @@ function fetchMonthCloseStatusLight_(
             );
 
 
-        let attemptDone =
-            false;
+        let timer = null;
+        let responded = false;
+        let retryStarted = false;
 
 
-        let timer =
-            null;
-
-
-        function cleanupAttempt_() {
-
-            if (timer) {
-
-                clearTimeout(
-                    timer
-                );
-            }
-
-
-            try {
-
-                delete window[
-                    callbackName
-                ];
-
-            } catch (e) {
-
-                window[
-                    callbackName
-                ] =
-                    undefined;
-            }
-
+        function removeScript_() {
 
             if (
                 script &&
@@ -472,76 +555,79 @@ function fetchMonthCloseStatusLight_(
         }
 
 
-        function retryOrFail_(
-            error
-        ) {
-
-            if (attemptDone) {
-                return;
-            }
-
-
-            attemptDone =
-                true;
-
-
-            cleanupAttempt_();
-
-
-            if (
-                attempt <
-                maxAttempts
-            ) {
-
-                setTimeout(
-                    runAttempt_,
-                    retryDelayMs
-                );
-
-                return;
-            }
-
-
-            finish_(
-                error ||
-                new Error(
-                    "Không kiểm tra được trạng thái chốt tháng."
-                ),
-                null
-            );
-        }
-
-
+        // QUAN TRỌNG:
+        // Không xóa callback chỉ vì timeout.
+        // Apps Script có thể đã chạy xong nhưng file JSONP về trình duyệt chậm.
+        // Nếu xóa callback sớm, response đến sau sẽ gây:
+        // ReferenceError: __thanglong_month_close_xxx is not defined.
         window[
             callbackName
         ] = function(data) {
 
-            if (
-                attemptDone ||
-                finished
-            ) {
-                return;
+            responded = true;
+
+
+            if (timer) {
+
+                clearTimeout(
+                    timer
+                );
             }
 
 
-            attemptDone =
-                true;
+            removeScript_();
 
 
-            cleanupAttempt_();
+            // Nếu một request khác đã kết thúc luồng trước,
+            // response đến muộn vẫn được hấp thụ an toàn,
+            // tuyệt đối không tạo ReferenceError.
+            if (finished) {
+
+                try {
+                    applyValidResponse_(
+                        data
+                    );
+                } catch (e) {
+                    console.warn(
+                        'LATE MONTH CLOSE STATUS RESPONSE:',
+                        e
+                    );
+                }
+
+                return;
+            }
 
 
             if (
                 !data ||
                 data.status !==
-                    "SUCCESS"
+                    'SUCCESS'
             ) {
 
                 let message =
                     data &&
                     data.message
                         ? data.message
-                        : "Backend không trả trạng thái hợp lệ.";
+                        : 'Backend không trả trạng thái hợp lệ.';
+
+
+                if (
+                    attempt <
+                    maxAttempts
+                ) {
+
+                    if (!retryStarted) {
+
+                        retryStarted = true;
+
+                        setTimeout(
+                            runAttempt_,
+                            retryDelayMs
+                        );
+                    }
+
+                    return;
+                }
 
 
                 finish_(
@@ -555,32 +641,8 @@ function fetchMonthCloseStatusLight_(
             }
 
 
-            // Nếu đây là tháng được chốt chính xác, Backend
-            // trả kèm snapshot lịch sử của tháng đó.
-            // Nạp snapshot trước khi render để Nợ cũ / Góc /
-            // Thực đóng / Tổng cần đóng giữ đúng số lúc chốt.
-            if (
-                data.isExactClosed === true &&
-                Array.isArray(data.snapshots)
-            ) {
-
-                mergeMonthlyBalanceSnapshots_(
-                    data.snapshots,
-                    month,
-                    year
-                );
-            }
-
-
-            let closed =
-                data.isClosed ===
-                true;
-
-
-            setMonthCloseStatusLocal_(
-                month,
-                year,
-                closed
+            applyValidResponse_(
+                data
             );
 
 
@@ -594,10 +656,54 @@ function fetchMonthCloseStatusLight_(
         script.onerror =
             function() {
 
-                retryOrFail_(
+                if (timer) {
+
+                    clearTimeout(
+                        timer
+                    );
+                }
+
+
+                removeScript_();
+
+
+                // Giữ callback tồn tại như một hàm rỗng.
+                // Một số trình duyệt/proxy có thể phát sự kiện lỗi
+                // trước khi response JSONP muộn được xử lý.
+                window[
+                    callbackName
+                ] = function() {};
+
+
+                if (finished) {
+                    return;
+                }
+
+
+                if (
+                    attempt <
+                    maxAttempts
+                ) {
+
+                    if (!retryStarted) {
+
+                        retryStarted = true;
+
+                        setTimeout(
+                            runAttempt_,
+                            retryDelayMs
+                        );
+                    }
+
+                    return;
+                }
+
+
+                finish_(
                     new Error(
-                        "Không tải được API trạng thái chốt tháng."
-                    )
+                        'Không tải được API trạng thái chốt tháng.'
+                    ),
+                    null
                 );
             };
 
@@ -606,12 +712,50 @@ function fetchMonthCloseStatusLight_(
             setTimeout(
                 function() {
 
-                    retryOrFail_(
-                        new Error(
-                            "API trạng thái chốt tháng phản hồi quá chậm."
-                        )
+                    if (
+                        responded ||
+                        finished
+                    ) {
+                        return;
+                    }
+
+
+                    console.warn(
+                        'MONTH CLOSE STATUS SLOW - vẫn tiếp tục chờ dữ liệu...'
                     );
 
+
+                    // Timeout chỉ là tín hiệu "chậm".
+                    // Không xóa script, không xóa callback.
+                    // Có thể tạo thêm một request dự phòng.
+                    if (
+                        attempt <
+                        maxAttempts
+                    ) {
+
+                        if (!retryStarted) {
+
+                            retryStarted = true;
+
+                            setTimeout(
+                                runAttempt_,
+                                retryDelayMs
+                            );
+                        }
+
+                        return;
+                    }
+
+
+                    // Hết số lần thử: báo cho thao tác hiện tại biết
+                    // là chưa xác minh được, nhưng callback vẫn sống.
+                    // Nếu JSONP đến muộn, nó sẽ được hấp thụ an toàn.
+                    finish_(
+                        new Error(
+                            'API trạng thái chốt tháng phản hồi quá chậm.'
+                        ),
+                        null
+                    );
                 },
                 timeoutMs
             );
@@ -619,34 +763,28 @@ function fetchMonthCloseStatusLight_(
 
         let separator =
             GOOGLE_SCRIPT_URL
-                .includes("?")
-                    ? "&"
-                    : "?";
+                .includes('?')
+                    ? '&'
+                    : '?';
 
 
         script.src =
             GOOGLE_SCRIPT_URL +
-
             separator +
-
-            "action=monthCloseStatus" +
-
-            "&month=" +
+            'action=monthCloseStatus' +
+            '&month=' +
             encodeURIComponent(
                 month
             ) +
-
-            "&year=" +
+            '&year=' +
             encodeURIComponent(
                 year
             ) +
-
-            "&prefix=" +
+            '&prefix=' +
             encodeURIComponent(
                 callbackName
             ) +
-
-            "&_=" +
+            '&_=' +
             Date.now();
 
 
@@ -1498,6 +1636,28 @@ function renderFinance() {
         );
 
 
+    // Tháng tương lai chắc chắn chưa thể chốt vì Backend
+    // đã chặn chốt tháng hiện tại/tương lai. Không cần chờ API.
+    if (
+        financeMonthCloseStatus === null &&
+        isMonthClosePeriodFuture_(
+            mSel,
+            ySel
+        )
+    ) {
+
+        setMonthCloseStatusLocal_(
+            mSel,
+            ySel,
+            false
+        );
+
+
+        financeMonthCloseStatus =
+            false;
+    }
+
+
     let tbody =
         document.getElementById(
             'financeTableBody'
@@ -2058,7 +2218,35 @@ function openEditFinanceModal(idx) {
     }
 
 
-    // Trước khi mở form sửa, luôn kiểm tra lại Backend bằng API nhẹ.
+    // Tháng tương lai không thể đã được chốt vì Backend
+    // đã chặn việc chốt tháng hiện tại/tương lai.
+    // Vì vậy cho phép Admin sửa Dư/Nợ ngay, không cần chờ API.
+    if (
+        isMonthClosePeriodFuture_(
+            month,
+            year
+        )
+    ) {
+
+        setMonthCloseStatusLocal_(
+            month,
+            year,
+            false
+        );
+
+
+        openEditFinanceModalConfirmed_(
+            idx,
+            month,
+            year
+        );
+
+        return;
+    }
+
+
+    // Với tháng hiện tại hoặc tháng quá khứ chưa xác định,
+    // kiểm tra lại Backend để tránh sửa nhầm tháng đã khóa.
     // Mục đích: tránh trường hợp một tháng vừa được chốt ở thiết bị khác.
     showToast(
         `Đang kiểm tra tháng ${month}/${year}...`
@@ -4425,6 +4613,32 @@ function ensureMonthCloseAdminUI_() {
 
         setMonthCloseButtonState_(
             'closed',
+            month,
+            year
+        );
+
+        return;
+    }
+
+
+    // Tháng tương lai chắc chắn chưa thể chốt.
+    // Không gọi Apps Script chỉ để xác nhận điều đã được Backend cấm.
+    if (
+        isMonthClosePeriodFuture_(
+            month,
+            year
+        )
+    ) {
+
+        setMonthCloseStatusLocal_(
+            month,
+            year,
+            false
+        );
+
+
+        setMonthCloseButtonState_(
+            'not_due',
             month,
             year
         );
