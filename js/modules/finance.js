@@ -405,7 +405,7 @@ if (snapshot) {
 
         totalPay,
 
-        closingBalance: totalPay
+        closingBalance: totalPay,
         isClosed: false
     };
 }
