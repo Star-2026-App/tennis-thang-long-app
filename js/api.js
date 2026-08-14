@@ -1,22 +1,956 @@
 // ======================================================
-// API.JS - CLEAN VERSION
+// API.JS - PHASE 3 DATA LOADING
 // ======================================================
 //
-// GET  : JSONP -> tránh CORS Google Apps Script
-// POST : no-cors + Backend chống trùng theo ID
+// GET:
+// - initialData   -> dữ liệu nền + MemberStats + Matches/Bookings tháng hiện tại
+// - monthData     -> Matches/Bookings của tháng được chọn
+// - analyticsData -> toàn bộ Matches, chỉ khi mở tab Phân tích
+//
+// GocLogs tạm thời vẫn tải toàn bộ để giữ nguyên logic Sổ Thu Chi.
+// POST giữ cơ chế no-cors + Backend chống trùng theo ID.
 //
 // ======================================================
+
+
+// ======================================================
+// PHASE 3 STATE
+// ======================================================
+
+window.memberStats =
+    Array.isArray(window.memberStats)
+        ? window.memberStats
+        : [];
+
+
+window.monthDataCache =
+    window.monthDataCache &&
+    typeof window.monthDataCache === "object"
+        ? window.monthDataCache
+        : {};
+
+
+window.analyticsMatches =
+    Array.isArray(window.analyticsMatches)
+        ? window.analyticsMatches
+        : [];
+
+
+window.analyticsDataLoaded =
+    window.analyticsDataLoaded === true;
+
+
+window.activeDataMonth =
+    parseInt(window.activeDataMonth) || 0;
+
+
+window.activeDataYear =
+    parseInt(window.activeDataYear) || 0;
+
+
+// ======================================================
+// COMMON HELPERS
+// ======================================================
+
+function getPhase3MonthKey_(
+    month,
+    year
+) {
+
+    return (
+        parseInt(year) +
+        "_" +
+        parseInt(month)
+    );
+}
+
+
+function normalizePhase3Name_(value) {
+
+    return String(
+        value || ""
+    )
+    .trim()
+    .toLowerCase();
+}
+
+
+function isPhase3GuestName_(value) {
+
+    let name =
+        normalizePhase3Name_(
+            value
+        );
+
+
+    return (
+        name === "khách mời" ||
+        name.indexOf(
+            "khách mời "
+        ) === 0
+    );
+}
+
+
+function getClientMonthYearFromTime_(
+    value
+) {
+
+    let text =
+        String(
+            value || ""
+        ).trim();
+
+
+    let match =
+        text.match(
+            /(\d{1,2})\/(\d{1,2})\/(\d{4})/
+        );
+
+
+    if (!match) {
+        return null;
+    }
+
+
+    return {
+
+        month:
+            parseInt(
+                match[2]
+            ) || 0,
+
+        year:
+            parseInt(
+                match[3]
+            ) || 0
+    };
+}
+
+
+function getCachedMonthData_(
+    month,
+    year
+) {
+
+    return (
+        window.monthDataCache[
+            getPhase3MonthKey_(
+                month,
+                year
+            )
+        ] ||
+        null
+    );
+}
+
+
+function setCachedMonthData_(
+    month,
+    year,
+    data
+) {
+
+    let key =
+        getPhase3MonthKey_(
+            month,
+            year
+        );
+
+
+    window.monthDataCache[
+        key
+    ] = {
+
+        month:
+            parseInt(month),
+
+        year:
+            parseInt(year),
+
+        matches:
+            Array.isArray(
+                data && data.matches
+            )
+                ? data.matches.slice()
+                : [],
+
+        bookingLogs:
+            Array.isArray(
+                data && data.bookingLogs
+            )
+                ? data.bookingLogs.slice()
+                : [],
+
+        loadedAt:
+            Date.now()
+    };
+
+
+    return window.monthDataCache[
+        key
+    ];
+}
+
+
+function activateCachedMonthData_(
+    month,
+    year
+) {
+
+    let cached =
+        getCachedMonthData_(
+            month,
+            year
+        );
+
+
+    if (!cached) {
+        return false;
+    }
+
+
+    matches =
+        cached.matches;
+
+
+    bookingLogs =
+        cached.bookingLogs;
+
+
+    window.activeDataMonth =
+        parseInt(month);
+
+
+    window.activeDataYear =
+        parseInt(year);
+
+
+    sortCollectionsByTime();
+
+
+    savePhase3LocalState_();
+
+
+    return true;
+}
+
+
+function getMonthMatchesCached_(
+    month,
+    year
+) {
+
+    let cached =
+        getCachedMonthData_(
+            month,
+            year
+        );
+
+
+    if (cached) {
+
+        return cached.matches || [];
+    }
+
+
+    if (
+        parseInt(
+            window.activeDataMonth
+        ) === parseInt(month) &&
+        parseInt(
+            window.activeDataYear
+        ) === parseInt(year)
+    ) {
+
+        return matches || [];
+    }
+
+
+    return [];
+}
+
+
+function getMonthBookingsCached_(
+    month,
+    year
+) {
+
+    let cached =
+        getCachedMonthData_(
+            month,
+            year
+        );
+
+
+    if (cached) {
+
+        return cached.bookingLogs || [];
+    }
+
+
+    if (
+        parseInt(
+            window.activeDataMonth
+        ) === parseInt(month) &&
+        parseInt(
+            window.activeDataYear
+        ) === parseInt(year)
+    ) {
+
+        return bookingLogs || [];
+    }
+
+
+    return [];
+}
+
+
+// ======================================================
+// MEMBER STATS LOCAL
+// ======================================================
+
+function getMemberStatLocal_(
+    memberName
+) {
+
+    let key =
+        normalizePhase3Name_(
+            memberName
+        );
+
+
+    return (
+        window.memberStats || []
+    )
+    .find(
+        function(item) {
+
+            return (
+                normalizePhase3Name_(
+                    item.name
+                ) === key
+            );
+        }
+    ) || null;
+}
+
+
+function applyMemberStatsMatchLocal_(
+    match,
+    multiplier
+) {
+
+    if (!match) {
+        return;
+    }
+
+
+    multiplier =
+        parseInt(
+            multiplier
+        ) || 0;
+
+
+    if (!multiplier) {
+        return;
+    }
+
+
+    let scoreA =
+        parseInt(
+            match.scoreA
+        ) || 0;
+
+
+    let scoreB =
+        parseInt(
+            match.scoreB
+        ) || 0;
+
+
+    let isDraw =
+        scoreA === scoreB;
+
+
+    let teamAResult =
+        isDraw
+            ? "DRAW"
+            : (
+                scoreA > scoreB
+                    ? "WIN"
+                    : "LOSS"
+            );
+
+
+    let teamBResult =
+        isDraw
+            ? "DRAW"
+            : (
+                scoreB > scoreA
+                    ? "WIN"
+                    : "LOSS"
+            );
+
+
+    function applyPlayer_(
+        name,
+        resultType
+    ) {
+
+        if (
+            !name ||
+            isPhase3GuestName_(
+                name
+            )
+        ) {
+            return;
+        }
+
+
+        let stat =
+            getMemberStatLocal_(
+                name
+            );
+
+
+        // MemberStats chỉ chứa thành viên thật hiện tại.
+        if (!stat) {
+            return;
+        }
+
+
+        if (
+            resultType ===
+            "WIN"
+        ) {
+
+            stat.wins =
+                Math.max(
+                    0,
+                    (
+                        parseInt(
+                            stat.wins
+                        ) || 0
+                    ) +
+                    multiplier
+                );
+        }
+
+
+        else if (
+            resultType ===
+            "LOSS"
+        ) {
+
+            stat.losses =
+                Math.max(
+                    0,
+                    (
+                        parseInt(
+                            stat.losses
+                        ) || 0
+                    ) +
+                    multiplier
+                );
+        }
+
+
+        else {
+
+            stat.draws =
+                Math.max(
+                    0,
+                    (
+                        parseInt(
+                            stat.draws
+                        ) || 0
+                    ) +
+                    multiplier
+                );
+        }
+
+
+        stat.totalMatches =
+            Math.max(
+                0,
+                (
+                    parseInt(
+                        stat.totalMatches
+                    ) || 0
+                ) +
+                multiplier
+            );
+    }
+
+
+    [
+        match.p1_v1,
+        match.p2_v1
+    ]
+    .forEach(
+        function(name) {
+
+            applyPlayer_(
+                name,
+                teamAResult
+            );
+        }
+    );
+
+
+    [
+        match.p1_v2,
+        match.p2_v2
+    ]
+    .forEach(
+        function(name) {
+
+            applyPlayer_(
+                name,
+                teamBResult
+            );
+        }
+    );
+}
+
+
+function invalidateAnalyticsCache_() {
+
+    window.analyticsMatches =
+        [];
+
+
+    window.analyticsDataLoaded =
+        false;
+}
+
+
+// ======================================================
+// LOCAL MONTH CACHE MUTATION
+// ======================================================
+
+function getOrCreateCacheForItemTime_(
+    timeValue
+) {
+
+    let parts =
+        getClientMonthYearFromTime_(
+            timeValue
+        );
+
+
+    if (!parts) {
+        return null;
+    }
+
+
+    let cache =
+        getCachedMonthData_(
+            parts.month,
+            parts.year
+        );
+
+
+    if (!cache) {
+
+        cache =
+            setCachedMonthData_(
+                parts.month,
+                parts.year,
+                {
+                    matches: [],
+                    bookingLogs: []
+                }
+            );
+    }
+
+
+    return cache;
+}
+
+
+function addMatchToLocalMonthCache_(
+    match
+) {
+
+    let cache =
+        getOrCreateCacheForItemTime_(
+            match && match.time
+        );
+
+
+    if (!cache) {
+        return;
+    }
+
+
+    let exists =
+        (cache.matches || [])
+        .some(
+            function(item) {
+
+                return (
+                    String(item.id) ===
+                    String(match.id)
+                );
+            }
+        );
+
+
+    if (!exists) {
+
+        cache.matches.unshift(
+            match
+        );
+    }
+
+
+    if (
+        cache.month ===
+            parseInt(
+                window.activeDataMonth
+            ) &&
+        cache.year ===
+            parseInt(
+                window.activeDataYear
+            )
+    ) {
+
+        matches =
+            cache.matches;
+    }
+}
+
+
+function addBookingToLocalMonthCache_(
+    booking
+) {
+
+    let cache =
+        getOrCreateCacheForItemTime_(
+            booking &&
+            booking.time
+        );
+
+
+    if (!cache) {
+        return;
+    }
+
+
+    let exists =
+        (cache.bookingLogs || [])
+        .some(
+            function(item) {
+
+                return (
+                    String(item.id) ===
+                    String(booking.id)
+                );
+            }
+        );
+
+
+    if (!exists) {
+
+        cache.bookingLogs.unshift(
+            booking
+        );
+    }
+
+
+    if (
+        cache.month ===
+            parseInt(
+                window.activeDataMonth
+            ) &&
+        cache.year ===
+            parseInt(
+                window.activeDataYear
+            )
+    ) {
+
+        bookingLogs =
+            cache.bookingLogs;
+    }
+}
+
+
+function findMatchInMonthCaches_(
+    id
+) {
+
+    let result =
+        null;
+
+
+    Object.keys(
+        window.monthDataCache || {}
+    )
+    .some(
+        function(key) {
+
+            let cache =
+                window.monthDataCache[
+                    key
+                ];
+
+
+            let match =
+                (cache.matches || [])
+                .find(
+                    function(item) {
+
+                        return (
+                            String(item.id) ===
+                            String(id)
+                        );
+                    }
+                );
+
+
+            if (match) {
+
+                result =
+                    match;
+
+                return true;
+            }
+
+
+            return false;
+        }
+    );
+
+
+    if (!result) {
+
+        result =
+            (matches || [])
+            .find(
+                function(item) {
+
+                    return (
+                        String(item.id) ===
+                        String(id)
+                    );
+                }
+            ) ||
+            null;
+    }
+
+
+    return result;
+}
+
+
+function updateMatchInMonthCaches_(
+    updated
+) {
+
+    Object.keys(
+        window.monthDataCache || {}
+    )
+    .forEach(
+        function(key) {
+
+            let cache =
+                window.monthDataCache[
+                    key
+                ];
+
+
+            let match =
+                (cache.matches || [])
+                .find(
+                    function(item) {
+
+                        return (
+                            String(item.id) ===
+                            String(updated.id)
+                        );
+                    }
+                );
+
+
+            if (match) {
+
+                Object.assign(
+                    match,
+                    updated
+                );
+            }
+        }
+    );
+}
+
+
+function removeIdFromMonthCaches_(
+    collectionName,
+    id
+) {
+
+    Object.keys(
+        window.monthDataCache || {}
+    )
+    .forEach(
+        function(key) {
+
+            let cache =
+                window.monthDataCache[
+                    key
+                ];
+
+
+            if (
+                !Array.isArray(
+                    cache[
+                        collectionName
+                    ]
+                )
+            ) {
+                return;
+            }
+
+
+            cache[
+                collectionName
+            ] =
+                cache[
+                    collectionName
+                ]
+                .filter(
+                    function(item) {
+
+                        return (
+                            String(item.id) !==
+                            String(id)
+                        );
+                    }
+                );
+        }
+    );
+
+
+    let active =
+        getCachedMonthData_(
+            window.activeDataMonth,
+            window.activeDataYear
+        );
+
+
+    if (active) {
+
+        matches =
+            active.matches;
+
+
+        bookingLogs =
+            active.bookingLogs;
+    }
+}
 
 
 // ======================================================
 // ACTION QUEUE
 // ======================================================
 
-function enqueueAction(actionName, payload, successMessage) {
+function enqueueAction(
+    actionName,
+    payload,
+    successMessage
+) {
 
-    payload.action = actionName;
+    payload.action =
+        actionName;
 
-    syncQueue.push(payload);
+
+    // ==================================================
+    // 0. CHỤP DỮ LIỆU CŨ TRƯỚC KHI OPTIMISTIC UPDATE
+    // ==================================================
+
+    let oldMatchForStats =
+        null;
+
+
+    if (
+        actionName ===
+            "updateMatch" &&
+        payload.match
+    ) {
+
+        let old =
+            findMatchInMonthCaches_(
+                payload.match.id
+            );
+
+
+        if (old) {
+
+            oldMatchForStats =
+                Object.assign(
+                    {},
+                    old
+                );
+        }
+    }
+
+
+    if (
+        actionName ===
+            "deleteItem" &&
+        payload.sheetName ===
+            "Matches"
+    ) {
+
+        let old =
+            findMatchInMonthCaches_(
+                payload.id
+            );
+
+
+        if (old) {
+
+            oldMatchForStats =
+                Object.assign(
+                    {},
+                    old
+                );
+        }
+    }
+
+
+    // ==================================================
+    // SNAPSHOT GÓC CHO TRẬN MỚI
+    // ==================================================
+
+    if (
+        actionName ===
+            "addMatch" &&
+        payload.match
+    ) {
+
+        if (
+            !parseInt(
+                payload.match.gocFee
+            )
+        ) {
+
+            payload.match.gocFee =
+                parseInt(
+                    systemSettings &&
+                    systemSettings
+                        .gocDefaultPerMatch
+                ) ||
+                10000;
+        }
+    }
+
+
+    syncQueue.push(
+        payload
+    );
 
 
     // ==================================================
@@ -24,90 +958,124 @@ function enqueueAction(actionName, payload, successMessage) {
     // ==================================================
 
     if (
-        actionName === "addMatch" &&
+        actionName ===
+            "addMatch" &&
         payload.match
     ) {
 
-        matches.unshift(payload.match);
+        addMatchToLocalMonthCache_(
+            payload.match
+        );
 
+
+        applyMemberStatsMatchLocal_(
+            payload.match,
+            1
+        );
+
+
+        invalidateAnalyticsCache_();
     }
 
 
     else if (
-        actionName === "updateMatch" &&
+        actionName ===
+            "updateMatch" &&
         payload.match
     ) {
 
-        let m =
-            matches.find(
-                x => x.id == payload.match.id
+        if (
+            oldMatchForStats
+        ) {
+
+            applyMemberStatsMatchLocal_(
+                oldMatchForStats,
+                -1
             );
-
-        if (m) {
-
-            m.scoreA =
-                payload.match.scoreA;
-
-            m.scoreB =
-                payload.match.scoreB;
-
-            m.specialBet =
-                payload.match.specialBet;
         }
 
+
+        let currentMatch =
+            findMatchInMonthCaches_(
+                payload.match.id
+            );
+
+
+        let merged =
+            Object.assign(
+                {},
+                currentMatch || {},
+                payload.match
+            );
+
+
+        updateMatchInMonthCaches_(
+            merged
+        );
+
+
+        applyMemberStatsMatchLocal_(
+            merged,
+            1
+        );
+
+
+        invalidateAnalyticsCache_();
     }
 
 
     else if (
-        actionName === "addGocLog" &&
+        actionName ===
+            "addGocLog" &&
         payload.gocLog
     ) {
 
+        // GocLogs tạm thời vẫn giữ toàn bộ lịch sử.
         gocLogs.unshift(
             payload.gocLog
         );
-
     }
 
 
     else if (
-        actionName === "addBooking" &&
+        actionName ===
+            "addBooking" &&
         payload.booking
     ) {
 
-        bookingLogs.unshift(
+        addBookingToLocalMonthCache_(
             payload.booking
         );
-
     }
 
 
     else if (
-        actionName === "addCashbook" &&
+        actionName ===
+            "addCashbook" &&
         payload.cashbook
     ) {
 
         cashbookLogs.unshift(
             payload.cashbook
         );
-
     }
 
 
     else if (
-        actionName === "addRule" &&
+        actionName ===
+            "addRule" &&
         payload.rule
     ) {
 
         rulesList.unshift(
             payload.rule
         );
-
     }
 
 
     else if (
-        actionName === "updateSettings" &&
+        actionName ===
+            "updateSettings" &&
         payload.settings
     ) {
 
@@ -117,12 +1085,12 @@ function enqueueAction(actionName, payload, successMessage) {
                 systemSettings,
                 payload.settings
             );
-
     }
 
 
     else if (
-        actionName === "deleteItem"
+        actionName ===
+            "deleteItem"
     ) {
 
         let id =
@@ -134,10 +1102,24 @@ function enqueueAction(actionName, payload, successMessage) {
             "Matches"
         ) {
 
-            matches =
-                matches.filter(
-                    x => x.id != id
+            if (
+                oldMatchForStats
+            ) {
+
+                applyMemberStatsMatchLocal_(
+                    oldMatchForStats,
+                    -1
                 );
+            }
+
+
+            removeIdFromMonthCaches_(
+                "matches",
+                id
+            );
+
+
+            invalidateAnalyticsCache_();
         }
 
 
@@ -146,10 +1128,10 @@ function enqueueAction(actionName, payload, successMessage) {
             "Bookings"
         ) {
 
-            bookingLogs =
-                bookingLogs.filter(
-                    x => x.id != id
-                );
+            removeIdFromMonthCaches_(
+                "bookingLogs",
+                id
+            );
         }
 
 
@@ -160,7 +1142,12 @@ function enqueueAction(actionName, payload, successMessage) {
 
             cashbookLogs =
                 cashbookLogs.filter(
-                    x => x.id != id
+                    function(x) {
+
+                        return (
+                            x.id != id
+                        );
+                    }
                 );
         }
 
@@ -172,7 +1159,12 @@ function enqueueAction(actionName, payload, successMessage) {
 
             gocLogs =
                 gocLogs.filter(
-                    x => x.id != id
+                    function(x) {
+
+                        return (
+                            x.id != id
+                        );
+                    }
                 );
         }
 
@@ -184,7 +1176,12 @@ function enqueueAction(actionName, payload, successMessage) {
 
             rulesList =
                 rulesList.filter(
-                    x => x.id != id
+                    function(x) {
+
+                        return (
+                            x.id != id
+                        );
+                    }
                 );
         }
 
@@ -196,7 +1193,12 @@ function enqueueAction(actionName, payload, successMessage) {
 
             quyLogs =
                 quyLogs.filter(
-                    x => x.id != id
+                    function(x) {
+
+                        return (
+                            x.id != id
+                        );
+                    }
                 );
         }
     }
@@ -204,21 +1206,24 @@ function enqueueAction(actionName, payload, successMessage) {
 
     sortCollectionsByTime();
 
+
     saveLocalData();
+
+
+    savePhase3LocalState_();
 
 
     // ==================================================
     // 2. RENDER CỤC BỘ
     // ==================================================
 
-
-    // TIỀN GÓC
     if (
         actionName === "addGocLog" ||
-
         (
-            actionName === "deleteItem" &&
-            payload.sheetName === "GocLogs"
+            actionName ===
+                "deleteItem" &&
+            payload.sheetName ===
+                "GocLogs"
         )
     ) {
 
@@ -226,7 +1231,6 @@ function enqueueAction(actionName, payload, successMessage) {
             typeof recalculateMemberPaidTotals ===
             "function"
         ) {
-
             recalculateMemberPaidTotals();
         }
 
@@ -267,13 +1271,14 @@ function enqueueAction(actionName, payload, successMessage) {
     }
 
 
-    // THƯỞNG ĐẶT SÂN
     else if (
-        actionName === "addBooking" ||
-
+        actionName ===
+            "addBooking" ||
         (
-            actionName === "deleteItem" &&
-            payload.sheetName === "Bookings"
+            actionName ===
+                "deleteItem" &&
+            payload.sheetName ===
+                "Bookings"
         )
     ) {
 
@@ -305,15 +1310,14 @@ function enqueueAction(actionName, payload, successMessage) {
     }
 
 
-    // TRẬN ĐẤU
     else if (
         actionName === "addMatch" ||
-
         actionName === "updateMatch" ||
-
         (
-            actionName === "deleteItem" &&
-            payload.sheetName === "Matches"
+            actionName ===
+                "deleteItem" &&
+            payload.sheetName ===
+                "Matches"
         )
     ) {
 
@@ -349,25 +1353,18 @@ function enqueueAction(actionName, payload, successMessage) {
         }
 
 
-        if (
-            typeof renderAnalyticsTab ===
-            "function"
-        ) {
-            renderAnalyticsTab();
-        }
-
-
         applyRolePermissions();
     }
 
 
-    // SỔ THU CHI
     else if (
-        actionName === "addCashbook" ||
-
+        actionName ===
+            "addCashbook" ||
         (
-            actionName === "deleteItem" &&
-            payload.sheetName === "Cashbook"
+            actionName ===
+                "deleteItem" &&
+            payload.sheetName ===
+                "Cashbook"
         )
     ) {
 
@@ -383,13 +1380,14 @@ function enqueueAction(actionName, payload, successMessage) {
     }
 
 
-    // QUY ĐỊNH
     else if (
-        actionName === "addRule" ||
-
+        actionName ===
+            "addRule" ||
         (
-            actionName === "deleteItem" &&
-            payload.sheetName === "Rules"
+            actionName ===
+                "deleteItem" &&
+            payload.sheetName ===
+                "Rules"
         )
     ) {
 
@@ -405,10 +1403,11 @@ function enqueueAction(actionName, payload, successMessage) {
     }
 
 
-    // QUỸ QUÝ
     else if (
-        actionName === "deleteItem" &&
-        payload.sheetName === "QuyLogs"
+        actionName ===
+            "deleteItem" &&
+        payload.sheetName ===
+            "QuyLogs"
     ) {
 
         if (
@@ -439,9 +1438,9 @@ function enqueueAction(actionName, payload, successMessage) {
     }
 
 
-    // SETTINGS
     else if (
-        actionName === "updateSettings"
+        actionName ===
+            "updateSettings"
     ) {
 
         if (
@@ -472,7 +1471,6 @@ function enqueueAction(actionName, payload, successMessage) {
     }
 
 
-    // ACTION KHÁC
     else {
 
         initApp();
@@ -500,7 +1498,6 @@ function processQueue() {
         syncQueue.length === 0 ||
         !GOOGLE_SCRIPT_URL
     ) {
-
         return;
     }
 
@@ -530,43 +1527,50 @@ function processQueue() {
             },
 
             body:
-                JSON.stringify(item)
+                JSON.stringify(
+                    item
+                )
         }
     )
 
-    .then(function() {
+    .then(
+        function() {
 
-        // Browser đã gửi request.
-        // Backend có lớp chống trùng theo ID.
-
-        syncQueue.shift();
-
-        isSyncing =
-            false;
+            syncQueue.shift();
 
 
-        saveLocalData();
+            isSyncing =
+                false;
 
 
-        if (
-            syncQueue.length > 0
-        ) {
+            saveLocalData();
 
-            processQueue();
+
+            savePhase3LocalState_();
+
+
+            if (
+                syncQueue.length > 0
+            ) {
+
+                processQueue();
+            }
         }
-    })
+    )
 
-    .catch(function(err) {
+    .catch(
+        function(err) {
 
-        console.error(
-            "POST CLOUD NETWORK ERROR:",
-            err
-        );
+            console.error(
+                "POST CLOUD NETWORK ERROR:",
+                err
+            );
 
 
-        isSyncing =
-            false;
-    });
+            isSyncing =
+                false;
+        }
+    );
 }
 
 
@@ -623,12 +1627,13 @@ function hideCloudLoading_() {
 
 
 // ======================================================
-// JSONP GET CLOUD DATA
+// GENERIC JSONP
 // ======================================================
 
-function fetchCloudData(
+function fetchJsonpPhase3_(
+    params,
     showSpinner,
-    onSuccess
+    callback
 ) {
 
     if (!GOOGLE_SCRIPT_URL) {
@@ -643,15 +1648,12 @@ function fetchCloudData(
 
 
     let callbackName =
-
-        "__thanglong_cloud_" +
-
+        "__thanglong_phase3_" +
         Date.now() +
-
         "_" +
-
         Math.floor(
-            Math.random() * 100000
+            Math.random() *
+            100000
         );
 
 
@@ -665,15 +1667,29 @@ function fetchCloudData(
         false;
 
 
-    let timeoutId =
+    let slowTimer =
         null;
 
 
-    // ==================================================
-    // CLEANUP
-    // ==================================================
+    function removeScript_() {
 
-    function cleanup_() {
+        if (
+            script &&
+            script.parentNode
+        ) {
+
+            script.parentNode
+                .removeChild(
+                    script
+                );
+        }
+    }
+
+
+    function finish_(
+        error,
+        data
+    ) {
 
         if (finished) {
             return;
@@ -684,135 +1700,125 @@ function fetchCloudData(
             true;
 
 
-        if (timeoutId) {
+        if (slowTimer) {
 
             clearTimeout(
-                timeoutId
+                slowTimer
             );
         }
 
 
-        try {
-
-            delete window[
-                callbackName
-            ];
-
-        } catch (e) {
-
-            window[
-                callbackName
-            ] =
-                undefined;
-        }
-
-
-        if (
-            script &&
-            script.parentNode
-        ) {
-
-            script.parentNode.removeChild(
-                script
-            );
-        }
+        removeScript_();
 
 
         if (showSpinner) {
 
             hideCloudLoading_();
         }
+
+
+        if (
+            typeof callback ===
+            "function"
+        ) {
+
+            callback(
+                error,
+                data
+            );
+        }
+
+
+        // Sau khi nhận response thật mới dọn callback.
+        setTimeout(
+            function() {
+
+                try {
+
+                    delete window[
+                        callbackName
+                    ];
+
+                } catch (e) {
+
+                    window[
+                        callbackName
+                    ] =
+                        undefined;
+                }
+            },
+            0
+        );
     }
 
-
-    // ==================================================
-    // JSONP CALLBACK
-    //
-    // BIẾN data CHỈ TỒN TẠI TRONG HÀM NÀY
-    // ==================================================
 
     window[
         callbackName
     ] = function(data) {
 
-        if (finished) {
+        if (
+            !data
+        ) {
+
+            finish_(
+                new Error(
+                    "Apps Script không trả dữ liệu."
+                ),
+                null
+            );
+
             return;
         }
 
 
-        if (!data) {
-
-            console.error(
-                "JSONP CLOUD ERROR: Không có dữ liệu."
-            );
-
-
-            cleanup_();
-
-            return;
-        }
-
-
-        try {
-
-            updateStateFromCloud(
-                data
-            );
-
-
-            if (
-                typeof onSuccess ===
-                "function"
-            ) {
-
-                onSuccess(
-                    data
-                );
-            }
-
-        } catch (err) {
-
-            console.error(
-                "UPDATE CLOUD STATE ERROR:",
-                err
-            );
-
-        } finally {
-
-            cleanup_();
-        }
+        finish_(
+            null,
+            data
+        );
     };
 
-
-    // ==================================================
-    // LOAD ERROR
-    // ==================================================
 
     script.onerror =
         function() {
 
-            if (finished) {
-                return;
+            // Giữ callback an toàn để response muộn không gây ReferenceError.
+            window[
+                callbackName
+            ] = function() {};
+
+
+            removeScript_();
+
+
+            if (showSpinner) {
+
+                hideCloudLoading_();
             }
 
 
-            console.error(
-                "JSONP CLOUD ERROR: Không tải được Apps Script."
-            );
+            if (
+                !finished &&
+                typeof callback ===
+                    "function"
+            ) {
+
+                finished =
+                    true;
 
 
-            cleanup_();
+                callback(
+                    new Error(
+                        "Không tải được Apps Script."
+                    ),
+                    null
+                );
+            }
         };
 
 
-    // ==================================================
-    // SLOW CLOUD
-    //
-    // 15 giây chỉ ẩn loading.
+    // 15 giây chỉ báo chậm và ẩn spinner.
     // Không xóa callback.
-    // ==================================================
-
-    timeoutId =
+    slowTimer =
         setTimeout(
             function() {
 
@@ -828,39 +1834,60 @@ function fetchCloudData(
 
 
                 console.warn(
-                    "JSONP CLOUD SLOW - vẫn tiếp tục chờ dữ liệu..."
+                    "PHASE3 JSONP SLOW - vẫn tiếp tục chờ dữ liệu..."
                 );
-
             },
             15000
         );
 
 
-    // ==================================================
-    // JSONP URL
-    // ==================================================
+    let query =
+        Object.keys(
+            params || {}
+        )
+        .map(
+            function(key) {
+
+                return (
+                    encodeURIComponent(
+                        key
+                    ) +
+                    "=" +
+                    encodeURIComponent(
+                        params[
+                            key
+                        ]
+                    )
+                );
+            }
+        );
+
+
+    query.push(
+        "prefix=" +
+        encodeURIComponent(
+            callbackName
+        )
+    );
+
+
+    query.push(
+        "_=" +
+        Date.now()
+    );
+
 
     let separator =
-        GOOGLE_SCRIPT_URL.includes("?")
-            ? "&"
-            : "?";
+        GOOGLE_SCRIPT_URL
+            .includes("?")
+                ? "&"
+                : "?";
 
 
     script.src =
-
         GOOGLE_SCRIPT_URL +
-
         separator +
-
-        "prefix=" +
-
-        encodeURIComponent(
-            callbackName
-        ) +
-
-        "&_=" +
-
-        Date.now();
+        query.join("&");
 
 
     script.async =
@@ -874,10 +1901,73 @@ function fetchCloudData(
 
 
 // ======================================================
-// UPDATE TOÀN BỘ STATE TỪ CLOUD
+// INITIAL CLOUD DATA
 // ======================================================
 
-function updateStateFromCloud(data) {
+function fetchCloudData(
+    showSpinner,
+    onSuccess
+) {
+
+    fetchJsonpPhase3_(
+        {
+            action:
+                "initialData"
+        },
+        showSpinner,
+        function(
+            error,
+            data
+        ) {
+
+            if (error) {
+
+                console.error(
+                    "INITIAL DATA ERROR:",
+                    error
+                );
+
+                return;
+            }
+
+
+            try {
+
+                updateStateFromCloud(
+                    data
+                );
+
+
+                if (
+                    typeof onSuccess ===
+                    "function"
+                ) {
+
+                    onSuccess(
+                        data
+                    );
+                }
+
+
+            } catch (err) {
+
+                console.error(
+                    "UPDATE INITIAL STATE ERROR:",
+                    err
+                );
+            }
+        }
+    );
+}
+
+
+// ======================================================
+// UPDATE INITIAL STATE
+// ======================================================
+
+function updateStateFromCloud(
+    data
+) {
 
     if (!data) {
 
@@ -889,7 +1979,6 @@ function updateStateFromCloud(data) {
     }
 
 
-    // MEMBERS
     if (
         data.members &&
         data.members.length > 0
@@ -900,31 +1989,17 @@ function updateStateFromCloud(data) {
     }
 
 
-    // MATCHES
     if (
         Array.isArray(
-            data.matches
+            data.memberStats
         )
     ) {
 
-        matches =
-            data.matches;
+        window.memberStats =
+            data.memberStats;
     }
 
 
-    // BOOKINGS
-    if (
-        Array.isArray(
-            data.bookingLogs
-        )
-    ) {
-
-        bookingLogs =
-            data.bookingLogs;
-    }
-
-
-    // CASHBOOK
     if (
         Array.isArray(
             data.cashbookLogs
@@ -936,7 +2011,7 @@ function updateStateFromCloud(data) {
     }
 
 
-    // GOC LOGS
+    // GocLogs giữ toàn bộ ở Phase 3 bước này.
     if (
         Array.isArray(
             data.gocLogs
@@ -948,7 +2023,6 @@ function updateStateFromCloud(data) {
     }
 
 
-    // QUY LOGS
     if (
         Array.isArray(
             data.quyLogs
@@ -960,7 +2034,6 @@ function updateStateFromCloud(data) {
     }
 
 
-    // MONTHLY BALANCES
     if (
         Array.isArray(
             data.monthlyBalances
@@ -977,7 +2050,6 @@ function updateStateFromCloud(data) {
     }
 
 
-    // RULES
     if (
         Array.isArray(
             data.rules
@@ -989,7 +2061,6 @@ function updateStateFromCloud(data) {
     }
 
 
-    // OPENING BALANCE
     if (
         data.openingBalance !==
         undefined
@@ -1000,7 +2071,6 @@ function updateStateFromCloud(data) {
     }
 
 
-    // SETTINGS
     if (
         data.settings
     ) {
@@ -1014,13 +2084,514 @@ function updateStateFromCloud(data) {
     }
 
 
-    // ==================================================
-    // HOÀN TẤT
-    // ==================================================
+    let loadedMonth =
+        parseInt(
+            data.loadedMonth
+        );
+
+
+    let loadedYear =
+        parseInt(
+            data.loadedYear
+        );
+
+
+    if (
+        loadedMonth &&
+        loadedYear
+    ) {
+
+        setCachedMonthData_(
+            loadedMonth,
+            loadedYear,
+            {
+                matches:
+                    data.matches || [],
+
+                bookingLogs:
+                    data.bookingLogs || []
+            }
+        );
+
+
+        activateCachedMonthData_(
+            loadedMonth,
+            loadedYear
+        );
+    }
+
 
     sortCollectionsByTime();
 
+
     saveLocalData();
 
+
+    savePhase3LocalState_();
+
+
     initApp();
+}
+
+
+// ======================================================
+// MONTH DATA
+// ======================================================
+
+function fetchMonthData(
+    month,
+    year,
+    showSpinner,
+    onSuccess,
+    forceReload
+) {
+
+    month =
+        parseInt(
+            month
+        );
+
+
+    year =
+        parseInt(
+            year
+        );
+
+
+    let cached =
+        getCachedMonthData_(
+            month,
+            year
+        );
+
+
+    if (
+        cached &&
+        forceReload !== true
+    ) {
+
+        activateCachedMonthData_(
+            month,
+            year
+        );
+
+
+        renderMonthDependentViews_();
+
+
+        if (
+            typeof onSuccess ===
+            "function"
+        ) {
+
+            onSuccess(
+                cached
+            );
+        }
+
+
+        return;
+    }
+
+
+    fetchJsonpPhase3_(
+        {
+            action:
+                "monthData",
+
+            month:
+                month,
+
+            year:
+                year
+        },
+        showSpinner,
+        function(
+            error,
+            data
+        ) {
+
+            if (error) {
+
+                console.error(
+                    "MONTH DATA ERROR:",
+                    error
+                );
+
+
+                showToast(
+                    `Chưa tải được dữ liệu tháng ${month}/${year}.`
+                );
+
+                return;
+            }
+
+
+            if (
+                !data ||
+                data.status !==
+                    "SUCCESS"
+            ) {
+
+                console.error(
+                    "MONTH DATA INVALID:",
+                    data
+                );
+
+
+                showToast(
+                    `Dữ liệu tháng ${month}/${year} không hợp lệ.`
+                );
+
+                return;
+            }
+
+
+            setCachedMonthData_(
+                month,
+                year,
+                {
+                    matches:
+                        data.matches || [],
+
+                    bookingLogs:
+                        data.bookingLogs || []
+                }
+            );
+
+
+            activateCachedMonthData_(
+                month,
+                year
+            );
+
+
+            saveLocalData();
+
+
+            savePhase3LocalState_();
+
+
+            renderMonthDependentViews_();
+
+
+            if (
+                typeof onSuccess ===
+                "function"
+            ) {
+
+                onSuccess(
+                    data
+                );
+            }
+        }
+    );
+}
+
+
+function renderMonthDependentViews_() {
+
+    if (
+        typeof recalculateMemberPaidTotals ===
+        "function"
+    ) {
+
+        recalculateMemberPaidTotals();
+    }
+
+
+    if (
+        typeof renderGamification ===
+        "function"
+    ) {
+
+        renderGamification();
+    }
+
+
+    if (
+        typeof renderDashboard ===
+        "function"
+    ) {
+
+        renderDashboard();
+    }
+
+
+    if (
+        typeof renderFinance ===
+        "function"
+    ) {
+
+        renderFinance();
+    }
+
+
+    if (
+        typeof renderAllMatchLog ===
+        "function"
+    ) {
+
+        renderAllMatchLog();
+    }
+
+
+    if (
+        typeof renderBookingLogs ===
+        "function"
+    ) {
+
+        renderBookingLogs();
+    }
+
+
+    applyRolePermissions();
+}
+
+
+// ======================================================
+// ANALYTICS DATA - LAZY LOAD
+// ======================================================
+
+function fetchAnalyticsData(
+    showSpinner,
+    onSuccess,
+    forceReload
+) {
+
+    if (
+        window.analyticsDataLoaded ===
+            true &&
+        Array.isArray(
+            window.analyticsMatches
+        ) &&
+        forceReload !== true
+    ) {
+
+        if (
+            typeof onSuccess ===
+            "function"
+        ) {
+
+            onSuccess(
+                window.analyticsMatches
+            );
+        }
+
+
+        return;
+    }
+
+
+    fetchJsonpPhase3_(
+        {
+            action:
+                "analyticsData"
+        },
+        showSpinner,
+        function(
+            error,
+            data
+        ) {
+
+            if (error) {
+
+                console.error(
+                    "ANALYTICS DATA ERROR:",
+                    error
+                );
+
+
+                showToast(
+                    "Chưa tải được dữ liệu Phân tích."
+                );
+
+                return;
+            }
+
+
+            if (
+                !data ||
+                !Array.isArray(
+                    data.matches
+                )
+            ) {
+
+                console.error(
+                    "ANALYTICS DATA INVALID:",
+                    data
+                );
+
+                return;
+            }
+
+
+            window.analyticsMatches =
+                data.matches;
+
+
+            window.analyticsDataLoaded =
+                true;
+
+
+            if (
+                typeof onSuccess ===
+                "function"
+            ) {
+
+                onSuccess(
+                    window.analyticsMatches
+                );
+            }
+        }
+    );
+}
+
+
+// ======================================================
+// PHASE 3 LOCAL STORAGE
+// ======================================================
+
+function savePhase3LocalState_() {
+
+    try {
+
+        localStorage.setItem(
+            "clb_memberStats_phase3",
+            JSON.stringify(
+                window.memberStats || []
+            )
+        );
+
+
+        localStorage.setItem(
+            "clb_activeMonth_phase3",
+            String(
+                window.activeDataMonth || 0
+            )
+        );
+
+
+        localStorage.setItem(
+            "clb_activeYear_phase3",
+            String(
+                window.activeDataYear || 0
+            )
+        );
+
+
+    } catch (err) {
+
+        console.warn(
+            "SAVE PHASE3 LOCAL ERROR:",
+            err
+        );
+    }
+}
+
+
+function restorePhase3LocalState_(
+    currentMonth,
+    currentYear
+) {
+
+    try {
+
+        let storedStats =
+            JSON.parse(
+                localStorage.getItem(
+                    "clb_memberStats_phase3"
+                ) ||
+                "[]"
+            );
+
+
+        if (
+            Array.isArray(
+                storedStats
+            )
+        ) {
+
+            window.memberStats =
+                storedStats;
+        }
+
+
+        let storedMonth =
+            parseInt(
+                localStorage.getItem(
+                    "clb_activeMonth_phase3"
+                )
+            ) || 0;
+
+
+        let storedYear =
+            parseInt(
+                localStorage.getItem(
+                    "clb_activeYear_phase3"
+                )
+            ) || 0;
+
+
+        if (
+            storedMonth ===
+                parseInt(
+                    currentMonth
+                ) &&
+            storedYear ===
+                parseInt(
+                    currentYear
+                )
+        ) {
+
+            setCachedMonthData_(
+                storedMonth,
+                storedYear,
+                {
+                    matches:
+                        matches || [],
+
+                    bookingLogs:
+                        bookingLogs || []
+                }
+            );
+
+
+            activateCachedMonthData_(
+                storedMonth,
+                storedYear
+            );
+
+
+        } else {
+
+            // Tránh hiển thị nhầm dữ liệu tháng cũ ngay khi mở app.
+            matches =
+                [];
+
+
+            bookingLogs =
+                [];
+
+
+            window.activeDataMonth =
+                parseInt(
+                    currentMonth
+                );
+
+
+            window.activeDataYear =
+                parseInt(
+                    currentYear
+                );
+        }
+
+
+    } catch (err) {
+
+        console.warn(
+            "RESTORE PHASE3 LOCAL ERROR:",
+            err
+        );
+    }
 }
