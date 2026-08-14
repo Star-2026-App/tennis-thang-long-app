@@ -852,46 +852,219 @@ thead th {
         text-align: center;
     }
 
-
-    /* =====================================================
-       G. TIỀN GÓC
-       ===================================================== */
-
-    /*
-     * Giữ phong cách phiên bản đầu.
-     * Table kéo ngang.
-     */
-
-    #tab-finance table {
-        min-width: 1200px;
-    }
-
-
-    /*
-     * Tên thành viên wrap.
-     */
-
-    #tab-finance th:nth-child(2),
-    #tab-finance td:nth-child(2) {
-
-        min-width: 175px;
-        max-width: 185px;
-
-        white-space: normal !important;
-        line-height: 1.4;
-    }
-
-
-    /*
-     * Các cột số liệu giữ gọn.
-     */
-
-    #tab-finance td:not(:nth-child(2)) {
-        white-space: nowrap;
-    }
-
-
-    /* =====================================================
+            /* =====================================================
+         G. TIỀN GÓC
+         ===================================================== */
+         
+         /*
+          * Mobile:
+          * vùng nhìn chính ưu tiên:
+          *
+          * Tên thành viên
+          * Thắng
+          * Thua
+          * Hòa
+          * Số trận
+          * Tỷ lệ %
+          *
+          * Các cột tài chính nằm tiếp về bên phải
+          * và chỉ xuất hiện khi kéo ngang.
+          */
+         
+         #tab-finance .overflow-x-auto {
+             overflow-x: auto !important;
+             overflow-y: visible;
+             max-width: 100%;
+             -webkit-overflow-scrolling: touch;
+             overscroll-behavior-x: contain;
+         }
+         
+         #tab-finance table {
+             min-width: 1180px;
+         }
+         
+         
+         /*
+          * STT không phải thông tin ưu tiên trên mobile.
+          * Ẩn riêng cột STT để dành diện tích
+          * cho 6 cột thống kê chính.
+          */
+         #tab-finance th:nth-child(1),
+         #tab-finance td:nth-child(1) {
+             display: none;
+         }
+         
+         
+         /*
+          * TÊN THÀNH VIÊN
+          * Wrap vừa phải.
+          */
+         #tab-finance th:nth-child(2),
+         #tab-finance td:nth-child(2) {
+             min-width: 118px;
+             width: 118px;
+             max-width: 118px;
+         
+             white-space: normal !important;
+             word-break: normal !important;
+             overflow-wrap: break-word !important;
+         
+             line-height: 1.35;
+         }
+         
+         
+         /*
+          * THẮNG / THUA / HÒA
+          */
+         #tab-finance th:nth-child(3),
+         #tab-finance td:nth-child(3),
+         
+         #tab-finance th:nth-child(4),
+         #tab-finance td:nth-child(4),
+         
+         #tab-finance th:nth-child(5),
+         #tab-finance td:nth-child(5) {
+             min-width: 44px;
+             width: 44px;
+             max-width: 44px;
+         
+             padding-left: 4px !important;
+             padding-right: 4px !important;
+         
+             text-align: center;
+             white-space: nowrap !important;
+         }
+         
+         
+         /*
+          * SỐ TRẬN
+          */
+         #tab-finance th:nth-child(6),
+         #tab-finance td:nth-child(6) {
+             min-width: 54px;
+             width: 54px;
+             max-width: 54px;
+         
+             padding-left: 4px !important;
+             padding-right: 4px !important;
+         
+             text-align: center;
+             white-space: normal !important;
+             line-height: 1.25;
+         }
+         
+         
+         /*
+          * TỶ LỆ %
+          */
+         #tab-finance th:nth-child(7),
+         #tab-finance td:nth-child(7) {
+             min-width: 58px;
+             width: 58px;
+             max-width: 58px;
+         
+             padding-left: 4px !important;
+             padding-right: 4px !important;
+         
+             text-align: center;
+             white-space: normal !important;
+             line-height: 1.25;
+         }
+         
+         
+         /*
+          * CÁC CỘT TÀI CHÍNH
+          * chỉ hiện khi người dùng kéo ngang.
+          */
+         #tab-finance th:nth-child(8),
+         #tab-finance td:nth-child(8),
+         
+         #tab-finance th:nth-child(9),
+         #tab-finance td:nth-child(9),
+         
+         #tab-finance th:nth-child(10),
+         #tab-finance td:nth-child(10),
+         
+         #tab-finance th:nth-child(11),
+         #tab-finance td:nth-child(11) {
+             min-width: 108px;
+             text-align: center;
+             white-space: normal !important;
+         }
+         
+         
+         /*
+          * DƯ/NỢ CUỐI KỲ
+          * rộng hơn vì có thêm chú thích Thưởng sân.
+          */
+         #tab-finance th:nth-child(12),
+         #tab-finance td:nth-child(12) {
+             min-width: 145px;
+             text-align: center;
+             white-space: normal !important;
+         }
+         
+         
+         /*
+          * QR / Sửa Dư-Nợ
+          */
+         #tab-finance th:nth-child(13),
+         #tab-finance td:nth-child(13) {
+             min-width: 125px;
+             text-align: center;
+             white-space: nowrap !important;
+         }
+         
+         
+         /*
+          * TIỀN THÔNG THƯỜNG
+          *
+          * Ví dụ:
+          *
+          * 140.000
+          * đ
+          *
+          * Desktop vẫn giữ dạng inline,
+          * chỉ mobile mới xuống 2 dòng.
+          */
+         #tab-finance .finance-money-number,
+         #tab-finance .finance-money-unit {
+             display: block;
+         }
+         
+         #tab-finance .finance-money-number {
+             line-height: 1.15;
+         }
+         
+         #tab-finance .finance-money-unit {
+             margin-top: 2px;
+             line-height: 1;
+         }
+         
+         
+         /*
+          * RIÊNG CHÚ THÍCH THƯỞNG SÂN:
+          *
+          * Thưởng sân:
+          * -30.000 đ
+          *
+          * Số tiền và "đ" cùng 1 dòng.
+          */
+         #tab-finance .finance-reward-hint {
+             margin-top: 4px;
+             line-height: 1.25;
+         }
+         
+         #tab-finance .finance-reward-label,
+         #tab-finance .finance-reward-value {
+             display: block;
+             white-space: nowrap;
+         }
+         
+         #tab-finance .finance-reward-value {
+             margin-top: 2px;
+         }
+       /* =====================================================
        H. PHÂN TÍCH
        ===================================================== */
 
