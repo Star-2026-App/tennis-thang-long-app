@@ -1,114 +1,892 @@
+// ======================================================
+// UI CHUNG
+// ======================================================
+
 function showToast(msg) {
-    let toast = document.getElementById('appToast');
-    let msgSpan = document.getElementById('toastMsg');
-    if (!toast || !msgSpan) return;
-    msgSpan.innerText = msg;
-    toast.classList.remove('translate-y-12', 'opacity-0');
-    setTimeout(() => { toast.classList.add('translate-y-12', 'opacity-0'); }, 2500);
+
+    let toast =
+        document.getElementById(
+            'appToast'
+        );
+
+    let msgSpan =
+        document.getElementById(
+            'toastMsg'
+        );
+
+
+    if (
+        !toast ||
+        !msgSpan
+    ) {
+        return;
+    }
+
+
+    msgSpan.innerText =
+        msg;
+
+
+    toast.classList.remove(
+        'translate-y-12',
+        'opacity-0'
+    );
+
+
+    setTimeout(
+        function() {
+
+            toast.classList.add(
+                'translate-y-12',
+                'opacity-0'
+            );
+        },
+        2500
+    );
 }
 
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('border-amber-400', 'text-amber-300', 'font-bold', 'bg-emerald-800'));
-    document.getElementById('tab-' + tabId).classList.add('active');
-    let activeBtn = document.getElementById('btn-' + tabId);
-    if (activeBtn) activeBtn.classList.add('border-amber-400', 'text-amber-300', 'font-bold', 'bg-emerald-800');
-    
-    document.getElementById('mobileMenuDrawer').classList.add('hidden');
 
-    if (tabId === 'analytics') {
+// ======================================================
+// TAB
+// ======================================================
+
+function switchTab(tabId) {
+
+    document
+        .querySelectorAll(
+            '.tab-content'
+        )
+        .forEach(
+            function(el) {
+
+                el.classList.remove(
+                    'active'
+                );
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            '.tab-btn'
+        )
+        .forEach(
+            function(el) {
+
+                el.classList.remove(
+                    'border-amber-400',
+                    'text-amber-300',
+                    'font-bold',
+                    'bg-emerald-800'
+                );
+            }
+        );
+
+
+    let targetTab =
+        document.getElementById(
+            'tab-' + tabId
+        );
+
+
+    if (!targetTab) {
+        return;
+    }
+
+
+    targetTab.classList.add(
+        'active'
+    );
+
+
+    let activeBtn =
+        document.getElementById(
+            'btn-' + tabId
+        );
+
+
+    if (activeBtn) {
+
+        activeBtn.classList.add(
+            'border-amber-400',
+            'text-amber-300',
+            'font-bold',
+            'bg-emerald-800'
+        );
+    }
+
+
+    let mobileDrawer =
+        document.getElementById(
+            'mobileMenuDrawer'
+        );
+
+
+    if (mobileDrawer) {
+
+        mobileDrawer.classList.add(
+            'hidden'
+        );
+    }
+
+
+    if (
+        tabId ===
+            'analytics' &&
+        typeof renderAnalyticsTab ===
+            'function'
+    ) {
+
         renderAnalyticsTab();
     }
 }
 
-function switchTabMobile(tabId, label) {
-    document.getElementById('currentActiveTabLabel').innerText = label;
-    switchTab(tabId);
+
+function switchTabMobile(
+    tabId,
+    label
+) {
+
+    let labelEl =
+        document.getElementById(
+            'currentActiveTabLabel'
+        );
+
+
+    if (labelEl) {
+
+        labelEl.innerText =
+            label;
+    }
+
+
+    switchTab(
+        tabId
+    );
 }
+
 
 function toggleMobileMenu() {
-    let drawer = document.getElementById('mobileMenuDrawer');
-    if (drawer.classList.contains('hidden')) drawer.classList.remove('hidden');
-    else drawer.classList.add('hidden');
+
+    let drawer =
+        document.getElementById(
+            'mobileMenuDrawer'
+        );
+
+
+    if (!drawer) {
+        return;
+    }
+
+
+    if (
+        drawer.classList.contains(
+            'hidden'
+        )
+    ) {
+
+        drawer.classList.remove(
+            'hidden'
+        );
+
+    } else {
+
+        drawer.classList.add(
+            'hidden'
+        );
+    }
 }
+
+
+// ======================================================
+// USER PROFILE
+// ======================================================
 
 function openUserProfileModal() {
-    let modal = document.getElementById('userProfileModal');
-    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+
+    let modal =
+        document.getElementById(
+            'userProfileModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            'hidden'
+        );
+
+        modal.classList.add(
+            'flex'
+        );
+    }
 }
+
 
 function closeUserProfileModal() {
-    let modal = document.getElementById('userProfileModal');
-    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+    let modal =
+        document.getElementById(
+            'userProfileModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            'hidden'
+        );
+
+        modal.classList.remove(
+            'flex'
+        );
+    }
 }
 
-function showActionConfirm(message, callback) {
-    document.getElementById('actionConfirmText').innerText = message;
-    pendingActionCallback = callback;
-    let modal = document.getElementById('actionConfirmModal');
-    
-    let okBtn = document.getElementById('actionConfirmOkBtn');
-    okBtn.onclick = function() {
-        closeActionConfirmModal(true);
-    };
 
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+// ======================================================
+// CONFIRM
+// ======================================================
+
+function showActionConfirm(
+    message,
+    callback
+) {
+
+    let textEl =
+        document.getElementById(
+            'actionConfirmText'
+        );
+
+
+    if (textEl) {
+
+        textEl.innerText =
+            message;
+    }
+
+
+    pendingActionCallback =
+        callback;
+
+
+    let modal =
+        document.getElementById(
+            'actionConfirmModal'
+        );
+
+
+    let okBtn =
+        document.getElementById(
+            'actionConfirmOkBtn'
+        );
+
+
+    if (
+        !modal ||
+        !okBtn
+    ) {
+        return;
+    }
+
+
+    okBtn.onclick =
+        function() {
+
+            closeActionConfirmModal(
+                true
+            );
+        };
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
 }
 
-function closeActionConfirmModal(isConfirmed) {
-    let modal = document.getElementById('actionConfirmModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    if (isConfirmed && typeof pendingActionCallback === 'function') {
+
+function closeActionConfirmModal(
+    isConfirmed
+) {
+
+    let modal =
+        document.getElementById(
+            'actionConfirmModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            'hidden'
+        );
+
+        modal.classList.remove(
+            'flex'
+        );
+    }
+
+
+    if (
+        isConfirmed &&
+        typeof pendingActionCallback ===
+            'function'
+    ) {
+
         pendingActionCallback();
     }
-    pendingActionCallback = null;
+
+
+    pendingActionCallback =
+        null;
 }
 
-function showCustomConfirm(message, onConfirm) {
-    let modal = document.getElementById('customConfirmModal');
-    let textEl = document.getElementById('customConfirmText');
-    let okBtn = document.getElementById('customConfirmOkBtn');
-    let cancelBtn = document.getElementById('customConfirmCancelBtn');
 
-    textEl.innerText = message;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+function showCustomConfirm(
+    message,
+    onConfirm
+) {
 
-    let newOkBtn = okBtn.cloneNode(true);
-    let newCancelBtn = cancelBtn.cloneNode(true);
-    okBtn.parentNode.replaceChild(newOkBtn, okBtn);
-    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    let modal =
+        document.getElementById(
+            'customConfirmModal'
+        );
 
-    newOkBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        onConfirm(true);
-    });
+    let textEl =
+        document.getElementById(
+            'customConfirmText'
+        );
 
-    newCancelBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        onConfirm(false);
-    });
+    let okBtn =
+        document.getElementById(
+            'customConfirmOkBtn'
+        );
+
+    let cancelBtn =
+        document.getElementById(
+            'customConfirmCancelBtn'
+        );
+
+
+    if (
+        !modal ||
+        !textEl ||
+        !okBtn ||
+        !cancelBtn
+    ) {
+        return;
+    }
+
+
+    textEl.innerText =
+        message;
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
+
+
+    let newOkBtn =
+        okBtn.cloneNode(
+            true
+        );
+
+
+    let newCancelBtn =
+        cancelBtn.cloneNode(
+            true
+        );
+
+
+    okBtn.parentNode.replaceChild(
+        newOkBtn,
+        okBtn
+    );
+
+
+    cancelBtn.parentNode.replaceChild(
+        newCancelBtn,
+        cancelBtn
+    );
+
+
+    newOkBtn.addEventListener(
+        'click',
+        function() {
+
+            modal.classList.add(
+                'hidden'
+            );
+
+            modal.classList.remove(
+                'flex'
+            );
+
+            onConfirm(
+                true
+            );
+        }
+    );
+
+
+    newCancelBtn.addEventListener(
+        'click',
+        function() {
+
+            modal.classList.add(
+                'hidden'
+            );
+
+            modal.classList.remove(
+                'flex'
+            );
+
+            onConfirm(
+                false
+            );
+        }
+    );
 }
+
+
+// ======================================================
+// BẢNG VÀNG
+// ======================================================
 
 function openNotificationModal() {
-    renderGamification();
-    document.getElementById('notificationModal').classList.remove('hidden');
-    document.getElementById('notificationModal').classList.add('flex');
+
+    if (
+        typeof renderGamification ===
+        'function'
+    ) {
+
+        renderGamification();
+    }
+
+
+    let modal =
+        document.getElementById(
+            'notificationModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            'hidden'
+        );
+
+        modal.classList.add(
+            'flex'
+        );
+    }
 }
+
 
 function closeNotificationModal() {
-    document.getElementById('notificationModal').classList.add('hidden');
-    document.getElementById('notificationModal').classList.remove('flex');
+
+    let modal =
+        document.getElementById(
+            'notificationModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            'hidden'
+        );
+
+        modal.classList.remove(
+            'flex'
+        );
+    }
 }
 
+
+// ======================================================
+// EXCEL
+// ======================================================
+
 function exportToExcel() {
-    let wb = XLSX.utils.book_new();
-    let wsMem = XLSX.utils.json_to_sheet(members); XLSX.utils.book_append_sheet(wb, wsMem, "ThanhVien");
-    let wsMatch = XLSX.utils.json_to_sheet(matches); XLSX.utils.book_append_sheet(wb, wsMatch, "TranDau");
-    let wsGoc = XLSX.utils.json_to_sheet(gocLogs); XLSX.utils.book_append_sheet(wb, wsGoc, "NopTienGoc");
-    XLSX.writeFile(wb, "CLB_Tennis_Thang_Long_Ver1.2_Backup.xlsx");
+
+    let wb =
+        XLSX.utils.book_new();
+
+
+    let wsMem =
+        XLSX.utils.json_to_sheet(
+            members
+        );
+
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        wsMem,
+        "ThanhVien"
+    );
+
+
+    let wsMatch =
+        XLSX.utils.json_to_sheet(
+            matches
+        );
+
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        wsMatch,
+        "TranDau"
+    );
+
+
+    let wsGoc =
+        XLSX.utils.json_to_sheet(
+            gocLogs
+        );
+
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        wsGoc,
+        "NopTienGoc"
+    );
+
+
+    XLSX.writeFile(
+        wb,
+        "CLB_Tennis_Thang_Long_Ver1.2_Backup.xlsx"
+    );
 }
+
+
+// ======================================================
+// PHASE 3B - PWA INSTALL
+// ======================================================
+
+let thangLongDeferredInstallPrompt =
+    null;
+
+
+function isIosDevice_() {
+
+    let ua =
+        window.navigator.userAgent ||
+        '';
+
+
+    let iOS =
+        /iPad|iPhone|iPod/i
+            .test(
+                ua
+            );
+
+
+    let iPadDesktopMode =
+        navigator.platform ===
+            'MacIntel' &&
+        navigator.maxTouchPoints >
+            1;
+
+
+    return (
+        iOS ||
+        iPadDesktopMode
+    );
+}
+
+
+function isPwaStandalone_() {
+
+    let displayStandalone =
+        window.matchMedia &&
+        window
+            .matchMedia(
+                '(display-mode: standalone)'
+            )
+            .matches;
+
+
+    let iosStandalone =
+        window.navigator.standalone ===
+        true;
+
+
+    return (
+        displayStandalone ||
+        iosStandalone
+    );
+}
+
+
+function ensurePwaInstallButton_() {
+
+    let profileButton =
+        document.querySelector(
+            'button[onclick="openUserProfileModal()"]'
+        );
+
+
+    if (
+        !profileButton ||
+        !profileButton.parentElement
+    ) {
+        return;
+    }
+
+
+    let installButton =
+        document.getElementById(
+            'pwaInstallButton'
+        );
+
+
+    if (!installButton) {
+
+        installButton =
+            document.createElement(
+                'button'
+            );
+
+
+        installButton.id =
+            'pwaInstallButton';
+
+
+        installButton.type =
+            'button';
+
+
+        installButton.className =
+            'pwa-install-btn hidden bg-amber-400 hover:bg-amber-300 text-emerald-950 p-2 rounded-full shadow transition';
+
+
+        installButton.title =
+            'Cài Tennis Thăng Long lên thiết bị';
+
+
+        installButton.innerHTML =
+            '<i class="fa-solid fa-download text-sm"></i>';
+
+
+        installButton.onclick =
+            installPwaApp;
+
+
+        profileButton
+            .parentElement
+            .insertBefore(
+                installButton,
+                profileButton
+            );
+    }
+
+
+    let shouldShow =
+        !isPwaStandalone_() &&
+        (
+            !!thangLongDeferredInstallPrompt ||
+            isIosDevice_()
+        );
+
+
+    if (shouldShow) {
+
+        installButton.classList.remove(
+            'hidden'
+        );
+
+    } else {
+
+        installButton.classList.add(
+            'hidden'
+        );
+    }
+}
+
+
+async function installPwaApp() {
+
+    if (
+        isPwaStandalone_()
+    ) {
+
+        showToast(
+            'Ứng dụng đã được cài trên thiết bị.'
+        );
+
+        return;
+    }
+
+
+    if (
+        thangLongDeferredInstallPrompt
+    ) {
+
+        let promptEvent =
+            thangLongDeferredInstallPrompt;
+
+
+        promptEvent.prompt();
+
+
+        try {
+
+            let choice =
+                await promptEvent.userChoice;
+
+
+            if (
+                choice &&
+                choice.outcome ===
+                    'accepted'
+            ) {
+
+                showToast(
+                    'Đã xác nhận cài Tennis Thăng Long.'
+                );
+            }
+
+        } catch (error) {
+
+            console.warn(
+                'PWA INSTALL CHOICE ERROR:',
+                error
+            );
+        }
+
+
+        thangLongDeferredInstallPrompt =
+            null;
+
+
+        ensurePwaInstallButton_();
+
+        return;
+    }
+
+
+    if (
+        isIosDevice_()
+    ) {
+
+        alert(
+            "Cài Tennis Thăng Long trên iPhone/iPad:\n\n" +
+            "1. Mở trang bằng Safari.\n" +
+            "2. Bấm nút Chia sẻ.\n" +
+            "3. Chọn “Thêm vào Màn hình chính”.\n" +
+            "4. Bấm Thêm."
+        );
+
+        return;
+    }
+
+
+    alert(
+        "Trình duyệt chưa sẵn sàng hiển thị nút cài ứng dụng.\n\n" +
+        "Hãy tải lại trang sau khi PWA được triển khai."
+    );
+}
+
+
+function registerPwaServiceWorker_() {
+
+    if (
+        !(
+            'serviceWorker' in
+            navigator
+        )
+    ) {
+        return;
+    }
+
+
+    window.addEventListener(
+        'load',
+        function() {
+
+            navigator
+                .serviceWorker
+                .register(
+                    '/service-worker.js',
+                    {
+                        scope:
+                            '/'
+                    }
+                )
+                .then(
+                    function(registration) {
+
+                        console.log(
+                            'PWA SERVICE WORKER READY:',
+                            registration.scope
+                        );
+                    }
+                )
+                .catch(
+                    function(error) {
+
+                        console.warn(
+                            'PWA SERVICE WORKER ERROR:',
+                            error
+                        );
+                    }
+                );
+        }
+    );
+}
+
+
+window.addEventListener(
+    'beforeinstallprompt',
+    function(event) {
+
+        event.preventDefault();
+
+
+        thangLongDeferredInstallPrompt =
+            event;
+
+
+        ensurePwaInstallButton_();
+    }
+);
+
+
+window.addEventListener(
+    'appinstalled',
+    function() {
+
+        thangLongDeferredInstallPrompt =
+            null;
+
+
+        ensurePwaInstallButton_();
+
+
+        showToast(
+            'Tennis Thăng Long đã được cài thành công!'
+        );
+    }
+);
+
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function() {
+
+        ensurePwaInstallButton_();
+    }
+);
+
+
+registerPwaServiceWorker_();
