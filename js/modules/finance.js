@@ -1963,19 +1963,25 @@ function renderFinance() {
 
             let rewardHint =
                 f.monthRewardAmount > 0
-
+            
                     ? `
                         <div class="
+                            finance-reward-hint
                             text-[9px]
                             font-semibold
                             text-purple-600
                             mt-0.5
                         ">
-                            Thưởng sân:
-                            -${f.monthRewardAmount.toLocaleString('vi-VN')} đ
+                            <span class="finance-reward-label">
+                                Thưởng sân:
+                            </span>
+            
+                            <span class="finance-reward-value">
+                                -${f.monthRewardAmount.toLocaleString('vi-VN')} đ
+                            </span>
                         </div>
                     `
-
+            
                     : '';
 
 
@@ -2018,15 +2024,24 @@ function renderFinance() {
                             ngưỡng ${f.gocMonthlyCap.toLocaleString('vi-VN')}đ/tháng
                         "
                     >
-                        ${f.cappedBaseFee.toLocaleString('vi-VN')} đ
+                    <span class="finance-money-number">
+                        ${f.cappedBaseFee.toLocaleString('vi-VN')}
+                        </span>
+                        <span class="finance-money-unit">đ</span>    
                     </td>
 
                     <td class="p-2 text-right font-bold text-amber-800">
-                        ${f.monthSpecialBetFee.toLocaleString('vi-VN')} đ
+                        <span class="finance-money-number">
+                        ${f.monthSpecialBetFee.toLocaleString('vi-VN')}
+                    </span>
+                    <span class="finance-money-unit">đ</span>
                     </td>
 
                     <td class="p-2 text-right text-emerald-700 font-black">
-                        ${f.monthPaidAmount.toLocaleString('vi-VN')} đ
+                        <span class="finance-money-number">
+                        ${f.monthPaidAmount.toLocaleString('vi-VN')}
+                    </span>
+                    <span class="finance-money-unit">đ</span>
                     </td>
 
                     <td class="
@@ -2045,16 +2060,22 @@ function renderFinance() {
                                 )
                         }
                     ">
-                        ${f.carryBalance.toLocaleString('vi-VN')} đ
+                        <span class="finance-money-number">
+                        ${f.carryBalance.toLocaleString('vi-VN')}
+                    </span>
+                    <span class="finance-money-unit">đ</span>
                     </td>
 
                     <td class="
                         p-2 text-right font-black
                         ${totalPayColor}
                     ">
-                        ${f.totalPay.toLocaleString('vi-VN')} đ
-
-                        ${rewardHint}
+                        <span class="finance-money-number">
+                        ${f.totalPay.toLocaleString('vi-VN')}
+                    </span>
+                    <span class="finance-money-unit">đ</span>
+                    
+                    ${rewardHint}
                     </td>
 
                     <td class="p-2 text-center space-x-1">
