@@ -1396,3 +1396,355 @@ function renderDashboard() {
         };
 
 })();
+// ======================================================
+// PHASE 3 A9 - FINANCE TOOLBAR + ZALO FINANCE REPORT
+//
+// - Giữ nguyên Finance V2 / Month Close.
+// - Đổi tên nút nhắc nợ thành "Nhắc nợ Zalo".
+// - Thêm nút Admin "Báo cáo tài chính".
+// - Báo cáo chỉ tổng hợp toàn CLB, không liệt kê từng thành viên.
+// ======================================================
+
+(function () {
+
+    function moneyA9_(value) {
+        return (parseInt(value) || 0).toLocaleString("vi-VN") + " đ";
+    }
+
+    function ensureFinanceToolbarA9_() {
+        let reminderButton =
+            document.querySelector(
+                'button[onclick="copyReminderText()"]'
+            );
+
+        if (!reminderButton) {
+            return;
+        }
+
+        reminderButton.innerHTML =
+            '<i class="fa-solid fa-bell"></i> Nhắc nợ Zalo';
+
+        reminderButton.title =
+            "Sao chép danh sách thành viên còn cần đóng để gửi Zalo";
+
+        let reportButton =
+            document.getElementById(
+                "btnFinanceReportA9"
+            );
+
+        if (!reportButton) {
+            reportButton =
+                document.createElement(
+                    "button"
+                );
+
+            reportButton.id =
+                "btnFinanceReportA9";
+
+            reportButton.type =
+                "button";
+
+            reportButton.onclick =
+                window.copyFinanceReportText;
+
+            reminderButton.insertAdjacentElement(
+                "afterend",
+                reportButton
+            );
+        }
+
+        reportButton.className =
+            "bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition admin-only" +
+            (
+                currentUserRole === "admin"
+                    ? ""
+                    : " hidden"
+            );
+
+        reportButton.innerHTML =
+            '<i class="fa-solid fa-chart-column"></i> Báo cáo tài chính';
+
+        reportButton.title =
+            "Sao chép báo cáo tài chính tổng hợp tháng để gửi Zalo";
+    }
+
+    window.copyFinanceReportText =
+        function () {
+
+            if (
+                currentUserRole !==
+                "admin"
+            ) {
+                alert(
+                    "Chỉ Admin mới được tạo báo cáo tài chính tổng hợp."
+                );
+                return;
+            }
+
+            let monthEl =
+                document.getElementById(
+                    "selectFinanceMonth"
+                );
+
+            let yearEl =
+                document.getElementById(
+                    "selectFinanceYear"
+                );
+
+            if (
+                !monthEl ||
+                !yearEl
+            ) {
+                alert(
+                    "Không xác định được tháng tài chính đang xem."
+                );
+                return;
+            }
+
+            let month =
+                parseInt(
+                    monthEl.value
+                );
+
+            let year =
+                parseInt(
+                    yearEl.value
+                );
+
+            if (
+                !members ||
+                members.length === 0
+            ) {
+                members =
+                    defaultFallbackMembers;
+            }
+
+            let summary = {
+                memberCount: 0,
+                opening: 0,
+                base: 0,
+                special: 0,
+                paid: 0,
+                reward: 0,
+                closing: 0,
+                debtCount: 0,
+                settledCount: 0,
+                creditCount: 0
+            };
+
+            (members || []).forEach(
+                function (member) {
+
+                    let normalizedName =
+                        String(member.name || "")
+                            .trim()
+                            .toLowerCase();
+
+                    // Không đưa các dòng Khách mời vào báo cáo tài chính CLB.
+                    if (
+                        normalizedName === "khách mời" ||
+                        normalizedName.startsWith("khách mời ")
+                    ) {
+                        return;
+                    }
+
+                    let f =
+                        calculateUserFinanceForMonth(
+                            member.name,
+                            month,
+                            year
+                        );
+
+                    let opening =
+                        parseInt(
+                            f.carryBalance
+                        ) || 0;
+
+                    let base =
+                        parseInt(
+                            f.cappedBaseFee
+                        ) || 0;
+
+                    let special =
+                        parseInt(
+                            f.monthSpecialBetFee
+                        ) || 0;
+
+                    let paid =
+                        parseInt(
+                            f.monthPaidAmount
+                        ) || 0;
+
+                    let reward =
+                        parseInt(
+                            f.monthRewardAmount
+                        ) || 0;
+
+                    let closing =
+                        parseInt(
+                            f.totalPay
+                        ) || 0;
+
+                    summary.memberCount++;
+                    summary.opening += opening;
+                    summary.base += base;
+                    summary.special += special;
+                    summary.paid += paid;
+                    summary.reward += reward;
+                    summary.closing += closing;
+
+                    if (closing > 0) {
+                        summary.debtCount++;
+                    } else if (closing < 0) {
+                        summary.creditCount++;
+                    } else {
+                        summary.settledCount++;
+                    }
+                }
+            );
+
+            let closingLabel =
+                summary.closing > 0
+                    ? "CLB còn phải thu"
+                    : (
+                        summary.closing < 0
+                            ? "Thành viên đang dư ròng"
+                            : "Dư/Nợ cuối kỳ"
+                    );
+
+            let text =
+                `🎾 CLB TENNIS THĂNG LONG - BÁO CÁO TÀI CHÍNH THÁNG ${month}/${year}\n\n`;
+
+            text +=
+                `Tổng số thành viên: ${summary.memberCount}\n`;
+
+            text +=
+                `Dư/Nợ đầu kỳ: ${moneyA9_(summary.opening)}\n`;
+
+            text +=
+                `Góc cơ bản: ${moneyA9_(summary.base)}\n`;
+
+            text +=
+                `Kèo đặc biệt: ${moneyA9_(summary.special)}\n`;
+
+            text +=
+                `Thực nộp: ${moneyA9_(summary.paid)}\n`;
+
+            text +=
+                `Thưởng sân: ${moneyA9_(summary.reward)}\n`;
+
+            text +=
+                `${closingLabel}: ${moneyA9_(summary.closing)}\n\n`;
+
+            text +=
+                `Tình trạng thành viên:\n`;
+
+            text +=
+                `- Còn nợ: ${summary.debtCount} người\n`;
+
+            text +=
+                `- Đã cân bằng: ${summary.settledCount} người\n`;
+
+            text +=
+                `- Đang dư: ${summary.creditCount} người\n\n`;
+
+            text +=
+                `Công thức: Dư/Nợ đầu kỳ + Góc cơ bản + Kèo đặc biệt - Thực nộp - Thưởng sân = Dư/Nợ cuối kỳ.`;
+
+            if (
+                navigator.clipboard &&
+                typeof navigator.clipboard.writeText ===
+                    "function"
+            ) {
+                navigator.clipboard
+                    .writeText(
+                        text
+                    )
+                    .then(
+                        function () {
+                            showToast(
+                                `Đã sao chép báo cáo tài chính tháng ${month}/${year}!`
+                            );
+                        }
+                    )
+                    .catch(
+                        function () {
+                            alert(
+                                "Không thể tự động sao chép báo cáo. Vui lòng thử lại."
+                            );
+                        }
+                    );
+
+                return;
+            }
+
+            // Fallback cho trình duyệt không hỗ trợ Clipboard API.
+            let textarea =
+                document.createElement(
+                    "textarea"
+                );
+
+            textarea.value =
+                text;
+
+            textarea.style.position =
+                "fixed";
+
+            textarea.style.opacity =
+                "0";
+
+            document.body.appendChild(
+                textarea
+            );
+
+            textarea.focus();
+            textarea.select();
+
+            try {
+                document.execCommand(
+                    "copy"
+                );
+
+                showToast(
+                    `Đã sao chép báo cáo tài chính tháng ${month}/${year}!`
+                );
+            } catch (error) {
+                alert(
+                    "Không thể tự động sao chép báo cáo. Vui lòng thử lại."
+                );
+            }
+
+            textarea.remove();
+        };
+
+
+    // Finance.js đã được load trước dashboard.js,
+    // vì vậy chỉ bọc phần render giao diện ở đây.
+    // Không thay đổi bất kỳ công thức Finance V2 nào.
+    if (
+        typeof renderFinance ===
+        "function"
+    ) {
+        const renderFinanceBeforeA9_ =
+            renderFinance;
+
+        renderFinance =
+            function () {
+                renderFinanceBeforeA9_.apply(
+                    this,
+                    arguments
+                );
+
+                ensureFinanceToolbarA9_();
+            };
+    }
+
+
+    // DOM của index.html đã có sẵn khi dashboard.js chạy.
+    // Gọi thêm một lần để nút đổi tên ngay cả trước lần renderFinance kế tiếp.
+    setTimeout(
+        ensureFinanceToolbarA9_,
+        0
+    );
+
+})();
