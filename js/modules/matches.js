@@ -1,14 +1,13 @@
 // ======================================================
-// MATCHES.JS - PHASE 3 A7
+// MATCHES.JS - PHASE 3 A6
 //
 // NHẬT KÝ TRẬN:
 // - Mặc định hiển thị toàn bộ trận của tháng hiện tại.
 // - Chọn một ngày ở tháng cũ:
 //   + nếu tháng đã có cache -> dùng ngay.
 //   + nếu chưa có cache -> gọi monthData đúng tháng đó.
-// - Không thay đổi global "matches" của Dashboard/Finance.
-// - Bỏ nút "Tất cả các ngày" cũ.
-// - Khi đang lọc ngày, hiện nút "↩ Tháng hiện tại".
+// - Không thay đổi global "matches" đang phục vụ Dashboard/Finance.
+// - Bỏ nút "Tất cả các ngày" cũ ngay trên giao diện.
 // ======================================================
 
 
@@ -17,18 +16,28 @@
 // ======================================================
 
 window.matchLogViewMatches =
-    Array.isArray(window.matchLogViewMatches)
+    Array.isArray(
+        window.matchLogViewMatches
+    )
         ? window.matchLogViewMatches
         : [];
 
+
 window.matchLogViewMonth =
-    parseInt(window.matchLogViewMonth) || 0;
+    parseInt(
+        window.matchLogViewMonth
+    ) || 0;
+
 
 window.matchLogViewYear =
-    parseInt(window.matchLogViewYear) || 0;
+    parseInt(
+        window.matchLogViewYear
+    ) || 0;
+
 
 window.matchLogLoadingKey =
-    window.matchLogLoadingKey || "";
+    window.matchLogLoadingKey ||
+    "";
 
 
 // ======================================================
@@ -42,6 +51,7 @@ function removeLegacyAllDatesButton_() {
             "filterMatchDate"
         );
 
+
     if (
         !dateInput ||
         !dateInput.parentElement
@@ -49,156 +59,35 @@ function removeLegacyAllDatesButton_() {
         return;
     }
 
+
     let buttons =
-        dateInput.parentElement.querySelectorAll(
-            "button"
-        );
-
-    buttons.forEach(function(button) {
-
-        if (
-            button.id ===
-            "btnMatchCurrentMonth"
-        ) {
-            return;
-        }
-
-        let onclickText =
-            String(
-                button.getAttribute(
-                    "onclick"
-                ) || ""
-            );
-
-        if (
-            onclickText.indexOf(
-                "clearMatchDateFilter"
-            ) !== -1
-        ) {
-            button.remove();
-        }
-    });
-}
-
-
-// ======================================================
-// NÚT "THÁNG HIỆN TẠI"
-// ======================================================
-
-function ensureMatchCurrentMonthButton_() {
-
-    let dateInput =
-        document.getElementById(
-            "filterMatchDate"
-        );
-
-    if (!dateInput) {
-        return;
-    }
-
-    let button =
-        document.getElementById(
-            "btnMatchCurrentMonth"
-        );
-
-    if (!button) {
-
-        button =
-            document.createElement(
+        dateInput
+            .parentElement
+            .querySelectorAll(
                 "button"
             );
 
-        button.id =
-            "btnMatchCurrentMonth";
 
-        button.type =
-            "button";
+    buttons.forEach(
+        function(button) {
 
-        button.innerHTML =
-            '<i class="fa-solid fa-rotate-left mr-1"></i> Tháng hiện tại';
+            let onclickText =
+                String(
+                    button.getAttribute(
+                        "onclick"
+                    ) || ""
+                );
 
-        button.className =
-            "ml-2 px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black shadow-sm";
 
-        button.title =
-            "Bỏ lọc ngày và quay về toàn bộ trận của tháng hiện tại";
+            if (
+                onclickText.indexOf(
+                    "clearMatchDateFilter"
+                ) !== -1
+            ) {
 
-        button.addEventListener(
-            "click",
-            function() {
-
-                returnMatchLogToCurrentMonth_();
+                button.remove();
             }
-        );
-
-        dateInput.insertAdjacentElement(
-            "afterend",
-            button
-        );
-    }
-
-    if (dateInput.value) {
-
-        button.classList.remove(
-            "hidden"
-        );
-
-    } else {
-
-        button.classList.add(
-            "hidden"
-        );
-    }
-}
-
-
-// ======================================================
-// QUAY VỀ THÁNG HIỆN TẠI
-// ======================================================
-
-function returnMatchLogToCurrentMonth_() {
-
-    let dateInput =
-        document.getElementById(
-            "filterMatchDate"
-        );
-
-    if (dateInput) {
-
-        dateInput.value =
-            "";
-    }
-
-    let now =
-        new Date();
-
-    let month =
-        now.getMonth() + 1;
-
-    let year =
-        now.getFullYear();
-
-    let cache =
-        getMatchLogMonthCache_(
-            month,
-            year
-        );
-
-    if (cache) {
-
-        setMatchLogViewFromCache_(
-            month,
-            year
-        );
-
-        renderAllMatchLog();
-
-        return;
-    }
-
-    ensureMatchLogMonthLoaded_(
-        month,
-        year
+        }
     );
 }
 
@@ -216,31 +105,40 @@ function getMatchDateParts_(
             value || ""
         ).trim();
 
+
     let match =
         text.match(
             /(\d{1,2})\/(\d{1,2})\/(\d{4})/
         );
 
+
     if (!match) {
         return null;
     }
 
+
     return {
 
         day:
-            parseInt(match[1]) || 0,
+            parseInt(
+                match[1]
+            ) || 0,
 
         month:
-            parseInt(match[2]) || 0,
+            parseInt(
+                match[2]
+            ) || 0,
 
         year:
-            parseInt(match[3]) || 0
+            parseInt(
+                match[3]
+            ) || 0
     };
 }
 
 
 // ======================================================
-// PARSE INPUT TYPE=DATE
+// PARSE NGÀY ĐƯỢC CHỌN TRÊN INPUT TYPE=DATE
 // yyyy-mm-dd
 // ======================================================
 
@@ -251,6 +149,7 @@ function getSelectedMatchDateParts_() {
             "filterMatchDate"
         );
 
+
     if (
         !dateInput ||
         !dateInput.value
@@ -258,10 +157,14 @@ function getSelectedMatchDateParts_() {
         return null;
     }
 
+
     let parts =
         String(
             dateInput.value
-        ).split("-");
+        ).split(
+            "-"
+        );
+
 
     if (
         parts.length !==
@@ -270,14 +173,24 @@ function getSelectedMatchDateParts_() {
         return null;
     }
 
+
     let year =
-        parseInt(parts[0]) || 0;
+        parseInt(
+            parts[0]
+        ) || 0;
+
 
     let month =
-        parseInt(parts[1]) || 0;
+        parseInt(
+            parts[1]
+        ) || 0;
+
 
     let day =
-        parseInt(parts[2]) || 0;
+        parseInt(
+            parts[2]
+        ) || 0;
+
 
     if (
         !day ||
@@ -286,6 +199,7 @@ function getSelectedMatchDateParts_() {
     ) {
         return null;
     }
+
 
     return {
 
@@ -321,14 +235,18 @@ function getMatchLogMonthCache_(
         );
     }
 
+
     let key =
         parseInt(year) +
         "_" +
         parseInt(month);
 
+
     return (
         window.monthDataCache &&
-        window.monthDataCache[key]
+        window.monthDataCache[
+            key
+        ]
     ) || null;
 }
 
@@ -344,20 +262,31 @@ function setMatchLogViewFromCache_(
             year
         );
 
+
     if (!cache) {
         return false;
     }
 
+
     window.matchLogViewMatches =
-        Array.isArray(cache.matches)
+        Array.isArray(
+            cache.matches
+        )
             ? cache.matches.slice()
             : [];
 
+
     window.matchLogViewMonth =
-        parseInt(month);
+        parseInt(
+            month
+        );
+
 
     window.matchLogViewYear =
-        parseInt(year);
+        parseInt(
+            year
+        );
+
 
     return true;
 }
@@ -365,6 +294,9 @@ function setMatchLogViewFromCache_(
 
 // ======================================================
 // LƯU MONTH DATA VÀO CACHE NHƯNG KHÔNG ACTIVATE
+//
+// Chọn ngày tháng cũ trong Nhật ký Trận không được làm
+// Dashboard/Finance chuyển sang tháng cũ theo.
 // ======================================================
 
 function saveMatchLogMonthDataToCache_(
@@ -385,20 +317,26 @@ function saveMatchLogMonthDataToCache_(
 
                 matches:
                     data &&
-                    Array.isArray(data.matches)
+                    Array.isArray(
+                        data.matches
+                    )
                         ? data.matches
                         : [],
 
                 bookingLogs:
                     data &&
-                    Array.isArray(data.bookingLogs)
+                    Array.isArray(
+                        data.bookingLogs
+                    )
                         ? data.bookingLogs
                         : []
             }
         );
 
+
         return;
     }
+
 
     if (
         !window.monthDataCache ||
@@ -410,28 +348,40 @@ function saveMatchLogMonthDataToCache_(
             {};
     }
 
+
     let key =
         parseInt(year) +
         "_" +
         parseInt(month);
 
-    window.monthDataCache[key] = {
+
+    window.monthDataCache[
+        key
+    ] = {
 
         month:
-            parseInt(month),
+            parseInt(
+                month
+            ),
 
         year:
-            parseInt(year),
+            parseInt(
+                year
+            ),
 
         matches:
             data &&
-            Array.isArray(data.matches)
+            Array.isArray(
+                data.matches
+            )
                 ? data.matches.slice()
                 : [],
 
         bookingLogs:
             data &&
-            Array.isArray(data.bookingLogs)
+            Array.isArray(
+                data.bookingLogs
+            )
                 ? data.bookingLogs.slice()
                 : [],
 
@@ -442,7 +392,7 @@ function saveMatchLogMonthDataToCache_(
 
 
 // ======================================================
-// TẢI DỮ LIỆU THÁNG RIÊNG CHO NHẬT KÝ
+// TẢI DỮ LIỆU THÁNG RIÊNG CHO NHẬT KÝ TRẬN
 // ======================================================
 
 function ensureMatchLogMonthLoaded_(
@@ -451,10 +401,16 @@ function ensureMatchLogMonthLoaded_(
 ) {
 
     month =
-        parseInt(month);
+        parseInt(
+            month
+        );
+
 
     year =
-        parseInt(year);
+        parseInt(
+            year
+        );
+
 
     if (
         !month ||
@@ -463,6 +419,7 @@ function ensureMatchLogMonthLoaded_(
         return;
     }
 
+
     if (
         setMatchLogViewFromCache_(
             month,
@@ -470,15 +427,15 @@ function ensureMatchLogMonthLoaded_(
         )
     ) {
 
-        renderAllMatchLog();
-
         return;
     }
+
 
     let key =
         year +
         "_" +
         month;
+
 
     if (
         window.matchLogLoadingKey ===
@@ -487,6 +444,9 @@ function ensureMatchLogMonthLoaded_(
         return;
     }
 
+
+    // Nếu đúng tháng đang active nhưng cache chưa sẵn,
+    // dùng state hiện tại.
     if (
         parseInt(
             window.activeDataMonth
@@ -494,22 +454,26 @@ function ensureMatchLogMonthLoaded_(
         parseInt(
             window.activeDataYear
         ) === year &&
-        Array.isArray(matches)
+        Array.isArray(
+            matches
+        )
     ) {
 
         window.matchLogViewMatches =
             matches.slice();
 
+
         window.matchLogViewMonth =
             month;
+
 
         window.matchLogViewYear =
             year;
 
-        renderAllMatchLog();
 
         return;
     }
+
 
     if (
         typeof fetchJsonpPhase3_ !==
@@ -520,30 +484,38 @@ function ensureMatchLogMonthLoaded_(
             "MATCH LOG MONTH LOAD ERROR: fetchJsonpPhase3_ chưa sẵn sàng."
         );
 
+
         return;
     }
 
+
     window.matchLogLoadingKey =
         key;
+
 
     let tbody =
         document.getElementById(
             "allMatchTableBody"
         );
 
+
     if (tbody) {
 
         tbody.innerHTML = `
+
             <tr>
+
                 <td
                     colspan="7"
                     class="p-5 text-center text-slate-400 italic"
                 >
                     Đang tải dữ liệu tháng ${month}/${year}...
                 </td>
+
             </tr>
         `;
     }
+
 
     fetchJsonpPhase3_(
         {
@@ -568,12 +540,14 @@ function ensureMatchLogMonthLoaded_(
             window.matchLogLoadingKey =
                 "";
 
+
             if (error) {
 
                 console.error(
                     "MATCH LOG MONTH DATA ERROR:",
                     error
                 );
+
 
                 if (
                     typeof showToast ===
@@ -585,22 +559,28 @@ function ensureMatchLogMonthLoaded_(
                     );
                 }
 
+
                 if (tbody) {
 
                     tbody.innerHTML = `
+
                         <tr>
+
                             <td
                                 colspan="7"
                                 class="p-5 text-center text-red-500 italic"
                             >
                                 Không tải được dữ liệu tháng ${month}/${year}.
                             </td>
+
                         </tr>
                     `;
                 }
 
+
                 return;
             }
+
 
             if (
                 !data ||
@@ -613,8 +593,10 @@ function ensureMatchLogMonthLoaded_(
                     data
                 );
 
+
                 return;
             }
+
 
             saveMatchLogMonthDataToCache_(
                 month,
@@ -622,10 +604,12 @@ function ensureMatchLogMonthLoaded_(
                 data
             );
 
+
             setMatchLogViewFromCache_(
                 month,
                 year
             );
+
 
             renderAllMatchLog();
         }
@@ -634,17 +618,30 @@ function ensureMatchLogMonthLoaded_(
 
 
 // ======================================================
-// HÀM CŨ - GIỮ TƯƠNG THÍCH
+// GIỮ HÀM CŨ ĐỂ TƯƠNG THÍCH
 // ======================================================
 
 function clearMatchDateFilter() {
 
-    returnMatchLogToCurrentMonth_();
+    let dateInput =
+        document.getElementById(
+            "filterMatchDate"
+        );
+
+
+    if (dateInput) {
+
+        dateInput.value =
+            "";
+    }
+
+
+    renderAllMatchLog();
 }
 
 
 // ======================================================
-// TRẬN THÁNG HIỆN TẠI CHO BADGE HÔM NAY
+// DANH SÁCH TRẬN THÁNG HIỆN TẠI CHO BADGE "HÔM NAY"
 // ======================================================
 
 function getCurrentMonthMatchesForTodayBadge_() {
@@ -652,11 +649,15 @@ function getCurrentMonthMatchesForTodayBadge_() {
     let now =
         new Date();
 
+
     let month =
-        now.getMonth() + 1;
+        now.getMonth() +
+        1;
+
 
     let year =
         now.getFullYear();
+
 
     let cache =
         getMatchLogMonthCache_(
@@ -664,13 +665,17 @@ function getCurrentMonthMatchesForTodayBadge_() {
             year
         );
 
+
     if (
         cache &&
-        Array.isArray(cache.matches)
+        Array.isArray(
+            cache.matches
+        )
     ) {
 
         return cache.matches;
     }
+
 
     if (
         parseInt(
@@ -679,11 +684,14 @@ function getCurrentMonthMatchesForTodayBadge_() {
         parseInt(
             window.activeDataYear
         ) === year &&
-        Array.isArray(matches)
+        Array.isArray(
+            matches
+        )
     ) {
 
         return matches;
     }
+
 
     return [];
 }
@@ -700,29 +708,37 @@ function renderAllMatchLog() {
             "allMatchTableBody"
         );
 
+
     if (!tbody) {
         return;
     }
 
+
     removeLegacyAllDatesButton_();
 
-    ensureMatchCurrentMonthButton_();
 
     let selectedDate =
         getSelectedMatchDateParts_();
 
+
     let now =
         new Date();
+
 
     let targetMonth =
         selectedDate
             ? selectedDate.month
-            : now.getMonth() + 1;
+            : (
+                now.getMonth() +
+                1
+            );
+
 
     let targetYear =
         selectedDate
             ? selectedDate.year
             : now.getFullYear();
+
 
     let cache =
         getMatchLogMonthCache_(
@@ -730,6 +746,8 @@ function renderAllMatchLog() {
             targetYear
         );
 
+
+    // Nếu chưa có cache tháng cần xem -> tải theo nhu cầu.
     if (!cache) {
 
         ensureMatchLogMonthLoaded_(
@@ -737,13 +755,16 @@ function renderAllMatchLog() {
             targetYear
         );
 
+
         return;
     }
+
 
     setMatchLogViewFromCache_(
         targetMonth,
         targetYear
     );
+
 
     let monthMatches =
         (
@@ -752,17 +773,30 @@ function renderAllMatchLog() {
         )
         .slice()
         .sort(
-            function(a, b) {
+            function(
+                a,
+                b
+            ) {
 
                 return (
-                    (parseInt(b.id) || 0) -
-                    (parseInt(a.id) || 0)
+                    (
+                        parseInt(
+                            b.id
+                        ) || 0
+                    ) -
+                    (
+                        parseInt(
+                            a.id
+                        ) || 0
+                    )
                 );
             }
         );
 
+
     let filteredMatches =
         monthMatches;
+
 
     if (selectedDate) {
 
@@ -775,9 +809,11 @@ function renderAllMatchLog() {
                             match.time
                         );
 
+
                     if (!parts) {
                         return false;
                     }
+
 
                     return (
                         parts.day ===
@@ -793,20 +829,25 @@ function renderAllMatchLog() {
 
 
     // ==================================================
-    // BADGE
+    // BADGE HÔM NAY
     // ==================================================
 
     let todayMatches =
         getCurrentMonthMatchesForTodayBadge_();
 
+
     let todayDay =
         now.getDate();
 
+
     let todayMonth =
-        now.getMonth() + 1;
+        now.getMonth() +
+        1;
+
 
     let todayYear =
         now.getFullYear();
+
 
     let todayCount =
         todayMatches.filter(
@@ -817,20 +858,26 @@ function renderAllMatchLog() {
                         match.time
                     );
 
+
                 return (
                     parts &&
-                    parts.day === todayDay &&
-                    parts.month === todayMonth &&
-                    parts.year === todayYear
+                    parts.day ===
+                        todayDay &&
+                    parts.month ===
+                        todayMonth &&
+                    parts.year ===
+                        todayYear
                 );
             }
         )
         .length;
 
+
     let todayText =
         document.getElementById(
             "todayMatchCountText"
         );
+
 
     if (todayText) {
 
@@ -847,10 +894,6 @@ function renderAllMatchLog() {
     }
 
 
-    // Cập nhật ẩn/hiện nút sau mỗi lần render.
-    ensureMatchCurrentMonthButton_();
-
-
     // ==================================================
     // TABLE
     // ==================================================
@@ -858,13 +901,16 @@ function renderAllMatchLog() {
     tbody.innerHTML =
         "";
 
+
     if (
         filteredMatches.length ===
         0
     ) {
 
         tbody.innerHTML = `
+
             <tr>
+
                 <td
                     colspan="7"
                     class="p-5 text-center text-slate-400 italic"
@@ -875,8 +921,10 @@ function renderAllMatchLog() {
                             : `Chưa có trận đấu trong tháng ${targetMonth}/${targetYear}.`
                     }
                 </td>
+
             </tr>
         `;
+
 
         if (
             typeof applyRolePermissions ===
@@ -886,8 +934,10 @@ function renderAllMatchLog() {
             applyRolePermissions();
         }
 
+
         return;
     }
+
 
     filteredMatches.forEach(
         function(
@@ -899,12 +949,17 @@ function renderAllMatchLog() {
                 filteredMatches.length -
                 idx;
 
+
             let idArg =
                 JSON.stringify(
-                    String(m.id)
+                    String(
+                        m.id
+                    )
                 );
 
+
             tbody.innerHTML += `
+
                 <tr class="border-b hover:bg-slate-50">
 
                     <td class="p-2.5 text-center font-bold text-slate-500">
@@ -979,6 +1034,7 @@ function renderAllMatchLog() {
         }
     );
 
+
     if (
         typeof applyRolePermissions ===
         "function"
@@ -990,7 +1046,7 @@ function renderAllMatchLog() {
 
 
 // ======================================================
-// TÌM MATCH TRONG CACHE ĐÃ LOAD
+// TÌM MATCH TRONG TOÀN BỘ CACHE ĐÃ TẢI
 // ======================================================
 
 function findMatchForEdit_(
@@ -1007,10 +1063,12 @@ function findMatchForEdit_(
                 id
             );
 
+
         if (found) {
             return found;
         }
     }
+
 
     let viewMatch =
         (
@@ -1021,15 +1079,21 @@ function findMatchForEdit_(
             function(item) {
 
                 return (
-                    String(item.id) ===
-                    String(id)
+                    String(
+                        item.id
+                    ) ===
+                    String(
+                        id
+                    )
                 );
             }
         );
 
+
     if (viewMatch) {
         return viewMatch;
     }
+
 
     return (
         matches ||
@@ -1039,8 +1103,12 @@ function findMatchForEdit_(
         function(item) {
 
             return (
-                String(item.id) ===
-                String(id)
+                String(
+                    item.id
+                ) ===
+                String(
+                    id
+                )
             );
         }
     ) || null;
@@ -1060,34 +1128,42 @@ function openEditMatchModal(
             id
         );
 
+
     if (!m) {
         return;
     }
+
 
     document.getElementById(
         "emMatchId"
     ).value =
         m.id;
 
+
     document.getElementById(
         "emMatchInfo"
     ).value =
         `${m.time} | (${m.p1_v1}&${m.p2_v1}) vs (${m.p1_v2}&${m.p2_v2})`;
+
 
     document.getElementById(
         "emScoreA"
     ).value =
         m.scoreA;
 
+
     document.getElementById(
         "emScoreB"
     ).value =
         m.scoreB;
 
+
     document.getElementById(
         "emSpecialBet"
     ).value =
-        m.specialBet || 0;
+        m.specialBet ||
+        0;
+
 
     document
         .getElementById(
@@ -1097,6 +1173,7 @@ function openEditMatchModal(
         .remove(
             "hidden"
         );
+
 
     document
         .getElementById(
@@ -1120,6 +1197,7 @@ function closeEditMatchModal() {
             "hidden"
         );
 
+
     document
         .getElementById(
             "editMatchModal"
@@ -1137,14 +1215,17 @@ function saveMatchEdit(
 
     e.preventDefault();
 
+
     let id =
         String(
             document
                 .getElementById(
                     "emMatchId"
                 )
-                .value || ""
+                .value ||
+            ""
         );
+
 
     let scoreA =
         parseInt(
@@ -1155,6 +1236,7 @@ function saveMatchEdit(
                 .value
         ) || 0;
 
+
     let scoreB =
         parseInt(
             document
@@ -1163,6 +1245,7 @@ function saveMatchEdit(
                 )
                 .value
         ) || 0;
+
 
     let specialBet =
         parseInt(
@@ -1173,7 +1256,9 @@ function saveMatchEdit(
                 .value
         ) || 0;
 
+
     closeEditMatchModal();
+
 
     enqueueAction(
         "updateMatch",
@@ -1235,11 +1320,10 @@ function deleteMatch(
 
 function getLoadedMatchesForDuplicateCheck_() {
 
-    let result =
-        [];
+    let result = [];
 
-    let seen =
-        {};
+    let seen = {};
+
 
     Object.keys(
         window.monthDataCache ||
@@ -1249,11 +1333,16 @@ function getLoadedMatchesForDuplicateCheck_() {
         function(key) {
 
             let cache =
-                window.monthDataCache[key];
+                window.monthDataCache[
+                    key
+                ];
+
 
             (
                 cache &&
-                Array.isArray(cache.matches)
+                Array.isArray(
+                    cache.matches
+                )
                     ? cache.matches
                     : []
             )
@@ -1261,14 +1350,25 @@ function getLoadedMatchesForDuplicateCheck_() {
                 function(item) {
 
                     let itemKey =
-                        String(item.id);
+                        String(
+                            item.id
+                        );
 
-                    if (seen[itemKey]) {
+
+                    if (
+                        seen[
+                            itemKey
+                        ]
+                    ) {
                         return;
                     }
 
-                    seen[itemKey] =
+
+                    seen[
+                        itemKey
+                    ] =
                         true;
+
 
                     result.push(
                         item
@@ -1278,6 +1378,7 @@ function getLoadedMatchesForDuplicateCheck_() {
         }
     );
 
+
     (
         matches ||
         []
@@ -1286,20 +1387,32 @@ function getLoadedMatchesForDuplicateCheck_() {
         function(item) {
 
             let itemKey =
-                String(item.id);
+                String(
+                    item.id
+                );
 
-            if (seen[itemKey]) {
+
+            if (
+                seen[
+                    itemKey
+                ]
+            ) {
                 return;
             }
 
-            seen[itemKey] =
+
+            seen[
+                itemKey
+            ] =
                 true;
+
 
             result.push(
                 item
             );
         }
     );
+
 
     return result;
 }
@@ -1315,25 +1428,30 @@ function addMatch(
 
     e.preventDefault();
 
+
     let p1A =
         document.getElementById(
             "matchP1A"
         ).value;
+
 
     let p2A =
         document.getElementById(
             "matchP2A"
         ).value;
 
+
     let p1B =
         document.getElementById(
             "matchP1B"
         ).value;
 
+
     let p2B =
         document.getElementById(
             "matchP2B"
         ).value;
+
 
     if (
         !p1A ||
@@ -1346,8 +1464,10 @@ function addMatch(
             "⚠️ Vui lòng chọn đầy đủ tên của cả 4 cầu thủ trước khi lưu trận đấu!"
         );
 
+
         return;
     }
+
 
     let playersSet =
         new Set(
@@ -1359,6 +1479,7 @@ function addMatch(
             ]
         );
 
+
     if (
         playersSet.size <
         4
@@ -1368,18 +1489,22 @@ function addMatch(
             "⚠️ Lỗi: 4 cầu thủ trong một trận đấu đôi phải là 4 cá nhân khác nhau hoàn toàn! Vui lòng kiểm tra lại danh sách lựa chọn."
         );
 
+
         return;
     }
+
 
     let checkedScoreA =
         document.querySelector(
             'input[name="scoreA"]:checked'
         );
 
+
     let checkedScoreB =
         document.querySelector(
             'input[name="scoreB"]:checked'
         );
+
 
     if (
         !checkedScoreA ||
@@ -1390,18 +1515,22 @@ function addMatch(
             "⚠️ Vui lòng chọn đầy đủ điểm số cho cả Vế A và Vế B trước khi lưu trận đấu!"
         );
 
+
         return;
     }
+
 
     let scoreA =
         parseInt(
             checkedScoreA.value
         );
 
+
     let scoreB =
         parseInt(
             checkedScoreB.value
         );
+
 
     let specialBet =
         parseInt(
@@ -1409,6 +1538,7 @@ function addMatch(
                 "specialBet"
             ).value
         ) || 0;
+
 
     showActionConfirm(
         `Xác nhận lưu kết quả trận đấu:\n(${p1A} & ${p2A}) vs (${p1B} & ${p2B})\nTỉ số: ${scoreA} - ${scoreB}?`,
@@ -1418,26 +1548,33 @@ function addMatch(
                 new Date()
                     .getTime();
 
+
             const TIME_LIMIT =
                 18 *
                 60 *
                 60 *
                 1000;
 
+
             let teamANew =
                 [
                     p1A,
                     p2A
-                ].sort();
+                ]
+                .sort();
+
 
             let teamBNew =
                 [
                     p1B,
                     p2B
-                ].sort();
+                ]
+                .sort();
+
 
             let duplicateSource =
                 getLoadedMatchesForDuplicateCheck_();
+
 
             let isDuplicateMatch =
                 duplicateSource.some(
@@ -1448,6 +1585,7 @@ function addMatch(
                                 item.id
                             ) || 0;
 
+
                         let isWithin18h =
                             (
                                 NOW -
@@ -1455,21 +1593,29 @@ function addMatch(
                             ) <=
                             TIME_LIMIT;
 
-                        if (!isWithin18h) {
+
+                        if (
+                            !isWithin18h
+                        ) {
                             return false;
                         }
+
 
                         let teamAOld =
                             [
                                 item.p1_v1,
                                 item.p2_v1
-                            ].sort();
+                            ]
+                            .sort();
+
 
                         let teamBOld =
                             [
                                 item.p1_v2,
                                 item.p2_v2
-                            ].sort();
+                            ]
+                            .sort();
+
 
                         let sameAsDirect =
                             (
@@ -1491,6 +1637,7 @@ function addMatch(
                                     scoreB
                             );
 
+
                         let sameAsSwapped =
                             (
                                 teamAOld[0] ===
@@ -1511,6 +1658,7 @@ function addMatch(
                                     scoreA
                             );
 
+
                         return (
                             sameAsDirect ||
                             sameAsSwapped
@@ -1518,15 +1666,23 @@ function addMatch(
                     }
                 );
 
-            if (isDuplicateMatch) {
+
+            if (
+                isDuplicateMatch
+            ) {
 
                 showCustomConfirm(
                     "Phát hiện có trận đấu tương tự đã được nhập trong 18 giờ trước đó. Nếu thực sự là trận đấu mới thì chọn OK, nếu không phải chọn Hủy",
-                    function(confirmed) {
+                    function(
+                        confirmed
+                    ) {
 
-                        if (!confirmed) {
+                        if (
+                            !confirmed
+                        ) {
                             return;
                         }
+
 
                         saveNewMatchData(
                             p1A,
@@ -1600,6 +1756,7 @@ function saveNewMatchData(
             specialBet
     };
 
+
     enqueueAction(
         "addMatch",
         {
@@ -1610,13 +1767,16 @@ function saveNewMatchData(
         "Đã lưu kết quả trận đấu thành công!"
     );
 
+
     document
         .getElementById(
             "matchForm"
         )
         .reset();
 
+
     populateSelectors();
+
 
     document
         .querySelectorAll(
@@ -1630,6 +1790,7 @@ function saveNewMatchData(
             }
         );
 
+
     document
         .querySelectorAll(
             'input[name="scoreB"]'
@@ -1641,6 +1802,7 @@ function saveNewMatchData(
                     false;
             }
         );
+
 
     document
         .getElementById(
