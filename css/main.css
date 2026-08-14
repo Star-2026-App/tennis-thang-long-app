@@ -1,9 +1,13 @@
 body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: #f1f5f9;
     min-height: 100vh;
     min-height: 100dvh;
-    overscroll-behavior-y: none;
+    color: #0f172a;
+    font-weight: 500;
+    text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 html {
@@ -31,11 +35,39 @@ button {
     display: block;
 }
 
+/* -----------------------------
+   FONT ĐẬM / RÕ HƠN
+------------------------------ */
+h1, h2, h3, h4, h5, h6,
+th,
+label,
+.font-bold,
+.font-semibold,
+.font-black {
+    color: #0f172a;
+    font-weight: 700;
+}
 
-/* =====================================================
+.text-slate-900,
+.text-slate-800,
+.text-slate-700,
+.text-slate-600,
+.text-slate-500 {
+    color: #0f172a !important;
+}
+
+td {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+p, span, div {
+    text-rendering: optimizeLegibility;
+}
+
+/* -----------------------------
    SCROLLBAR
-   ===================================================== */
-
+------------------------------ */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -50,11 +82,9 @@ button {
     border-radius: 4px;
 }
 
-
-/* =====================================================
-   TABLE STICKY
-   ===================================================== */
-
+/* -----------------------------
+   STICKY CƠ BẢN
+------------------------------ */
 .sticky-col {
     position: sticky;
     left: 0;
@@ -78,39 +108,39 @@ thead th {
     -webkit-overflow-scrolling: touch;
 }
 
-
-/* =====================================================
-   PWA INSTALL
-   ===================================================== */
-
-.pwa-install-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+/* -----------------------------
+   TOAST
+------------------------------ */
+#appToast {
+    z-index: 9999;
 }
-
 
 /* =====================================================
    MOBILE
-   ===================================================== */
-
+===================================================== */
 @media (max-width: 767px) {
 
-    /* -------------------------------------------------
-       FONT
-       ------------------------------------------------- */
-
     body {
-        font-family:
-            -apple-system,
-            BlinkMacSystemFont,
-            'Segoe UI',
-            system-ui,
-            sans-serif;
-
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
         font-size: 15px;
-        font-weight: 500;
         line-height: 1.45;
+        color: #0f172a;
+        font-weight: 500;
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    th,
+    label,
+    .font-bold,
+    .font-semibold,
+    .font-black {
+        color: #0f172a;
+        font-weight: 800 !important;
+    }
+
+    td {
+        color: #1e293b !important;
+        font-weight: 650;
     }
 
     .text-xs {
@@ -119,8 +149,8 @@ thead th {
     }
 
     .text-sm {
-        font-size: 15px !important;
-        line-height: 21px !important;
+        font-size: 14px !important;
+        line-height: 20px !important;
     }
 
     input,
@@ -129,26 +159,12 @@ thead th {
         font-size: 16px !important;
     }
 
-
-    /* -------------------------------------------------
-       MAIN
-       ------------------------------------------------- */
-
     main {
         padding-left: 10px !important;
         padding-right: 10px !important;
         padding-top: 12px !important;
-
-        padding-bottom: max(
-            16px,
-            env(safe-area-inset-bottom)
-        );
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
     }
-
-
-    /* -------------------------------------------------
-       MOBILE MENU
-       ------------------------------------------------- */
 
     #mobileMenuDrawer {
         max-height: calc(100dvh - 95px);
@@ -161,66 +177,47 @@ thead th {
         min-height: 44px;
     }
 
-
-    /* -------------------------------------------------
-       CARD PADDING
-       ------------------------------------------------- */
-
+    /* Card chung */
     #tab-matchLog > div,
     #tab-booking > div,
     #tab-quy > div,
     #tab-cashbook > div,
     #tab-members > div,
     #tab-gocLogs > div,
-    #tab-finance > div {
-
+    #tab-finance > div,
+    #tab-analytics > div {
         padding: 16px !important;
         border-radius: 18px !important;
     }
 
-
-    /* -------------------------------------------------
-       TIÊU ĐỀ MOBILE
-       ------------------------------------------------- */
-
+    /* Tiêu đề chung */
     #tab-matchLog h2,
     #tab-booking h2,
     #tab-quy h2,
     #tab-cashbook h2,
     #tab-members h2,
     #tab-gocLogs h2,
-    #tab-finance h2 {
-
+    #tab-finance h2,
+    #tab-analytics h2 {
         font-size: 18px !important;
         line-height: 1.3 !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
     }
 
-
-    /* -------------------------------------------------
-       TABLE SCROLL
-       ------------------------------------------------- */
-
-    .overflow-x-auto {
-        overflow-x: auto !important;
-        overflow-y: hidden;
-        max-width: 100%;
-        overscroll-behavior-x: contain;
-        -webkit-overflow-scrolling: touch;
+    /* Không vuốt ngang nữa */
+    #tab-matchLog .overflow-x-auto,
+    #tab-booking .overflow-x-auto,
+    #tab-quy .overflow-x-auto,
+    #tab-cashbook .overflow-x-auto,
+    #tab-members .overflow-x-auto,
+    #tab-gocLogs .overflow-x-auto,
+    #tab-finance .overflow-x-auto,
+    #tab-analytics .overflow-x-auto,
+    #top5PersonalModal .overflow-x-auto {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
     }
-
-    table {
-        white-space: nowrap;
-    }
-
-    th,
-    td {
-        vertical-align: middle;
-    }
-
-
-    /* -------------------------------------------------
-       GỢI Ý VUỐT NGANG
-       ------------------------------------------------- */
 
     #tab-matchLog .overflow-x-auto::before,
     #tab-booking .overflow-x-auto::before,
@@ -228,153 +225,161 @@ thead th {
     #tab-cashbook .overflow-x-auto::before,
     #tab-members .overflow-x-auto::before,
     #tab-gocLogs .overflow-x-auto::before,
-    #tab-finance .overflow-x-auto::before {
-
-        content: "↔ Vuốt ngang để xem thêm";
-
-        display: block;
-        position: sticky;
-        left: 0;
-
-        width: max-content;
-
-        margin-bottom: 6px;
-
-        font-size: 11px;
-        line-height: 16px;
-        font-weight: 700;
-
-        color: #64748b;
+    #tab-finance .overflow-x-auto::before,
+    #tab-analytics .overflow-x-auto::before {
+        display: none !important;
+        content: none !important;
     }
 
+    /* Bảng chung mobile = wrap */
+    #tab-matchLog table,
+    #tab-booking table,
+    #tab-quy table,
+    #tab-cashbook table,
+    #tab-members table,
+    #tab-gocLogs table,
+    #tab-finance table,
+    #tab-analytics table,
+    #top5PersonalModal table {
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: fixed !important;
+        white-space: normal !important;
+        border-collapse: collapse;
+    }
 
-    /* -------------------------------------------------
+    #tab-matchLog th,
+    #tab-matchLog td,
+    #tab-booking th,
+    #tab-booking td,
+    #tab-quy th,
+    #tab-quy td,
+    #tab-cashbook th,
+    #tab-cashbook td,
+    #tab-members th,
+    #tab-members td,
+    #tab-gocLogs th,
+    #tab-gocLogs td,
+    #tab-finance th,
+    #tab-finance td,
+    #tab-analytics th,
+    #tab-analytics td,
+    #top5PersonalModal th,
+    #top5PersonalModal td {
+        white-space: normal !important;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        vertical-align: middle;
+        padding: 10px 6px !important;
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+    }
+
+    /* Tắt sticky trên mobile để wrap ổn định */
+    .sticky-col,
+    thead th.sticky-col,
+    thead th {
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        z-index: auto !important;
+    }
+
+    /* -----------------------------
        NHẬT KÝ TRẬN
-       ------------------------------------------------- */
+    ------------------------------ */
+    #tab-matchLog table th:nth-child(1),
+    #tab-matchLog table td:nth-child(1) { width: 10%; text-align: center; }
+    #tab-matchLog table th:nth-child(2),
+    #tab-matchLog table td:nth-child(2) { width: 22%; text-align: center; }
+    #tab-matchLog table th:nth-child(3),
+    #tab-matchLog table td:nth-child(3) { width: 22%; }
+    #tab-matchLog table th:nth-child(4),
+    #tab-matchLog table td:nth-child(4) { width: 22%; }
+    #tab-matchLog table th:nth-child(5),
+    #tab-matchLog table td:nth-child(5) { width: 12%; text-align: center; }
+    #tab-matchLog table th:nth-child(6),
+    #tab-matchLog table td:nth-child(6) { width: 12%; text-align: center; }
 
-    #tab-matchLog table {
-        min-width: 900px;
-    }
-
-
-    /* -------------------------------------------------
+    /* -----------------------------
        THƯỞNG SÂN
-       ------------------------------------------------- */
+    ------------------------------ */
+    #tab-booking table th:nth-child(1),
+    #tab-booking table td:nth-child(1) { width: 10%; text-align: center; }
+    #tab-booking table th:nth-child(2),
+    #tab-booking table td:nth-child(2) { width: 28%; text-align: center; }
+    #tab-booking table th:nth-child(3),
+    #tab-booking table td:nth-child(3) { width: 30%; }
+    #tab-booking table th:nth-child(4),
+    #tab-booking table td:nth-child(4) { width: 17%; text-align: center; }
+    #tab-booking table th:nth-child(5),
+    #tab-booking table td:nth-child(5) { width: 15%; text-align: right; }
 
-    #tab-booking table {
-        min-width: 720px;
-    }
-
-
-    /* -------------------------------------------------
+    /* -----------------------------
        ĐÓNG QUỸ
-       ------------------------------------------------- */
+    ------------------------------ */
+    #tab-quy table th:nth-child(1),
+    #tab-quy table td:nth-child(1) { width: 10%; text-align: center; }
+    #tab-quy table th:nth-child(2),
+    #tab-quy table td:nth-child(2) { width: 42%; }
+    #tab-quy table th:nth-child(3),
+    #tab-quy table td:nth-child(3) { width: 24%; }
+    #tab-quy table th:nth-child(4),
+    #tab-quy table td:nth-child(4) { width: 24%; text-align: center; }
 
-    #tab-quy table {
-        min-width: 760px;
-    }
-
-
-    /* -------------------------------------------------
-       SỔ THU CHI
-       ------------------------------------------------- */
-
-    #tab-cashbook table {
-        min-width: 760px;
-    }
-
-
-    /* -------------------------------------------------
+    /* -----------------------------
        THÀNH VIÊN
-       ------------------------------------------------- */
-
-    #tab-members table {
-        min-width: 800px;
-    }
-
+    ------------------------------ */
     #tab-members > div > div:first-child {
         flex-wrap: wrap;
         gap: 12px;
     }
 
+    #tab-members table th:nth-child(1),
+    #tab-members table td:nth-child(1) { width: 12%; text-align: center; }
+    #tab-members table th:nth-child(2),
+    #tab-members table td:nth-child(2) { width: 40%; }
+    #tab-members table th:nth-child(3),
+    #tab-members table td:nth-child(3) { width: 24%; }
+    #tab-members table th:nth-child(4),
+    #tab-members table td:nth-child(4) { width: 12%; text-align: center; }
+    #tab-members table th:nth-child(5),
+    #tab-members table td:nth-child(5) { width: 12%; text-align: center; }
 
-    /* -------------------------------------------------
-       NỘP TIỀN
-       ------------------------------------------------- */
+    /* -----------------------------
+       SỔ THU CHI
+    ------------------------------ */
+    #tab-cashbook table th:nth-child(1),
+    #tab-cashbook table td:nth-child(1) { width: 26%; }
+    #tab-cashbook table th:nth-child(2),
+    #tab-cashbook table td:nth-child(2) { width: 36%; }
+    #tab-cashbook table th:nth-child(3),
+    #tab-cashbook table td:nth-child(3) { width: 18%; text-align: right; }
+    #tab-cashbook table th:nth-child(4),
+    #tab-cashbook table td:nth-child(4) { width: 20%; text-align: right; }
 
-    #tab-gocLogs table {
-        min-width: 780px;
+    /* -----------------------------
+       NỘP TIỀN / TIỀN GÓC
+    ------------------------------ */
+    #tab-gocLogs table th,
+    #tab-gocLogs table td,
+    #tab-finance table th,
+    #tab-finance table td {
+        font-size: 12.5px !important;
     }
 
-
-    /* -------------------------------------------------
-       TIỀN GÓC
-       ------------------------------------------------- */
-
+    /* Nếu bảng tài chính có nhiều cột, cho co chữ nhẹ */
     #tab-finance table {
-        min-width: 1100px;
+        table-layout: fixed !important;
     }
 
-
-    /* -------------------------------------------------
-       STICKY CỘT STT
-       ------------------------------------------------- */
-
-    #tab-matchLog th:first-child,
-    #tab-booking th:first-child,
-    #tab-quy th:first-child,
-    #tab-members th:first-child {
-
-        position: sticky;
-        left: 0;
-        z-index: 25;
-        background: #f1f5f9;
-    }
-
-    #tab-matchLog td:first-child,
-    #tab-booking td:first-child,
-    #tab-quy td:first-child,
-    #tab-members td:first-child {
-
-        position: sticky;
-        left: 0;
-        z-index: 5;
-        background: white;
-    }
-
-
-    /* =================================================
-       DASHBOARD
-       ================================================= */
-
-    #tab-dashboard table {
-        white-space: normal;
-    }
-
-    #tab-dashboard .grid-cols-4 {
-        grid-template-columns:
-            repeat(
-                2,
-                minmax(0, 1fr)
-            ) !important;
-    }
-
-    #tab-dashboard .grid-cols-4 > div {
-        min-width: 0;
-    }
-
-
-    /* =================================================
+    /* -----------------------------
        PHÂN TÍCH
-       ================================================= */
-
+    ------------------------------ */
     #tab-analytics {
         overflow-x: hidden;
     }
 
-    /*
-     * Banner đầu trang
-     */
     #tab-analytics > div:first-child {
         align-items: stretch !important;
         padding: 16px !important;
@@ -396,226 +401,161 @@ thead th {
         text-align: center;
     }
 
-
-    /*
-     * Bảng xếp hạng lớn:
-     * giữ dạng bảng + cuộn ngang.
-     */
-    #tab-analytics > .bg-white .overflow-x-auto {
-        overflow-x: auto !important;
-    }
-
-    #tab-analytics > .bg-white .overflow-x-auto::before {
-        content: "↔ Vuốt ngang để xem đầy đủ bảng";
-
-        display: block;
-        position: sticky;
-        left: 0;
-
-        width: max-content;
-        margin-bottom: 6px;
-
-        font-size: 11px;
-        line-height: 16px;
-        font-weight: 700;
-
-        color: #64748b;
-    }
-
+    /* Bảng xếp hạng lớn cũng wrap */
     #tab-analytics > .bg-white table {
-        min-width: 820px;
-    }
-
-
-    /*
-     * Các bảng 2 cột:
-     * không cần cuộn ngang.
-     * Cho phép tên xuống dòng.
-     */
-    #tab-analytics .grid .overflow-x-auto {
-        overflow-x: visible !important;
-    }
-
-    #tab-analytics .grid .overflow-x-auto::before {
-        display: none !important;
-    }
-
-    #tab-analytics .grid table {
-        min-width: 0 !important;
         width: 100% !important;
-        table-layout: fixed;
-        white-space: normal;
+        min-width: 0 !important;
+        table-layout: fixed !important;
+        white-space: normal !important;
+    }
+
+    #tab-analytics > .bg-white th,
+    #tab-analytics > .bg-white td {
+        font-size: 12.5px !important;
+        line-height: 1.35 !important;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    /* Bảng xếp hạng lớn: giả định 6 cột */
+    #tab-analytics > .bg-white table th:nth-child(1),
+    #tab-analytics > .bg-white table td:nth-child(1) { width: 12%; text-align: center; }
+    #tab-analytics > .bg-white table th:nth-child(2),
+    #tab-analytics > .bg-white table td:nth-child(2) { width: 42%; }
+    #tab-analytics > .bg-white table th:nth-child(3),
+    #tab-analytics > .bg-white table td:nth-child(3) { width: 12%; text-align: center; }
+    #tab-analytics > .bg-white table th:nth-child(4),
+    #tab-analytics > .bg-white table td:nth-child(4) { width: 10%; text-align: center; }
+    #tab-analytics > .bg-white table th:nth-child(5),
+    #tab-analytics > .bg-white table td:nth-child(5) { width: 10%; text-align: center; }
+    #tab-analytics > .bg-white table th:nth-child(6),
+    #tab-analytics > .bg-white table td:nth-child(6) { width: 14%; text-align: center; }
+
+    /* Các bảng nhỏ trong phân tích */
+    #tab-analytics .grid table {
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: fixed !important;
+        white-space: normal !important;
     }
 
     #tab-analytics .grid th:first-child,
     #tab-analytics .grid td:first-child {
-
-        width: 76%;
-        white-space: normal;
+        width: 78%;
+        white-space: normal !important;
         overflow-wrap: anywhere;
-        padding-right: 10px;
     }
 
     #tab-analytics .grid th:last-child,
     #tab-analytics .grid td:last-child {
-
-        width: 24%;
-        white-space: nowrap;
+        width: 22%;
         text-align: right;
+        white-space: normal !important;
     }
 
+    /* -----------------------------
+       DASHBOARD
+    ------------------------------ */
+    #tab-dashboard table {
+        white-space: normal;
+    }
 
-    /* =================================================
-       MODAL TOP 5 CẠ CỨNG / KHẮC TINH
-       ================================================= */
+    #tab-dashboard .grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
 
+    #tab-dashboard .grid-cols-4 > div {
+        min-width: 0;
+    }
+
+    /* -----------------------------
+       MODAL TOP 5 - GIỮ NGUYÊN GẦN NHƯ BẢN OK
+    ------------------------------ */
     #top5PersonalModal {
         padding: 12px !important;
-
         align-items: flex-start !important;
-
-        padding-top: max(
-            12px,
-            env(safe-area-inset-top)
-        ) !important;
+        padding-top: max(12px, env(safe-area-inset-top)) !important;
     }
 
     #top5PersonalModal > div {
-
         width: 100% !important;
         max-width: 100% !important;
-
         padding: 16px !important;
-
         border-radius: 20px !important;
-
-        max-height: calc(
-            100dvh - 24px
-        ) !important;
-
+        max-height: calc(100dvh - 24px) !important;
         overflow-y: auto;
     }
 
     #top5PersonalModal > div > button {
-
         width: 44px;
         height: 44px;
-
         display: flex;
         align-items: center;
         justify-content: center;
-
         top: 6px !important;
         right: 6px !important;
     }
 
     #top5PersonalModal h3 {
-
         font-size: 16px !important;
         line-height: 1.35 !important;
-
         padding-right: 30px;
     }
 
     #top5PersonalModal h4 {
-
         font-size: 13px !important;
         line-height: 1.4 !important;
     }
 
-    #top5PersonalModal .overflow-x-auto {
-        overflow-x: visible !important;
-    }
-
-    #top5PersonalModal table {
-
-        width: 100% !important;
-        min-width: 0 !important;
-
-        table-layout: fixed;
-
-        white-space: normal;
-
-        font-size: 13px !important;
-    }
-
     #top5PersonalModal th,
     #top5PersonalModal td {
-
         padding: 8px 5px !important;
+        font-size: 13px !important;
     }
 
     #top5PersonalModal th:first-child,
     #top5PersonalModal td:first-child {
-
         width: 48%;
-
-        white-space: normal;
-        overflow-wrap: anywhere;
     }
 
     #top5PersonalModal th:nth-child(2),
     #top5PersonalModal td:nth-child(2) {
-
         width: 14%;
         text-align: center;
     }
 
     #top5PersonalModal th:nth-child(3),
     #top5PersonalModal td:nth-child(3) {
-
         width: 14%;
         text-align: center;
     }
 
     #top5PersonalModal th:nth-child(4),
     #top5PersonalModal td:nth-child(4) {
-
         width: 24%;
         text-align: right;
-        white-space: normal;
+        white-space: normal !important;
     }
 
-
-    /* =================================================
-       MODAL CHUNG
-       ================================================= */
-
-    .fixed.inset-0 > div {
-        max-height: 92dvh;
-    }
-
-
-    /* =================================================
+    /* -----------------------------
        TOAST
-       ================================================= */
-
+    ------------------------------ */
     #appToast {
-
         left: 12px;
         right: 12px;
-
-        bottom: max(
-            16px,
-            env(safe-area-inset-bottom)
-        );
+        bottom: max(16px, env(safe-area-inset-bottom));
     }
 }
 
-
 /* =====================================================
    PWA STANDALONE
-   ===================================================== */
-
+===================================================== */
 @media (display-mode: standalone) {
-
     body {
-        padding-bottom:
-            env(safe-area-inset-bottom);
+        padding-bottom: env(safe-area-inset-bottom);
     }
 
     header {
-        padding-top:
-            env(safe-area-inset-top);
+        padding-top: env(safe-area-inset-top);
     }
 }
