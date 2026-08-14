@@ -81,9 +81,20 @@ thead th {
 @media (max-width: 767px) {
 
     body {
-        font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.45;
     }
-
+    .text-xs {
+    font-size: 13px !important;
+    line-height: 18px !important;
+    }
+    
+    .text-sm {
+        font-size: 15px !important;
+        line-height: 21px !important;
+    }
     /*
      * iPhone Safari có thể tự zoom khi input có font quá nhỏ.
      * Dùng 16px cho các ô nhập liệu trên mobile.
