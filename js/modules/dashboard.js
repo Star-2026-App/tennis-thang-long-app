@@ -68,6 +68,7 @@ function copyReminderText() {
         showToast("Đã sao chép nội dung tin nhắn nhắc nợ vào bộ nhớ tạm!");
     }).catch(err => { alert("Không thể tự động sao chép. Vui lòng thử lại!"); });
 }
+
 // ======================================================
 // QUỸ QUÝ - HÀM DÙNG CHUNG
 // ======================================================
@@ -514,55 +515,55 @@ function renderDashboard() {
     let f = calculateUserFinance(main);
     let m = members.find(item => item.name === main) || members[0];
 
-   // ======================================================
-// KIỂM TRA QUỸ QUÝ HIỆN TẠI
-// ======================================================
+    // ======================================================
+    // KIỂM TRA QUỸ QUÝ HIỆN TẠI
+    // ======================================================
 
-let period = getCurrentQuyPeriod();
+    let period = getCurrentQuyPeriod();
 
-let hasPaidCurrentQuarter = !!findQuyLogForMember(
-    m.name,
-    period.quarter,
-    period.year
-);
+    let hasPaidCurrentQuarter = !!findQuyLogForMember(
+        m.name,
+        period.quarter,
+        period.year
+    );
 
-let currentQuarter = period.quarter;
-let currentYear = period.year;
+    let currentQuarter = period.quarter;
+    let currentYear = period.year;
 
-let warningBanner =
-    document.getElementById('quyWarningBanner');
+    let warningBanner =
+        document.getElementById('quyWarningBanner');
 
-let hasOldDebt = (m.noOld || 0) > 0;
+    let hasOldDebt = (m.noOld || 0) > 0;
 
-let hasWarning =
-    m.status === 'Đang tham gia' &&
-    (hasOldDebt || !hasPaidCurrentQuarter);
+    let hasWarning =
+        m.status === 'Đang tham gia' &&
+        (hasOldDebt || !hasPaidCurrentQuarter);
 
-if (hasWarning) {
-    warningBanner.classList.remove('hidden');
-    warningBanner.classList.add('flex');
+    if (hasWarning) {
+        warningBanner.classList.remove('hidden');
+        warningBanner.classList.add('flex');
 
-    let warningMsg = [];
+        let warningMsg = [];
 
-    if (hasOldDebt) {
-        warningMsg.push(
-            `có số tiền Nợ cũ là ${m.noOld.toLocaleString()} đ`
-        );
+        if (hasOldDebt) {
+            warningMsg.push(
+                `có số tiền Nợ cũ là ${m.noOld.toLocaleString()} đ`
+            );
+        }
+
+        if (!hasPaidCurrentQuarter) {
+            warningMsg.push(
+                `chưa đóng quỹ ${currentQuarter}/${currentYear}`
+            );
+        }
+
+        document.getElementById('quyWarningText').innerText =
+            `${m.name} ơi, bạn ${warningMsg.join(' và ')}. Vui lòng hoàn thành nhé!`;
+
+    } else {
+        warningBanner.classList.add('hidden');
+        warningBanner.classList.remove('flex');
     }
-
-    if (!hasPaidCurrentQuarter) {
-        warningMsg.push(
-            `chưa đóng quỹ ${currentQuarter}/${currentYear}`
-        );
-    }
-
-    document.getElementById('quyWarningText').innerText =
-        `${m.name} ơi, bạn ${warningMsg.join(' và ')}. Vui lòng hoàn thành nhé!`;
-
-} else {
-    warningBanner.classList.add('hidden');
-    warningBanner.classList.remove('flex');
-}
 
     document.getElementById('statTotal').innerText = f.totalMatchCount;
     let winRate = f.totalMatchCount > 0 ? ((f.totalWins / f.totalMatchCount) * 100).toFixed(0) + '%' : '0%';
@@ -626,3 +627,772 @@ if (hasWarning) {
         });
     }
 }
+
+
+// ======================================================
+// PHASE 3 A8 - DASHBOARD UI PATCH
+//
+// CHỈ cần thay dashboard.js.
+// Không cần sửa index.html.
+// ======================================================
+
+(function () {
+
+    function period_() {
+        let now = new Date();
+        return {
+            month: now.getMonth() + 1,
+            year: now.getFullYear()
+        };
+    }
+
+    function money_(value) {
+        return (parseInt(value) || 0).toLocaleString("vi-VN") + " đ";
+    }
+
+    function setText_(id, value) {
+        let el = document.getElementById(id);
+        if (el) el.innerText = value;
+    }
+
+    function monthMatches_() {
+        let p = period_();
+
+        if (typeof getMonthMatchesCached_ === "function") {
+            return getMonthMatchesCached_(p.month, p.year) || [];
+        }
+
+        return (matches || []).filter(function (m) {
+            return typeof isLogInMonth_ === "function"
+                ? isLogInMonth_(m.time, p.month, p.year)
+                : false;
+        });
+    }
+
+    function monthBookings_() {
+        let p = period_();
+
+        if (typeof getMonthBookingsCached_ === "function") {
+            return getMonthBookingsCached_(p.month, p.year) || [];
+        }
+
+        return (bookingLogs || []).filter(function (b) {
+            return typeof isLogInMonth_ === "function"
+                ? isLogInMonth_(b.time, p.month, p.year)
+                : false;
+        });
+    }
+
+    function lifetimeStats_(memberName) {
+        let key = String(memberName || "").trim().toLowerCase();
+
+        let stat = (window.memberStats || []).find(function (item) {
+            return String(item.name || "").trim().toLowerCase() === key;
+        });
+
+        return {
+            total: stat ? (parseInt(stat.totalMatches) || 0) : 0,
+            wins: stat ? (parseInt(stat.wins) || 0) : 0,
+            draws: stat ? (parseInt(stat.draws) || 0) : 0,
+            losses: stat ? (parseInt(stat.losses) || 0) : 0
+        };
+    }
+
+    function monthStats_(memberName, list) {
+        let result = {
+            total: 0,
+            wins: 0,
+            draws: 0,
+            losses: 0
+        };
+
+        (list || []).forEach(function (m) {
+            let isV1 =
+                m.p1_v1 === memberName ||
+                m.p2_v1 === memberName;
+
+            let isV2 =
+                m.p1_v2 === memberName ||
+                m.p2_v2 === memberName;
+
+            if (!isV1 && !isV2) return;
+
+            let scoreA = parseInt(m.scoreA) || 0;
+            let scoreB = parseInt(m.scoreB) || 0;
+
+            result.total++;
+
+            if (scoreA === scoreB) {
+                result.draws++;
+                return;
+            }
+
+            let isWin =
+                (isV1 && scoreA > scoreB) ||
+                (isV2 && scoreB > scoreA);
+
+            if (isWin) result.wins++;
+            else result.losses++;
+        });
+
+        return result;
+    }
+
+    function ensureStatsUi_() {
+        if (document.getElementById("statLifetimeRate")) return;
+
+        let statTotal = document.getElementById("statTotal");
+
+        let grid =
+            statTotal &&
+            statTotal.parentElement &&
+            statTotal.parentElement.parentElement
+                ? statTotal.parentElement.parentElement
+                : null;
+
+        if (!grid) return;
+
+        grid.className = "grid grid-cols-1 md:grid-cols-2 gap-3";
+
+        grid.innerHTML = `
+            <div class="bg-gradient-to-br from-emerald-50 to-white p-4 rounded-2xl border border-emerald-200 shadow-sm">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                        <span class="text-[10px] font-black text-emerald-800 uppercase tracking-wide">THÀNH TÍCH TỔNG</span>
+                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Toàn bộ lịch sử thi đấu</p>
+                    </div>
+
+                    <div class="bg-emerald-700 text-white rounded-xl px-3 py-2 text-center min-w-[72px]">
+                        <span class="block text-[9px] uppercase font-bold opacity-80">Tổng trận</span>
+                        <span id="statTotal" class="text-2xl font-black leading-none">0</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-2 text-center">
+                    <div class="bg-blue-50 rounded-xl p-2 border border-blue-100">
+                        <span class="block text-[9px] font-bold text-blue-600 uppercase">Thắng</span>
+                        <span id="statWins" class="text-lg font-black text-blue-800">0</span>
+                    </div>
+
+                    <div class="bg-amber-50 rounded-xl p-2 border border-amber-100">
+                        <span class="block text-[9px] font-bold text-amber-600 uppercase">Hòa</span>
+                        <span id="statDraws" class="text-lg font-black text-amber-800">0</span>
+                    </div>
+
+                    <div class="bg-red-50 rounded-xl p-2 border border-red-100">
+                        <span class="block text-[9px] font-bold text-red-600 uppercase">Thua</span>
+                        <span id="statLosses" class="text-lg font-black text-red-800">0</span>
+                    </div>
+
+                    <div class="bg-slate-100 rounded-xl p-2 border border-slate-200">
+                        <span class="block text-[9px] font-bold text-slate-600 uppercase">Tỷ lệ</span>
+                        <span id="statLifetimeRate" class="text-lg font-black text-emerald-800">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-blue-50 to-white p-4 rounded-2xl border border-blue-200 shadow-sm">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                        <span id="statMonthLabel" class="text-[10px] font-black text-blue-800 uppercase tracking-wide">THÁNG --/----</span>
+                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Phong độ tháng hiện tại</p>
+                    </div>
+
+                    <div class="bg-blue-700 text-white rounded-xl px-3 py-2 text-center min-w-[72px]">
+                        <span class="block text-[9px] uppercase font-bold opacity-80">Tổng trận</span>
+                        <span id="statMonthTotal" class="text-2xl font-black leading-none">0</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-2 text-center">
+                    <div class="bg-blue-50 rounded-xl p-2 border border-blue-100">
+                        <span class="block text-[9px] font-bold text-blue-600 uppercase">Thắng</span>
+                        <span id="statMonthWins" class="text-lg font-black text-blue-800">0</span>
+                    </div>
+
+                    <div class="bg-amber-50 rounded-xl p-2 border border-amber-100">
+                        <span class="block text-[9px] font-bold text-amber-600 uppercase">Hòa</span>
+                        <span id="statMonthDraws" class="text-lg font-black text-amber-800">0</span>
+                    </div>
+
+                    <div class="bg-red-50 rounded-xl p-2 border border-red-100">
+                        <span class="block text-[9px] font-bold text-red-600 uppercase">Thua</span>
+                        <span id="statMonthLosses" class="text-lg font-black text-red-800">0</span>
+                    </div>
+
+                    <div class="bg-slate-100 rounded-xl p-2 border border-slate-200">
+                        <span class="block text-[9px] font-bold text-slate-600 uppercase">Tỷ lệ</span>
+                        <span id="statMonthRate" class="text-lg font-black text-blue-800">0%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function ensureFinanceUi_() {
+        if (document.getElementById("dashboardQuyStatus")) return;
+
+        let statReward = document.getElementById("statReward");
+
+        let grid =
+            statReward &&
+            statReward.parentElement &&
+            statReward.parentElement.parentElement
+                ? statReward.parentElement.parentElement
+                : null;
+
+        if (!grid) return;
+
+        grid.className =
+            "bg-emerald-50/60 p-4 rounded-xl border border-emerald-200 space-y-3";
+
+        grid.innerHTML = `
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                <div>
+                    <div class="text-[10px] font-black text-emerald-900 uppercase">TÀI CHÍNH THÁNG HIỆN TẠI</div>
+                    <div id="dashboardFinancePeriodLabel" class="text-[10px] text-slate-500 font-semibold mt-0.5">Tháng --/----</div>
+                </div>
+
+                <div id="dashboardQuyStatus" class="inline-flex items-center gap-1.5 self-start md:self-auto px-3 py-1.5 rounded-full text-[10px] font-black border bg-slate-100 text-slate-600 border-slate-200">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Đang kiểm tra quỹ quý...</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
+                <div class="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <span id="dashboardRewardLabel" class="text-[10px] font-bold text-slate-600 uppercase">THƯỞNG ĐẶT SÂN THÁNG:</span>
+                        <div id="statReward" class="text-lg font-black text-emerald-700 mt-0.5">0 đ</div>
+
+                        <div class="mt-2">
+                            <span class="text-[10px] font-bold text-slate-600 uppercase">TỔNG CẦN ĐÓNG:</span>
+                            <div id="statDebt" class="text-xl font-black text-red-600 mt-0.5">0 đ</div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onclick="openDashboardFinanceDetailModal()"
+                        class="mt-3 w-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-[10px] px-3 py-2 rounded-lg shadow transition flex items-center justify-center gap-1.5"
+                    >
+                        <i class="fa-solid fa-circle-info"></i>
+                        Xem chi tiết tài chính
+                    </button>
+                </div>
+
+                <div class="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm">
+                    <label class="block text-[10px] font-extrabold text-emerald-900 uppercase mb-1">Tự nhập tiền GÓC CK:</label>
+
+                    <div class="flex gap-2">
+                        <input type="number" id="userPaidInput" placeholder="Số tiền" class="w-full border rounded-lg p-2 text-xs font-bold text-slate-900">
+
+                        <button onclick="submitUserPayment()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] px-3 py-2 rounded-lg shadow whitespace-nowrap">
+                            + NỘP
+                        </button>
+                    </div>
+
+                    <p class="text-[10px] text-slate-500 mt-1">
+                        Đã nộp tháng:
+                        <span id="statPaidDisplay" class="font-bold text-emerald-700">0 đ</span>
+                    </p>
+                </div>
+
+                <div class="bg-white p-2.5 rounded-xl border border-emerald-300 shadow-sm flex flex-col items-center text-center">
+                    <span class="text-[9px] font-extrabold text-emerald-900 uppercase mb-1">MÃ QR (BẤM PHÓNG TO)</span>
+                    <img id="dashQrImg" src="" alt="VietQR" onclick="openQRZoomModal()" class="w-20 h-20 object-contain rounded border cursor-pointer hover:scale-105 transition">
+                </div>
+            </div>
+        `;
+    }
+
+    function ensureFinanceModal_() {
+        if (document.getElementById("dashboardFinanceDetailModal")) return;
+
+        document.body.insertAdjacentHTML(
+            "beforeend",
+            `
+            <div id="dashboardFinanceDetailModal"
+                 class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[260] p-4"
+                 onclick="closeDashboardFinanceDetailModal()">
+
+                <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden"
+                     onclick="event.stopPropagation()">
+
+                    <div class="bg-emerald-800 text-white px-5 py-4 flex items-start justify-between gap-3">
+                        <div>
+                            <h3 class="font-black text-sm uppercase flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice-dollar text-amber-300"></i>
+                                CHI TIẾT TÀI CHÍNH
+                            </h3>
+
+                            <p id="dashboardFinanceDetailMember" class="text-xs font-bold text-emerald-100 mt-1">Thành viên</p>
+                            <p id="dashboardFinanceDetailPeriod" class="text-[10px] text-emerald-200 mt-0.5">Tháng --/----</p>
+                        </div>
+
+                        <button type="button"
+                                onclick="closeDashboardFinanceDetailModal()"
+                                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-5 space-y-3">
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5 text-xs">
+                            <div class="flex justify-between items-center gap-3">
+                                <span class="font-bold text-slate-600">Dư/Nợ đầu kỳ</span>
+                                <span id="dashboardFdOpening" class="font-black text-slate-900">0 đ</span>
+                            </div>
+
+                            <div class="flex justify-between items-center gap-3">
+                                <span class="font-bold text-slate-600">+ Góc cơ bản</span>
+                                <span id="dashboardFdBase" class="font-black text-amber-800">0 đ</span>
+                            </div>
+
+                            <div class="flex justify-between items-center gap-3">
+                                <span class="font-bold text-slate-600">+ Kèo đặc biệt</span>
+                                <span id="dashboardFdSpecial" class="font-black text-orange-700">0 đ</span>
+                            </div>
+
+                            <div class="flex justify-between items-center gap-3">
+                                <span class="font-bold text-slate-600">- Đã nộp</span>
+                                <span id="dashboardFdPaid" class="font-black text-emerald-700">0 đ</span>
+                            </div>
+
+                            <div class="flex justify-between items-center gap-3">
+                                <span class="font-bold text-slate-600">- Thưởng sân</span>
+                                <span id="dashboardFdReward" class="font-black text-purple-700">0 đ</span>
+                            </div>
+
+                            <div class="border-t border-dashed border-slate-300 pt-3 mt-2 flex justify-between items-center gap-3">
+                                <span id="dashboardFdClosingLabel" class="font-black text-slate-800 uppercase">= Còn cần đóng</span>
+                                <span id="dashboardFdClosing" class="font-black text-xl text-red-600">0 đ</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-[10px] font-semibold text-blue-900 leading-relaxed">
+                            Công thức: Dư/Nợ đầu kỳ + Góc cơ bản + Kèo đặc biệt - Đã nộp - Thưởng sân = Dư/Nợ cuối kỳ.
+                        </div>
+
+                        <button type="button"
+                                onclick="closeDashboardFinanceDetailModal()"
+                                class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black py-2.5 rounded-xl text-xs">
+                            ĐÓNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+            `
+        );
+    }
+
+    function ensureUi_() {
+        ensureStatsUi_();
+        ensureFinanceUi_();
+        ensureFinanceModal_();
+    }
+
+    function updateQuarterStatus_(memberName) {
+        let badge = document.getElementById("dashboardQuyStatus");
+        if (!badge) return;
+
+        let p = getCurrentQuyPeriod();
+
+        let paid =
+            !!findQuyLogForMember(
+                memberName,
+                p.quarter,
+                p.year
+            );
+
+        if (paid) {
+            badge.className =
+                "inline-flex items-center gap-1.5 self-start md:self-auto px-3 py-1.5 rounded-full text-[10px] font-black border bg-emerald-100 text-emerald-800 border-emerald-300";
+
+            badge.innerHTML =
+                `<i class="fa-solid fa-circle-check"></i><span>Đã đóng quỹ ${p.quarter}/${p.year}</span>`;
+        } else {
+            badge.className =
+                "inline-flex items-center gap-1.5 self-start md:self-auto px-3 py-1.5 rounded-full text-[10px] font-black border bg-amber-100 text-amber-800 border-amber-300";
+
+            badge.innerHTML =
+                `<i class="fa-solid fa-circle-exclamation"></i><span>Chưa đóng quỹ ${p.quarter}/${p.year}</span>`;
+        }
+    }
+
+    function renderNewDashboardValues_() {
+        if (!members || members.length === 0) {
+            members = defaultFallbackMembers;
+        }
+
+        let mainEl = document.getElementById("dashMainUser");
+        if (!mainEl) return;
+
+        let main =
+            mainEl.value ||
+            (members[0] ? members[0].name : "");
+
+        if (!main) return;
+
+        let p = period_();
+        let life = lifetimeStats_(main);
+        let monthList = monthMatches_();
+        let monthStat = monthStats_(main, monthList);
+
+        let finance =
+            calculateUserFinanceForMonth(
+                main,
+                p.month,
+                p.year
+            );
+
+        let lifeRate =
+            life.total > 0
+                ? ((life.wins / life.total) * 100).toFixed(0) + "%"
+                : "0%";
+
+        let monthRate =
+            monthStat.total > 0
+                ? ((monthStat.wins / monthStat.total) * 100).toFixed(0) + "%"
+                : "0%";
+
+        setText_("statTotal", life.total);
+        setText_("statWins", life.wins);
+        setText_("statDraws", life.draws);
+        setText_("statLosses", life.losses);
+        setText_("statLifetimeRate", lifeRate);
+
+        setText_("statMonthLabel", `THÁNG ${p.month}/${p.year}`);
+        setText_("statMonthTotal", monthStat.total);
+        setText_("statMonthWins", monthStat.wins);
+        setText_("statMonthDraws", monthStat.draws);
+        setText_("statMonthLosses", monthStat.losses);
+        setText_("statMonthRate", monthRate);
+
+        setText_("dashboardFinancePeriodLabel", `Tháng ${p.month}/${p.year}`);
+        setText_("dashboardRewardLabel", `THƯỞNG ĐẶT SÂN THÁNG ${p.month}:`);
+        setText_("statReward", money_(finance.monthRewardAmount));
+        setText_("statPaidDisplay", money_(finance.monthPaidAmount));
+
+        let debtEl = document.getElementById("statDebt");
+
+        if (debtEl) {
+            debtEl.innerText = money_(finance.totalPay);
+
+            debtEl.className =
+                finance.totalPay < 0
+                    ? "text-xl font-black text-cyan-700 mt-0.5"
+                    : (
+                        finance.totalPay > 0
+                            ? "text-xl font-black text-red-600 mt-0.5"
+                            : "text-xl font-black text-emerald-700 mt-0.5"
+                    );
+        }
+
+        updateQuarterStatus_(main);
+
+        let qr = document.getElementById("dashQrImg");
+
+        if (qr) {
+            qr.src =
+                `https://img.vietqr.io/image/` +
+                `${systemSettings.bankId}-` +
+                `${systemSettings.bankAccount}-compact2.png` +
+                `?accountName=${encodeURIComponent(systemSettings.accountName)}`;
+        }
+
+        // Nhật ký trận - luôn là tháng hiện tại
+        let matchBody =
+            document.getElementById(
+                "userMatchHistoryBody"
+            );
+
+        let userMatches =
+            monthList
+                .filter(function (m) {
+                    return (
+                        m.p1_v1 === main ||
+                        m.p2_v1 === main ||
+                        m.p1_v2 === main ||
+                        m.p2_v2 === main
+                    );
+                })
+                .slice()
+                .sort(function (a, b) {
+                    return (parseInt(b.id) || 0) - (parseInt(a.id) || 0);
+                });
+
+        if (matchBody) {
+            matchBody.innerHTML = "";
+
+            if (userMatches.length === 0) {
+                matchBody.innerHTML =
+                    `<tr><td colspan="5" class="p-3 text-center text-slate-400 italic">Chưa có trận trong tháng ${p.month}/${p.year}</td></tr>`;
+            } else {
+                userMatches.forEach(function (m, idx) {
+                    let isV1 =
+                        m.p1_v1 === main ||
+                        m.p2_v1 === main;
+
+                    let teammate =
+                        isV1
+                            ? (
+                                m.p1_v1 === main
+                                    ? m.p2_v1
+                                    : m.p1_v1
+                            )
+                            : (
+                                m.p1_v2 === main
+                                    ? m.p2_v2
+                                    : m.p1_v2
+                            );
+
+                    let opponents =
+                        isV1
+                            ? `${m.p1_v2} & ${m.p2_v2}`
+                            : `${m.p1_v1} & ${m.p2_v1}`;
+
+                    let score =
+                        isV1
+                            ? `${m.scoreA}-${m.scoreB}`
+                            : `${m.scoreB}-${m.scoreA}`;
+
+                    let special =
+                        parseInt(m.specialBet) > 0
+                            ? parseInt(m.specialBet).toLocaleString("vi-VN") + "đ"
+                            : "-";
+
+                    matchBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 text-center font-bold">${userMatches.length - idx}</td>
+                            <td class="p-2 font-semibold text-slate-800">${teammate}</td>
+                            <td class="p-2 font-semibold text-slate-800">${opponents}</td>
+                            <td class="p-2 text-center font-bold text-emerald-800">${score}</td>
+                            <td class="p-2 text-right font-bold text-amber-800">${special}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        // Thưởng sân - luôn là tháng hiện tại
+        let rewardBody =
+            document.getElementById(
+                "userRewardHistoryBody"
+            );
+
+        let userBookings =
+            monthBookings_()
+                .filter(function (b) {
+                    return b.name === main;
+                })
+                .slice()
+                .sort(function (a, b) {
+                    return (parseInt(b.id) || 0) - (parseInt(a.id) || 0);
+                });
+
+        if (rewardBody) {
+            rewardBody.innerHTML = "";
+
+            if (userBookings.length === 0) {
+                rewardBody.innerHTML =
+                    `<tr><td colspan="3" class="p-3 text-center text-slate-400 italic">Chưa có thưởng sân trong tháng</td></tr>`;
+            } else {
+                userBookings.forEach(function (b) {
+                    rewardBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-1.5">${b.time}</td>
+                            <td class="p-1.5 text-center font-bold text-amber-700">${b.frame}</td>
+                            <td class="p-1.5 text-right font-black text-emerald-700">${money_(b.reward)}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        // Lịch sử nộp góc - luôn là tháng hiện tại
+        let gocBody =
+            document.getElementById(
+                "userGocHistoryBody"
+            );
+
+        let userGocs =
+            (gocLogs || [])
+                .filter(function (g) {
+                    return (
+                        g.name === main &&
+                        (
+                            typeof isLogInMonth_ !== "function" ||
+                            isLogInMonth_(
+                                g.time,
+                                p.month,
+                                p.year
+                            )
+                        )
+                    );
+                })
+                .slice()
+                .sort(function (a, b) {
+                    return (parseInt(b.id) || 0) - (parseInt(a.id) || 0);
+                });
+
+        if (gocBody) {
+            gocBody.innerHTML = "";
+
+            if (userGocs.length === 0) {
+                gocBody.innerHTML =
+                    `<tr><td colspan="3" class="p-3 text-center text-slate-400 italic">Chưa có lượt nộp trong tháng</td></tr>`;
+            } else {
+                userGocs.forEach(function (g) {
+                    gocBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-1.5 text-slate-600">${g.time}</td>
+                            <td class="p-1.5 text-right font-bold text-emerald-700">${money_(g.amount)}</td>
+                            <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${g.note || "-"}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+    }
+
+    // Giữ nguyên renderDashboard cũ làm lớp nền,
+    // sau đó A8 chỉ nâng UI và ghi đè số liệu cần thiết.
+    const renderDashboardBeforeA8_ = renderDashboard;
+
+    renderDashboard = function () {
+        renderDashboardBeforeA8_.apply(this, arguments);
+
+        ensureUi_();
+
+        renderNewDashboardValues_();
+    };
+
+    window.openDashboardFinanceDetailModal =
+        function () {
+            ensureUi_();
+
+            if (!members || members.length === 0) {
+                members = defaultFallbackMembers;
+            }
+
+            let mainEl =
+                document.getElementById(
+                    "dashMainUser"
+                );
+
+            let main =
+                mainEl && mainEl.value
+                    ? mainEl.value
+                    : (
+                        members[0]
+                            ? members[0].name
+                            : ""
+                    );
+
+            if (!main) return;
+
+            let p = period_();
+
+            let f =
+                calculateUserFinanceForMonth(
+                    main,
+                    p.month,
+                    p.year
+                );
+
+            setText_(
+                "dashboardFinanceDetailMember",
+                main
+            );
+
+            setText_(
+                "dashboardFinanceDetailPeriod",
+                `Tháng ${p.month}/${p.year}`
+            );
+
+            setText_(
+                "dashboardFdOpening",
+                money_(f.carryBalance)
+            );
+
+            setText_(
+                "dashboardFdBase",
+                money_(f.cappedBaseFee)
+            );
+
+            setText_(
+                "dashboardFdSpecial",
+                money_(f.monthSpecialBetFee)
+            );
+
+            setText_(
+                "dashboardFdPaid",
+                money_(f.monthPaidAmount)
+            );
+
+            setText_(
+                "dashboardFdReward",
+                money_(f.monthRewardAmount)
+            );
+
+            let closing =
+                parseInt(
+                    f.totalPay
+                ) || 0;
+
+            let label =
+                document.getElementById(
+                    "dashboardFdClosingLabel"
+                );
+
+            let amount =
+                document.getElementById(
+                    "dashboardFdClosing"
+                );
+
+            if (label) {
+                label.innerText =
+                    closing < 0
+                        ? "= Thành viên đang dư"
+                        : "= Còn cần đóng";
+            }
+
+            if (amount) {
+                amount.innerText = money_(closing);
+
+                amount.className =
+                    closing < 0
+                        ? "font-black text-xl text-cyan-700"
+                        : (
+                            closing > 0
+                                ? "font-black text-xl text-red-600"
+                                : "font-black text-xl text-emerald-700"
+                        );
+            }
+
+            let modal =
+                document.getElementById(
+                    "dashboardFinanceDetailModal"
+                );
+
+            if (modal) {
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+            }
+        };
+
+    window.closeDashboardFinanceDetailModal =
+        function () {
+            let modal =
+                document.getElementById(
+                    "dashboardFinanceDetailModal"
+                );
+
+            if (!modal) return;
+
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        };
+
+})();
