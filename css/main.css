@@ -1,19 +1,12 @@
-/* =====================================================
+/* =========================================================
    CLB TENNIS THĂNG LONG
-   PHASE 3B - MOBILE UI FINAL FOUNDATION
-
-   Nguyên tắc:
-   - Font tự nhiên, không ép đậm toàn app.
-   - Desktop giữ nguyên.
-   - Mobile: card/filter wrap.
-   - Table nhiều cột: kéo ngang.
-   - Table ít cột trong Analytics: co vừa màn hình.
-   ===================================================== */
+   PHASE 3B - MOBILE UI CONSOLIDATED
+   ========================================================= */
 
 
-/* =====================================================
-   BASE
-   ===================================================== */
+/* =========================================================
+   1. BASE
+   ========================================================= */
 
 html {
     -webkit-text-size-adjust: 100%;
@@ -22,6 +15,7 @@ html {
 
 body {
     font-family:
+        system-ui,
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
@@ -31,15 +25,17 @@ body {
         sans-serif;
 
     background-color: #f1f5f9;
+    color: #1e293b;
+
     min-height: 100vh;
     min-height: 100dvh;
-
-    /*
-     * Không ép font-weight ở body.
-     * Giữ trọng lượng chữ tự nhiên từ Tailwind / HTML hiện tại.
-     */
-    color: #1e293b;
 }
+
+
+/*
+ * Không ép font-weight toàn app.
+ * Giữ font tự nhiên theo Tailwind/HTML hiện tại.
+ */
 
 button,
 a,
@@ -53,6 +49,11 @@ button {
     touch-action: manipulation;
 }
 
+
+/* =========================================================
+   2. TAB
+   ========================================================= */
+
 .tab-content {
     display: none;
 }
@@ -62,9 +63,9 @@ button {
 }
 
 
-/* =====================================================
-   SCROLLBAR
-   ===================================================== */
+/* =========================================================
+   3. SCROLLBAR
+   ========================================================= */
 
 ::-webkit-scrollbar {
     width: 6px;
@@ -81,9 +82,9 @@ button {
 }
 
 
-/* =====================================================
-   TABLE STICKY - DESKTOP
-   ===================================================== */
+/* =========================================================
+   4. TABLE STICKY - DESKTOP
+   ========================================================= */
 
 .sticky-col {
     position: sticky;
@@ -105,18 +106,18 @@ thead th {
 }
 
 
-/* =====================================================
-   HORIZONTAL SCROLL
-   ===================================================== */
+/* =========================================================
+   5. SCROLL CONTAINER
+   ========================================================= */
 
 .overflow-x-auto {
     -webkit-overflow-scrolling: touch;
 }
 
 
-/* =====================================================
-   PWA INSTALL BUTTON
-   ===================================================== */
+/* =========================================================
+   6. PWA
+   ========================================================= */
 
 .pwa-install-btn {
     display: inline-flex;
@@ -125,43 +126,38 @@ thead th {
 }
 
 
-/* =====================================================
-   MOBILE
-   ===================================================== */
+/* =========================================================
+   7. MOBILE
+   ========================================================= */
 
 @media (max-width: 767px) {
 
-    /* -------------------------------------------------
+    /* =====================================================
        FONT MOBILE
-       ------------------------------------------------- */
+       ===================================================== */
 
     body {
         font-family:
             -apple-system,
             BlinkMacSystemFont,
+            system-ui,
             "Segoe UI",
             Roboto,
-            "Helvetica Neue",
             Arial,
             sans-serif;
 
         font-size: 15px;
         line-height: 1.45;
-
-        /*
-         * QUAN TRỌNG:
-         * Không dùng font-weight: 500/600 ở body.
-         * Không dùng -webkit-font-smoothing: antialiased.
-         * Để iPhone render font hệ thống tự nhiên.
-         */
     }
+
+    /*
+     * Không dùng font-weight trên body.
+     * Không dùng font-smoothing ép mỏng chữ.
+     */
 
     input,
     select,
     textarea {
-        /*
-         * Tránh Safari tự zoom khi focus.
-         */
         font-size: 16px !important;
     }
 
@@ -174,9 +170,9 @@ thead th {
     }
 
 
-    /* -------------------------------------------------
+    /* =====================================================
        MAIN
-       ------------------------------------------------- */
+       ===================================================== */
 
     main {
         padding-left: 12px !important;
@@ -189,9 +185,9 @@ thead th {
     }
 
 
-    /* -------------------------------------------------
+    /* =====================================================
        MOBILE MENU
-       ------------------------------------------------- */
+       ===================================================== */
 
     #mobileMenuDrawer {
         max-height: calc(100dvh - 95px);
@@ -205,21 +201,16 @@ thead th {
     }
 
 
-    /* =================================================
-       QUY TẮC TABLE MOBILE
-       ================================================= */
+    /* =====================================================
+       TABLE CHUNG MOBILE
+       ===================================================== */
 
-    /*
-     * Table nhiều cột:
-     * không ép co vào chiều rộng iPhone.
-     */
     #tab-matchLog .overflow-x-auto,
     #tab-booking .overflow-x-auto,
     #tab-quy .overflow-x-auto,
     #tab-members .overflow-x-auto,
     #tab-gocLogs .overflow-x-auto,
     #tab-finance .overflow-x-auto,
-    #tab-cashbook .overflow-x-auto,
     #tab-analytics .overflow-x-auto {
 
         overflow-x: auto !important;
@@ -233,9 +224,9 @@ thead th {
 
 
     /*
-     * Mặc định:
-     * header và số liệu không bị dựng dọc.
+     * Header không bao giờ bị dựng dọc từng chữ.
      */
+
     #tab-matchLog th,
     #tab-booking th,
     #tab-quy th,
@@ -245,16 +236,16 @@ thead th {
     #tab-cashbook th,
     #tab-analytics th {
 
-        white-space: nowrap !important;
         word-break: normal !important;
         overflow-wrap: normal !important;
+        white-space: nowrap;
     }
 
 
     /*
-     * Mặc định dữ liệu:
-     * không bẻ từng ký tự.
+     * Nội dung không break từng ký tự.
      */
+
     #tab-matchLog td,
     #tab-booking td,
     #tab-quy td,
@@ -270,207 +261,639 @@ thead th {
     }
 
 
-    /* =================================================
-       NHẬT KÝ TRẬN
-       ================================================= */
+    /* =====================================================
+       A. NHẬT KÝ TRẬN
+       ===================================================== */
 
     #tab-matchLog table {
         min-width: 900px;
     }
 
+
+    /* STT */
+
+    #tab-matchLog th:nth-child(1),
+    #tab-matchLog td:nth-child(1) {
+        min-width: 55px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+
     /*
-     * Đội A / Đội B được xuống dòng tự nhiên.
+     * Thời gian:
+     * giờ dòng trên
+     * ngày dòng dưới
      */
+
+    #tab-matchLog th:nth-child(2),
+    #tab-matchLog td:nth-child(2) {
+        min-width: 125px;
+        max-width: 125px;
+
+        white-space: normal !important;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+
+    /*
+     * Đội A / Đội B:
+     * wrap tên tự nhiên.
+     */
+
     #tab-matchLog th:nth-child(3),
     #tab-matchLog td:nth-child(3),
     #tab-matchLog th:nth-child(4),
     #tab-matchLog td:nth-child(4) {
 
+        min-width: 175px;
+        max-width: 190px;
+
         white-space: normal !important;
-        min-width: 180px;
         line-height: 1.4;
     }
 
-    /*
-     * Thời gian.
-     */
-    #tab-matchLog th:nth-child(2),
-    #tab-matchLog td:nth-child(2) {
-        min-width: 145px;
-        white-space: normal !important;
-    }
 
     /*
-     * STT / tỉ số / kèo / thao tác.
+     * Tỉ số:
+     * đủ hẹp để dạng:
+     *
+     * 5
+     * -
+     * 5
      */
-    #tab-matchLog th:first-child,
-    #tab-matchLog td:first-child {
-        min-width: 60px;
+
+    #tab-matchLog th:nth-child(5),
+    #tab-matchLog td:nth-child(5) {
+
+        min-width: 65px;
+        max-width: 65px;
+
+        white-space: normal !important;
+        text-align: center;
+        line-height: 1.25;
+    }
+
+
+    /*
+     * Kèo.
+     * Nếu có tiền:
+     * số tiền ở trên, "đ" xuống dưới.
+     */
+
+    #tab-matchLog th:nth-child(6),
+    #tab-matchLog td:nth-child(6) {
+
+        min-width: 105px;
+        max-width: 105px;
+
+        white-space: normal !important;
+        text-align: center;
+
+        word-break: keep-all !important;
+    }
+
+
+    /*
+     * Sửa / Xóa nằm bên phải.
+     * Phải kéo ngang mới thấy.
+     */
+
+    #tab-matchLog th:nth-child(n+7),
+    #tab-matchLog td:nth-child(n+7) {
+        min-width: 90px;
+        white-space: nowrap !important;
         text-align: center;
     }
 
 
-    /* =================================================
-       NỘP TIỀN
-       ================================================= */
-
-    #tab-gocLogs table {
-        min-width: 820px;
-    }
-
-    #tab-gocLogs th:nth-child(3),
-    #tab-gocLogs td:nth-child(3) {
-        min-width: 180px;
-        white-space: normal !important;
-    }
-
-    #tab-gocLogs th:nth-child(4),
-    #tab-gocLogs td:nth-child(4) {
-        min-width: 120px;
-        white-space: nowrap !important;
-    }
-
-    #tab-gocLogs th:nth-child(5),
-    #tab-gocLogs td:nth-child(5) {
-        min-width: 180px;
-        white-space: normal !important;
-    }
-
-
-    /* =================================================
-       TIỀN GÓC
-       ================================================= */
-
-    #tab-finance table {
-        /*
-         * Đây là bảng nhiều cột nhất.
-         * Giữ cách kéo ngang giống phiên bản đầu.
-         */
-        min-width: 1200px;
-    }
-
-    /*
-     * Cột tên thành viên.
-     */
-    #tab-finance th:nth-child(2),
-    #tab-finance td:nth-child(2) {
-        min-width: 170px;
-        white-space: normal !important;
-        line-height: 1.4;
-    }
-
-    /*
-     * Các cột số liệu giữ nguyên một dòng.
-     */
-    #tab-finance td:not(:nth-child(2)) {
-        white-space: nowrap;
-    }
-
-
-    /* =================================================
-       THƯỞNG SÂN
-       ================================================= */
+    /* =====================================================
+       B. THƯỞNG SÂN
+       ===================================================== */
 
     #tab-booking table {
         min-width: 780px;
     }
 
+
+    /* STT */
+
+    #tab-booking th:nth-child(1),
+    #tab-booking td:nth-child(1) {
+        min-width: 55px;
+        text-align: center;
+    }
+
+
+    /*
+     * Thời gian:
+     * giờ trên
+     * ngày dưới
+     */
+
+    #tab-booking th:nth-child(2),
+    #tab-booking td:nth-child(2) {
+
+        min-width: 135px;
+        max-width: 135px;
+
+        white-space: normal !important;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+
+    /*
+     * Thành viên wrap.
+     */
+
     #tab-booking th:nth-child(3),
     #tab-booking td:nth-child(3) {
-        min-width: 180px;
+
+        min-width: 170px;
+        max-width: 180px;
+
         white-space: normal !important;
+        line-height: 1.4;
     }
 
-    #tab-booking td:nth-child(4),
+
+    /*
+     * Khung sân:
+     *
+     * 18h-20h
+     * (CVTT5)
+     */
+
+    #tab-booking th:nth-child(4),
+    #tab-booking td:nth-child(4) {
+
+        min-width: 130px;
+        max-width: 130px;
+
+        white-space: normal !important;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+
+    /*
+     * Số tiền:
+     *
+     * 20.000
+     * đ
+     */
+
+    #tab-booking th:nth-child(5),
     #tab-booking td:nth-child(5) {
-        white-space: nowrap !important;
+
+        min-width: 105px;
+        max-width: 105px;
+
+        white-space: normal !important;
+        word-break: keep-all !important;
+
+        line-height: 1.3;
+        text-align: center;
     }
 
 
-    /* =================================================
-       ĐÓNG QUỸ
-       ================================================= */
+    /*
+     * Xóa nằm ngoài vùng nhìn đầu tiên.
+     */
 
-    #tab-quy table {
+    #tab-booking th:nth-child(n+6),
+    #tab-booking td:nth-child(n+6) {
+
+        min-width: 75px;
+        white-space: nowrap !important;
+        text-align: center;
+    }
+
+
+    /* =====================================================
+       C. NỘP TIỀN
+       ===================================================== */
+
+    #tab-gocLogs table {
         min-width: 820px;
     }
 
-    #tab-quy th:nth-child(2),
-    #tab-quy td:nth-child(2) {
-        min-width: 190px;
-        white-space: normal !important;
+
+    /* STT */
+
+    #tab-gocLogs th:nth-child(1),
+    #tab-gocLogs td:nth-child(1) {
+
+        min-width: 55px;
+        text-align: center;
     }
 
-    #tab-quy td:nth-child(3),
-    #tab-quy td:nth-child(4),
+
+    /*
+     * Thời gian:
+     * giờ trên / ngày dưới.
+     */
+
+    #tab-gocLogs th:nth-child(2),
+    #tab-gocLogs td:nth-child(2) {
+
+        min-width: 130px;
+        max-width: 130px;
+
+        white-space: normal !important;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+
+    /*
+     * Thành viên wrap.
+     */
+
+    #tab-gocLogs th:nth-child(3),
+    #tab-gocLogs td:nth-child(3) {
+
+        min-width: 170px;
+        max-width: 180px;
+
+        white-space: normal !important;
+        line-height: 1.4;
+    }
+
+
+    /*
+     * Số tiền:
+     *
+     * 1.000.000
+     * đ
+     */
+
+    #tab-gocLogs th:nth-child(4),
+    #tab-gocLogs td:nth-child(4) {
+
+        min-width: 110px;
+        max-width: 110px;
+
+        white-space: normal !important;
+        word-break: keep-all !important;
+
+        line-height: 1.3;
+        text-align: center;
+    }
+
+
+    /*
+     * Ghi chú:
+     * kéo ngang mới xem.
+     */
+
+    #tab-gocLogs th:nth-child(5),
+    #tab-gocLogs td:nth-child(5) {
+
+        min-width: 180px;
+
+        white-space: normal !important;
+        line-height: 1.4;
+    }
+
+
+    /*
+     * Sửa / Xóa nằm ngoài cùng.
+     */
+
+    #tab-gocLogs th:nth-child(n+6),
+    #tab-gocLogs td:nth-child(n+6) {
+
+        min-width: 90px;
+        white-space: nowrap !important;
+        text-align: center;
+    }
+
+
+    /* =====================================================
+       D. ĐÓNG QUỸ
+       ===================================================== */
+
+    #tab-quy table {
+        min-width: 800px;
+    }
+
+
+    /* STT */
+
+    #tab-quy th:nth-child(1),
+    #tab-quy td:nth-child(1) {
+
+        min-width: 55px;
+        text-align: center;
+    }
+
+
+    /*
+     * Thành viên wrap.
+     */
+
+    #tab-quy th:nth-child(2),
+    #tab-quy td:nth-child(2) {
+
+        min-width: 185px;
+        max-width: 195px;
+
+        white-space: normal !important;
+        line-height: 1.4;
+    }
+
+
+    /*
+     * Trạng thái wrap tự nhiên.
+     */
+
+    #tab-quy th:nth-child(3),
+    #tab-quy td:nth-child(3) {
+
+        min-width: 145px;
+        max-width: 150px;
+
+        white-space: normal !important;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+
+    /*
+     * Số tiền quỹ:
+     *
+     * 600.000
+     * đ
+     */
+
+    #tab-quy th:nth-child(4),
+    #tab-quy td:nth-child(4) {
+
+        min-width: 115px;
+        max-width: 115px;
+
+        white-space: normal !important;
+        word-break: keep-all !important;
+
+        line-height: 1.3;
+        text-align: center;
+    }
+
+
+    /*
+     * Kết quả.
+     */
+
+    #tab-quy th:nth-child(5),
     #tab-quy td:nth-child(5) {
+
+        min-width: 100px;
+        text-align: center;
         white-space: nowrap !important;
     }
 
 
-    /* =================================================
-       THÀNH VIÊN
-       ================================================= */
+    /*
+     * Xóa:
+     * phải kéo ngang mới thấy.
+     */
+
+    #tab-quy th:nth-child(n+6),
+    #tab-quy td:nth-child(n+6) {
+
+        min-width: 75px;
+        text-align: center;
+        white-space: nowrap !important;
+    }
+
+
+    /* =====================================================
+       E. SỔ THU CHI
+       ===================================================== */
+
+    /*
+     * RIÊNG TAB NÀY:
+     * lịch sử phải thấy đủ:
+     *
+     * Thời gian | Nội dung | Số tiền | Xóa
+     *
+     * Không kéo ngang.
+     */
+
+    #tab-cashbook .overflow-x-auto {
+        overflow-x: visible !important;
+        max-width: 100%;
+    }
+
+    #tab-cashbook table {
+        width: 100% !important;
+        min-width: 0 !important;
+
+        table-layout: fixed;
+    }
+
+
+    #tab-cashbook th,
+    #tab-cashbook td {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+
+        vertical-align: middle;
+    }
+
+
+    /*
+     * Thời gian:
+     * giờ trên
+     * ngày dưới.
+     */
+
+    #tab-cashbook th:nth-child(1),
+    #tab-cashbook td:nth-child(1) {
+
+        width: 29%;
+
+        white-space: normal !important;
+        line-height: 1.35;
+    }
+
+
+    /*
+     * Nội dung wrap.
+     */
+
+    #tab-cashbook th:nth-child(2),
+    #tab-cashbook td:nth-child(2) {
+
+        width: 37%;
+
+        white-space: normal !important;
+        line-height: 1.4;
+    }
+
+
+    /*
+     * Số tiền:
+     *
+     * 80.000
+     * đ
+     */
+
+    #tab-cashbook th:nth-child(3),
+    #tab-cashbook td:nth-child(3) {
+
+        width: 23%;
+
+        white-space: normal !important;
+        word-break: keep-all !important;
+
+        line-height: 1.3;
+        text-align: right;
+    }
+
+
+    /*
+     * Xóa luôn nhìn thấy.
+     */
+
+    #tab-cashbook th:nth-child(4),
+    #tab-cashbook td:nth-child(4) {
+
+        width: 11%;
+
+        white-space: nowrap !important;
+        text-align: center;
+    }
+
+
+    /* =====================================================
+       F. THÀNH VIÊN
+       ===================================================== */
 
     #tab-members table {
         min-width: 930px;
     }
 
+
+    #tab-members th:nth-child(1),
+    #tab-members td:nth-child(1) {
+
+        min-width: 55px;
+        text-align: center;
+    }
+
+
     /*
-     * Tên thành viên.
+     * Tên wrap.
      */
+
     #tab-members th:nth-child(2),
     #tab-members td:nth-child(2) {
+
         min-width: 190px;
+        max-width: 200px;
+
         white-space: normal !important;
         line-height: 1.4;
     }
+
 
     /*
      * Username.
      */
+
     #tab-members th:nth-child(3),
     #tab-members td:nth-child(3) {
+
         min-width: 150px;
         white-space: nowrap !important;
     }
 
+
     /*
      * Trạng thái.
      */
+
     #tab-members th:nth-child(4),
     #tab-members td:nth-child(4) {
+
         min-width: 145px;
-        white-space: nowrap !important;
+        white-space: normal !important;
+        line-height: 1.35;
+        text-align: center;
     }
 
-
-    /* =================================================
-       SỔ THU CHI
-       ================================================= */
-
-    #tab-cashbook table {
-        min-width: 760px;
-    }
-
-    #tab-cashbook td {
-        white-space: nowrap;
-    }
 
     /*
-     * Nội dung được wrap.
+     * Base.
      */
-    #tab-cashbook th:nth-child(2),
-    #tab-cashbook td:nth-child(2) {
-        min-width: 220px;
+
+    #tab-members th:nth-child(5),
+    #tab-members td:nth-child(5) {
+
+        min-width: 80px;
+        white-space: nowrap !important;
+        text-align: center;
+    }
+
+
+    /*
+     * Quyền / thao tác ở phía phải.
+     */
+
+    #tab-members th:nth-child(n+6),
+    #tab-members td:nth-child(n+6) {
+
+        min-width: 100px;
+        white-space: nowrap !important;
+        text-align: center;
+    }
+
+
+    /* =====================================================
+       G. TIỀN GÓC
+       ===================================================== */
+
+    /*
+     * Giữ phong cách phiên bản đầu.
+     * Table kéo ngang.
+     */
+
+    #tab-finance table {
+        min-width: 1200px;
+    }
+
+
+    /*
+     * Tên thành viên wrap.
+     */
+
+    #tab-finance th:nth-child(2),
+    #tab-finance td:nth-child(2) {
+
+        min-width: 175px;
+        max-width: 185px;
+
         white-space: normal !important;
         line-height: 1.4;
     }
 
 
-    /* =================================================
-       PHÂN TÍCH
-       ================================================= */
+    /*
+     * Các cột số liệu giữ gọn.
+     */
+
+    #tab-finance td:not(:nth-child(2)) {
+        white-space: nowrap;
+    }
+
+
+    /* =====================================================
+       H. PHÂN TÍCH
+       ===================================================== */
 
     #tab-analytics {
         overflow-x: hidden;
@@ -478,8 +901,9 @@ thead th {
 
 
     /*
-     * Banner đầu Analytics.
+     * Banner đầu tab.
      */
+
     #tab-analytics > div:first-child {
         align-items: stretch !important;
     }
@@ -495,48 +919,72 @@ thead th {
 
 
     /*
-     * TOP 10 CẶP ĂN Ý:
+     * TOP 10 CẶP ĂN Ý NHẤT
      *
-     * Giữ dạng TABLE + kéo ngang giống Tiền Góc.
-     *
-     * Bảng xếp hạng lớn thường nằm trong card .bg-white
-     * trực tiếp bên dưới banner.
+     * Giống Tiền Góc:
+     * TABLE KÉO NGANG.
      */
+
+    #tab-analytics > .bg-white .overflow-x-auto {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
     #tab-analytics > .bg-white .overflow-x-auto table {
         min-width: 820px;
     }
 
-    #tab-analytics > .bg-white .overflow-x-auto th {
+
+    /*
+     * Hạng.
+     */
+
+    #tab-analytics > .bg-white .overflow-x-auto th:nth-child(1),
+    #tab-analytics > .bg-white .overflow-x-auto td:nth-child(1) {
+
+        min-width: 70px;
+        text-align: center;
         white-space: nowrap !important;
     }
 
+
     /*
-     * Cột cặp đồng đội cần rộng để đọc tự nhiên.
+     * Đồng đội / Cặp.
      */
+
     #tab-analytics > .bg-white .overflow-x-auto th:nth-child(2),
     #tab-analytics > .bg-white .overflow-x-auto td:nth-child(2) {
 
         min-width: 300px;
+        max-width: 320px;
+
         white-space: normal !important;
         line-height: 1.4;
     }
 
+
     /*
-     * Các cột Trận / Thắng / Hòa / Thua / Tỷ lệ:
-     * giữ gọn, không dựng dọc.
+     * Tổng trận / thắng / hòa / thua / tỷ lệ.
      */
-    #tab-analytics > .bg-white .overflow-x-auto td:not(:nth-child(2)) {
+
+    #tab-analytics > .bg-white .overflow-x-auto th:nth-child(n+3),
+    #tab-analytics > .bg-white .overflow-x-auto td:nth-child(n+3) {
+
+        min-width: 85px;
+        text-align: center;
         white-space: nowrap !important;
     }
 
 
     /*
-     * Các bảng Analytics nằm trong GRID thường là:
-     * - Cặp đấu duyên nợ
+     * Các bảng Analytics nhỏ nằm trong GRID:
+     *
+     * - Duyên nợ
      * - Tám lạng nửa cân
      *
-     * Các bảng này ít cột nên co vừa mobile.
+     * Ít cột => co vừa mobile.
      */
+
     #tab-analytics .grid .overflow-x-auto {
         overflow-x: visible !important;
     }
@@ -549,32 +997,40 @@ thead th {
 
     #tab-analytics .grid th,
     #tab-analytics .grid td {
-        white-space: normal !important;
+
         word-break: normal !important;
         overflow-wrap: break-word !important;
+
+        white-space: normal !important;
+        line-height: 1.4;
     }
+
 
     #tab-analytics .grid th:first-child,
     #tab-analytics .grid td:first-child {
+
         width: 76%;
         padding-right: 12px;
     }
 
+
     #tab-analytics .grid th:last-child,
     #tab-analytics .grid td:last-child {
+
         width: 24%;
         text-align: right;
     }
 
 
-    /* =================================================
-       DASHBOARD
-       ================================================= */
+    /* =====================================================
+       I. DASHBOARD
+       ===================================================== */
 
     /*
-     * Dashboard hiện tại đã ổn.
-     * Chỉ giữ 2x2 cho các stat card.
+     * Dashboard hiện tại ổn.
+     * Chỉ giữ card 2 x 2.
      */
+
     #tab-dashboard table {
         white-space: normal;
     }
@@ -592,17 +1048,18 @@ thead th {
     }
 
 
-    /* =================================================
-       MODAL TOP 5
-       ================================================= */
+    /* =====================================================
+       J. MODAL TOP 5
+       ===================================================== */
 
     /*
-     * Bạn đã xác nhận modal Top 5 ổn.
-     * Giữ cấu hình mobile hiện tại.
+     * Đã được xác nhận OK.
+     * Giữ nguyên phong cách.
      */
 
     #top5PersonalModal {
         padding: 12px !important;
+
         align-items: flex-start !important;
 
         padding-top: max(
@@ -612,6 +1069,7 @@ thead th {
     }
 
     #top5PersonalModal > div {
+
         width: 100% !important;
         max-width: 100% !important;
 
@@ -626,7 +1084,9 @@ thead th {
         overflow-y: auto;
     }
 
+
     #top5PersonalModal > div > button {
+
         width: 44px;
         height: 44px;
 
@@ -638,22 +1098,30 @@ thead th {
         right: 6px !important;
     }
 
+
     #top5PersonalModal h3 {
+
         font-size: 16px !important;
         line-height: 1.35 !important;
+
         padding-right: 30px;
     }
 
+
     #top5PersonalModal h4 {
+
         font-size: 13px !important;
         line-height: 1.4 !important;
     }
+
 
     #top5PersonalModal .overflow-x-auto {
         overflow-x: visible !important;
     }
 
+
     #top5PersonalModal table {
+
         width: 100% !important;
         min-width: 0 !important;
 
@@ -664,52 +1132,66 @@ thead th {
         font-size: 13px !important;
     }
 
+
     #top5PersonalModal th,
     #top5PersonalModal td {
+
         padding: 8px 5px !important;
     }
 
+
     #top5PersonalModal th:first-child,
     #top5PersonalModal td:first-child {
+
         width: 48%;
+
         white-space: normal !important;
-        overflow-wrap: break-word;
+        overflow-wrap: break-word !important;
     }
+
 
     #top5PersonalModal th:nth-child(2),
     #top5PersonalModal td:nth-child(2) {
+
         width: 14%;
         text-align: center;
     }
+
 
     #top5PersonalModal th:nth-child(3),
     #top5PersonalModal td:nth-child(3) {
+
         width: 14%;
         text-align: center;
     }
 
+
     #top5PersonalModal th:nth-child(4),
     #top5PersonalModal td:nth-child(4) {
+
         width: 24%;
+
         text-align: right;
+
         white-space: normal !important;
     }
 
 
-    /* =================================================
-       MODAL CHUNG
-       ================================================= */
+    /* =====================================================
+       K. MODAL CHUNG
+       ===================================================== */
 
     .fixed.inset-0 > div {
         max-height: 92dvh;
     }
 
 
-    /* =================================================
-       TOAST
-       ================================================= */
+    /* =====================================================
+       L. TOAST
+       ===================================================== */
 
     #appToast {
+
         left: 12px;
         right: 12px;
 
@@ -721,9 +1203,9 @@ thead th {
 }
 
 
-/* =====================================================
-   PWA STANDALONE
-   ===================================================== */
+/* =========================================================
+   8. PWA STANDALONE
+   ========================================================= */
 
 @media (display-mode: standalone) {
 
