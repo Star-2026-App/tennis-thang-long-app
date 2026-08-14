@@ -1,13 +1,17 @@
 // ======================================================
-// MATCHES.JS - PHASE 3 A6
+// MATCHES.JS - PHASE 3 A7 FIX
 //
-// NHẬT KÝ TRẬN:
-// - Mặc định hiển thị toàn bộ trận của tháng hiện tại.
-// - Chọn một ngày ở tháng cũ:
-//   + nếu tháng đã có cache -> dùng ngay.
-//   + nếu chưa có cache -> gọi monthData đúng tháng đó.
-// - Không thay đổi global "matches" đang phục vụ Dashboard/Finance.
-// - Bỏ nút "Tất cả các ngày" cũ ngay trên giao diện.
+// NỀN TẢNG: A6 ĐÃ PASS
+//
+// Chỉ bổ sung:
+// - Nút "↩ Tháng hiện tại" khi đang chọn một ngày.
+// - Bấm nút -> xóa ngày lọc -> trở lại toàn bộ trận tháng hiện tại.
+//
+// KHÔNG thay đổi:
+// - Month cache
+// - Lazy loading
+// - activeDataMonth / activeDataYear
+// - Dashboard / Finance
 // ======================================================
 
 
@@ -71,6 +75,15 @@ function removeLegacyAllDatesButton_() {
     buttons.forEach(
         function(button) {
 
+            // Không xóa nút mới của Phase 3 A7 FIX
+            if (
+                button.id ===
+                "btnMatchCurrentMonth"
+            ) {
+                return;
+            }
+
+
             let onclickText =
                 String(
                     button.getAttribute(
@@ -89,6 +102,119 @@ function removeLegacyAllDatesButton_() {
             }
         }
     );
+}
+
+
+// ======================================================
+// NÚT "THÁNG HIỆN TẠI"
+// ======================================================
+
+function ensureMatchCurrentMonthButton_() {
+
+    let dateInput =
+        document.getElementById(
+            "filterMatchDate"
+        );
+
+
+    if (!dateInput) {
+        return;
+    }
+
+
+    let button =
+        document.getElementById(
+            "btnMatchCurrentMonth"
+        );
+
+
+    if (!button) {
+
+        button =
+            document.createElement(
+                "button"
+            );
+
+
+        button.id =
+            "btnMatchCurrentMonth";
+
+
+        button.type =
+            "button";
+
+
+        button.innerHTML =
+            '<i class="fa-solid fa-rotate-left mr-1"></i> Tháng hiện tại';
+
+
+        button.className =
+            "ml-2 px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black shadow-sm";
+
+
+        button.title =
+            "Bỏ lọc ngày và quay về toàn bộ trận của tháng hiện tại";
+
+
+        button.addEventListener(
+            "click",
+            function() {
+
+                returnMatchLogToCurrentMonth_();
+            }
+        );
+
+
+        dateInput.insertAdjacentElement(
+            "afterend",
+            button
+        );
+    }
+
+
+    // Chỉ hiện khi đang lọc một ngày cụ thể
+    if (dateInput.value) {
+
+        button.classList.remove(
+            "hidden"
+        );
+
+    } else {
+
+        button.classList.add(
+            "hidden"
+        );
+    }
+}
+
+
+// ======================================================
+// QUAY VỀ THÁNG HIỆN TẠI
+//
+// CHỈ:
+// - xóa ngày đang lọc
+// - gọi lại renderAllMatchLog()
+//
+// renderAllMatchLog() của A6 tự xác định tháng hiện tại.
+// Không can thiệp activeDataMonth.
+// ======================================================
+
+function returnMatchLogToCurrentMonth_() {
+
+    let dateInput =
+        document.getElementById(
+            "filterMatchDate"
+        );
+
+
+    if (dateInput) {
+
+        dateInput.value =
+            "";
+    }
+
+
+    renderAllMatchLog();
 }
 
 
@@ -393,6 +519,8 @@ function saveMatchLogMonthDataToCache_(
 
 // ======================================================
 // TẢI DỮ LIỆU THÁNG RIÊNG CHO NHẬT KÝ TRẬN
+//
+// GIỮ NGUYÊN LOGIC A6 ĐÃ PASS.
 // ======================================================
 
 function ensureMatchLogMonthLoaded_(
@@ -446,7 +574,7 @@ function ensureMatchLogMonthLoaded_(
 
 
     // Nếu đúng tháng đang active nhưng cache chưa sẵn,
-    // dùng state hiện tại.
+    // dùng state hiện tại trước khi Cloud hoàn tất.
     if (
         parseInt(
             window.activeDataMonth
@@ -717,6 +845,12 @@ function renderAllMatchLog() {
     removeLegacyAllDatesButton_();
 
 
+    // A7 FIX:
+    // Chỉ thêm/ẩn/hiện nút giao diện.
+    // Không gọi render từ helper này.
+    ensureMatchCurrentMonthButton_();
+
+
     let selectedDate =
         getSelectedMatchDateParts_();
 
@@ -747,7 +881,10 @@ function renderAllMatchLog() {
         );
 
 
-    // Nếu chưa có cache tháng cần xem -> tải theo nhu cầu.
+    // ==================================================
+    // NẾU CHƯA CÓ CACHE THÁNG CẦN XEM -> TẢI THEO NHU CẦU
+    // ==================================================
+
     if (!cache) {
 
         ensureMatchLogMonthLoaded_(
@@ -1106,9 +1243,9 @@ function findMatchForEdit_(
                 String(
                     item.id
                 ) ===
-                String(
-                    id
-                )
+                    String(
+                        id
+                    )
             );
         }
     ) || null;
