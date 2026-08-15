@@ -161,8 +161,66 @@
 
         @media (min-width: 768px) {
             .dashboard-fund-actions {
-                max-width: 270px;
+                max-width: none;
+                height: 100%;
                 margin-inline: auto;
+            }
+
+            .desktop-paid-center-card {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                height: 100% !important;
+                min-height: 210px;
+            }
+
+            .desktop-qr-center-card {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                height: 100% !important;
+                min-height: 210px;
+                text-align: center;
+            }
+
+            .desktop-qr-image-button {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                flex: 0 0 auto !important;
+                width: auto !important;
+                min-width: 0 !important;
+                min-height: 0 !important;
+                padding: 0 !important;
+                color: inherit !important;
+                background: transparent !important;
+                border: 0 !important;
+                border-radius: .75rem !important;
+                box-shadow: none !important;
+                transform: none !important;
+            }
+
+            .desktop-qr-image-button:hover {
+                background: transparent !important;
+                transform: none !important;
+            }
+
+            .desktop-qr-image-button .qr-button-label {
+                display: none !important;
+            }
+
+            #dashQrImg.desktop-dashboard-qr {
+                display: block !important;
+                position: static !important;
+                width: clamp(145px, 10vw, 175px) !important;
+                height: clamp(145px, 10vw, 175px) !important;
+                max-width: 76% !important;
+                max-height: 175px !important;
+                margin: 0 auto !important;
+                object-fit: contain;
+                pointer-events: auto !important;
+                cursor: zoom-in;
             }
         }
 
@@ -2101,6 +2159,40 @@
                 badgeIcon.className = isUnpaid ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-check';
             }
 
+            function syncDesktopDashboardFinanceLayout() {
+                const paidInput = document.getElementById('userPaidInput');
+                const qrImage = document.getElementById('dashQrImg');
+                if (!paidInput && !qrImage) return;
+
+                const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+                const paidCard = paidInput?.closest('.bg-white') || paidInput?.parentElement?.parentElement;
+                const qrButton = qrImage?.closest('.qr-icon-button') || qrImage?.parentElement;
+                const qrCard = qrImage?.closest('.bg-white') || qrButton?.parentElement;
+
+                paidCard?.classList.toggle('desktop-paid-center-card', isDesktop);
+                qrCard?.classList.toggle('desktop-qr-center-card', isDesktop);
+                qrButton?.classList.toggle('desktop-qr-image-button', isDesktop);
+
+                if (!qrImage) return;
+
+                qrImage.classList.toggle('desktop-dashboard-qr', isDesktop);
+                if (isDesktop) {
+                    qrImage.hidden = false;
+                    qrImage.removeAttribute('aria-hidden');
+                    ['display', 'width', 'height', 'position', 'pointer-events'].forEach(property => {
+                        qrImage.style.removeProperty(property);
+                    });
+                } else {
+                    qrImage.hidden = true;
+                    qrImage.setAttribute('aria-hidden', 'true');
+                    qrImage.style.setProperty('display', 'none', 'important');
+                    qrImage.style.setProperty('width', '0', 'important');
+                    qrImage.style.setProperty('height', '0', 'important');
+                    qrImage.style.setProperty('position', 'absolute', 'important');
+                    qrImage.style.setProperty('pointer-events', 'none', 'important');
+                }
+            }
+
             let queued = false;
             function queueEnhance() {
                 if (queued) return;
@@ -2109,6 +2201,7 @@
                     queued = false;
                     enhanceAllTables();
                     syncDashboardFundStatus();
+                    syncDesktopDashboardFinanceLayout();
                 });
             }
 
@@ -2135,6 +2228,16 @@
                         characterData: true
                     });
                 }
+
+                const dashboard = document.getElementById('tab-dashboard');
+                if (dashboard) {
+                    new MutationObserver(queueEnhance).observe(dashboard, {
+                        childList: true,
+                        subtree: true
+                    });
+                }
+
+                window.addEventListener('resize', queueEnhance, { passive: true });
 
                 queueEnhance();
             }
