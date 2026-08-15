@@ -19,6 +19,317 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="css/main.css">
+    <style id="iphone-responsive-ui">
+        /* Responsive UI v1.3 - tối ưu bảng dữ liệu cho iPhone */
+        .score-stack {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .18rem;
+            font-weight: 800;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .money-stack {
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: flex-end;
+            gap: .18rem;
+            line-height: 1.05;
+            white-space: nowrap;
+        }
+
+        .time-stack {
+            display: inline-flex;
+            align-items: flex-start;
+            gap: .25rem;
+            white-space: nowrap;
+        }
+
+        .dashboard-fund-actions {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: .55rem;
+            width: 100%;
+        }
+
+        .fund-status-chip,
+        .qr-icon-button {
+            min-height: 64px;
+            min-width: 0;
+            flex: 1 1 0;
+            border-radius: .75rem;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .3rem;
+            padding: .55rem .45rem;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1.15;
+        }
+
+        .fund-status-chip {
+            color: #047857;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+        }
+
+        .fund-status-chip.is-unpaid {
+            color: #b45309;
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .fund-status-chip i,
+        .qr-icon-button i {
+            font-size: 1.3rem;
+        }
+
+        .qr-icon-button {
+            color: #065f46;
+            background: #fff;
+            border: 1px solid #6ee7b7;
+            box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+            cursor: pointer;
+            transition: transform .15s ease, background-color .15s ease;
+        }
+
+        .qr-icon-button:hover {
+            background: #ecfdf5;
+            transform: translateY(-1px);
+        }
+
+        .duel-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+            align-items: center;
+            gap: .3rem;
+            min-width: 0;
+        }
+
+        .duel-side {
+            min-width: 0;
+            text-align: center;
+            white-space: normal;
+            overflow-wrap: break-word;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .duel-fire {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+            justify-self: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            color: #ea580c;
+            background: #fff7ed;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard-fund-actions {
+                max-width: 270px;
+                margin-inline: auto;
+            }
+        }
+
+        @media (max-width: 767px) {
+            #tab-dashboard .score-stack {
+                flex-direction: column;
+                gap: 1px;
+            }
+
+            .money-stack {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 1px;
+            }
+
+            .money-stack .money-unit {
+                align-self: flex-end;
+            }
+
+            .time-stack {
+                flex-direction: column;
+                gap: 1px;
+                line-height: 1.15;
+            }
+
+            .mobile-score-cell .score-stack {
+                flex-direction: column;
+                gap: 1px;
+            }
+
+            .mobile-wrap-text {
+                white-space: normal !important;
+                word-break: normal;
+                overflow-wrap: normal;
+                line-height: 1.25;
+            }
+
+            .mobile-priority-card {
+                padding: .6rem !important;
+            }
+
+            #tab-matchLog > div,
+            #tab-gocLogs > div,
+            #tab-finance > div,
+            #tab-booking > div,
+            #tab-quy > div,
+            #tab-members > div {
+                padding: .6rem !important;
+            }
+
+            #tab-cashbook > div {
+                padding: .6rem !important;
+            }
+
+            .mobile-priority-scroll {
+                width: 100%;
+                overflow-x: auto;
+                overscroll-behavior-inline: contain;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+            }
+
+            .mobile-priority-table {
+                table-layout: fixed;
+                width: max-content;
+                max-width: none;
+                font-size: 9px !important;
+            }
+
+            .mobile-priority-table th,
+            .mobile-priority-table td {
+                padding: .32rem .2rem !important;
+                vertical-align: middle;
+            }
+
+            .mobile-priority-table th {
+                white-space: normal;
+                line-height: 1.15;
+            }
+
+            /* Nhật ký trận: 6 cột đầu nằm trong vùng nhìn, thao tác ở bên phải. */
+            #matchLogTable { width: 378px; }
+            #matchLogTable th:nth-child(1), #matchLogTable td:nth-child(1) { width: 26px; }
+            #matchLogTable th:nth-child(2), #matchLogTable td:nth-child(2) { width: 50px; }
+            #matchLogTable th:nth-child(3), #matchLogTable td:nth-child(3),
+            #matchLogTable th:nth-child(4), #matchLogTable td:nth-child(4) { width: 66px; }
+            #matchLogTable th:nth-child(5), #matchLogTable td:nth-child(5) { width: 34px; }
+            #matchLogTable th:nth-child(6), #matchLogTable td:nth-child(6) { width: 48px; }
+            #matchLogTable th:nth-child(7), #matchLogTable td:nth-child(7) { width: 88px; }
+
+            /* Nộp tiền: cột ghi chú vẫn nhìn thấy trước cột thao tác. */
+            #gocLogsTable { width: 382px; }
+            #gocLogsTable th:nth-child(1), #gocLogsTable td:nth-child(1) { width: 26px; }
+            #gocLogsTable th:nth-child(2), #gocLogsTable td:nth-child(2) { width: 50px; }
+            #gocLogsTable th:nth-child(3), #gocLogsTable td:nth-child(3) { width: 66px; }
+            #gocLogsTable th:nth-child(4), #gocLogsTable td:nth-child(4) { width: 56px; }
+            #gocLogsTable th:nth-child(5), #gocLogsTable td:nth-child(5) { width: 96px; }
+            #gocLogsTable th:nth-child(6), #gocLogsTable td:nth-child(6) { width: 88px; }
+
+            /* Thưởng sân. */
+            #bookingTable { width: 374px; }
+            #bookingTable th:nth-child(1), #bookingTable td:nth-child(1) { width: 26px; }
+            #bookingTable th:nth-child(2), #bookingTable td:nth-child(2) { width: 50px; }
+            #bookingTable th:nth-child(3), #bookingTable td:nth-child(3) { width: 76px; }
+            #bookingTable th:nth-child(4), #bookingTable td:nth-child(4) { width: 62px; }
+            #bookingTable th:nth-child(5), #bookingTable td:nth-child(5) { width: 58px; }
+            #bookingTable th:nth-child(6), #bookingTable td:nth-child(6) { width: 102px; }
+
+            /* Đóng quỹ. */
+            #quyTable { width: 386px; }
+            #quyTable th:nth-child(1), #quyTable td:nth-child(1) { width: 26px; }
+            #quyTable th:nth-child(2), #quyTable td:nth-child(2) { width: 78px; }
+            #quyTable th:nth-child(3), #quyTable td:nth-child(3) { width: 66px; }
+            #quyTable th:nth-child(4), #quyTable td:nth-child(4) { width: 60px; }
+            #quyTable th:nth-child(5), #quyTable td:nth-child(5) { width: 72px; }
+            #quyTable th:nth-child(6), #quyTable td:nth-child(6) { width: 84px; }
+
+            /* Sổ thu chi: đủ 4 cột, không cần kéo ngang. */
+            #cashbookTable {
+                width: 100%;
+                min-width: 0;
+                table-layout: fixed;
+                font-size: 9px !important;
+            }
+            #cashbookTable th, #cashbookTable td { padding: .35rem .2rem !important; }
+            #cashbookTable th:nth-child(1), #cashbookTable td:nth-child(1) { width: 18%; }
+            #cashbookTable th:nth-child(2), #cashbookTable td:nth-child(2) { width: 45%; }
+            #cashbookTable th:nth-child(3), #cashbookTable td:nth-child(3) { width: 23%; }
+            #cashbookTable th:nth-child(4), #cashbookTable td:nth-child(4) { width: 14%; }
+
+            /* Thành viên: 5 cột chính trước, Username và Thao tác ở cuối. */
+            #membersTable { width: 438px; }
+            #membersTable th:nth-child(1), #membersTable td:nth-child(1) { width: 26px; }
+            #membersTable th:nth-child(2), #membersTable td:nth-child(2) { width: 82px; }
+            #membersTable th:nth-child(3), #membersTable td:nth-child(3) { width: 70px; }
+            #membersTable th:nth-child(4), #membersTable td:nth-child(4) { width: 42px; }
+            #membersTable th:nth-child(5), #membersTable td:nth-child(5) { width: 62px; }
+            #membersTable th:nth-child(6), #membersTable td:nth-child(6) { width: 76px; }
+            #membersTable th:nth-child(7), #membersTable td:nth-child(7) { width: 80px; }
+
+            /* Tiền góc: chữ nhỏ, tiêu đề wrap, ghim STT và Tên thành viên. */
+            #financeTable {
+                width: 850px;
+                font-size: 8.5px !important;
+            }
+            #financeTable th, #financeTable td {
+                padding: .3rem .18rem !important;
+                line-height: 1.15;
+            }
+            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { width: 28px; }
+            #financeTable th:nth-child(2), #financeTable td:nth-child(2) { width: 88px; }
+            #financeTable th:nth-child(3), #financeTable td:nth-child(3),
+            #financeTable th:nth-child(4), #financeTable td:nth-child(4),
+            #financeTable th:nth-child(5), #financeTable td:nth-child(5) { width: 38px; }
+            #financeTable th:nth-child(6), #financeTable td:nth-child(6) { width: 44px; }
+            #financeTable th:nth-child(7), #financeTable td:nth-child(7) { width: 52px; }
+            #financeTable th:nth-child(n+8), #financeTable td:nth-child(n+8) { width: 68px; }
+            #financeTable th:nth-child(1), #financeTable td:nth-child(1),
+            #financeTable th:nth-child(2), #financeTable td:nth-child(2) {
+                position: sticky;
+                background: #fff;
+                background-clip: padding-box;
+            }
+            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { left: 0; z-index: 3; }
+            #financeTable th:nth-child(2), #financeTable td:nth-child(2) {
+                left: 28px;
+                z-index: 3;
+                box-shadow: 2px 0 3px rgb(15 23 42 / 10%);
+            }
+            #financeTable thead th:nth-child(1), #financeTable thead th:nth-child(2) {
+                background: #f1f5f9;
+                z-index: 6;
+            }
+
+            #dashboardMatchTable {
+                min-width: 320px;
+                table-layout: fixed;
+                font-size: 9px !important;
+            }
+            #dashboardMatchTable th, #dashboardMatchTable td { padding: .35rem .2rem !important; }
+            #dashboardMatchTable th:nth-child(1), #dashboardMatchTable td:nth-child(1) { width: 12%; }
+            #dashboardMatchTable th:nth-child(2), #dashboardMatchTable td:nth-child(2),
+            #dashboardMatchTable th:nth-child(3), #dashboardMatchTable td:nth-child(3) { width: 28%; }
+            #dashboardMatchTable th:nth-child(4), #dashboardMatchTable td:nth-child(4) { width: 12%; }
+            #dashboardMatchTable th:nth-child(5), #dashboardMatchTable td:nth-child(5) { width: 20%; }
+
+            .duel-layout {
+                grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
+                gap: .2rem;
+            }
+        }
+    </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col">
 
@@ -196,9 +507,16 @@
                             <p class="text-[10px] text-slate-500 mt-1">Đã nộp dồn: <span id="statPaidDisplay" class="font-bold text-emerald-700">0 đ</span></p>
                         </div>
 
-                        <div class="bg-white p-2.5 rounded-xl border border-emerald-300 shadow-sm flex flex-col items-center text-center">
-                            <span class="text-[9px] font-extrabold text-emerald-900 uppercase mb-1">MÃ QR (BẤM PHÓNG TO)</span>
-                            <img id="dashQrImg" src="" alt="VietQR" onclick="openQRZoomModal()" class="w-20 h-20 object-contain rounded border cursor-pointer hover:scale-105 transition">
+                        <div class="dashboard-fund-actions" aria-label="Trạng thái quỹ và mã QR chuyển khoản">
+                            <div id="dashQuyStatusBadge" class="fund-status-chip" role="status">
+                                <i id="dashQuyStatusIcon" class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                <span id="dashQuyStatusText">Đã đóng quỹ Quý</span>
+                            </div>
+                            <button type="button" onclick="openQRZoomModal()" class="qr-icon-button" title="Mở mã QR chuyển khoản" aria-label="Mở và phóng to mã QR chuyển khoản">
+                                <i class="fa-solid fa-qrcode" aria-hidden="true"></i>
+                                <span>Mã QR</span>
+                                <img id="dashQrImg" src="" alt="" class="sr-only" aria-hidden="true">
+                            </button>
                         </div>
                     </div>
 
@@ -227,7 +545,7 @@
                     <div class="bg-slate-50 p-4 rounded-xl border">
                         <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU (THÁNG)</h3>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs border-collapse">
+                            <table id="dashboardMatchTable" class="w-full text-left text-xs border-collapse">
                                 <thead>
                                     <tr class="bg-slate-200 text-slate-700">
                                         <th class="p-2 text-center">Trận</th>
@@ -411,8 +729,8 @@
                             <span id="todayMatchCountText">Ngày hôm nay có thêm 0 trận đấu được ghi nhận</span>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="matchLogTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Đội A</th><th class="p-2.5">Đội B</th><th class="p-2.5 text-center">Tỉ Số</th><th class="p-2.5 text-right">Kèo</th><th class="p-2.5 text-center admin-only">Sửa / Xóa</th></tr>
                             </thead>
@@ -442,8 +760,8 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="gocLogsTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 font-bold border-b">
                                     <th class="p-2.5 text-center">STT</th>
@@ -482,8 +800,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="overflow-x-auto max-h-[550px]">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto max-h-[550px] mobile-priority-scroll">
+                        <table id="financeTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b text-[11px]">
                                     <th class="p-2 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('stt')">STT <span id="sort-icon-stt" class="text-emerald-700 font-black">↕</span></th>
@@ -531,8 +849,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="bookingTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 font-bold border-b">
                                     <th class="p-2.5 text-center">STT</th>
@@ -566,8 +884,8 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="quyTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
                                     <th class="p-2.5 text-center">STT</th>
@@ -648,8 +966,8 @@
                                 </div>
                             </div>
                             <div class="overflow-x-auto max-h-60">
-                                <table class="w-full text-left text-xs border-collapse">
-                                    <thead><tr class="bg-slate-200"><th class="p-1.5">Thời Gian</th><th class="p-1.5">Nội Dung</th><th class="p-1.5 text-right">Số Tiền</th><th class="p-1.5 text-center admin-only">Xóa</th></tr></thead>
+                                <table id="cashbookTable" class="w-full text-left text-xs border-collapse">
+                                    <thead><tr class="bg-slate-200"><th class="p-1.5">Thời Gian</th><th class="p-1.5">Thành Viên / Nội Dung</th><th class="p-1.5 text-right">Số Tiền</th><th class="p-1.5 text-center admin-only">Xóa</th></tr></thead>
                                     <tbody id="categoryLogBody" class="divide-y divide-slate-200"></tbody>
                                 </table>
                             </div>
@@ -671,16 +989,16 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="membersTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
                                     <th class="p-2.5 text-center">STT</th>
                                     <th class="p-2.5">Tên Thành Viên</th>
-                                    <th class="p-2.5 text-center">Username</th>
                                     <th class="p-2.5 text-center">Trạng Thái</th>
                                     <th class="p-2.5 text-center bg-amber-50">Base</th>
                                     <th class="p-2.5 text-center">Vai Trò</th>
+                                    <th class="p-2.5 text-center">Username</th>
                                     <th class="p-2.5 text-center admin-only">Thao Tác</th>
                                 </tr>
                             </thead>
@@ -1293,5 +1611,206 @@
     <script src="js/modules/settings.js"></script>
     <script src="js/init.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        // Bộ tăng cường giao diện responsive chạy sau các module hiện có.
+        // Không thay đổi dữ liệu hay luồng API; chỉ định dạng DOM sau mỗi lần render bảng.
+        (() => {
+            const escapeHtml = (value) => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+
+            const cellAt = (row, index) => row?.children?.[index - 1] || null;
+
+            function formatTimeCell(cell) {
+                if (!cell || cell.dataset.responsiveTime === '1') return;
+                const parts = cell.textContent.trim().split(/\s+/).filter(Boolean);
+                if (parts.length < 2) return;
+                cell.innerHTML = `<span class="time-stack">${parts.map(part => `<span>${escapeHtml(part)}</span>`).join('')}</span>`;
+                cell.dataset.responsiveTime = '1';
+            }
+
+            function formatScoreCell(cell) {
+                if (!cell || cell.dataset.responsiveScore === '1') return;
+                const score = cell.textContent.trim().match(/(-?\d+)\s*[-–]\s*(-?\d+)/);
+                if (!score) return;
+                cell.innerHTML = `<span class="score-stack"><span>${escapeHtml(score[1])}</span><span class="score-dash">–</span><span>${escapeHtml(score[2])}</span></span>`;
+                cell.classList.add('mobile-score-cell');
+                cell.dataset.responsiveScore = '1';
+            }
+
+            function formatMoneyCell(cell) {
+                if (!cell || cell.dataset.responsiveMoney === '1') return;
+                const text = cell.textContent.replace(/\s+/g, ' ').trim();
+                const money = text.match(/^(.+?)\s*(?:đ|₫)$/i);
+                if (!money) return;
+                cell.innerHTML = `<span class="money-stack"><span class="money-value">${escapeHtml(money[1].trim())}</span><span class="money-unit">đ</span></span>`;
+                cell.dataset.responsiveMoney = '1';
+            }
+
+            function markWrapCell(cell) {
+                if (cell) cell.classList.add('mobile-wrap-text');
+            }
+
+            function reorderMemberRow(row) {
+                if (!row || row.dataset.responsiveMemberOrder === '1') return;
+                const cells = Array.from(row.children);
+                if (cells.length < 7 || cells.some(cell => cell.hasAttribute('colspan'))) return;
+
+                // Cũ: STT, Tên, Username, Trạng thái, Base, Vai trò, Thao tác.
+                // Mới: STT, Tên, Trạng thái, Base, Vai trò, Username, Thao tác.
+                row.append(cells[3], cells[4], cells[5], cells[2], cells[6]);
+                row.dataset.responsiveMemberOrder = '1';
+            }
+
+            function formatDuelCell(cell) {
+                if (!cell || cell.dataset.responsiveDuel === '1') return;
+                const text = cell.textContent.replace(/\s+/g, ' ').trim();
+                const divider = text.match(/\s+vs\.?\s+|\s*🔥\s*|\s*↔\s*/i);
+                if (!divider || typeof divider.index !== 'number') return;
+
+                const left = text.slice(0, divider.index).trim();
+                const right = text.slice(divider.index + divider[0].length).trim();
+                if (!left || !right) return;
+
+                cell.innerHTML = `
+                    <div class="duel-layout">
+                        <span class="duel-side">${escapeHtml(left)}</span>
+                        <span class="duel-fire" aria-label="đối đầu"><i class="fa-solid fa-fire" aria-hidden="true"></i></span>
+                        <span class="duel-side">${escapeHtml(right)}</span>
+                    </div>`;
+                cell.dataset.responsiveDuel = '1';
+            }
+
+            function enhanceRows(tbodyId, formatter) {
+                const tbody = document.getElementById(tbodyId);
+                if (!tbody) return;
+                Array.from(tbody.rows).forEach(formatter);
+            }
+
+            function enhanceAllTables() {
+                enhanceRows('userMatchHistoryBody', row => {
+                    markWrapCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    formatScoreCell(cellAt(row, 4));
+                    formatMoneyCell(cellAt(row, 5));
+                });
+
+                enhanceRows('allMatchTableBody', row => {
+                    formatTimeCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    markWrapCell(cellAt(row, 4));
+                    formatScoreCell(cellAt(row, 5));
+                    formatMoneyCell(cellAt(row, 6));
+                });
+
+                enhanceRows('gocLogsTableBody', row => {
+                    formatTimeCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    formatMoneyCell(cellAt(row, 4));
+                    markWrapCell(cellAt(row, 5));
+                });
+
+                enhanceRows('bookingLogTableBody', row => {
+                    formatTimeCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    markWrapCell(cellAt(row, 4));
+                    formatMoneyCell(cellAt(row, 5));
+                });
+
+                enhanceRows('quyTableBody', row => {
+                    markWrapCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    formatMoneyCell(cellAt(row, 4));
+                    markWrapCell(cellAt(row, 5));
+                });
+
+                enhanceRows('categoryLogBody', row => {
+                    formatTimeCell(cellAt(row, 1));
+                    markWrapCell(cellAt(row, 2));
+                    formatMoneyCell(cellAt(row, 3));
+                });
+
+                enhanceRows('memberTableBody', row => {
+                    reorderMemberRow(row);
+                    markWrapCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    markWrapCell(cellAt(row, 5));
+                });
+
+                enhanceRows('financeTableBody', row => {
+                    markWrapCell(cellAt(row, 2));
+                    [8, 9, 10, 11, 12].forEach(index => formatMoneyCell(cellAt(row, index)));
+                });
+
+                ['rivalsDuyenNoBody', 'rivalsCanSucBody', 'rivalsKhacTinhBody'].forEach(tbodyId => {
+                    enhanceRows(tbodyId, row => formatDuelCell(cellAt(row, 1)));
+                });
+            }
+
+            function syncDashboardFundStatus() {
+                const warning = document.getElementById('quyWarningBanner');
+                const warningText = document.getElementById('quyWarningText');
+                const badge = document.getElementById('dashQuyStatusBadge');
+                const badgeText = document.getElementById('dashQuyStatusText');
+                const badgeIcon = document.getElementById('dashQuyStatusIcon');
+                if (!warning || !badge || !badgeText || !badgeIcon) return;
+
+                const isVisible = !warning.classList.contains('hidden') && warning.style.display !== 'none';
+                const message = warningText?.textContent?.toLocaleLowerCase('vi') || '';
+                const isUnpaid = isVisible && message.includes('chưa đóng quỹ');
+
+                badge.classList.toggle('is-unpaid', isUnpaid);
+                badgeText.textContent = isUnpaid ? 'Chưa đóng quỹ Quý' : 'Đã đóng quỹ Quý';
+                badgeIcon.className = isUnpaid ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-check';
+            }
+
+            let queued = false;
+            function queueEnhance() {
+                if (queued) return;
+                queued = true;
+                requestAnimationFrame(() => {
+                    queued = false;
+                    enhanceAllTables();
+                    syncDashboardFundStatus();
+                });
+            }
+
+            function initResponsiveEnhancements() {
+                const observedBodies = [
+                    'userMatchHistoryBody', 'allMatchTableBody', 'gocLogsTableBody',
+                    'bookingLogTableBody', 'quyTableBody', 'categoryLogBody',
+                    'memberTableBody', 'financeTableBody', 'rivalsDuyenNoBody',
+                    'rivalsCanSucBody', 'rivalsKhacTinhBody'
+                ];
+
+                const tableObserver = new MutationObserver(queueEnhance);
+                observedBodies.forEach(id => {
+                    const tbody = document.getElementById(id);
+                    if (tbody) tableObserver.observe(tbody, { childList: true, subtree: true });
+                });
+
+                const warning = document.getElementById('quyWarningBanner');
+                if (warning) {
+                    new MutationObserver(syncDashboardFundStatus).observe(warning, {
+                        attributes: true,
+                        childList: true,
+                        subtree: true,
+                        characterData: true
+                    });
+                }
+
+                queueEnhance();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initResponsiveEnhancements, { once: true });
+            } else {
+                initResponsiveEnhancements();
+            }
+        })();
+    </script>
 </body>
 </html>
