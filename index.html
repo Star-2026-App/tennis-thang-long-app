@@ -94,6 +94,10 @@
             flex: 0 0 54px;
             position: relative;
             overflow: hidden;
+            z-index: 5;
+            pointer-events: auto !important;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             color: #fff;
             background: #2563eb;
             border: 1px solid #1d4ed8;
@@ -173,7 +177,7 @@
                 flex-direction: column !important;
                 justify-content: center !important;
                 height: 100% !important;
-                min-height: 210px;
+                min-height: 230px;
             }
 
             .desktop-qr-center-card {
@@ -182,8 +186,52 @@
                 align-items: center !important;
                 justify-content: center !important;
                 height: 100% !important;
-                min-height: 210px;
+                min-height: 230px;
                 text-align: center;
+            }
+
+            .desktop-finance-cards-row {
+                align-items: stretch !important;
+            }
+
+            .desktop-finance-card-shell {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                height: 100% !important;
+                min-height: 230px !important;
+                padding: 1rem !important;
+                background: #fff !important;
+                border: 1px solid #6ee7b7 !important;
+                border-radius: .9rem !important;
+                box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+            }
+
+            .desktop-finance-summary-card {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+            }
+
+            #dashQuyStatusBadge.desktop-fund-status-aligned {
+                position: static !important;
+                display: inline-flex !important;
+                flex: 0 0 auto !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: center !important;
+                align-self: center !important;
+                width: auto !important;
+                min-height: 34px !important;
+                margin: 0 !important;
+                padding: .45rem .8rem !important;
+                gap: .4rem !important;
+                transform: none !important;
+            }
+
+            #dashQuyStatusBadge.desktop-fund-status-aligned i {
+                flex: 0 0 auto;
+                font-size: .8rem !important;
+                line-height: 1 !important;
             }
 
             .desktop-qr-image-button {
@@ -212,13 +260,17 @@
                 display: none !important;
             }
 
+            .desktop-qr-image-button .mobile-qr-button-icon {
+                display: none !important;
+            }
+
             #dashQrImg.desktop-dashboard-qr {
                 display: block !important;
                 position: static !important;
-                width: clamp(145px, 10vw, 175px) !important;
-                height: clamp(145px, 10vw, 175px) !important;
-                max-width: 76% !important;
-                max-height: 175px !important;
+                width: clamp(160px, 11vw, 190px) !important;
+                height: clamp(160px, 11vw, 190px) !important;
+                max-width: 82% !important;
+                max-height: 190px !important;
                 margin: 0 auto !important;
                 object-fit: contain;
                 pointer-events: auto !important;
@@ -227,6 +279,56 @@
         }
 
         @media (max-width: 767px) {
+            #tab-dashboard .mobile-qr-tap-card {
+                position: relative !important;
+                cursor: pointer !important;
+                pointer-events: auto !important;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            #tab-dashboard .mobile-qr-open-button {
+                display: inline-flex !important;
+                flex: 0 0 58px !important;
+                width: 58px !important;
+                min-width: 58px !important;
+                max-width: 58px !important;
+                height: 58px !important;
+                min-height: 58px !important;
+                margin: .45rem auto .15rem !important;
+                padding: .35rem !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 1px !important;
+                color: #fff !important;
+                background: #2563eb !important;
+                border: 1px solid #1d4ed8 !important;
+                border-radius: .8rem !important;
+                box-shadow: 0 3px 7px rgb(37 99 235 / 28%) !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                overflow: hidden !important;
+                pointer-events: auto !important;
+                cursor: pointer !important;
+            }
+
+            #tab-dashboard .mobile-qr-button-icon {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.45rem;
+                line-height: 1;
+            }
+
+            #tab-dashboard .mobile-qr-open-button .qr-button-label {
+                display: block !important;
+                color: #fff !important;
+                font-size: 9px !important;
+                font-weight: 900 !important;
+                line-height: 1 !important;
+            }
+
             #dashQrImg.mobile-dashboard-qr-source {
                 display: block !important;
                 position: absolute !important;
@@ -561,6 +663,67 @@
                 grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
                 gap: .2rem;
             }
+
+            #tab-analytics > .bg-white {
+                padding: .7rem !important;
+            }
+
+            #bestDuosTable {
+                width: max-content;
+                max-width: none;
+                table-layout: fixed;
+                font-size: 9px !important;
+            }
+
+            #bestDuosTable th,
+            #bestDuosTable td {
+                min-width: 0 !important;
+                padding: .35rem .12rem !important;
+                vertical-align: middle;
+            }
+
+            #bestDuosTable th {
+                white-space: normal !important;
+                overflow-wrap: normal;
+                line-height: 1.12;
+            }
+
+            #bestDuosTable th:nth-child(1),
+            #bestDuosTable td:nth-child(1) {
+                font-size: 7.5px !important;
+                line-height: 1.05 !important;
+                text-align: center !important;
+            }
+
+            #bestDuosTable th:nth-child(3),
+            #bestDuosTable th:nth-child(4) {
+                font-size: 7px !important;
+                line-height: 1.08 !important;
+                text-align: center !important;
+            }
+
+            #bestDuosTable td:nth-child(2) {
+                font-size: 9.5px !important;
+                font-weight: 750 !important;
+                line-height: 1.22 !important;
+            }
+
+            .duo-team-stack {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: center;
+                gap: 2px;
+                width: 100%;
+                min-width: 0;
+                white-space: normal;
+            }
+
+            .duo-team-member {
+                display: block;
+                width: 100%;
+                white-space: normal;
+            }
         }
     </style>
 </head>
@@ -749,7 +912,8 @@
                                 <i id="dashQuyStatusIcon" class="fa-solid fa-circle-check" aria-hidden="true"></i>
                                 <span id="dashQuyStatusText">Đã đóng quỹ Quý</span>
                             </div>
-                            <button type="button" onclick="openQRZoomModal()" class="qr-icon-button" title="Mở mã QR chuyển khoản" aria-label="Mở và phóng to mã QR chuyển khoản">
+                            <button id="dashboardQrButton" type="button" onclick="openDashboardQrModalResponsive(event)" class="qr-icon-button" title="Mở mã QR chuyển khoản" aria-label="Mở và phóng to mã QR chuyển khoản">
+                                <span class="mobile-qr-button-icon" aria-hidden="true"><i class="fa-solid fa-qrcode"></i></span>
                                 <span class="qr-button-label">QR</span>
                                 <img id="dashQrImg" src="" alt="" hidden aria-hidden="true" style="display:none !important;width:0 !important;height:0 !important;position:absolute !important;pointer-events:none !important;">
                             </button>
@@ -815,21 +979,21 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                     <div class="flex items-center justify-between border-b pb-3">
                         <h3 class="font-black text-sm md:text-base text-slate-800 uppercase flex items-center gap-2">
-                            <i class="fa-solid fa-handshake-angle text-emerald-600"></i> 1. Bảng Xếp Hạng "Cạ Cứng Ăn Ý Nhất" (Top Cặp Đôi)
+                            <i class="fa-solid fa-handshake-angle text-emerald-600"></i> CẶP ĐÔI ĂN Ý NHẤT
                         </h3>
                         <span class="text-[11px] font-semibold text-slate-500">Ngưỡng tối thiểu >= 3 trận chung</span>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll analytics-duos-scroll">
+                        <table id="bestDuosTable" class="w-full text-left text-xs border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
                                     <th class="p-2.5 text-center">Hạng</th>
-                                    <th class="p-2.5">Đồng Đội (Cặp Cạ Cứng)</th>
+                                    <th class="p-2.5">Đồng Đội</th>
                                     <th class="p-2.5 text-center">Tổng Trận Chung</th>
+                                    <th class="p-2.5 text-center text-emerald-700 font-black">Tỷ Lệ Thắng (%)</th>
                                     <th class="p-2.5 text-center text-blue-600">Thắng</th>
                                     <th class="p-2.5 text-center text-amber-600">Hòa</th>
                                     <th class="p-2.5 text-center text-red-600">Thua</th>
-                                    <th class="p-2.5 text-right text-emerald-700 font-black">Tỷ Lệ Thắng (%)</th>
                                 </tr>
                             </thead>
                             <tbody id="bestDuosTableBody" class="divide-y divide-slate-200"></tbody>
@@ -1697,9 +1861,9 @@
     </div>
 
     <!-- MODAL PHÓNG TO MÃ QR CÁ NHÂN -->
-    <div id="qrZoomModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeQRZoomModal()">
+    <div id="qrZoomModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeDashboardQrModalResponsive(event)">
         <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
-            <button onclick="closeQRZoomModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="closeDashboardQrModalResponsive(event)" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="font-extrabold text-emerald-900 text-xs uppercase mb-3">MÃ QR CHUYỂN KHOẢN</h3>
             <img id="zoomQrImg" src="" alt="VietQR Zoomed" class="w-60 h-60 object-contain rounded-xl border shadow-md mb-2">
             <p class="text-[10px] text-slate-500 font-semibold">Chạm hoặc chụp màn hình để quét mã</p>
@@ -1985,6 +2149,13 @@
                     [24, memberNameWidth, memberStatusWidth, 42, 66, 86, 82],
                     [2, 3, 5, 6]
                 );
+
+                const duoMemberWidth = Math.max(160, visibleWidth - 140);
+                lockTableColumnWidths(
+                    'bestDuosTable',
+                    [28, duoMemberWidth, 58, 54, 42, 42, 42],
+                    [2, 3, 4]
+                );
                 lockTableColumnWidths('financeTable', [30, 118, 34, 34, 34, 38, 44, 64, 64, 64, 64, 98, 60], [2]);
             }
 
@@ -2089,6 +2260,34 @@
                 row.dataset.responsiveMemberOrder = '1';
             }
 
+            function reorderBestDuoRow(row) {
+                if (!row || row.dataset.responsiveBestDuoOrder === '1') return;
+                const cells = Array.from(row.children);
+                if (cells.length < 7 || cells.some(cell => cell.hasAttribute('colspan'))) return;
+
+                // Cũ: Hạng, Đồng đội, Tổng trận, Thắng, Hòa, Thua, Tỷ lệ.
+                // Mới: Hạng, Đồng đội, Tổng trận, Tỷ lệ, Thắng, Hòa, Thua.
+                row.append(cells[0], cells[1], cells[2], cells[6], cells[3], cells[4], cells[5]);
+                row.dataset.responsiveBestDuoOrder = '1';
+            }
+
+            function formatBestDuoMembers(cell) {
+                if (!cell || cell.dataset.responsiveDuoMembers === '1') return;
+                const members = cell.textContent
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .split(/\s*&\s*/)
+                    .filter(Boolean);
+                if (members.length !== 2) return;
+
+                cell.innerHTML = `
+                    <div class="duo-team-stack">
+                        <span class="duo-team-member">${escapeHtml(members[0])}</span>
+                        <span class="duo-team-member">${escapeHtml(members[1])}</span>
+                    </div>`;
+                cell.dataset.responsiveDuoMembers = '1';
+            }
+
             function formatDuelCell(cell) {
                 if (!cell || cell.dataset.responsiveDuel === '1') return;
                 const text = cell.textContent.replace(/\s+/g, ' ').trim();
@@ -2164,6 +2363,12 @@
                     markWrapCell(cellAt(row, 5));
                 });
 
+                enhanceRows('bestDuosTableBody', row => {
+                    reorderBestDuoRow(row);
+                    formatBestDuoMembers(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 2));
+                });
+
                 ensureFinanceSttColumn();
                 enhanceRows('financeTableBody', row => {
                     markWrapCell(cellAt(row, 2));
@@ -2190,27 +2395,104 @@
                 const isVisible = !warning.classList.contains('hidden') && warning.style.display !== 'none';
                 const message = warningText?.textContent?.toLocaleLowerCase('vi') || '';
                 const isUnpaid = isVisible && message.includes('chưa đóng quỹ');
+                const currentStatus = badgeText.textContent?.trim() || '';
+                const period = currentStatus.match(/Q[1-4]\s*\/\s*\d{4}/i)?.[0]?.replace(/\s+/g, '') || '';
 
                 badge.classList.toggle('is-unpaid', isUnpaid);
-                badgeText.textContent = isUnpaid ? 'Chưa đóng quỹ Quý' : 'Đã đóng quỹ Quý';
+                badgeText.textContent = isUnpaid
+                    ? `Chưa đóng quỹ ${period || 'Quý'}`
+                    : `Đã đóng quỹ ${period || 'Quý'}`;
                 badgeIcon.className = isUnpaid ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-check';
             }
 
             function syncDesktopDashboardFinanceLayout() {
+                const statDebt = document.getElementById('statDebt');
                 const paidInput = document.getElementById('userPaidInput');
                 const qrImage = document.getElementById('dashQrImg');
+                const badge = document.getElementById('dashQuyStatusBadge');
                 if (!paidInput && !qrImage) return;
 
                 const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-                const paidCard = paidInput?.closest('.bg-white') || paidInput?.parentElement?.parentElement;
-                const qrButton = qrImage?.closest('.qr-icon-button') || qrImage?.parentElement;
-                const qrCard = qrImage?.closest('.bg-white') || qrButton?.parentElement;
+                const anchors = [statDebt, paidInput, qrImage].filter(Boolean);
+                let financeRow = anchors[0]?.parentElement || null;
+                const dashboard = document.getElementById('tab-dashboard');
+
+                while (financeRow && financeRow !== dashboard && !anchors.every(anchor => financeRow.contains(anchor))) {
+                    financeRow = financeRow.parentElement;
+                }
+
+                const branchInside = (container, anchor) => {
+                    if (!container || !anchor) return null;
+                    let branch = anchor;
+                    while (branch.parentElement && branch.parentElement !== container) branch = branch.parentElement;
+                    return branch.parentElement === container ? branch : null;
+                };
+
+                let summaryCard = branchInside(financeRow, statDebt);
+                let paidCard = branchInside(financeRow, paidInput);
+                let qrCard = branchInside(financeRow, qrImage);
+                const distinctCards = new Set([summaryCard, paidCard, qrCard].filter(Boolean));
+
+                if (distinctCards.size < 3) {
+                    summaryCard = statDebt?.closest('.bg-white') || statDebt?.parentElement?.parentElement || null;
+                    paidCard = paidInput?.closest('.bg-white') || paidInput?.parentElement?.parentElement || null;
+                    qrCard = qrImage?.closest('.bg-white') || qrImage?.parentElement?.parentElement || null;
+                    financeRow = null;
+                }
+
+                let qrButton = document.getElementById('dashboardQrButton') || qrImage?.closest('button');
+                if (!qrButton && qrCard) {
+                    qrButton = document.createElement('button');
+                    qrButton.id = 'dashboardQrButton';
+                    qrButton.type = 'button';
+                    qrButton.setAttribute('aria-label', 'Mở và phóng to mã QR chuyển khoản');
+                    qrCard.append(qrButton);
+                }
+
+                if (qrButton && !qrButton.querySelector('.mobile-qr-button-icon')) {
+                    const icon = document.createElement('span');
+                    icon.className = 'mobile-qr-button-icon';
+                    icon.setAttribute('aria-hidden', 'true');
+                    icon.innerHTML = '<i class="fa-solid fa-qrcode"></i>';
+                    qrButton.prepend(icon);
+                }
+
+                if (qrButton && !qrButton.querySelector('.qr-button-label')) {
+                    const label = document.createElement('span');
+                    label.className = 'qr-button-label';
+                    label.textContent = 'QR';
+                    qrButton.append(label);
+                }
+
+                if (qrButton) {
+                    qrButton.hidden = false;
+                    qrButton.removeAttribute('aria-hidden');
+                    ['display', 'width', 'min-width', 'max-width', 'height', 'min-height', 'visibility', 'opacity', 'pointer-events'].forEach(property => {
+                        qrButton.style.removeProperty(property);
+                    });
+                }
+
+                financeRow?.classList.toggle('desktop-finance-cards-row', isDesktop);
+                [summaryCard, paidCard, qrCard].forEach(card => {
+                    card?.classList.toggle('desktop-finance-card-shell', isDesktop);
+                });
+                summaryCard?.classList.toggle('desktop-finance-summary-card', isDesktop);
 
                 paidCard?.classList.toggle('desktop-paid-center-card', isDesktop);
                 qrCard?.classList.toggle('desktop-qr-center-card', isDesktop);
                 qrButton?.classList.toggle('desktop-qr-image-button', isDesktop);
+                badge?.classList.toggle('desktop-fund-status-aligned', isDesktop);
+
+                qrCard?.classList.toggle('mobile-qr-tap-card', !isDesktop);
+                qrButton?.classList.toggle('mobile-qr-open-button', !isDesktop);
 
                 if (!qrImage) return;
+
+                const currentSource = qrImage.currentSrc || qrImage.getAttribute('src') || qrImage.dataset.src || '';
+                if (!isUsableQrImageSource(currentSource)) {
+                    const generatedSource = buildDashboardVietQrSource();
+                    if (generatedSource) qrImage.src = generatedSource;
+                }
 
                 qrImage.classList.toggle('desktop-dashboard-qr', isDesktop);
                 qrImage.classList.toggle('mobile-dashboard-qr-source', !isDesktop);
@@ -2229,6 +2511,106 @@
                 }
             }
 
+            function normalizeSettingKey(value) {
+                return String(value || '').toLocaleLowerCase('vi').replace(/[^a-z0-9]/g, '');
+            }
+
+            function getSettingsCandidates() {
+                const candidates = [];
+                try { if (typeof appData !== 'undefined') candidates.push(appData); } catch (_) {}
+                try { if (typeof appState !== 'undefined') candidates.push(appState); } catch (_) {}
+                try { if (typeof state !== 'undefined') candidates.push(state); } catch (_) {}
+                try { if (typeof systemSettings !== 'undefined') candidates.push(systemSettings); } catch (_) {}
+                try { if (typeof settings !== 'undefined') candidates.push(settings); } catch (_) {}
+                return candidates.filter(Boolean);
+            }
+
+            function readSettingValue(keys, inputId) {
+                const inputValue = document.getElementById(inputId)?.value?.trim();
+                if (inputValue) return inputValue;
+
+                const wantedKeys = new Set(keys.map(normalizeSettingKey));
+                const queue = getSettingsCandidates().map(value => ({ value, depth: 0 }));
+                const visited = new WeakSet();
+
+                [window.localStorage, window.sessionStorage].forEach(storage => {
+                    try {
+                        for (let index = 0; index < storage.length; index += 1) {
+                            const storageKey = storage.key(index);
+                            const rawValue = storage.getItem(storageKey);
+                            if (wantedKeys.has(normalizeSettingKey(storageKey)) && rawValue?.trim()) {
+                                queue.unshift({
+                                    value: { key: storageKey, value: rawValue.trim() },
+                                    depth: 0
+                                });
+                            }
+
+                            if (!rawValue || !/^[\[{]/.test(rawValue.trim())) continue;
+                            try {
+                                queue.push({ value: JSON.parse(rawValue), depth: 0 });
+                            } catch (_) {}
+                        }
+                    } catch (_) {}
+                });
+
+                while (queue.length) {
+                    const { value, depth } = queue.shift();
+                    if (!value || typeof value !== 'object' || visited.has(value)) continue;
+                    visited.add(value);
+
+                    if (Array.isArray(value)) {
+                        value.forEach(item => queue.push({ value: item, depth }));
+                        continue;
+                    }
+
+                    const recordKey = value.key ?? value.Key ?? value.name ?? value.Name ?? value.code ?? value.Code;
+                    const recordValue = value.value ?? value.Value ?? value.val ?? value.Val;
+                    if (wantedKeys.has(normalizeSettingKey(recordKey)) && recordValue != null && String(recordValue).trim()) {
+                        return String(recordValue).trim();
+                    }
+
+                    for (const [key, child] of Object.entries(value)) {
+                        if (wantedKeys.has(normalizeSettingKey(key)) && child != null && typeof child !== 'object' && String(child).trim()) {
+                            return String(child).trim();
+                        }
+
+                        const normalizedKey = normalizeSettingKey(key);
+                        if (depth < 3 && child && typeof child === 'object' && [
+                            'settings', 'systemsettings', 'config', 'configuration', 'data', 'appdata'
+                        ].includes(normalizedKey)) {
+                            queue.push({ value: child, depth: depth + 1 });
+                        }
+                    }
+                }
+
+                return '';
+            }
+
+            function buildDashboardVietQrSource() {
+                const bankId = readSettingValue(['BANK_ID', 'bankId'], 'stBankId');
+                const account = readSettingValue(
+                    ['BANK_ACCOUNT', 'bankAccount', 'ACCOUNT_NUMBER', 'accountNumber'],
+                    'stBankAccount'
+                );
+                const accountName = readSettingValue(
+                    ['ACCOUNT_NAME', 'accountName', 'BANK_ACCOUNT_NAME'],
+                    'stAccountName'
+                );
+
+                if (!bankId || !account) return '';
+                const path = `${encodeURIComponent(bankId)}-${encodeURIComponent(account)}-compact2.png`;
+                const query = accountName ? `?accountName=${encodeURIComponent(accountName)}` : '';
+                return `https://img.vietqr.io/image/${path}${query}`;
+            }
+
+            function isUsableQrImageSource(source) {
+                const value = String(source || '').trim();
+                if (!value || /(?:undefined|null)/i.test(value)) return false;
+                if (/^(?:data:image\/|blob:)/i.test(value)) return true;
+                if (/vietqr/i.test(value)) return true;
+                return /\.(?:png|jpe?g|webp|gif|svg)(?:[?#]|$)/i.test(value);
+            }
+
             function getDashboardQrSource() {
                 const candidates = [
                     document.getElementById('dashQrImg'),
@@ -2238,12 +2620,14 @@
                 for (const image of candidates) {
                     if (!image) continue;
                     const source = image.currentSrc || image.getAttribute('src') || image.dataset.src || '';
-                    if (source && !source.endsWith('/')) return source;
+                    if (isUsableQrImageSource(source)) return source;
                 }
-                return '';
+                return buildDashboardVietQrSource();
             }
 
-            window.openQRZoomModal = function openQRZoomModal() {
+            window.openDashboardQrModalResponsive = function openDashboardQrModalResponsive(event) {
+                event?.preventDefault();
+                event?.stopPropagation();
                 const modal = document.getElementById('qrZoomModal');
                 const zoomImage = document.getElementById('zoomQrImg');
                 const source = getDashboardQrSource();
@@ -2262,13 +2646,25 @@
                 document.body.classList.add('overflow-hidden');
             };
 
-            window.closeQRZoomModal = function closeQRZoomModal() {
+            window.closeDashboardQrModalResponsive = function closeDashboardQrModalResponsive(event) {
+                event?.preventDefault();
+                event?.stopPropagation();
                 const modal = document.getElementById('qrZoomModal');
                 if (!modal) return;
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
                 document.body.classList.remove('overflow-hidden');
             };
+
+            function handleDashboardQrTap(event) {
+                const button = event.target?.closest?.(
+                    '#dashboardQrButton, .qr-icon-button, .mobile-qr-open-button, .mobile-qr-tap-card'
+                );
+                if (!button || !document.getElementById('tab-dashboard')?.contains(button)) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                window.openDashboardQrModalResponsive(event);
+            }
 
             window.refreshCloudData = async function refreshCloudData(button) {
                 if (!navigator.onLine) {
@@ -2308,11 +2704,13 @@
             }
 
             function initResponsiveEnhancements() {
+                document.addEventListener('click', handleDashboardQrTap, true);
+
                 const observedBodies = [
                     'userMatchHistoryBody', 'allMatchTableBody', 'gocLogsTableBody',
                     'bookingLogTableBody', 'quyTableBody', 'categoryLogBody',
                     'memberTableBody', 'financeTableBody', 'rivalsDuyenNoBody',
-                    'rivalsCanSucBody', 'rivalsKhacTinhBody'
+                    'rivalsCanSucBody', 'rivalsKhacTinhBody', 'bestDuosTableBody'
                 ];
 
                 const tableObserver = new MutationObserver(queueEnhance);
@@ -2334,6 +2732,8 @@
                 const dashboard = document.getElementById('tab-dashboard');
                 if (dashboard) {
                     new MutationObserver(queueEnhance).observe(dashboard, {
+                        attributes: true,
+                        attributeFilter: ['class', 'style', 'hidden', 'src'],
                         childList: true,
                         subtree: true
                     });
