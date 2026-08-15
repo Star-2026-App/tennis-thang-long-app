@@ -57,9 +57,7 @@
 
         .fund-status-chip,
         .qr-icon-button {
-            min-height: 64px;
             min-width: 0;
-            flex: 1 1 0;
             border-radius: .75rem;
             display: inline-flex;
             flex-direction: column;
@@ -74,6 +72,8 @@
         }
 
         .fund-status-chip {
+            min-height: 56px;
+            flex: 1 1 auto;
             color: #047857;
             background: #ecfdf5;
             border: 1px solid #a7f3d0;
@@ -85,23 +85,48 @@
             border-color: #fde68a;
         }
 
-        .fund-status-chip i,
-        .qr-icon-button i {
-            font-size: 1.3rem;
+        .fund-status-chip i {
+            font-size: 1.15rem;
         }
 
         .qr-icon-button {
-            color: #065f46;
-            background: #fff;
-            border: 1px solid #6ee7b7;
-            box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+            min-height: 56px;
+            flex: 0 0 54px;
+            color: #fff;
+            background: #2563eb;
+            border: 1px solid #1d4ed8;
+            box-shadow: 0 2px 4px rgb(37 99 235 / 24%);
             cursor: pointer;
             transition: transform .15s ease, background-color .15s ease;
+            font-size: 13px;
+            letter-spacing: .02em;
         }
 
         .qr-icon-button:hover {
-            background: #ecfdf5;
+            background: #1d4ed8;
             transform: translateY(-1px);
+        }
+
+        .finance-total-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: .18rem;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .finance-reward-note {
+            display: block;
+            width: 100%;
+            color: #64748b;
+            font-size: 8px;
+            font-weight: 600;
+            line-height: 1.15;
+            text-align: right;
+            white-space: normal;
+            overflow-wrap: break-word;
         }
 
         .duel-layout {
@@ -204,12 +229,13 @@
                 table-layout: fixed;
                 width: max-content;
                 max-width: none;
-                font-size: 9px !important;
+                font-size: 8.5px !important;
             }
 
             .mobile-priority-table th,
             .mobile-priority-table td {
-                padding: .32rem .2rem !important;
+                min-width: 0 !important;
+                padding: .25rem .12rem !important;
                 vertical-align: middle;
             }
 
@@ -219,41 +245,41 @@
             }
 
             /* Nhật ký trận: 6 cột đầu nằm trong vùng nhìn, thao tác ở bên phải. */
-            #matchLogTable { width: 378px; }
-            #matchLogTable th:nth-child(1), #matchLogTable td:nth-child(1) { width: 26px; }
-            #matchLogTable th:nth-child(2), #matchLogTable td:nth-child(2) { width: 50px; }
+            #matchLogTable { width: 350px !important; }
+            #matchLogTable th:nth-child(1), #matchLogTable td:nth-child(1) { width: 24px !important; }
+            #matchLogTable th:nth-child(2), #matchLogTable td:nth-child(2) { width: 48px !important; }
             #matchLogTable th:nth-child(3), #matchLogTable td:nth-child(3),
-            #matchLogTable th:nth-child(4), #matchLogTable td:nth-child(4) { width: 66px; }
-            #matchLogTable th:nth-child(5), #matchLogTable td:nth-child(5) { width: 34px; }
-            #matchLogTable th:nth-child(6), #matchLogTable td:nth-child(6) { width: 48px; }
-            #matchLogTable th:nth-child(7), #matchLogTable td:nth-child(7) { width: 88px; }
+            #matchLogTable th:nth-child(4), #matchLogTable td:nth-child(4) { width: 66px !important; }
+            #matchLogTable th:nth-child(5), #matchLogTable td:nth-child(5) { width: 30px !important; }
+            #matchLogTable th:nth-child(6), #matchLogTable td:nth-child(6) { width: 46px !important; }
+            #matchLogTable th:nth-child(7), #matchLogTable td:nth-child(7) { width: 70px !important; }
 
             /* Nộp tiền: cột ghi chú vẫn nhìn thấy trước cột thao tác. */
-            #gocLogsTable { width: 382px; }
-            #gocLogsTable th:nth-child(1), #gocLogsTable td:nth-child(1) { width: 26px; }
-            #gocLogsTable th:nth-child(2), #gocLogsTable td:nth-child(2) { width: 50px; }
-            #gocLogsTable th:nth-child(3), #gocLogsTable td:nth-child(3) { width: 66px; }
-            #gocLogsTable th:nth-child(4), #gocLogsTable td:nth-child(4) { width: 56px; }
-            #gocLogsTable th:nth-child(5), #gocLogsTable td:nth-child(5) { width: 96px; }
-            #gocLogsTable th:nth-child(6), #gocLogsTable td:nth-child(6) { width: 88px; }
+            #gocLogsTable { width: 350px !important; }
+            #gocLogsTable th:nth-child(1), #gocLogsTable td:nth-child(1) { width: 24px !important; }
+            #gocLogsTable th:nth-child(2), #gocLogsTable td:nth-child(2) { width: 48px !important; }
+            #gocLogsTable th:nth-child(3), #gocLogsTable td:nth-child(3) { width: 68px !important; }
+            #gocLogsTable th:nth-child(4), #gocLogsTable td:nth-child(4) { width: 52px !important; }
+            #gocLogsTable th:nth-child(5), #gocLogsTable td:nth-child(5) { width: 88px !important; }
+            #gocLogsTable th:nth-child(6), #gocLogsTable td:nth-child(6) { width: 70px !important; }
 
             /* Thưởng sân. */
-            #bookingTable { width: 374px; }
-            #bookingTable th:nth-child(1), #bookingTable td:nth-child(1) { width: 26px; }
-            #bookingTable th:nth-child(2), #bookingTable td:nth-child(2) { width: 50px; }
-            #bookingTable th:nth-child(3), #bookingTable td:nth-child(3) { width: 76px; }
-            #bookingTable th:nth-child(4), #bookingTable td:nth-child(4) { width: 62px; }
-            #bookingTable th:nth-child(5), #bookingTable td:nth-child(5) { width: 58px; }
-            #bookingTable th:nth-child(6), #bookingTable td:nth-child(6) { width: 102px; }
+            #bookingTable { width: 350px !important; }
+            #bookingTable th:nth-child(1), #bookingTable td:nth-child(1) { width: 24px !important; }
+            #bookingTable th:nth-child(2), #bookingTable td:nth-child(2) { width: 48px !important; }
+            #bookingTable th:nth-child(3), #bookingTable td:nth-child(3) { width: 74px !important; }
+            #bookingTable th:nth-child(4), #bookingTable td:nth-child(4) { width: 62px !important; }
+            #bookingTable th:nth-child(5), #bookingTable td:nth-child(5) { width: 56px !important; }
+            #bookingTable th:nth-child(6), #bookingTable td:nth-child(6) { width: 86px !important; }
 
             /* Đóng quỹ. */
-            #quyTable { width: 386px; }
-            #quyTable th:nth-child(1), #quyTable td:nth-child(1) { width: 26px; }
-            #quyTable th:nth-child(2), #quyTable td:nth-child(2) { width: 78px; }
-            #quyTable th:nth-child(3), #quyTable td:nth-child(3) { width: 66px; }
-            #quyTable th:nth-child(4), #quyTable td:nth-child(4) { width: 60px; }
-            #quyTable th:nth-child(5), #quyTable td:nth-child(5) { width: 72px; }
-            #quyTable th:nth-child(6), #quyTable td:nth-child(6) { width: 84px; }
+            #quyTable { width: 360px !important; }
+            #quyTable th:nth-child(1), #quyTable td:nth-child(1) { width: 24px !important; }
+            #quyTable th:nth-child(2), #quyTable td:nth-child(2) { width: 78px !important; }
+            #quyTable th:nth-child(3), #quyTable td:nth-child(3) { width: 66px !important; }
+            #quyTable th:nth-child(4), #quyTable td:nth-child(4) { width: 56px !important; }
+            #quyTable th:nth-child(5), #quyTable td:nth-child(5) { width: 68px !important; }
+            #quyTable th:nth-child(6), #quyTable td:nth-child(6) { width: 68px !important; }
 
             /* Sổ thu chi: đủ 4 cột, không cần kéo ngang. */
             #cashbookTable {
@@ -280,36 +306,63 @@
 
             /* Tiền góc: chữ nhỏ, tiêu đề wrap, ghim STT và Tên thành viên. */
             #financeTable {
-                width: 850px;
+                width: 718px !important;
+                min-width: 718px !important;
                 font-size: 8.5px !important;
+                border-collapse: separate !important;
+                border-spacing: 0;
+                isolation: isolate;
             }
             #financeTable th, #financeTable td {
-                padding: .3rem .18rem !important;
+                min-width: 0 !important;
+                padding: .28rem .14rem !important;
                 line-height: 1.15;
+                overflow: hidden;
             }
-            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { width: 28px; }
-            #financeTable th:nth-child(2), #financeTable td:nth-child(2) { width: 88px; }
+            #financeTable th { font-size: 8px !important; white-space: normal !important; }
+            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { width: 28px !important; max-width: 28px !important; }
+            #financeTable th:nth-child(2), #financeTable td:nth-child(2) { width: 92px !important; max-width: 92px !important; }
             #financeTable th:nth-child(3), #financeTable td:nth-child(3),
             #financeTable th:nth-child(4), #financeTable td:nth-child(4),
-            #financeTable th:nth-child(5), #financeTable td:nth-child(5) { width: 38px; }
-            #financeTable th:nth-child(6), #financeTable td:nth-child(6) { width: 44px; }
-            #financeTable th:nth-child(7), #financeTable td:nth-child(7) { width: 52px; }
-            #financeTable th:nth-child(n+8), #financeTable td:nth-child(n+8) { width: 68px; }
+            #financeTable th:nth-child(5), #financeTable td:nth-child(5) { width: 34px !important; max-width: 34px !important; }
+            #financeTable th:nth-child(6), #financeTable td:nth-child(6) { width: 38px !important; max-width: 38px !important; }
+            #financeTable th:nth-child(7), #financeTable td:nth-child(7) { width: 44px !important; max-width: 44px !important; }
+            #financeTable th:nth-child(8), #financeTable td:nth-child(8),
+            #financeTable th:nth-child(9), #financeTable td:nth-child(9),
+            #financeTable th:nth-child(10), #financeTable td:nth-child(10),
+            #financeTable th:nth-child(11), #financeTable td:nth-child(11) { width: 64px !important; max-width: 64px !important; }
+            #financeTable th:nth-child(12), #financeTable td:nth-child(12) { width: 98px !important; max-width: 98px !important; }
+            #financeTable th:nth-child(13), #financeTable td:nth-child(13) { width: 60px !important; max-width: 60px !important; }
             #financeTable th:nth-child(1), #financeTable td:nth-child(1),
             #financeTable th:nth-child(2), #financeTable td:nth-child(2) {
-                position: sticky;
-                background: #fff;
+                position: sticky !important;
+                background: #fff !important;
                 background-clip: padding-box;
+                opacity: 1;
+                overflow: hidden;
             }
-            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { left: 0; z-index: 3; }
+            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { left: 0 !important; z-index: 8 !important; }
             #financeTable th:nth-child(2), #financeTable td:nth-child(2) {
-                left: 28px;
-                z-index: 3;
-                box-shadow: 2px 0 3px rgb(15 23 42 / 10%);
+                left: 28px !important;
+                z-index: 8 !important;
+                box-shadow: 3px 0 4px rgb(15 23 42 / 16%);
             }
             #financeTable thead th:nth-child(1), #financeTable thead th:nth-child(2) {
-                background: #f1f5f9;
-                z-index: 6;
+                background: #f1f5f9 !important;
+                z-index: 12 !important;
+            }
+            #financeTable tbody tr:nth-child(even) td:nth-child(1),
+            #financeTable tbody tr:nth-child(even) td:nth-child(2) {
+                background: #f8fafc !important;
+            }
+            #financeTable td:nth-child(12) {
+                white-space: normal !important;
+                overflow: hidden !important;
+            }
+            #financeTable .finance-reward-note {
+                font-size: 7px;
+                line-height: 1.12;
+                text-align: right;
             }
 
             #dashboardMatchTable {
@@ -513,9 +566,8 @@
                                 <span id="dashQuyStatusText">Đã đóng quỹ Quý</span>
                             </div>
                             <button type="button" onclick="openQRZoomModal()" class="qr-icon-button" title="Mở mã QR chuyển khoản" aria-label="Mở và phóng to mã QR chuyển khoản">
-                                <i class="fa-solid fa-qrcode" aria-hidden="true"></i>
-                                <span>Mã QR</span>
-                                <img id="dashQrImg" src="" alt="" class="sr-only" aria-hidden="true">
+                                <span class="qr-button-label">QR</span>
+                                <img id="dashQrImg" src="" alt="" hidden aria-hidden="true" style="display:none !important;width:0 !important;height:0 !important;position:absolute !important;pointer-events:none !important;">
                             </button>
                         </div>
                     </div>
@@ -1650,6 +1702,38 @@
                 cell.dataset.responsiveMoney = '1';
             }
 
+            function formatFinanceTotalCell(cell) {
+                if (!cell || cell.dataset.responsiveFinanceTotal === '1') return;
+                const text = cell.textContent.replace(/\s+/g, ' ').trim();
+                const rewardAt = text.search(/thưởng\s*sân\s*:/i);
+
+                if (rewardAt < 0) {
+                    formatMoneyCell(cell);
+                    cell.dataset.responsiveFinanceTotal = '1';
+                    return;
+                }
+
+                const totalText = text.slice(0, rewardAt).trim();
+                const rewardText = text.slice(rewardAt).trim();
+                const total = totalText.match(/([+-]?[\d.,]+)\s*(?:đ|₫)?\s*$/i);
+                const reward = rewardText.match(/thưởng\s*sân\s*:\s*([+-]?[\d.,]+)\s*(?:đ|₫)?/i);
+
+                if (!total || !reward) {
+                    formatMoneyCell(cell);
+                    cell.dataset.responsiveFinanceTotal = '1';
+                    return;
+                }
+
+                cell.innerHTML = `
+                    <div class="finance-total-stack">
+                        <span class="money-stack"><span class="money-value">${escapeHtml(total[1])}</span><span class="money-unit">đ</span></span>
+                        <span class="finance-reward-note">Thưởng sân: ${escapeHtml(reward[1])} đ</span>
+                    </div>`;
+                cell.classList.add('finance-total-cell');
+                cell.dataset.responsiveMoney = '1';
+                cell.dataset.responsiveFinanceTotal = '1';
+            }
+
             function markWrapCell(cell) {
                 if (cell) cell.classList.add('mobile-wrap-text');
             }
@@ -1742,7 +1826,8 @@
 
                 enhanceRows('financeTableBody', row => {
                     markWrapCell(cellAt(row, 2));
-                    [8, 9, 10, 11, 12].forEach(index => formatMoneyCell(cellAt(row, index)));
+                    [8, 9, 10, 11].forEach(index => formatMoneyCell(cellAt(row, index)));
+                    formatFinanceTotalCell(cellAt(row, 12));
                 });
 
                 ['rivalsDuyenNoBody', 'rivalsCanSucBody', 'rivalsKhacTinhBody'].forEach(tbodyId => {
