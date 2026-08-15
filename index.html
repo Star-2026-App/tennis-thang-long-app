@@ -210,7 +210,7 @@
             #tab-booking > div,
             #tab-quy > div,
             #tab-members > div {
-                padding: .6rem !important;
+                padding: .4rem !important;
             }
 
             #tab-cashbook > div {
@@ -229,13 +229,14 @@
                 table-layout: fixed;
                 width: max-content;
                 max-width: none;
-                font-size: 8.5px !important;
+                font-size: 8px !important;
+                letter-spacing: -.01em;
             }
 
             .mobile-priority-table th,
             .mobile-priority-table td {
                 min-width: 0 !important;
-                padding: .25rem .12rem !important;
+                padding: .2rem .08rem !important;
                 vertical-align: middle;
             }
 
@@ -363,6 +364,55 @@
                 font-size: 7px;
                 line-height: 1.12;
                 text-align: right;
+            }
+
+            /* Lớp ghim độc lập: luôn nằm trên toàn bộ phần bảng đang cuộn. */
+            #tab-finance .mobile-priority-scroll {
+                position: relative;
+                isolation: isolate;
+            }
+            #financeTable .finance-scroll-cell {
+                position: relative !important;
+                z-index: 0 !important;
+            }
+            #financeTable .finance-sticky-index,
+            #financeTable .finance-sticky-name {
+                position: sticky !important;
+                background-color: #fff !important;
+                background-image: none !important;
+                background-clip: padding-box !important;
+                opacity: 1 !important;
+                overflow: hidden !important;
+                z-index: 100 !important;
+            }
+            #financeTable .finance-sticky-index {
+                left: 0 !important;
+            }
+            #financeTable .finance-sticky-name {
+                left: 28px !important;
+                box-shadow: 4px 0 5px rgb(15 23 42 / 18%);
+            }
+            #financeTable thead .finance-sticky-index,
+            #financeTable thead .finance-sticky-name {
+                background-color: #f1f5f9 !important;
+                z-index: 150 !important;
+            }
+            #financeTable .finance-total-cell,
+            #financeTable th.finance-total-header {
+                text-align: right !important;
+            }
+            #financeTable .finance-total-cell .finance-total-stack,
+            #financeTable .finance-total-cell .money-stack,
+            #financeTable .finance-total-cell .money-value,
+            #financeTable .finance-total-cell .finance-reward-note {
+                margin-left: auto;
+                text-align: right !important;
+            }
+            #financeTable .finance-total-cell .money-stack {
+                display: flex !important;
+                justify-content: flex-end !important;
+                width: max-content;
+                max-width: 100%;
             }
 
             #dashboardMatchTable {
@@ -1704,6 +1754,8 @@
 
             function formatFinanceTotalCell(cell) {
                 if (!cell || cell.dataset.responsiveFinanceTotal === '1') return;
+                cell.classList.add('finance-total-cell');
+                cell.style.setProperty('text-align', 'right', 'important');
                 const text = cell.textContent.replace(/\s+/g, ' ').trim();
                 const rewardAt = text.search(/thưởng\s*sân\s*:/i);
 
@@ -1736,6 +1788,90 @@
 
             function markWrapCell(cell) {
                 if (cell) cell.classList.add('mobile-wrap-text');
+            }
+
+            function setImportant(element, property, value) {
+                if (element) element.style.setProperty(property, value, 'important');
+            }
+
+            function lockTableColumnWidths(tableId, widths, wrapColumns = []) {
+                const table = document.getElementById(tableId);
+                if (!table) return;
+
+                const totalWidth = widths.reduce((sum, width) => sum + width, 0);
+                setImportant(table, 'width', `${totalWidth}px`);
+                setImportant(table, 'min-width', `${totalWidth}px`);
+                setImportant(table, 'max-width', `${totalWidth}px`);
+                setImportant(table, 'table-layout', 'fixed');
+
+                Array.from(table.rows || []).forEach(row => {
+                    Array.from(row.children).forEach((cell, index) => {
+                        const width = widths[index];
+                        if (!width) return;
+
+                        setImportant(cell, 'width', `${width}px`);
+                        setImportant(cell, 'min-width', `${width}px`);
+                        setImportant(cell, 'max-width', `${width}px`);
+                        setImportant(cell, 'padding-left', '1px');
+                        setImportant(cell, 'padding-right', '1px');
+
+                        if (wrapColumns.includes(index + 1)) {
+                            setImportant(cell, 'white-space', 'normal');
+                            setImportant(cell, 'word-break', 'normal');
+                            setImportant(cell, 'overflow-wrap', 'normal');
+                        }
+                    });
+                });
+            }
+
+            function lockAllMobileTableLayouts() {
+                if (!window.matchMedia('(max-width: 767px)').matches) return;
+                lockTableColumnWidths('matchLogTable', [22, 44, 60, 60, 28, 42, 74], [3, 4]);
+                lockTableColumnWidths('gocLogsTable', [22, 44, 62, 48, 78, 76], [3, 5]);
+                lockTableColumnWidths('bookingTable', [22, 44, 68, 54, 50, 82], [3, 4]);
+                lockTableColumnWidths('quyTable', [22, 70, 60, 52, 64, 62], [2, 3, 5]);
+                lockTableColumnWidths('membersTable', [22, 72, 60, 36, 54, 64, 70], [2, 3, 5, 6]);
+                lockTableColumnWidths('financeTable', [28, 92, 34, 34, 34, 38, 44, 64, 64, 64, 64, 98, 60], [2]);
+            }
+
+            function prepareFinanceStickyColumns() {
+                if (!window.matchMedia('(max-width: 767px)').matches) return;
+                const table = document.getElementById('financeTable');
+                if (!table) return;
+
+                table.querySelectorAll('.sticky-col').forEach(cell => cell.classList.remove('sticky-col'));
+
+                Array.from(table.rows || []).forEach(row => {
+                    const cells = Array.from(row.children);
+                    const isHeader = row.parentElement?.tagName === 'THEAD';
+
+                    cells.forEach((cell, index) => {
+                        cell.classList.remove('finance-sticky-index', 'finance-sticky-name', 'finance-scroll-cell');
+
+                        if (index === 0) {
+                            cell.classList.add('finance-sticky-index');
+                            setImportant(cell, 'position', 'sticky');
+                            setImportant(cell, 'left', '0');
+                            setImportant(cell, 'z-index', isHeader ? '150' : '100');
+                            setImportant(cell, 'background-color', isHeader ? '#f1f5f9' : '#ffffff');
+                        } else if (index === 1) {
+                            cell.classList.add('finance-sticky-name');
+                            setImportant(cell, 'position', 'sticky');
+                            setImportant(cell, 'left', '28px');
+                            setImportant(cell, 'z-index', isHeader ? '150' : '100');
+                            setImportant(cell, 'background-color', isHeader ? '#f1f5f9' : '#ffffff');
+                        } else {
+                            cell.classList.add('finance-scroll-cell');
+                            setImportant(cell, 'position', 'relative');
+                            setImportant(cell, 'z-index', '0');
+                        }
+                    });
+
+                    if (cells[11]) {
+                        cells[11].classList.add(isHeader ? 'finance-total-header' : 'finance-total-cell');
+                        setImportant(cells[11], 'text-align', 'right');
+                    }
+                });
             }
 
             function reorderMemberRow(row) {
@@ -1829,6 +1965,9 @@
                     [8, 9, 10, 11].forEach(index => formatMoneyCell(cellAt(row, index)));
                     formatFinanceTotalCell(cellAt(row, 12));
                 });
+
+                lockAllMobileTableLayouts();
+                prepareFinanceStickyColumns();
 
                 ['rivalsDuyenNoBody', 'rivalsCanSucBody', 'rivalsKhacTinhBody'].forEach(tbodyId => {
                     enhanceRows(tbodyId, row => formatDuelCell(cellAt(row, 1)));
