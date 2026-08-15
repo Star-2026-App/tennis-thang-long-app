@@ -370,6 +370,17 @@
             #tab-finance .mobile-priority-scroll {
                 position: relative;
                 isolation: isolate;
+                overflow-x: auto !important;
+                overflow-y: auto !important;
+            }
+            #financeTable thead th {
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 120 !important;
+                background-color: #f1f5f9 !important;
+                background-image: none !important;
+                opacity: 1 !important;
+                box-shadow: 0 2px 0 rgb(148 163 184 / 28%);
             }
             #financeTable .finance-scroll-cell {
                 position: relative !important;
@@ -404,7 +415,14 @@
             #financeTable thead .finance-sticky-index,
             #financeTable thead .finance-sticky-name {
                 background-color: #f1f5f9 !important;
-                z-index: 150 !important;
+                top: 0 !important;
+                z-index: 220 !important;
+            }
+            #financeTable thead .finance-header-cell {
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 120 !important;
+                background-color: #f1f5f9 !important;
             }
             #financeTable .finance-sticky-index::before,
             #financeTable .finance-sticky-index::after {
@@ -1929,20 +1947,28 @@
                     const isHeader = row.parentElement?.tagName === 'THEAD';
 
                     cells.forEach((cell, index) => {
-                        cell.classList.remove('finance-sticky-index', 'finance-sticky-name', 'finance-scroll-cell');
+                        cell.classList.remove('finance-sticky-index', 'finance-sticky-name', 'finance-scroll-cell', 'finance-header-cell');
 
                         if (index === 0) {
                             cell.classList.add('finance-sticky-index');
                             setImportant(cell, 'position', 'sticky');
                             setImportant(cell, 'left', '0');
-                            setImportant(cell, 'z-index', isHeader ? '150' : '100');
+                            if (isHeader) setImportant(cell, 'top', '0');
+                            setImportant(cell, 'z-index', isHeader ? '220' : '100');
                             setImportant(cell, 'background-color', isHeader ? '#f1f5f9' : '#ffffff');
                         } else if (index === 1) {
                             cell.classList.add('finance-sticky-name');
                             setImportant(cell, 'position', 'sticky');
                             setImportant(cell, 'left', '30px');
-                            setImportant(cell, 'z-index', isHeader ? '150' : '100');
+                            if (isHeader) setImportant(cell, 'top', '0');
+                            setImportant(cell, 'z-index', isHeader ? '220' : '100');
                             setImportant(cell, 'background-color', isHeader ? '#f1f5f9' : '#ffffff');
+                        } else if (isHeader) {
+                            cell.classList.add('finance-header-cell');
+                            setImportant(cell, 'position', 'sticky');
+                            setImportant(cell, 'top', '0');
+                            setImportant(cell, 'z-index', '120');
+                            setImportant(cell, 'background-color', '#f1f5f9');
                         } else {
                             cell.classList.add('finance-scroll-cell');
                             setImportant(cell, 'position', 'relative');
