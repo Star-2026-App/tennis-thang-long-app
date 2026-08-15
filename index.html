@@ -307,8 +307,8 @@
 
             /* Tiền góc: chữ nhỏ, tiêu đề wrap, ghim STT và Tên thành viên. */
             #financeTable {
-                width: 718px !important;
-                min-width: 718px !important;
+                width: 746px !important;
+                min-width: 746px !important;
                 font-size: 8.5px !important;
                 border-collapse: separate !important;
                 border-spacing: 0;
@@ -321,8 +321,8 @@
                 overflow: hidden;
             }
             #financeTable th { font-size: 8px !important; white-space: normal !important; }
-            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { width: 28px !important; max-width: 28px !important; }
-            #financeTable th:nth-child(2), #financeTable td:nth-child(2) { width: 92px !important; max-width: 92px !important; }
+            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { width: 30px !important; max-width: 30px !important; }
+            #financeTable th:nth-child(2), #financeTable td:nth-child(2) { width: 118px !important; max-width: 118px !important; }
             #financeTable th:nth-child(3), #financeTable td:nth-child(3),
             #financeTable th:nth-child(4), #financeTable td:nth-child(4),
             #financeTable th:nth-child(5), #financeTable td:nth-child(5) { width: 34px !important; max-width: 34px !important; }
@@ -344,7 +344,7 @@
             }
             #financeTable th:nth-child(1), #financeTable td:nth-child(1) { left: 0 !important; z-index: 8 !important; }
             #financeTable th:nth-child(2), #financeTable td:nth-child(2) {
-                left: 28px !important;
+                left: 30px !important;
                 z-index: 8 !important;
                 box-shadow: 3px 0 4px rgb(15 23 42 / 16%);
             }
@@ -387,10 +387,12 @@
             }
             #financeTable .finance-sticky-index {
                 left: 0 !important;
+                text-align: center !important;
             }
             #financeTable .finance-sticky-name {
-                left: 28px !important;
+                left: 30px !important;
                 box-shadow: 4px 0 5px rgb(15 23 42 / 18%);
+                text-align: left !important;
             }
             #financeTable thead .finance-sticky-index,
             #financeTable thead .finance-sticky-name {
@@ -1826,12 +1828,58 @@
 
             function lockAllMobileTableLayouts() {
                 if (!window.matchMedia('(max-width: 767px)').matches) return;
-                lockTableColumnWidths('matchLogTable', [22, 44, 60, 60, 28, 42, 74], [3, 4]);
-                lockTableColumnWidths('gocLogsTable', [22, 44, 62, 48, 78, 76], [3, 5]);
-                lockTableColumnWidths('bookingTable', [22, 44, 68, 54, 50, 82], [3, 4]);
-                lockTableColumnWidths('quyTable', [22, 70, 60, 52, 64, 62], [2, 3, 5]);
+
+                const visibleWidth = Math.max(320, Math.min(390, window.innerWidth - 40));
+
+                const matchTeamA = Math.floor((visibleWidth - 136) / 2);
+                const matchTeamB = visibleWidth - 136 - matchTeamA;
+                lockTableColumnWidths('matchLogTable', [22, 44, matchTeamA, matchTeamB, 28, 42, 74], [3, 4]);
+
+                const gocMember = visibleWidth - 196;
+                lockTableColumnWidths('gocLogsTable', [22, 44, gocMember, 50, 80, 76], [3, 5]);
+
+                const bookingMember = visibleWidth - 172;
+                lockTableColumnWidths('bookingTable', [22, 44, bookingMember, 56, 50, 82], [3, 4]);
+
+                const quyMember = visibleWidth - 198;
+                lockTableColumnWidths('quyTable', [22, quyMember, 60, 52, 64, 62], [2, 3, 5]);
+
                 lockTableColumnWidths('membersTable', [22, 72, 60, 36, 54, 64, 70], [2, 3, 5, 6]);
-                lockTableColumnWidths('financeTable', [28, 92, 34, 34, 34, 38, 44, 64, 64, 64, 64, 98, 60], [2]);
+                lockTableColumnWidths('financeTable', [30, 118, 34, 34, 34, 38, 44, 64, 64, 64, 64, 98, 60], [2]);
+            }
+
+            function ensureFinanceSttColumn() {
+                const table = document.getElementById('financeTable');
+                const headerRow = table?.tHead?.rows?.[0];
+                const tbody = document.getElementById('financeTableBody');
+                if (!table || !headerRow || !tbody) return;
+
+                let headerCells = Array.from(headerRow.cells);
+                const hasSttHeader = /^STT\b/i.test(headerCells[0]?.textContent?.trim() || '');
+
+                if (!hasSttHeader) {
+                    const sttHeader = document.createElement('th');
+                    sttHeader.className = 'p-2 text-center font-bold';
+                    sttHeader.textContent = 'STT';
+                    headerRow.prepend(sttHeader);
+                    headerCells = Array.from(headerRow.cells);
+                }
+
+                const expectedCount = headerCells.length;
+                Array.from(tbody.rows).forEach((row, index) => {
+                    if (row.cells.length === 1 && row.cells[0].hasAttribute('colspan')) return;
+
+                    if (row.cells.length === expectedCount - 1) {
+                        row.insertCell(0);
+                    }
+
+                    const sttCell = row.cells[0];
+                    if (!sttCell) return;
+                    const stt = String(index + 1);
+                    if (sttCell.textContent.trim() !== stt) sttCell.textContent = stt;
+                    sttCell.classList.add('text-center', 'font-bold');
+                    sttCell.setAttribute('aria-label', `Số thứ tự ${stt}`);
+                });
             }
 
             function prepareFinanceStickyColumns() {
@@ -1857,7 +1905,7 @@
                         } else if (index === 1) {
                             cell.classList.add('finance-sticky-name');
                             setImportant(cell, 'position', 'sticky');
-                            setImportant(cell, 'left', '28px');
+                            setImportant(cell, 'left', '30px');
                             setImportant(cell, 'z-index', isHeader ? '150' : '100');
                             setImportant(cell, 'background-color', isHeader ? '#f1f5f9' : '#ffffff');
                         } else {
@@ -1960,6 +2008,7 @@
                     markWrapCell(cellAt(row, 5));
                 });
 
+                ensureFinanceSttColumn();
                 enhanceRows('financeTableBody', row => {
                     markWrapCell(cellAt(row, 2));
                     [8, 9, 10, 11].forEach(index => formatMoneyCell(cellAt(row, index)));
