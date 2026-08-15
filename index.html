@@ -388,6 +388,13 @@
             #financeTable .finance-sticky-index {
                 left: 0 !important;
                 text-align: center !important;
+                display: table-cell !important;
+                visibility: visible !important;
+                color: #334155 !important;
+                font-size: 8px !important;
+                line-height: 1.1 !important;
+                text-indent: 0 !important;
+                writing-mode: horizontal-tb !important;
             }
             #financeTable .finance-sticky-name {
                 left: 30px !important;
@@ -398,6 +405,26 @@
             #financeTable thead .finance-sticky-name {
                 background-color: #f1f5f9 !important;
                 z-index: 150 !important;
+            }
+            #financeTable .finance-sticky-index::before,
+            #financeTable .finance-sticky-index::after {
+                content: none !important;
+                display: none !important;
+            }
+            #financeTable .finance-stt-value {
+                display: block !important;
+                position: relative !important;
+                z-index: 300 !important;
+                width: 100% !important;
+                color: #334155 !important;
+                font-size: 8px !important;
+                font-weight: 800 !important;
+                line-height: 1.1 !important;
+                text-align: center !important;
+                text-indent: 0 !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                white-space: nowrap !important;
             }
             #financeTable .finance-total-cell,
             #financeTable th.finance-total-header {
@@ -1860,10 +1887,15 @@
                 if (!hasSttHeader) {
                     const sttHeader = document.createElement('th');
                     sttHeader.className = 'p-2 text-center font-bold';
-                    sttHeader.textContent = 'STT';
                     headerRow.prepend(sttHeader);
                     headerCells = Array.from(headerRow.cells);
                 }
+
+                const sttHeaderCell = headerCells[0];
+                if (sttHeaderCell && !sttHeaderCell.querySelector('.finance-stt-value')) {
+                    sttHeaderCell.innerHTML = '<span class="finance-stt-value">STT <span id="sort-icon-stt" aria-hidden="true">↕</span></span>';
+                }
+                sttHeaderCell?.setAttribute('aria-label', 'Cột số thứ tự');
 
                 const expectedCount = headerCells.length;
                 Array.from(tbody.rows).forEach((row, index) => {
@@ -1876,7 +1908,10 @@
                     const sttCell = row.cells[0];
                     if (!sttCell) return;
                     const stt = String(index + 1);
-                    if (sttCell.textContent.trim() !== stt) sttCell.textContent = stt;
+                    const sttValue = sttCell.querySelector('.finance-stt-value');
+                    if (!sttValue || sttValue.textContent.trim() !== stt) {
+                        sttCell.innerHTML = `<span class="finance-stt-value">${stt}</span>`;
+                    }
                     sttCell.classList.add('text-center', 'font-bold');
                     sttCell.setAttribute('aria-label', `Số thứ tự ${stt}`);
                 });
