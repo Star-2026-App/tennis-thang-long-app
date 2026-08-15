@@ -92,6 +92,8 @@
         .qr-icon-button {
             min-height: 56px;
             flex: 0 0 54px;
+            position: relative;
+            overflow: hidden;
             color: #fff;
             background: #2563eb;
             border: 1px solid #1d4ed8;
@@ -225,6 +227,17 @@
         }
 
         @media (max-width: 767px) {
+            #dashQrImg.mobile-dashboard-qr-source {
+                display: block !important;
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                inset: 50% auto auto 50% !important;
+                opacity: 0 !important;
+                clip-path: inset(50%) !important;
+                pointer-events: none !important;
+            }
+
             #tab-dashboard .score-stack {
                 flex-direction: column;
                 gap: 1px;
@@ -322,6 +335,14 @@
             #gocLogsTable th:nth-child(5), #gocLogsTable td:nth-child(5) { width: 88px !important; }
             #gocLogsTable th:nth-child(6), #gocLogsTable td:nth-child(6) { width: 70px !important; }
 
+            #gocLogsTable tbody td:nth-child(3),
+            #bookingTable tbody td:nth-child(3),
+            #quyTable tbody td:nth-child(2) {
+                font-size: 10px !important;
+                font-weight: 700 !important;
+                line-height: 1.25 !important;
+            }
+
             /* Thưởng sân. */
             #bookingTable { width: 350px !important; }
             #bookingTable th:nth-child(1), #bookingTable td:nth-child(1) { width: 24px !important; }
@@ -354,14 +375,18 @@
             #cashbookTable th:nth-child(4), #cashbookTable td:nth-child(4) { width: 14%; }
 
             /* Thành viên: 5 cột chính trước, Username và Thao tác ở cuối. */
-            #membersTable { width: 438px; }
-            #membersTable th:nth-child(1), #membersTable td:nth-child(1) { width: 26px; }
-            #membersTable th:nth-child(2), #membersTable td:nth-child(2) { width: 82px; }
-            #membersTable th:nth-child(3), #membersTable td:nth-child(3) { width: 70px; }
+            #membersTable { width: 518px; }
+            #membersTable th:nth-child(1), #membersTable td:nth-child(1) { width: 24px; }
+            #membersTable th:nth-child(2), #membersTable td:nth-child(2) { width: 126px; }
+            #membersTable th:nth-child(3), #membersTable td:nth-child(3) {
+                width: 92px;
+                text-align: right !important;
+                padding-right: .35rem !important;
+            }
             #membersTable th:nth-child(4), #membersTable td:nth-child(4) { width: 42px; }
-            #membersTable th:nth-child(5), #membersTable td:nth-child(5) { width: 62px; }
-            #membersTable th:nth-child(6), #membersTable td:nth-child(6) { width: 76px; }
-            #membersTable th:nth-child(7), #membersTable td:nth-child(7) { width: 80px; }
+            #membersTable th:nth-child(5), #membersTable td:nth-child(5) { width: 66px; }
+            #membersTable th:nth-child(6), #membersTable td:nth-child(6) { width: 86px; }
+            #membersTable th:nth-child(7), #membersTable td:nth-child(7) { width: 82px; }
 
             /* Tiền góc: chữ nhỏ, tiêu đề wrap, ghim STT và Tên thành viên. */
             #financeTable {
@@ -592,6 +617,10 @@
 
                     <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Bảng Vàng Vinh Danh">
                         <i class="fa-solid fa-trophy text-sm"></i>
+                    </button>
+
+                    <button type="button" onclick="refreshCloudData(this)" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Làm mới dữ liệu từ Google Cloud" aria-label="Làm mới dữ liệu từ Google Cloud">
+                        <i class="fa-solid fa-rotate text-sm"></i>
                     </button>
 
                     <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản & Thoát">
@@ -1947,7 +1976,15 @@
                 const quyMember = visibleWidth - 198;
                 lockTableColumnWidths('quyTable', [22, quyMember, 60, 52, 64, 62], [2, 3, 5]);
 
-                lockTableColumnWidths('membersTable', [22, 72, 60, 36, 54, 64, 70], [2, 3, 5, 6]);
+                const memberFixedWidth = 24 + 42 + 66;
+                const memberFlexibleWidth = visibleWidth - memberFixedWidth;
+                const memberNameWidth = Math.round(memberFlexibleWidth * 0.58);
+                const memberStatusWidth = memberFlexibleWidth - memberNameWidth;
+                lockTableColumnWidths(
+                    'membersTable',
+                    [24, memberNameWidth, memberStatusWidth, 42, 66, 86, 82],
+                    [2, 3, 5, 6]
+                );
                 lockTableColumnWidths('financeTable', [30, 118, 34, 34, 34, 38, 44, 64, 64, 64, 64, 98, 60], [2]);
             }
 
@@ -2176,22 +2213,87 @@
                 if (!qrImage) return;
 
                 qrImage.classList.toggle('desktop-dashboard-qr', isDesktop);
+                qrImage.classList.toggle('mobile-dashboard-qr-source', !isDesktop);
                 if (isDesktop) {
                     qrImage.hidden = false;
                     qrImage.removeAttribute('aria-hidden');
-                    ['display', 'width', 'height', 'position', 'pointer-events'].forEach(property => {
+                    ['display', 'width', 'height', 'position', 'inset', 'opacity', 'clip-path', 'pointer-events'].forEach(property => {
                         qrImage.style.removeProperty(property);
                     });
                 } else {
-                    qrImage.hidden = true;
+                    qrImage.hidden = false;
                     qrImage.setAttribute('aria-hidden', 'true');
-                    qrImage.style.setProperty('display', 'none', 'important');
-                    qrImage.style.setProperty('width', '0', 'important');
-                    qrImage.style.setProperty('height', '0', 'important');
-                    qrImage.style.setProperty('position', 'absolute', 'important');
-                    qrImage.style.setProperty('pointer-events', 'none', 'important');
+                    ['display', 'width', 'height', 'position', 'inset', 'opacity', 'clip-path', 'pointer-events'].forEach(property => {
+                        qrImage.style.removeProperty(property);
+                    });
                 }
             }
+
+            function getDashboardQrSource() {
+                const candidates = [
+                    document.getElementById('dashQrImg'),
+                    document.getElementById('zoomQrImg')
+                ];
+
+                for (const image of candidates) {
+                    if (!image) continue;
+                    const source = image.currentSrc || image.getAttribute('src') || image.dataset.src || '';
+                    if (source && !source.endsWith('/')) return source;
+                }
+                return '';
+            }
+
+            window.openQRZoomModal = function openQRZoomModal() {
+                const modal = document.getElementById('qrZoomModal');
+                const zoomImage = document.getElementById('zoomQrImg');
+                const source = getDashboardQrSource();
+
+                if (!modal || !zoomImage) return;
+                if (!source) {
+                    const message = 'Mã QR đang được tải. Vui lòng chờ vài giây rồi bấm lại.';
+                    if (typeof window.showToast === 'function') window.showToast(message, 'warning');
+                    else window.alert(message);
+                    return;
+                }
+
+                zoomImage.src = source;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.classList.add('overflow-hidden');
+            };
+
+            window.closeQRZoomModal = function closeQRZoomModal() {
+                const modal = document.getElementById('qrZoomModal');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.classList.remove('overflow-hidden');
+            };
+
+            window.refreshCloudData = async function refreshCloudData(button) {
+                if (!navigator.onLine) {
+                    const message = 'Điện thoại đang ngoại tuyến. Hãy bật mạng rồi thử lại.';
+                    if (typeof window.showToast === 'function') window.showToast(message, 'warning');
+                    else window.alert(message);
+                    return;
+                }
+
+                if (button?.dataset.refreshing === '1') return;
+                if (button) {
+                    button.dataset.refreshing = '1';
+                    button.disabled = true;
+                    button.querySelector('i')?.classList.add('fa-spin');
+                }
+
+                try {
+                    if ('serviceWorker' in navigator) {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        await Promise.allSettled(registrations.map(registration => registration.update()));
+                    }
+                } finally {
+                    window.location.reload();
+                }
+            };
 
             let queued = false;
             function queueEnhance() {
