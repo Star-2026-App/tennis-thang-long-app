@@ -29,6 +29,7 @@ function renderMemberList() {
                 <td class="p-2.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'} space-x-1">
                     <button onclick="openEditMemberModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i></button>
                     <button onclick="toggleMemberRole(${idx})" class="text-amber-600 font-bold text-[10px] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Quyền</button>
+                    <button onclick="authResetPasswordForMember_(${idx})" class="password-reset-action text-emerald-700 font-bold" title="Cấp lại mật khẩu"><i class="fa-solid fa-key"></i></button>
                     <button onclick="deleteMember(${idx})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
