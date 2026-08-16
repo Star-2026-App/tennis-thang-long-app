@@ -7,8 +7,14 @@ function renderMemberList() {
     members.forEach((m, idx) => {
         let stt = m.stt || (idx + 1);
         let username = m.username || ("Thanglong" + stt);
-        let isSystemAdmin = (m.role === 'admin' || stt === 1 || stt === 2 || stt === 15);
-        let roleBadge = isSystemAdmin ? `<span class="bg-amber-100 text-amber-900 font-extrabold px-2 py-0.5 rounded text-[10px]">Admin</span>` : `<span class="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded text-[10px]">Member</span>`;
+        let actualRole = String(m.role || 'member').toLowerCase();
+        if (stt === 2) actualRole = 'owner';
+        if ((stt === 1 || stt === 15) && actualRole === 'member') actualRole = 'admin';
+        let roleBadge = actualRole === 'owner'
+            ? `<span class="bg-emerald-100 text-emerald-900 font-extrabold px-2 py-0.5 rounded text-[10px]">Owner</span>`
+            : (actualRole === 'admin'
+                ? `<span class="bg-amber-100 text-amber-900 font-extrabold px-2 py-0.5 rounded text-[10px]">Admin</span>`
+                : `<span class="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded text-[10px]">Member</span>`);
 
         let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
 
@@ -35,20 +41,23 @@ function deleteMember(idx) {
     let m = members[idx];
     if (confirm(`Xóa thành viên [${m.name}]? (Lịch sử trận đấu và nộp tiền góc vẫn được bảo lưu)`)) {
         members.splice(idx, 1);
-        members.forEach((mem, i) => { mem.stt = i + 1; });
-        enqueueAction("updateMember", { members: members }, "Đã xóa thành viên thành công!");
+        enqueueAction("deleteMember", { stt: m.stt }, "Đã xóa thành viên thành công!");
     }
 }
 
 function toggleMemberRole(idx) {
-    if (currentUserRole !== 'admin') return;
+    let actualActorRole = typeof authGetActualRole_ === 'function'
+        ? authGetActualRole_()
+        : currentUserRole;
+    if (actualActorRole !== 'owner') return;
     let m = members[idx];
-    let currentRole = (m.role === 'admin' || m.stt === 1 || m.stt === 2 || m.stt === 15) ? 'admin' : 'member';
+    let currentRole = String(m.role || 'member').toLowerCase();
+    if (m.stt === 2) currentRole = 'owner';
     let newRole = currentRole === 'admin' ? 'member' : 'admin';
     
     if (confirm(`Đổi vai trò của [${m.name}] sang [${newRole.toUpperCase()}]?`)) {
         m.role = newRole;
-        enqueueAction("updateMember", { members: members }, "Đã cập nhật quyền thành công!");
+        enqueueAction("updateSingleMember", { member: m }, "Đã cập nhật quyền thành công!");
     }
 }
 
@@ -67,9 +76,11 @@ function saveNewMember(e) {
     let name = document.getElementById('newMemName').value.trim();
     let base = parseFloat(document.getElementById('newMemBase').value) || 6.2;
     let status = document.getElementById('newMemStatus').value;
-    let newStt = members.length + 1;
+    let newStt = (members || []).reduce(function(maxStt, member) {
+        return Math.max(maxStt, parseInt(member.stt, 10) || 0);
+    }, 0) + 1;
 
-    members.push({
+    let newMember = {
         stt: newStt,
         name: name,
         status: status,
@@ -79,11 +90,13 @@ function saveNewMember(e) {
         noOld: 0,
         username: "Thanglong" + newStt,
         role: "member"
-    });
+    };
+
+    members.push(newMember);
 
     closeAddMemberModal();
     document.getElementById('newMemName').value = '';
-    enqueueAction("updateMember", { members: members }, "Đã thêm thành viên mới thành công!");
+    enqueueAction("addMember", { member: newMember }, "Đã thêm thành viên mới thành công!");
 }
 
 function openEditMemberModal(idx) {
@@ -109,5 +122,5 @@ function saveMemberInfo(e) {
     members[idx].status = document.getElementById('editMemStatus').value;
 
     closeEditMemberModal();
-    enqueueAction("updateMember", { members: members }, "Đã cập nhật thông tin thành viên thành công!");
+    enqueueAction("updateSingleMember", { member: members[idx] }, "Đã cập nhật thông tin thành viên thành công!");
 }
