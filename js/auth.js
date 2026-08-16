@@ -1,5 +1,5 @@
 // ======================================================
-// AUTH.JS - FRONTEND TEST VER1.4 - PHASE 1.7
+// AUTH.JS - FRONTEND TEST VER1.4 - PHASE 1.7.1
 //
 // - Dang nhap that qua Backend TEST.
 // - Luu session de PWA dien thoai mo lai khong can login lien tuc.
@@ -139,7 +139,8 @@ function authIsAuthAction_(action) {
         "authLogout",
         "authCurrentUser",
         "authAdminResetPassword",
-        "authChangeOwnPassword"
+        "authChangeOwnPassword",
+        "authCompleteRequiredPasswordChange"
     ].indexOf(String(action || "")) >= 0;
 }
 
@@ -159,6 +160,11 @@ function authInspectBusinessResponse_(response) {
 
             if (authIsSessionErrorCode_(code)) {
                 authHandleSessionFailure_(code, message);
+                return;
+            }
+
+            if (code === "AUTH_PASSWORD_CHANGE_REQUIRED") {
+                authShowRequiredPasswordChange_();
                 return;
             }
 
@@ -299,6 +305,16 @@ function handleLogin(event) {
             ? "local"
             : "session";
         authSaveSession_();
+
+        if (
+            result.mustChangePassword === true ||
+            result.nextAction === "CHANGE_PASSWORD_REQUIRED" ||
+            result.user.mustChangePassword === true
+        ) {
+            authShowRequiredPasswordChange_();
+            return;
+        }
+
         authOpenApp_(true);
     })
     .catch(function(err) {
@@ -350,6 +366,16 @@ function authRestoreSession_() {
         authSessionState_.user = result.user;
         authSessionState_.expiresAt = result.expiresAt || "";
         authSaveSession_();
+
+        if (
+            result.mustChangePassword === true ||
+            result.nextAction === "CHANGE_PASSWORD_REQUIRED" ||
+            result.user.mustChangePassword === true
+        ) {
+            authShowRequiredPasswordChange_();
+            return true;
+        }
+
         authOpenApp_(false);
         return true;
     })
@@ -403,6 +429,7 @@ function authFinishLogout_() {
 
     authCloseOwnerPasswordModal_();
     authCloseResetPasswordResult_();
+    authHideRequiredPasswordChange_();
 
     authShowLogin_();
 }
@@ -441,6 +468,14 @@ function authIsSessionErrorCode_(code) {
 function authOpenApp_(forceCloudReload) {
     if (!authHasSession_()) {
         authShowLogin_();
+        return;
+    }
+
+    if (
+        authSessionState_.user &&
+        authSessionState_.user.mustChangePassword === true
+    ) {
+        authShowRequiredPasswordChange_();
         return;
     }
 
@@ -491,6 +526,8 @@ function authOpenApp_(forceCloudReload) {
 function authShowLogin_() {
     var loginScreen = document.getElementById("loginScreen");
     var appScreen = document.getElementById("appScreen");
+
+    authHideRequiredPasswordChange_();
 
     if (appScreen) {
         appScreen.classList.add("hidden");
@@ -759,6 +796,245 @@ function authRoleLabel_(role) {
 
 
 // ======================================================
+// FORCED PASSWORD CHANGE - TEST VER1.4 PHASE 1.7.1
+// Chi mo khi Backend danh dau mustChangePassword = true.
+// Khong cho vao app cho den khi hoan tat hoac dang xuat.
+// ======================================================
+
+function authShowRequiredPasswordChange_() {
+    if (!authHasSession_()) {
+        authShowLogin_();
+        return;
+    }
+
+    var modal = document.getElementById(
+        "requiredPasswordChangeModalV14"
+    );
+    var loginScreen = document.getElementById("loginScreen");
+    var appScreen = document.getElementById("appScreen");
+    var userEl = document.getElementById("requiredPasswordUserV14");
+    var user = authSessionState_.user || {};
+    var member = authFindMember_(user.memberStt, user.username);
+    var displayName = member
+        ? String(member.name || "")
+        : String(user.username || "Tài khoản");
+
+    if (loginScreen) {
+        loginScreen.classList.add("hidden");
+        loginScreen.classList.remove("flex");
+    }
+
+    if (appScreen) {
+        appScreen.classList.add("hidden");
+        appScreen.classList.remove("flex");
+    }
+
+    [
+        "requiredNewPasswordV14",
+        "requiredConfirmPasswordV14"
+    ].forEach(function(id) {
+        var input = document.getElementById(id);
+        if (input) {
+            input.value = "";
+        }
+    });
+
+    if (userEl) {
+        userEl.textContent =
+            displayName + " — " + String(user.username || "");
+    }
+
+    authSetRequiredPasswordError_("");
+    authSetRequiredPasswordBusy_(false);
+
+    if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
+
+    var newInput = document.getElementById(
+        "requiredNewPasswordV14"
+    );
+
+    if (newInput) {
+        setTimeout(function() {
+            newInput.focus();
+        }, 0);
+    }
+}
+
+
+function authHideRequiredPasswordChange_() {
+    var modal = document.getElementById(
+        "requiredPasswordChangeModalV14"
+    );
+    var userEl = document.getElementById("requiredPasswordUserV14");
+
+    [
+        "requiredNewPasswordV14",
+        "requiredConfirmPasswordV14"
+    ].forEach(function(id) {
+        var input = document.getElementById(id);
+        if (input) {
+            input.value = "";
+        }
+    });
+
+    if (userEl) {
+        userEl.textContent = "";
+    }
+
+    authSetRequiredPasswordError_("");
+    authSetRequiredPasswordBusy_(false);
+
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+}
+
+
+function authSubmitRequiredPasswordChange_(event) {
+    if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+    }
+
+    if (!authHasSession_()) {
+        authShowLogin_();
+        authSetLoginError_(
+            "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+        );
+        return false;
+    }
+
+    var newInput = document.getElementById(
+        "requiredNewPasswordV14"
+    );
+    var confirmInput = document.getElementById(
+        "requiredConfirmPasswordV14"
+    );
+    var newPassword = newInput
+        ? String(newInput.value || "")
+        : "";
+    var confirmPassword = confirmInput
+        ? String(confirmInput.value || "")
+        : "";
+
+    authSetRequiredPasswordError_("");
+
+    if (newPassword.length < 6 || newPassword.length > 64) {
+        authSetRequiredPasswordError_(
+            "Mật khẩu mới phải có từ 6 đến 64 ký tự."
+        );
+        return false;
+    }
+
+    if (newPassword !== confirmPassword) {
+        authSetRequiredPasswordError_(
+            "Hai lần nhập mật khẩu mới chưa khớp."
+        );
+        return false;
+    }
+
+    authSetRequiredPasswordBusy_(true);
+
+    authPost_({
+        action: "authCompleteRequiredPasswordChange",
+        sessionToken: authSessionState_.sessionToken,
+        newPassword: newPassword
+    })
+    .then(function(result) {
+        newPassword = "";
+        confirmPassword = "";
+
+        if (
+            !result ||
+            result.status !==
+                "AUTH_REQUIRED_PASSWORD_CHANGED" ||
+            result.reLoginRequired !== true
+        ) {
+            throw authCreateFrontendError_(
+                "AUTH_REQUIRED_PASSWORD_CHANGE_RESPONSE_INVALID",
+                "Backend chưa xác nhận mật khẩu mới."
+            );
+        }
+
+        authClearSession_();
+        authDiscardPendingQueue_();
+        authShowLogin_();
+        window.alert(
+            "Tạo mật khẩu mới thành công. Vui lòng đăng nhập lại bằng mật khẩu bạn vừa tạo."
+        );
+    })
+    .catch(function(error) {
+        newPassword = "";
+        confirmPassword = "";
+
+        if (newInput) {
+            newInput.value = "";
+        }
+
+        if (confirmInput) {
+            confirmInput.value = "";
+        }
+
+        if (
+            error &&
+            authIsSessionErrorCode_(error.authCode)
+        ) {
+            authClearSession_();
+            authShowLogin_();
+            authSetLoginError_(
+                "Phiên đổi mật khẩu đã hết hạn. Vui lòng đăng nhập lại bằng mật khẩu tạm."
+            );
+            return;
+        }
+
+        authSetRequiredPasswordError_(
+            authFriendlyErrorMessage_(error)
+        );
+    })
+    .finally(function() {
+        newPassword = "";
+        confirmPassword = "";
+        authSetRequiredPasswordBusy_(false);
+    });
+
+    return false;
+}
+
+
+function authSetRequiredPasswordError_(message) {
+    var box = document.getElementById("requiredPasswordErrorV14");
+
+    if (!box) {
+        return;
+    }
+
+    box.textContent = String(message || "");
+    box.classList.toggle("hidden", !message);
+}
+
+
+function authSetRequiredPasswordBusy_(busy) {
+    var button = document.getElementById(
+        "requiredPasswordSubmitV14"
+    );
+
+    if (!button) {
+        return;
+    }
+
+    button.disabled = !!busy;
+    button.textContent = busy
+        ? "ĐANG LƯU..."
+        : "XÁC NHẬN MẬT KHẨU MỚI";
+    button.classList.toggle("opacity-60", !!busy);
+    button.classList.toggle("cursor-wait", !!busy);
+}
+
+
+// ======================================================
 // PASSWORD MANAGEMENT - TEST VER1.4 PHASE 1.7
 // - Owner tu doi mat khau sau khi xac nhan mat khau cu.
 // - Admin cap lai mat khau cho Member.
@@ -833,7 +1109,8 @@ function authResetPasswordForMember_(memberIndex) {
         if (
             !result ||
             result.status !== "AUTH_PASSWORD_RESET" ||
-            !result.temporaryPassword
+            !result.temporaryPassword ||
+            result.mustChangePassword !== true
         ) {
             throw authCreateFrontendError_(
                 "AUTH_RESET_RESPONSE_INVALID",
@@ -1691,7 +1968,15 @@ function authFriendlyErrorMessage_(error) {
     }
 
     if (code === "AUTH_NEW_PASSWORD_SAME") {
-        return "Mật khẩu mới phải khác mật khẩu hiện tại.";
+        return "Mật khẩu mới phải khác mật khẩu hiện tại hoặc mật khẩu tạm.";
+    }
+
+    if (code === "AUTH_PASSWORD_CHANGE_REQUIRED") {
+        return "Bạn phải tạo mật khẩu mới trước khi sử dụng ứng dụng.";
+    }
+
+    if (code === "AUTH_PASSWORD_CHANGE_NOT_REQUIRED") {
+        return "Tài khoản này không ở trạng thái bắt buộc đổi mật khẩu.";
     }
 
     if (code === "AUTH_OWNER_PASSWORD_CHANGE_ONLY") {
