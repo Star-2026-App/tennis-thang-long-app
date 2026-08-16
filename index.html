@@ -421,9 +421,9 @@
             /* Nhật ký trận: 6 cột đầu nằm trong vùng nhìn, thao tác ở bên phải. */
             #matchLogTable { width: 350px !important; }
             #matchLogTable th:nth-child(1), #matchLogTable td:nth-child(1) { width: 24px !important; }
-            #matchLogTable th:nth-child(2), #matchLogTable td:nth-child(2) { width: 48px !important; }
+            #matchLogTable th:nth-child(2), #matchLogTable td:nth-child(2) { width: 52px !important; }
             #matchLogTable th:nth-child(3), #matchLogTable td:nth-child(3),
-            #matchLogTable th:nth-child(4), #matchLogTable td:nth-child(4) { width: 66px !important; }
+            #matchLogTable th:nth-child(4), #matchLogTable td:nth-child(4) { width: 64px !important; }
             #matchLogTable th:nth-child(5), #matchLogTable td:nth-child(5) { width: 30px !important; }
             #matchLogTable th:nth-child(6), #matchLogTable td:nth-child(6) { width: 46px !important; }
             #matchLogTable th:nth-child(7), #matchLogTable td:nth-child(7) { width: 70px !important; }
@@ -2234,9 +2234,16 @@
 
                 const visibleWidth = Math.max(320, Math.min(390, window.innerWidth - 40));
 
-                const matchTeamA = Math.floor((visibleWidth - 136) / 2);
-                const matchTeamB = visibleWidth - 136 - matchTeamA;
-                lockTableColumnWidths('matchLogTable', [22, 44, matchTeamA, matchTeamB, 28, 42, 74], [3, 4]);
+                const matchTeamA = Math.floor((visibleWidth - 144) / 2);
+                const matchTeamB = visibleWidth - 144 - matchTeamA;
+                lockTableColumnWidths('matchLogTable', [22, 52, matchTeamA, matchTeamB, 28, 42, 74], [3, 4]);
+
+                // Tạo khe hở rõ ràng giữa Thời gian và Đội A.
+                const matchTable = document.getElementById('matchLogTable');
+                Array.from(matchTable?.rows || []).forEach(row => {
+                    setImportant(row.cells?.[1], 'padding-right', '5px');
+                    setImportant(row.cells?.[2], 'padding-left', '5px');
+                });
 
                 const gocMember = visibleWidth - 210;
                 lockTableColumnWidths('gocLogsTable', [22, 58, gocMember, 50, 80, 76], [3, 5]);
