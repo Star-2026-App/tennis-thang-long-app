@@ -8,17 +8,179 @@ function getGocMonthlyCap_() {
     return value > 0 ? value : 150000;
 }
 
+function getFinanceDatePartsFromDate_(dateValue) {
+    if (
+        !dateValue ||
+        Object.prototype.toString.call(dateValue) !== '[object Date]' ||
+        isNaN(dateValue.getTime())
+    ) {
+        return null;
+    }
+
+    try {
+        let parts = new Intl.DateTimeFormat(
+            'en-GB',
+            {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hourCycle: 'h23'
+            }
+        ).formatToParts(dateValue);
+
+        let mapped = {};
+
+        parts.forEach(function(part) {
+            if (part.type !== 'literal') {
+                mapped[part.type] = part.value;
+            }
+        });
+
+        return {
+            day: parseInt(mapped.day) || 0,
+            month: parseInt(mapped.month) || 0,
+            year: parseInt(mapped.year) || 0,
+            hour: parseInt(mapped.hour) || 0,
+            minute: parseInt(mapped.minute) || 0,
+            second: parseInt(mapped.second) || 0
+        };
+
+    } catch (error) {
+        return {
+            day: dateValue.getDate(),
+            month: dateValue.getMonth() + 1,
+            year: dateValue.getFullYear(),
+            hour: dateValue.getHours(),
+            minute: dateValue.getMinutes(),
+            second: dateValue.getSeconds()
+        };
+    }
+}
+
 function getDatePartsFromLogTime_(value) {
     let text = String(value || '').trim();
     let match = text.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
 
-    if (!match) return null;
+    if (match) {
+        return {
+            day: parseInt(match[1]) || 0,
+            month: parseInt(match[2]) || 0,
+            year: parseInt(match[3]) || 0
+        };
+    }
+
+    let isoMatch = text.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+
+    if (isoMatch) {
+        return {
+            day: parseInt(isoMatch[3]) || 0,
+            month: parseInt(isoMatch[2]) || 0,
+            year: parseInt(isoMatch[1]) || 0
+        };
+    }
+
+    let parsedDate =
+        Object.prototype.toString.call(value) === '[object Date]'
+            ? value
+            : new Date(text);
+
+    let parsedParts = getFinanceDatePartsFromDate_(parsedDate);
+
+    if (!parsedParts) return null;
 
     return {
-        day: parseInt(match[1]) || 0,
-        month: parseInt(match[2]) || 0,
-        year: parseInt(match[3]) || 0
+        day: parsedParts.day,
+        month: parsedParts.month,
+        year: parsedParts.year
     };
+}
+
+function padFinanceDatePart_(value) {
+    return String(parseInt(value) || 0).padStart(2, '0');
+}
+
+function formatFinanceLogTime_(value, includeTime) {
+    let text = String(value || '').trim();
+
+    if (!text) {
+        return '-';
+    }
+
+    let directMatch = text.match(
+        /(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[\s,T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/
+    );
+
+    if (directMatch) {
+        let result =
+            padFinanceDatePart_(directMatch[1]) + '/' +
+            padFinanceDatePart_(directMatch[2]) + '/' +
+            directMatch[3];
+
+        if (includeTime && directMatch[4] !== undefined) {
+            result +=
+                ' ' +
+                padFinanceDatePart_(directMatch[4]) + ':' +
+                padFinanceDatePart_(directMatch[5]) + ':' +
+                padFinanceDatePart_(directMatch[6] || 0);
+        }
+
+        return result;
+    }
+
+    let isoMatch = text.match(
+        /(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?)?/
+    );
+
+    if (isoMatch && !/[zZ]|[+-]\d{2}:?\d{2}/.test(text)) {
+        let isoResult =
+            padFinanceDatePart_(isoMatch[3]) + '/' +
+            padFinanceDatePart_(isoMatch[2]) + '/' +
+            isoMatch[1];
+
+        if (includeTime && isoMatch[4] !== undefined) {
+            isoResult +=
+                ' ' +
+                padFinanceDatePart_(isoMatch[4]) + ':' +
+                padFinanceDatePart_(isoMatch[5]) + ':' +
+                padFinanceDatePart_(isoMatch[6] || 0);
+        }
+
+        return isoResult;
+    }
+
+    let parsedDate =
+        Object.prototype.toString.call(value) === '[object Date]'
+            ? value
+            : new Date(text);
+
+    let parts = getFinanceDatePartsFromDate_(parsedDate);
+
+    if (!parts) {
+        return text;
+    }
+
+    let formatted =
+        padFinanceDatePart_(parts.day) + '/' +
+        padFinanceDatePart_(parts.month) + '/' +
+        parts.year;
+
+    if (includeTime) {
+        formatted +=
+            ' ' +
+            padFinanceDatePart_(parts.hour) + ':' +
+            padFinanceDatePart_(parts.minute) + ':' +
+            padFinanceDatePart_(parts.second);
+    }
+
+    return formatted;
+}
+
+function formatCashbookDate_(value) {
+    return formatFinanceLogTime_(value, false);
 }
 
 function isLogInMonth_(timeValue, targetMonth, targetYear) {
@@ -1529,7 +1691,7 @@ function renderGocLogsTab() {
                     </td>
 
                     <td class="p-2.5 font-semibold text-slate-600">
-                        ${g.time}
+                        ${formatFinanceLogTime_(g.time, true)}
                     </td>
 
                     <td class="p-2.5 font-bold text-slate-900">
@@ -4195,7 +4357,7 @@ function selectCategory(cat) {
                         <tr class="border-b">
 
                             <td class="p-1.5">
-                                ${g.time}
+                                ${formatFinanceLogTime_(g.time, true)}
                             </td>
 
                             <td class="p-1.5 font-bold">
@@ -4274,7 +4436,7 @@ function selectCategory(cat) {
                     <tr class="border-b">
 
                         <td class="p-1.5">
-                            ${c.time}
+                            ${formatCashbookDate_(c.time)}
                         </td>
 
                         <td class="p-1.5 font-bold">
