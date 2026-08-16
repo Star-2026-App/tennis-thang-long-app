@@ -431,8 +431,8 @@
             /* Nộp tiền: cột ghi chú vẫn nhìn thấy trước cột thao tác. */
             #gocLogsTable { width: 350px !important; }
             #gocLogsTable th:nth-child(1), #gocLogsTable td:nth-child(1) { width: 24px !important; }
-            #gocLogsTable th:nth-child(2), #gocLogsTable td:nth-child(2) { width: 48px !important; }
-            #gocLogsTable th:nth-child(3), #gocLogsTable td:nth-child(3) { width: 68px !important; }
+            #gocLogsTable th:nth-child(2), #gocLogsTable td:nth-child(2) { width: 58px !important; }
+            #gocLogsTable th:nth-child(3), #gocLogsTable td:nth-child(3) { width: 58px !important; }
             #gocLogsTable th:nth-child(4), #gocLogsTable td:nth-child(4) { width: 52px !important; }
             #gocLogsTable th:nth-child(5), #gocLogsTable td:nth-child(5) { width: 88px !important; }
             #gocLogsTable th:nth-child(6), #gocLogsTable td:nth-child(6) { width: 70px !important; }
@@ -2100,9 +2100,40 @@
 
             const cellAt = (row, index) => row?.children?.[index - 1] || null;
 
+            function getResponsiveTimeText(value) {
+                const text = String(value ?? '').trim();
+                const isoPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})$/i;
+
+                if (!isoPattern.test(text)) return text;
+
+                const date = new Date(text);
+                if (Number.isNaN(date.getTime())) return text;
+
+                try {
+                    const values = {};
+                    new Intl.DateTimeFormat('en-GB', {
+                        timeZone: 'Asia/Ho_Chi_Minh',
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hourCycle: 'h23'
+                    }).formatToParts(date).forEach(part => {
+                        if (part.type !== 'literal') values[part.type] = part.value;
+                    });
+
+                    return `${values.hour}:${values.minute}:${values.second} ${values.day}/${values.month}/${values.year}`;
+                } catch (error) {
+                    return text;
+                }
+            }
+
             function formatTimeCell(cell) {
                 if (!cell || cell.dataset.responsiveTime === '1') return;
-                const parts = cell.textContent.trim().split(/\s+/).filter(Boolean);
+                const normalizedText = getResponsiveTimeText(cell.textContent);
+                const parts = normalizedText.split(/\s+/).filter(Boolean);
                 if (parts.length < 2) return;
                 cell.innerHTML = `<span class="time-stack">${parts.map(part => `<span>${escapeHtml(part)}</span>`).join('')}</span>`;
                 cell.dataset.responsiveTime = '1';
@@ -2207,8 +2238,15 @@
                 const matchTeamB = visibleWidth - 136 - matchTeamA;
                 lockTableColumnWidths('matchLogTable', [22, 44, matchTeamA, matchTeamB, 28, 42, 74], [3, 4]);
 
-                const gocMember = visibleWidth - 196;
-                lockTableColumnWidths('gocLogsTable', [22, 44, gocMember, 50, 80, 76], [3, 5]);
+                const gocMember = visibleWidth - 210;
+                lockTableColumnWidths('gocLogsTable', [22, 58, gocMember, 50, 80, 76], [3, 5]);
+
+                // Tạo khe hở rõ ràng giữa Thời gian và Thành viên.
+                const gocTable = document.getElementById('gocLogsTable');
+                Array.from(gocTable?.rows || []).forEach(row => {
+                    setImportant(row.cells?.[1], 'padding-right', '5px');
+                    setImportant(row.cells?.[2], 'padding-left', '5px');
+                });
 
                 const bookingMember = visibleWidth - 172;
                 lockTableColumnWidths('bookingTable', [22, 44, bookingMember, 56, 50, 82], [3, 4]);
