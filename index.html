@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>CLB Tennis Thăng Long - Ver1.3</title>
+    <title>CLB Tennis Thăng Long - TEST Ver1.4</title>
     <meta name="theme-color" content="#065f46">
     <meta name="application-name" content="Tennis Thăng Long">
     
@@ -747,15 +747,19 @@
                 <h1 class="text-xl font-black text-slate-800 uppercase">CLB TENNIS THĂNG LONG</h1>
                 <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Phân Tích - Ver1.2</p>
             </div>
-            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
+            <form onsubmit="handleLogin(event)" autocomplete="on" class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tài khoản (Username):</label>
-                    <input type="text" id="loginUser" required placeholder="Ví dụ: Thanglong1 đến Thanglong37" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <input type="text" id="loginUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="Ví dụ: Thanglong2" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu (Password):</label>
-                    <input type="password" id="loginPass" required placeholder="••••••••" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <input type="password" id="loginPass" name="password" autocomplete="current-password" required placeholder="••••••••" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
                 </div>
+                <label class="flex cursor-pointer select-none items-center gap-2 text-sm font-semibold text-slate-700" title="Ghi nhớ tài khoản và phiên đăng nhập; mật khẩu do trình duyệt quản lý.">
+                    <input id="loginRememberV14" name="rememberPassword" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600">
+                    <span>Nhớ mật khẩu</span>
+                </label>
                 <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition">
                     ĐĂNG NHẬP HỆ THỐNG
                 </button>
