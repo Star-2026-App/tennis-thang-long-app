@@ -219,10 +219,25 @@ function returnMatchLogToCurrentMonth_() {
 
 
 // ======================================================
-// PARSE NGÀY TỪ MATCH.TIME
+// CHUẨN HÓA THỜI GIAN TRẬN
+//
+// Dữ liệu cũ: HH:mm:ss dd/MM/yyyy hoặc dd/MM/yyyy HH:mm:ss
+// Dữ liệu mới: ISO UTC, ví dụ 2026-08-16T15:02:13.000Z
+// Mọi giá trị ISO được đổi sang giờ Việt Nam trước khi hiển thị/lọc.
 // ======================================================
 
-function getMatchDateParts_(
+function padMatchDatePart_(value) {
+
+    return String(
+        parseInt(value) || 0
+    ).padStart(
+        2,
+        "0"
+    );
+}
+
+
+function getMatchDateTimeParts_(
     value
 ) {
 
@@ -232,34 +247,190 @@ function getMatchDateParts_(
         ).trim();
 
 
-    let match =
+    if (!text) {
+        return null;
+    }
+
+
+    // Chuỗi ngày giờ kiểu Việt Nam hiện có trong dữ liệu cũ.
+    let localDateMatch =
         text.match(
             /(\d{1,2})\/(\d{1,2})\/(\d{4})/
         );
 
 
-    if (!match) {
+    if (localDateMatch) {
+
+        let localTimeMatch =
+            text.match(
+                /(?:^|\s)(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s|$)/
+            );
+
+
+        return {
+            day: parseInt(localDateMatch[1]) || 0,
+            month: parseInt(localDateMatch[2]) || 0,
+            year: parseInt(localDateMatch[3]) || 0,
+            hour: localTimeMatch ? parseInt(localTimeMatch[1]) || 0 : 0,
+            minute: localTimeMatch ? parseInt(localTimeMatch[2]) || 0 : 0,
+            second: localTimeMatch ? parseInt(localTimeMatch[3]) || 0 : 0,
+            hasTime: Boolean(localTimeMatch)
+        };
+    }
+
+
+    let parsedDate =
+        Object.prototype.toString.call(value) ===
+        "[object Date]"
+            ? value
+            : new Date(text);
+
+
+    if (
+        !parsedDate ||
+        isNaN(
+            parsedDate.getTime()
+        )
+    ) {
+        return null;
+    }
+
+
+    try {
+
+        let formatter =
+            new Intl.DateTimeFormat(
+                "en-GB",
+                {
+                    timeZone: "Asia/Ho_Chi_Minh",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hourCycle: "h23"
+                }
+            );
+
+
+        let result = {};
+
+
+        formatter
+            .formatToParts(
+                parsedDate
+            )
+            .forEach(
+                function(part) {
+
+                    if (
+                        part.type !==
+                        "literal"
+                    ) {
+                        result[part.type] =
+                            part.value;
+                    }
+                }
+            );
+
+
+        return {
+            day: parseInt(result.day) || 0,
+            month: parseInt(result.month) || 0,
+            year: parseInt(result.year) || 0,
+            hour: parseInt(result.hour) || 0,
+            minute: parseInt(result.minute) || 0,
+            second: parseInt(result.second) || 0,
+            hasTime: true
+        };
+
+    } catch (error) {
+
+        return {
+            day: parsedDate.getDate(),
+            month: parsedDate.getMonth() + 1,
+            year: parsedDate.getFullYear(),
+            hour: parsedDate.getHours(),
+            minute: parsedDate.getMinutes(),
+            second: parsedDate.getSeconds(),
+            hasTime: true
+        };
+    }
+}
+
+
+function getMatchDateParts_(
+    value
+) {
+
+    let parts =
+        getMatchDateTimeParts_(
+            value
+        );
+
+
+    if (!parts) {
         return null;
     }
 
 
     return {
-
-        day:
-            parseInt(
-                match[1]
-            ) || 0,
-
-        month:
-            parseInt(
-                match[2]
-            ) || 0,
-
-        year:
-            parseInt(
-                match[3]
-            ) || 0
+        day: parts.day,
+        month: parts.month,
+        year: parts.year
     };
+}
+
+
+function formatMatchLogTime_(
+    value
+) {
+
+    let text =
+        String(
+            value || ""
+        ).trim();
+
+
+    if (!text) {
+        return "-";
+    }
+
+
+    let parts =
+        getMatchDateTimeParts_(
+            value
+        );
+
+
+    if (!parts) {
+        return text;
+    }
+
+
+    let dateText =
+        padMatchDatePart_(parts.day) +
+        "/" +
+        padMatchDatePart_(parts.month) +
+        "/" +
+        parts.year;
+
+
+    if (!parts.hasTime) {
+        return dateText;
+    }
+
+
+    return (
+        padMatchDatePart_(parts.hour) +
+        ":" +
+        padMatchDatePart_(parts.minute) +
+        ":" +
+        padMatchDatePart_(parts.second) +
+        " " +
+        dateText
+    );
 }
 
 
@@ -1104,7 +1275,7 @@ function renderAllMatchLog() {
                     </td>
 
                     <td class="p-2.5 text-slate-600">
-                        ${m.time || "-"}
+                        ${formatMatchLogTime_(m.time)}
                     </td>
 
                     <td class="p-2.5 font-semibold text-slate-900">
