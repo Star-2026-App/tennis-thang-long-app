@@ -1904,12 +1904,36 @@
             <div>
                 <h3 class="font-black text-slate-800 text-base">MẬT KHẨU MỚI</h3>
                 <p id="resetPasswordTargetV14" class="text-xs font-bold text-emerald-700 mt-1"></p>
-                <p class="text-[11px] text-red-600 font-semibold mt-2">Mật khẩu chỉ hiển thị lần này. Hãy sao chép và gửi riêng cho thành viên.</p>
+                <p class="text-[11px] text-red-600 font-semibold mt-2">Đây là mật khẩu tạm và chỉ hiển thị lần này. Thành viên sẽ phải tạo mật khẩu riêng ngay khi đăng nhập.</p>
             </div>
             <input id="resetPasswordValueV14" type="text" readonly class="w-full p-3 border-2 border-amber-300 bg-amber-50 rounded-xl text-center font-mono font-black text-lg text-slate-900">
             <button type="button" onclick="authCopyResetPassword_()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-2.5 rounded-xl text-xs"><i class="fa-solid fa-copy mr-1"></i> SAO CHÉP MẬT KHẨU</button>
             <button type="button" onclick="authCloseResetPasswordResult_()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs">ĐÃ LƯU — ĐÓNG</button>
         </div>
+    </div>
+
+    <!-- BAT BUOC TAO MAT KHAU MOI SAU KHI DUNG MAT KHAU TAM -->
+    <div id="requiredPasswordChangeModalV14" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-[400] p-4">
+        <form onsubmit="authSubmitRequiredPasswordChange_(event)" autocomplete="on" class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <div class="text-center">
+                <div class="w-14 h-14 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-2xl mx-auto mb-3"><i class="fa-solid fa-key"></i></div>
+                <h3 class="font-black text-slate-900 text-lg">TẠO MẬT KHẨU CỦA BẠN</h3>
+                <p id="requiredPasswordUserV14" class="text-xs font-extrabold text-emerald-700 mt-1"></p>
+                <p class="text-[11px] text-slate-500 font-semibold mt-2 leading-relaxed">Bạn đang đăng nhập bằng mật khẩu tạm. Hãy tạo mật khẩu dễ nhớ trước khi sử dụng ứng dụng.</p>
+            </div>
+            <div id="requiredPasswordErrorV14" class="hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700" role="alert"></div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu mới</label>
+                <input id="requiredNewPasswordV14" name="newPassword" type="password" autocomplete="new-password" minlength="6" maxlength="64" required class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Từ 6 đến 64 ký tự">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nhập lại mật khẩu mới</label>
+                <input id="requiredConfirmPasswordV14" name="confirmPassword" type="password" autocomplete="new-password" minlength="6" maxlength="64" required class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Nhập lại mật khẩu mới">
+            </div>
+            <button id="requiredPasswordSubmitV14" type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3 rounded-xl text-xs shadow"><i class="fa-solid fa-shield-halved mr-1"></i> XÁC NHẬN MẬT KHẨU MỚI</button>
+            <button type="button" onclick="logout()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs">ĐĂNG XUẤT — DÙNG TÀI KHOẢN KHÁC</button>
+            <p class="text-[10px] text-center text-slate-400 font-semibold">Không thể vào ứng dụng cho đến khi hoàn tất bước này.</p>
+        </form>
     </div>
 
     <!-- MODAL PHÓNG TO MÃ QR CÁ NHÂN -->
