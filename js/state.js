@@ -6,6 +6,7 @@ let systemSettings = {
     quyAmount: 600000,
     reward16h: 20000,
     reward18h: 30000,
+    rewardCVTT5: 0,
     maxRewardLimit: 15,
     bankId: "TCB",
     bankAccount: "19726868686868",
