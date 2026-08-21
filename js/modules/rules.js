@@ -33,7 +33,7 @@ function renderRulesTab() {
             id: 1,
             time: "01/08/2026",
             title: "Quy định đặt sân 18h-20h tại CVTT5",
-            content: "Khung giờ 18h-20h tại CVTT do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app."
+            content: "Khung giờ 18h-20h tại CVTT5 do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app. Tiền thưởng đặt sân áp dụng đặc cách = 0 đ."
         },
         {
             id: 2,
