@@ -1,113 +1,922 @@
-function renderMemberList() {
-    if (!members || members.length === 0) members = defaultFallbackMembers;
-    let tbody = document.getElementById('memberTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    
-    members.forEach((m, idx) => {
-        let stt = m.stt || (idx + 1);
-        let username = m.username || ("Thanglong" + stt);
-        let isSystemAdmin = (m.role === 'admin' || stt === 1 || stt === 2 || stt === 15);
-        let roleBadge = isSystemAdmin ? `<span class="bg-amber-100 text-amber-900 font-extrabold px-2 py-0.5 rounded text-[10px]">Admin</span>` : `<span class="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded text-[10px]">Member</span>`;
+// ======================================================
+// UI CHUNG
+// ======================================================
 
-        let statusColor = m.status === 'Đang tham gia' ? 'bg-emerald-100 text-emerald-800' : (m.status === 'Bận tạm nghỉ' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800');
+function showToast(msg) {
 
-        tbody.innerHTML += `
-            <tr class="border-b hover:bg-slate-50">
-                <td class="p-2.5 text-center font-bold text-slate-500">${stt}</td>
-                <td class="p-2.5 font-bold text-slate-900">${m.name}</td>
-                <td class="p-2.5 text-center font-mono font-bold text-emerald-700">${username}</td>
-                <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusColor}">${m.status || 'Đang tham gia'}</span></td>
-                <td class="p-2.5 text-center font-extrabold text-amber-700 bg-amber-50">${m.base}</td>
-                <td class="p-2.5 text-center">${roleBadge}</td>
-                <td class="p-2.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'} space-x-1">
-                    <button onclick="openEditMemberModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i></button>
-                    <button onclick="toggleMemberRole(${idx})" class="text-amber-600 font-bold text-[10px] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Quyền</button>
-                    <button onclick="deleteMember(${idx})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>
-        `;
-    });
-    applyRolePermissions();
+    let toast =
+        document.getElementById(
+            'appToast'
+        );
+
+    let msgSpan =
+        document.getElementById(
+            'toastMsg'
+        );
+
+
+    if (
+        !toast ||
+        !msgSpan
+    ) {
+        return;
+    }
+
+
+    msgSpan.innerText =
+        msg;
+
+
+    toast.classList.remove(
+        'translate-y-12',
+        'opacity-0'
+    );
+
+
+    setTimeout(
+        function() {
+
+            toast.classList.add(
+                'translate-y-12',
+                'opacity-0'
+            );
+        },
+        2500
+    );
 }
 
-function deleteMember(idx) {
-    let m = members[idx];
-    if (confirm(`Xóa thành viên [${m.name}]? (Lịch sử trận đấu và nộp tiền góc vẫn được bảo lưu)`)) {
-        members.splice(idx, 1);
-        members.forEach((mem, i) => { mem.stt = i + 1; });
-        enqueueAction("updateMember", { members: members }, "Đã xóa thành viên thành công!");
+
+// ======================================================
+// TAB
+// ======================================================
+
+function switchTab(tabId) {
+
+    document
+        .querySelectorAll(
+            '.tab-content'
+        )
+        .forEach(
+            function(el) {
+
+                el.classList.remove(
+                    'active'
+                );
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            '.tab-btn'
+        )
+        .forEach(
+            function(el) {
+
+                el.classList.remove(
+                    'border-amber-400',
+                    'text-amber-300',
+                    'font-bold',
+                    'bg-emerald-800'
+                );
+            }
+        );
+
+
+    let targetTab =
+        document.getElementById(
+            'tab-' + tabId
+        );
+
+
+    if (!targetTab) {
+        return;
+    }
+
+
+    targetTab.classList.add(
+        'active'
+    );
+
+
+    let activeBtn =
+        document.getElementById(
+            'btn-' + tabId
+        );
+
+
+    if (activeBtn) {
+
+        activeBtn.classList.add(
+            'border-amber-400',
+            'text-amber-300',
+            'font-bold',
+            'bg-emerald-800'
+        );
+    }
+
+
+    let mobileDrawer =
+        document.getElementById(
+            'mobileMenuDrawer'
+        );
+
+
+    if (mobileDrawer) {
+
+        mobileDrawer.classList.add(
+            'hidden'
+        );
+    }
+
+
+    if (
+        tabId ===
+            'analytics' &&
+        typeof renderAnalyticsTab ===
+            'function'
+    ) {
+
+        renderAnalyticsTab();
     }
 }
 
-function toggleMemberRole(idx) {
-    if (currentUserRole !== 'admin') return;
-    let m = members[idx];
-    let currentRole = (m.role === 'admin' || m.stt === 1 || m.stt === 2 || m.stt === 15) ? 'admin' : 'member';
-    let newRole = currentRole === 'admin' ? 'member' : 'admin';
-    
-    if (confirm(`Đổi vai trò của [${m.name}] sang [${newRole.toUpperCase()}]?`)) {
-        m.role = newRole;
-        enqueueAction("updateMember", { members: members }, "Đã cập nhật quyền thành công!");
+
+function switchTabMobile(
+    tabId,
+    label
+) {
+
+    let labelEl =
+        document.getElementById(
+            'currentActiveTabLabel'
+        );
+
+
+    if (labelEl) {
+
+        labelEl.innerText =
+            label;
+    }
+
+
+    switchTab(
+        tabId
+    );
+}
+
+
+function toggleMobileMenu() {
+
+    let drawer =
+        document.getElementById(
+            'mobileMenuDrawer'
+        );
+
+
+    if (!drawer) {
+        return;
+    }
+
+
+    if (
+        drawer.classList.contains(
+            'hidden'
+        )
+    ) {
+
+        drawer.classList.remove(
+            'hidden'
+        );
+
+    } else {
+
+        drawer.classList.add(
+            'hidden'
+        );
     }
 }
 
-function openAddMemberModal() {
-    document.getElementById('addMemberModal').classList.remove('hidden');
-    document.getElementById('addMemberModal').classList.add('flex');
+
+// ======================================================
+// USER PROFILE
+// ======================================================
+
+function openUserProfileModal() {
+
+    let modal =
+        document.getElementById(
+            'userProfileModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            'hidden'
+        );
+
+        modal.classList.add(
+            'flex'
+        );
+    }
 }
 
-function closeAddMemberModal() {
-    document.getElementById('addMemberModal').classList.add('hidden');
-    document.getElementById('addMemberModal').classList.remove('flex');
+
+function closeUserProfileModal() {
+
+    let modal =
+        document.getElementById(
+            'userProfileModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            'hidden'
+        );
+
+        modal.classList.remove(
+            'flex'
+        );
+    }
 }
 
-function saveNewMember(e) {
-    e.preventDefault();
-    let name = document.getElementById('newMemName').value.trim();
-    let base = parseFloat(document.getElementById('newMemBase').value) || 6.2;
-    let status = document.getElementById('newMemStatus').value;
-    let newStt = members.length + 1;
 
-    members.push({
-        stt: newStt,
-        name: name,
-        status: status,
-        base: base,
-        quyHistory: {},
-        paidUser: 0,
-        noOld: 0,
-        username: "Thanglong" + newStt,
-        role: "member"
-    });
+// ======================================================
+// CONFIRM
+// ======================================================
 
-    closeAddMemberModal();
-    document.getElementById('newMemName').value = '';
-    enqueueAction("updateMember", { members: members }, "Đã thêm thành viên mới thành công!");
+function showActionConfirm(
+    message,
+    callback
+) {
+
+    let textEl =
+        document.getElementById(
+            'actionConfirmText'
+        );
+
+
+    if (textEl) {
+
+        textEl.innerText =
+            message;
+    }
+
+
+    pendingActionCallback =
+        callback;
+
+
+    let modal =
+        document.getElementById(
+            'actionConfirmModal'
+        );
+
+
+    let okBtn =
+        document.getElementById(
+            'actionConfirmOkBtn'
+        );
+
+
+    if (
+        !modal ||
+        !okBtn
+    ) {
+        return;
+    }
+
+
+    okBtn.disabled =
+        false;
+
+    okBtn.classList.remove(
+        'opacity-50',
+        'cursor-not-allowed'
+    );
+
+
+    okBtn.onclick =
+        function() {
+
+            // Chặn double-click/double-tap: vô hiệu hóa
+            // ngay lập tức, không chờ modal ẩn xong.
+            if (okBtn.disabled) {
+                return;
+            }
+
+            okBtn.disabled =
+                true;
+
+            okBtn.classList.add(
+                'opacity-50',
+                'cursor-not-allowed'
+            );
+
+
+            closeActionConfirmModal(
+                true
+            );
+        };
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
 }
 
-function openEditMemberModal(idx) {
-    let m = members[idx];
-    document.getElementById('editMemIdx').value = idx;
-    document.getElementById('editMemName').value = m.name;
-    document.getElementById('editMemBase').value = m.base;
-    document.getElementById('editMemStatus').value = m.status || 'Đang tham gia';
-    document.getElementById('editMemberModal').classList.remove('hidden');
-    document.getElementById('editMemberModal').classList.add('flex');
+
+function closeActionConfirmModal(
+    isConfirmed
+) {
+
+    let modal =
+        document.getElementById(
+            'actionConfirmModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            'hidden'
+        );
+
+        modal.classList.remove(
+            'flex'
+        );
+    }
+
+
+    // Rút callback ra và xóa NGAY LẬP TỨC trước khi
+    // thực thi, để không thể vô tình chạy 2 lần dù
+    // hàm này bị gọi lại bằng đường nào khác.
+    let callback =
+        pendingActionCallback;
+
+    pendingActionCallback =
+        null;
+
+
+    if (
+        isConfirmed &&
+        typeof callback ===
+            'function'
+    ) {
+
+        callback();
+    }
 }
 
-function closeEditMemberModal() {
-    document.getElementById('editMemberModal').classList.add('hidden');
-    document.getElementById('editMemberModal').classList.remove('flex');
+
+function showCustomConfirm(
+    message,
+    onConfirm
+) {
+
+    let modal =
+        document.getElementById(
+            'customConfirmModal'
+        );
+
+    let textEl =
+        document.getElementById(
+            'customConfirmText'
+        );
+
+    let okBtn =
+        document.getElementById(
+            'customConfirmOkBtn'
+        );
+
+    let cancelBtn =
+        document.getElementById(
+            'customConfirmCancelBtn'
+        );
+
+
+    if (
+        !modal ||
+        !textEl ||
+        !okBtn ||
+        !cancelBtn
+    ) {
+        return;
+    }
+
+
+    textEl.innerText =
+        message;
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
+
+
+    let newOkBtn =
+        okBtn.cloneNode(
+            true
+        );
+
+
+    let newCancelBtn =
+        cancelBtn.cloneNode(
+            true
+        );
+
+
+    okBtn.parentNode.replaceChild(
+        newOkBtn,
+        okBtn
+    );
+
+
+    cancelBtn.parentNode.replaceChild(
+        newCancelBtn,
+        cancelBtn
+    );
+
+
+    newOkBtn.addEventListener(
+        'click',
+        function() {
+
+            modal.classList.add(
+                'hidden'
+            );
+
+            modal.classList.remove(
+                'flex'
+            );
+
+            onConfirm(
+                true
+            );
+        }
+    );
+
+
+    newCancelBtn.addEventListener(
+        'click',
+        function() {
+
+            modal.classList.add(
+                'hidden'
+            );
+
+            modal.classList.remove(
+                'flex'
+            );
+
+            onConfirm(
+                false
+            );
+        }
+    );
 }
 
-function saveMemberInfo(e) {
-    e.preventDefault();
-    let idx = parseInt(document.getElementById('editMemIdx').value);
-    members[idx].name = document.getElementById('editMemName').value.trim();
-    members[idx].base = parseFloat(document.getElementById('editMemBase').value) || 6.2;
-    members[idx].status = document.getElementById('editMemStatus').value;
 
-    closeEditMemberModal();
-    enqueueAction("updateMember", { members: members }, "Đã cập nhật thông tin thành viên thành công!");
+// ======================================================
+// BẢNG VÀNG
+// ======================================================
+
+function openNotificationModal() {
+
+    if (
+        typeof renderGamification ===
+        'function'
+    ) {
+
+        renderGamification();
+    }
+
+
+    let modal =
+        document.getElementById(
+            'notificationModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            'hidden'
+        );
+
+        modal.classList.add(
+            'flex'
+        );
+    }
 }
+
+
+function closeNotificationModal() {
+
+    let modal =
+        document.getElementById(
+            'notificationModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            'hidden'
+        );
+
+        modal.classList.remove(
+            'flex'
+        );
+    }
+}
+
+
+// ======================================================
+// EXCEL
+// ======================================================
+
+function exportToExcel() {
+
+    let wb =
+        XLSX.utils.book_new();
+
+
+    let wsMem =
+        XLSX.utils.json_to_sheet(
+            members
+        );
+
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        wsMem,
+        "ThanhVien"
+    );
+
+
+    let wsMatch =
+        XLSX.utils.json_to_sheet(
+            matches
+        );
+
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        wsMatch,
+        "TranDau"
+    );
+
+
+    let wsGoc =
+        XLSX.utils.json_to_sheet(
+            gocLogs
+        );
+
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        wsGoc,
+        "NopTienGoc"
+    );
+
+
+    XLSX.writeFile(
+        wb,
+        "CLB_Tennis_Thang_Long_Ver1.2_Backup.xlsx"
+    );
+}
+
+
+// ======================================================
+// PHASE 3B - PWA INSTALL
+// ======================================================
+
+let thangLongDeferredInstallPrompt =
+    null;
+
+
+function isIosDevice_() {
+
+    let ua =
+        window.navigator.userAgent ||
+        '';
+
+
+    let iOS =
+        /iPad|iPhone|iPod/i
+            .test(
+                ua
+            );
+
+
+    let iPadDesktopMode =
+        navigator.platform ===
+            'MacIntel' &&
+        navigator.maxTouchPoints >
+            1;
+
+
+    return (
+        iOS ||
+        iPadDesktopMode
+    );
+}
+
+
+function isPwaStandalone_() {
+
+    let displayStandalone =
+        window.matchMedia &&
+        window
+            .matchMedia(
+                '(display-mode: standalone)'
+            )
+            .matches;
+
+
+    let iosStandalone =
+        window.navigator.standalone ===
+        true;
+
+
+    return (
+        displayStandalone ||
+        iosStandalone
+    );
+}
+
+
+function ensurePwaInstallButton_() {
+
+    let profileButton =
+        document.querySelector(
+            'button[onclick="openUserProfileModal()"]'
+        );
+
+
+    if (
+        !profileButton ||
+        !profileButton.parentElement
+    ) {
+        return;
+    }
+
+
+    let installButton =
+        document.getElementById(
+            'pwaInstallButton'
+        );
+
+
+    if (!installButton) {
+
+        installButton =
+            document.createElement(
+                'button'
+            );
+
+
+        installButton.id =
+            'pwaInstallButton';
+
+
+        installButton.type =
+            'button';
+
+
+        installButton.className =
+            'pwa-install-btn hidden bg-amber-400 hover:bg-amber-300 text-emerald-950 p-2 rounded-full shadow transition';
+
+
+        installButton.title =
+            'Cài Tennis Thăng Long lên thiết bị';
+
+
+        installButton.innerHTML =
+            '<i class="fa-solid fa-download text-sm"></i>';
+
+
+        installButton.onclick =
+            installPwaApp;
+
+
+        profileButton
+            .parentElement
+            .insertBefore(
+                installButton,
+                profileButton
+            );
+    }
+
+
+    let shouldShow =
+        !isPwaStandalone_() &&
+        (
+            !!thangLongDeferredInstallPrompt ||
+            isIosDevice_()
+        );
+
+
+    if (shouldShow) {
+
+        installButton.classList.remove(
+            'hidden'
+        );
+
+    } else {
+
+        installButton.classList.add(
+            'hidden'
+        );
+    }
+}
+
+
+async function installPwaApp() {
+
+    if (
+        isPwaStandalone_()
+    ) {
+
+        showToast(
+            'Ứng dụng đã được cài trên thiết bị.'
+        );
+
+        return;
+    }
+
+
+    if (
+        thangLongDeferredInstallPrompt
+    ) {
+
+        let promptEvent =
+            thangLongDeferredInstallPrompt;
+
+
+        promptEvent.prompt();
+
+
+        try {
+
+            let choice =
+                await promptEvent.userChoice;
+
+
+            if (
+                choice &&
+                choice.outcome ===
+                    'accepted'
+            ) {
+
+                showToast(
+                    'Đã xác nhận cài Tennis Thăng Long.'
+                );
+            }
+
+        } catch (error) {
+
+            console.warn(
+                'PWA INSTALL CHOICE ERROR:',
+                error
+            );
+        }
+
+
+        thangLongDeferredInstallPrompt =
+            null;
+
+
+        ensurePwaInstallButton_();
+
+        return;
+    }
+
+
+    if (
+        isIosDevice_()
+    ) {
+
+        alert(
+            "Cài Tennis Thăng Long trên iPhone/iPad:\n\n" +
+            "1. Mở trang bằng Safari.\n" +
+            "2. Bấm nút Chia sẻ.\n" +
+            "3. Chọn “Thêm vào Màn hình chính”.\n" +
+            "4. Bấm Thêm."
+        );
+
+        return;
+    }
+
+
+    alert(
+        "Trình duyệt chưa sẵn sàng hiển thị nút cài ứng dụng.\n\n" +
+        "Hãy tải lại trang sau khi PWA được triển khai."
+    );
+}
+
+
+function registerPwaServiceWorker_() {
+
+    if (
+        !(
+            'serviceWorker' in
+            navigator
+        )
+    ) {
+        return;
+    }
+
+
+    window.addEventListener(
+        'load',
+        function() {
+
+            navigator
+                .serviceWorker
+                .register(
+                    '/service-worker.js',
+                    {
+                        scope:
+                            '/'
+                    }
+                )
+                .then(
+                    function(registration) {
+
+                        console.log(
+                            'PWA SERVICE WORKER READY:',
+                            registration.scope
+                        );
+                    }
+                )
+                .catch(
+                    function(error) {
+
+                        console.warn(
+                            'PWA SERVICE WORKER ERROR:',
+                            error
+                        );
+                    }
+                );
+        }
+    );
+}
+
+
+window.addEventListener(
+    'beforeinstallprompt',
+    function(event) {
+
+        event.preventDefault();
+
+
+        thangLongDeferredInstallPrompt =
+            event;
+
+
+        ensurePwaInstallButton_();
+    }
+);
+
+
+window.addEventListener(
+    'appinstalled',
+    function() {
+
+        thangLongDeferredInstallPrompt =
+            null;
+
+
+        ensurePwaInstallButton_();
+
+
+        showToast(
+            'Tennis Thăng Long đã được cài thành công!'
+        );
+    }
+);
+
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function() {
+
+        ensurePwaInstallButton_();
+    }
+);
+
+
+registerPwaServiceWorker_();
