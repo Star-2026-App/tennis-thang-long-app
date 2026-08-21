@@ -1,0 +1,59 @@
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 512 512"
+    width="512"
+    height="512"
+>
+    <rect
+        width="512"
+        height="512"
+        rx="112"
+        fill="#065f46"
+    />
+
+    <circle
+        cx="256"
+        cy="228"
+        r="132"
+        fill="#facc15"
+    />
+
+    <path
+        d="M151 151
+           C208 184 222 231 220 360"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="18"
+        stroke-linecap="round"
+    />
+
+    <path
+        d="M361 151
+           C304 184 290 231 292 360"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="18"
+        stroke-linecap="round"
+    />
+
+    <rect
+        x="143"
+        y="382"
+        width="226"
+        height="64"
+        rx="32"
+        fill="#ffffff"
+    />
+
+    <text
+        x="256"
+        y="425"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="35"
+        font-weight="800"
+        fill="#065f46"
+    >
+        THĂNG LONG
+    </text>
+</svg>

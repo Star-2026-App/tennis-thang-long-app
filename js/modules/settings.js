@@ -13,6 +13,9 @@ function populateSettingsForm() {
     document.getElementById('stReward18').value =
         parseInt(systemSettings.reward18h) || 30000;
 
+    document.getElementById('stRewardCVTT5').value =
+        parseInt(systemSettings.rewardCVTT5) || 0;
+
     document.getElementById('stMaxLimit').value =
         parseInt(systemSettings.maxRewardLimit) || 15;
 
@@ -83,6 +86,11 @@ function saveSystemSettings(e) {
                     document.getElementById('stReward18').value
                 );
 
+            let rewardCVTT5 =
+                parseInt(
+                    document.getElementById('stRewardCVTT5').value
+                );
+
             let maxRewardLimit =
                 parseInt(
                     document.getElementById('stMaxLimit').value
@@ -151,6 +159,19 @@ function saveSystemSettings(e) {
             }
 
 
+            if (
+                isNaN(rewardCVTT5) ||
+                rewardCVTT5 < 0
+            ) {
+
+                alert(
+                    "Thưởng đặc cách CVTT5 không được để trống hoặc là số âm (có thể để 0)."
+                );
+
+                return;
+            }
+
+
             // ==========================================
             // UPDATE LOCAL SETTINGS
             // ==========================================
@@ -163,6 +184,9 @@ function saveSystemSettings(e) {
 
             systemSettings.reward18h =
                 reward18h || 30000;
+
+            systemSettings.rewardCVTT5 =
+                rewardCVTT5;
 
             systemSettings.maxRewardLimit =
                 maxRewardLimit || 15;
@@ -211,509 +235,1203 @@ function saveSystemSettings(e) {
         }
     );
 }
+
 // ======================================================
-// FINANCE V2 HOTFIX - 5 ISSUES
+// FINANCE V2 + PHASE 3 COMPATIBILITY
 // ======================================================
-// 1) Cảnh báo nợ cũ trừ tiền góc đã nộp trong tháng.
-// 2) Bảng Cạ cứng ăn ý nhất chỉ Top 10.
-// 3) Bỏ chữ 10k cố định ở lựa chọn không có kèo đặc biệt.
-// 4) Mỗi trận giữ snapshot mức góc mặc định tại lúc ghi trận.
-// 5) Khóa lịch sử trước thời điểm Finance V2 (08/2026).
 //
-// File này phải được load SAU các module hiện tại và TRƯỚC init.js.
+// Giữ 5 FIX đã PASS, đồng thời:
+// - Thành tích tổng lấy từ MemberStats.
+// - Matches chỉ dùng dữ liệu tháng đang tải.
+// - GocLogs vẫn giữ toàn bộ ở Phase 3 bước này.
 // ======================================================
 
 (function () {
-    const FINANCE_V2_START_YEAR = 2026;
-    const FINANCE_V2_START_MONTH = 8;
-    const LEGACY_MATCH_GOC_FEE = 10000;
 
-    function periodIndex_(month, year) {
-        return (parseInt(year) || 0) * 12 + ((parseInt(month) || 0) - 1);
-    }
+    const FINANCE_V2_START_YEAR =
+        2026;
 
-    function isLegacyFinanceHistory_(month, year) {
-        return periodIndex_(month, year) < periodIndex_(FINANCE_V2_START_MONTH, FINANCE_V2_START_YEAR);
-    }
 
-    function getMatchAppliedGocFee_(match) {
-        let value = parseInt(
-            match && (
-                match.gocFee ||
-                match.defaultGocFee ||
-                match.gocDefaultPerMatchAtMatch
+    const FINANCE_V2_START_MONTH =
+        8;
+
+
+    const LEGACY_MATCH_GOC_FEE =
+        10000;
+
+
+    function periodIndex_(
+        month,
+        year
+    ) {
+
+        return (
+            (
+                parseInt(year) ||
+                0
+            ) *
+            12
+            +
+            (
+                (
+                    parseInt(month) ||
+                    0
+                ) -
+                1
             )
         );
-
-        // Tất cả trận cũ chưa có snapshot được giữ lịch sử ở 10.000đ.
-        return value > 0 ? value : LEGACY_MATCH_GOC_FEE;
     }
 
-    // ==================================================
-    // ISSUE 4 - TÍNH TÀI CHÍNH THEO GÓC CỦA TỪNG TRẬN
-    // ==================================================
 
-    calculateUserFinanceForMonth = function (
-        memberName,
-        targetMonth,
-        targetYear
+    function isLegacyFinanceHistory_(
+        month,
+        year
     ) {
-        let totalWins = 0;
-        let totalLosses = 0;
-        let totalDraws = 0;
-        let totalMatchCount = 0;
 
-        let monthMatchCount = 0;
-        let monthRegularFee = 0;
-        let monthSpecialBetFee = 0;
+        return (
+            periodIndex_(
+                month,
+                year
+            ) <
+            periodIndex_(
+                FINANCE_V2_START_MONTH,
+                FINANCE_V2_START_YEAR
+            )
+        );
+    }
 
-        let gocDefaultPerMatch = getGocDefaultPerMatch_();
-        let gocMonthlyCap = getGocMonthlyCap_();
 
-        (matches || []).forEach(function (match) {
-            let isV1 =
-                match.p1_v1 === memberName ||
-                match.p2_v1 === memberName;
+    function getMatchAppliedGocFee_(
+        match
+    ) {
 
-            let isV2 =
-                match.p1_v2 === memberName ||
-                match.p2_v2 === memberName;
+        let value =
+            parseInt(
+                match &&
+                (
+                    match.gocFee ||
+                    match.defaultGocFee ||
+                    match.gocDefaultPerMatchAtMatch
+                )
+            );
 
-            if (!isV1 && !isV2) {
-                return;
-            }
 
-            let scoreA = parseInt(match.scoreA) || 0;
-            let scoreB = parseInt(match.scoreB) || 0;
+        return value > 0
+            ? value
+            : LEGACY_MATCH_GOC_FEE;
+    }
 
-            totalMatchCount++;
 
-            let isDraw = scoreA === scoreB;
-            let isWin =
-                (isV1 && scoreA > scoreB) ||
-                (isV2 && scoreB > scoreA);
+    function getLifetimeMemberStats_(
+        memberName
+    ) {
 
-            if (isDraw) {
-                totalDraws++;
-            } else if (isWin) {
-                totalWins++;
-            } else {
-                totalLosses++;
-            }
+        let key =
+            String(
+                memberName ||
+                ""
+            )
+            .trim()
+            .toLowerCase();
+
+
+        let stat =
+            (
+                window.memberStats ||
+                []
+            )
+            .find(
+                function(item) {
+
+                    return (
+                        String(
+                            item.name ||
+                            ""
+                        )
+                        .trim()
+                        .toLowerCase() ===
+                        key
+                    );
+                }
+            );
+
+
+        return {
+
+            totalWins:
+                stat
+                    ? (
+                        parseInt(
+                            stat.wins
+                        ) ||
+                        0
+                    )
+                    : 0,
+
+            totalLosses:
+                stat
+                    ? (
+                        parseInt(
+                            stat.losses
+                        ) ||
+                        0
+                    )
+                    : 0,
+
+            totalDraws:
+                stat
+                    ? (
+                        parseInt(
+                            stat.draws
+                        ) ||
+                        0
+                    )
+                    : 0,
+
+            totalMatchCount:
+                stat
+                    ? (
+                        parseInt(
+                            stat.totalMatches
+                        ) ||
+                        0
+                    )
+                    : 0
+        };
+    }
+
+
+    // ==================================================
+    // ISSUE 4 + PHASE 3
+    //
+    // Thành tích tổng = MemberStats.
+    // Tiền góc tháng = Matches tháng đang tải.
+    // ==================================================
+
+    calculateUserFinanceForMonth =
+        function(
+            memberName,
+            targetMonth,
+            targetYear
+        ) {
+
+            let lifetime =
+                getLifetimeMemberStats_(
+                    memberName
+                );
+
+
+            let totalWins =
+                lifetime.totalWins;
+
+
+            let totalLosses =
+                lifetime.totalLosses;
+
+
+            let totalDraws =
+                lifetime.totalDraws;
+
+
+            let totalMatchCount =
+                lifetime.totalMatchCount;
+
+
+            let monthMatchCount =
+                0;
+
+
+            let monthRegularFee =
+                0;
+
+
+            let monthSpecialBetFee =
+                0;
+
+
+            let gocDefaultPerMatch =
+                getGocDefaultPerMatch_();
+
+
+            let gocMonthlyCap =
+                getGocMonthlyCap_();
+
+
+            let monthMatches =
+                typeof getMonthMatchesCached_ ===
+                    "function"
+                    ? getMonthMatchesCached_(
+                        targetMonth,
+                        targetYear
+                    )
+                    : (
+                        matches ||
+                        []
+                    );
+
+
+            monthMatches.forEach(
+                function(match) {
+
+                    let isV1 =
+                        match.p1_v1 ===
+                            memberName ||
+                        match.p2_v1 ===
+                            memberName;
+
+
+                    let isV2 =
+                        match.p1_v2 ===
+                            memberName ||
+                        match.p2_v2 ===
+                            memberName;
+
+
+                    if (
+                        !isV1 &&
+                        !isV2
+                    ) {
+
+                        return;
+                    }
+
+
+                    if (
+                        !isLogInMonth_(
+                            match.time,
+                            targetMonth,
+                            targetYear
+                        )
+                    ) {
+
+                        return;
+                    }
+
+
+                    let scoreA =
+                        parseInt(
+                            match.scoreA
+                        ) ||
+                        0;
+
+
+                    let scoreB =
+                        parseInt(
+                            match.scoreB
+                        ) ||
+                        0;
+
+
+                    monthMatchCount++;
+
+
+                    let isDraw =
+                        scoreA ===
+                        scoreB;
+
+
+                    let isWin =
+                        (
+                            isV1 &&
+                            scoreA >
+                                scoreB
+                        )
+                        ||
+                        (
+                            isV2 &&
+                            scoreB >
+                                scoreA
+                        );
+
+
+                    let mustPayGoc =
+                        isDraw ||
+                        !isWin;
+
+
+                    if (!mustPayGoc) {
+                        return;
+                    }
+
+
+                    let specialBet =
+                        parseInt(
+                            match.specialBet
+                        ) ||
+                        0;
+
+
+                    if (
+                        specialBet >
+                        0
+                    ) {
+
+                        monthSpecialBetFee +=
+                            specialBet;
+
+                    } else {
+
+                        monthRegularFee +=
+                            getMatchAppliedGocFee_(
+                                match
+                            );
+                    }
+                }
+            );
+
 
             if (
-                !isLogInMonth_(
-                    match.time,
+                !members ||
+                members.length === 0
+            ) {
+
+                members =
+                    defaultFallbackMembers;
+            }
+
+
+            let m =
+                members.find(
+                    function(item) {
+
+                        return (
+                            item.name ===
+                            memberName
+                        );
+                    }
+                ) ||
+                {
+                    noOld:
+                        0
+                };
+
+
+            let cappedBaseFee =
+                Math.min(
+                    gocMonthlyCap,
+                    monthRegularFee
+                );
+
+
+            let monthPaidAmount =
+                getUserGocPaidForMonth_(
+                    memberName,
                     targetMonth,
                     targetYear
-                )
+                );
+
+
+            let monthRewardAmount;
+
+
+            if (
+                typeof getMonthBookingsCached_ ===
+                "function"
             ) {
-                return;
-            }
 
-            monthMatchCount++;
+                monthRewardAmount =
+                    getMonthBookingsCached_(
+                        targetMonth,
+                        targetYear
+                    )
+                    .reduce(
+                        function(
+                            sum,
+                            booking
+                        ) {
 
-            let mustPayGoc = isDraw || !isWin;
+                            if (
+                                String(
+                                    booking.name ||
+                                    ""
+                                )
+                                .trim()
+                                .toLowerCase() !==
+                                String(
+                                    memberName ||
+                                    ""
+                                )
+                                .trim()
+                                .toLowerCase()
+                            ) {
 
-            if (!mustPayGoc) {
-                return;
-            }
+                                return sum;
+                            }
 
-            let specialBet = parseInt(match.specialBet) || 0;
 
-            if (specialBet > 0) {
-                // Kèo đặc biệt thay cho góc mặc định của chính trận đó.
-                monthSpecialBetFee += specialBet;
+                            return (
+                                sum +
+                                (
+                                    parseInt(
+                                        booking.reward
+                                    ) ||
+                                    0
+                                )
+                            );
+                        },
+                        0
+                    );
+
             } else {
-                // Quan trọng: lấy mức góc đã chốt trên từng trận,
-                // KHÔNG lấy Settings hiện tại để tính lại lịch sử.
-                monthRegularFee += getMatchAppliedGocFee_(match);
+
+                monthRewardAmount =
+                    getUserBookingRewardForMonth_(
+                        memberName,
+                        targetMonth,
+                        targetYear
+                    );
             }
-        });
 
-        if (!members || members.length === 0) {
-            members = defaultFallbackMembers;
-        }
 
-        let m =
-            members.find(function (item) {
-                return item.name === memberName;
-            }) || { noOld: 0 };
+            let carryBalance =
+                parseInt(
+                    m.noOld
+                ) ||
+                0;
 
-        let cappedBaseFee = Math.min(
-            gocMonthlyCap,
-            monthRegularFee
-        );
 
-        let monthPaidAmount =
-            getUserGocPaidForMonth_(
-                memberName,
-                targetMonth,
-                targetYear
-            );
+            let snapshot =
+                getMonthlyBalanceSnapshot_(
+                    memberName,
+                    targetMonth,
+                    targetYear
+                );
 
-        let monthRewardAmount =
-            getUserBookingRewardForMonth_(
-                memberName,
-                targetMonth,
-                targetYear
-            );
 
-        let carryBalance = parseInt(m.noOld) || 0;
+            if (snapshot) {
 
-        // Nếu tháng đã có snapshot chính thức thì luôn dùng snapshot.
-        let snapshot =
-            getMonthlyBalanceSnapshot_(
-                memberName,
-                targetMonth,
-                targetYear
-            );
+                cappedBaseFee =
+                    parseInt(
+                        snapshot.baseFee
+                    ) ||
+                    0;
 
-        if (snapshot) {
-            cappedBaseFee = parseInt(snapshot.baseFee) || 0;
-            monthSpecialBetFee = parseInt(snapshot.specialFee) || 0;
-            monthPaidAmount = parseInt(snapshot.paid) || 0;
-            monthRewardAmount = parseInt(snapshot.reward) || 0;
-            carryBalance = parseInt(snapshot.openingBalance) || 0;
+
+                monthSpecialBetFee =
+                    parseInt(
+                        snapshot.specialFee
+                    ) ||
+                    0;
+
+
+                monthPaidAmount =
+                    parseInt(
+                        snapshot.paid
+                    ) ||
+                    0;
+
+
+                monthRewardAmount =
+                    parseInt(
+                        snapshot.reward
+                    ) ||
+                    0;
+
+
+                carryBalance =
+                    parseInt(
+                        snapshot.openingBalance
+                    ) ||
+                    0;
+
+
+                return {
+
+                    totalMatchCount,
+                    totalWins,
+                    totalLosses,
+                    totalDraws,
+
+                    monthMatchCount,
+
+                    gocDefaultPerMatch,
+                    gocMonthlyCap,
+
+                    monthRegularFee:
+                        cappedBaseFee,
+
+                    monthSpecialBetFee,
+
+                    cappedBaseFee,
+
+                    monthPaidAmount,
+                    monthRewardAmount,
+
+                    carryBalance,
+
+                    totalPay:
+                        parseInt(
+                            snapshot.closingBalance
+                        ) ||
+                        0,
+
+                    closingBalance:
+                        parseInt(
+                            snapshot.closingBalance
+                        ) ||
+                        0,
+
+                    isClosed:
+                        true
+                };
+            }
+
+
+            let totalPay =
+                cappedBaseFee +
+                monthSpecialBetFee +
+                carryBalance -
+                monthPaidAmount -
+                monthRewardAmount;
+
 
             return {
+
                 totalMatchCount,
                 totalWins,
                 totalLosses,
                 totalDraws,
+
                 monthMatchCount,
+
                 gocDefaultPerMatch,
                 gocMonthlyCap,
-                monthRegularFee: cappedBaseFee,
+
+                monthRegularFee,
                 monthSpecialBetFee,
+
                 cappedBaseFee,
+
                 monthPaidAmount,
                 monthRewardAmount,
+
                 carryBalance,
-                totalPay: parseInt(snapshot.closingBalance) || 0,
-                closingBalance: parseInt(snapshot.closingBalance) || 0,
-                isClosed: true
+
+                totalPay,
+
+                closingBalance:
+                    totalPay,
+
+                isClosed:
+                    false
             };
-        }
-
-        let totalPay =
-            cappedBaseFee +
-            monthSpecialBetFee +
-            carryBalance -
-            monthPaidAmount -
-            monthRewardAmount;
-
-        return {
-            totalMatchCount,
-            totalWins,
-            totalLosses,
-            totalDraws,
-            monthMatchCount,
-            gocDefaultPerMatch,
-            gocMonthlyCap,
-            monthRegularFee,
-            monthSpecialBetFee,
-            cappedBaseFee,
-            monthPaidAmount,
-            monthRewardAmount,
-            carryBalance,
-            totalPay,
-            closingBalance: totalPay,
-            isClosed: false
-        };
-    };
-
-    // ==================================================
-    // ISSUE 4 - KHI GHI TRẬN MỚI, CHỐT MỨC GÓC HIỆN TẠI
-    // ==================================================
-
-    saveNewMatchData = function (
-        p1A,
-        p2A,
-        p1B,
-        p2B,
-        scoreA,
-        scoreB,
-        specialBet
-    ) {
-        let newMatch = {
-            id: Date.now(),
-            time: new Date().toLocaleString('vi-VN'),
-            p1_v1: p1A,
-            p2_v1: p2A,
-            scoreA: scoreA,
-            scoreB: scoreB,
-            p1_v2: p1B,
-            p2_v2: p2B,
-            specialBet: specialBet,
-            // Snapshot mức góc mặc định tại thời điểm ghi trận.
-            gocFee: getGocDefaultPerMatch_()
         };
 
-        enqueueAction(
-            "addMatch",
-            { match: newMatch },
-            "Đã lưu kết quả trận đấu thành công!"
-        );
-
-        document.getElementById('matchForm').reset();
-        populateSelectors();
-
-        document
-            .querySelectorAll('input[name="scoreA"]')
-            .forEach(function (el) {
-                el.checked = false;
-            });
-
-        document
-            .querySelectorAll('input[name="scoreB"]')
-            .forEach(function (el) {
-                el.checked = false;
-            });
-
-        document.getElementById('specialBet').value = "0";
-    };
 
     // ==================================================
-    // ISSUE 1 - CẢNH BÁO NỢ CŨ PHẢI TRỪ TIỀN ĐÃ NỘP
+    // ISSUE 4 - TRẬN MỚI GIỮ SNAPSHOT GÓC
     // ==================================================
 
-    if (typeof renderDashboard === 'function') {
-        const originalRenderDashboard_ = renderDashboard;
+    saveNewMatchData =
+        function(
+            p1A,
+            p2A,
+            p1B,
+            p2B,
+            scoreA,
+            scoreB,
+            specialBet
+        ) {
 
-        renderDashboard = function () {
-            originalRenderDashboard_.apply(this, arguments);
+            let newMatch = {
 
-            try {
-                if (!members || members.length === 0) {
-                    return;
-                }
+                id:
+                    Date.now(),
 
-                let mainEl = document.getElementById('dashMainUser');
-                let warningBanner = document.getElementById('quyWarningBanner');
-                let warningText = document.getElementById('quyWarningText');
+                time:
+                    new Date()
+                        .toLocaleString(
+                            "vi-VN"
+                        ),
 
-                if (!mainEl || !warningBanner || !warningText) {
-                    return;
-                }
+                p1_v1:
+                    p1A,
 
-                let main = mainEl.value || members[0].name;
-                let member =
-                    members.find(function (item) {
-                        return item.name === main;
-                    }) || members[0];
+                p2_v1:
+                    p2A,
 
-                let oldDebt = Math.max(
-                    0,
-                    parseInt(member.noOld) || 0
-                );
+                scoreA:
+                    scoreA,
 
-                // Cảnh báo Nợ cũ luôn xét tiền thực nộp của THÁNG HIỆN TẠI,
-                // không phụ thuộc bộ lọc tháng đang chọn ở tab Tiền Góc.
-                let now = new Date();
-                let paidThisMonth = Math.max(
-                    0,
-                    getUserGocPaidForMonth_(
-                        main,
-                        now.getMonth() + 1,
-                        now.getFullYear()
-                    )
-                );
+                scoreB:
+                    scoreB,
 
-                // Tiền thực nộp được ưu tiên cấn Nợ cũ trước.
-                let remainingOldDebt = Math.max(
-                    0,
-                    oldDebt - paidThisMonth
-                );
+                p1_v2:
+                    p1B,
 
-                let period = getCurrentQuyPeriod();
-                let hasPaidCurrentQuarter =
-                    !!findQuyLogForMember(
-                        member.name,
-                        period.quarter,
-                        period.year
-                    );
+                p2_v2:
+                    p2B,
 
-                let warningItems = [];
+                specialBet:
+                    specialBet,
 
-                if (remainingOldDebt > 0) {
-                    warningItems.push(
-                        `còn Nợ cũ ${remainingOldDebt.toLocaleString('vi-VN')} đ`
-                    );
-                }
+                gocFee:
+                    getGocDefaultPerMatch_()
+            };
 
-                if (!hasPaidCurrentQuarter) {
-                    warningItems.push(
-                        `chưa đóng quỹ ${period.quarter}/${period.year}`
-                    );
-                }
 
-                let hasWarning =
-                    member.status === 'Đang tham gia' &&
-                    warningItems.length > 0;
-
-                if (hasWarning) {
-                    warningBanner.classList.remove('hidden');
-                    warningBanner.classList.add('flex');
-                    warningText.innerText =
-                        `${member.name} ơi, bạn ${warningItems.join(' và ')}. Vui lòng hoàn thành nhé!`;
-                } else {
-                    warningBanner.classList.add('hidden');
-                    warningBanner.classList.remove('flex');
-                }
-            } catch (err) {
-                console.warn('HOTFIX DASHBOARD WARNING ERROR:', err);
-            }
-        };
-    }
-
-    // ==================================================
-    // ISSUE 2 - CHỈ TOP 10 CẠ CỨNG ĂN Ý NHẤT
-    // ==================================================
-
-    if (typeof renderBestDuosTable === 'function') {
-        const originalRenderBestDuosTable_ = renderBestDuosTable;
-
-        renderBestDuosTable = function () {
-            originalRenderBestDuosTable_.apply(this, arguments);
-
-            let tbody = document.getElementById('bestDuosTableBody');
-            if (!tbody) return;
-
-            let rows = Array.from(
-                tbody.querySelectorAll('tr')
+            enqueueAction(
+                "addMatch",
+                {
+                    match:
+                        newMatch
+                },
+                "Đã lưu kết quả trận đấu thành công!"
             );
 
-            if (rows.length <= 10) {
-                return;
-            }
 
-            rows.slice(10).forEach(function (row) {
-                row.remove();
-            });
+            document
+                .getElementById(
+                    "matchForm"
+                )
+                .reset();
+
+
+            populateSelectors();
+
+
+            document
+                .querySelectorAll(
+                    'input[name="scoreA"]'
+                )
+                .forEach(
+                    function(el) {
+
+                        el.checked =
+                            false;
+                    }
+                );
+
+
+            document
+                .querySelectorAll(
+                    'input[name="scoreB"]'
+                )
+                .forEach(
+                    function(el) {
+
+                        el.checked =
+                            false;
+                    }
+                );
+
+
+            document
+                .getElementById(
+                    "specialBet"
+                )
+                .value =
+                    "0";
         };
-    }
+
 
     // ==================================================
-    // ISSUE 3 - BỎ CHỮ 10K CỐ ĐỊNH TRÊN GIAO DIỆN
+    // ISSUE 1 - CẢNH BÁO NỢ CŨ TRỪ TIỀN ĐÃ NỘP
+    // ==================================================
+
+    if (
+        typeof renderDashboard ===
+        "function"
+    ) {
+
+        const originalRenderDashboard_ =
+            renderDashboard;
+
+
+        renderDashboard =
+            function() {
+
+                originalRenderDashboard_
+                    .apply(
+                        this,
+                        arguments
+                    );
+
+
+                try {
+
+                    if (
+                        !members ||
+                        members.length === 0
+                    ) {
+                        return;
+                    }
+
+
+                    let mainEl =
+                        document.getElementById(
+                            "dashMainUser"
+                        );
+
+
+                    let warningBanner =
+                        document.getElementById(
+                            "quyWarningBanner"
+                        );
+
+
+                    let warningText =
+                        document.getElementById(
+                            "quyWarningText"
+                        );
+
+
+                    if (
+                        !mainEl ||
+                        !warningBanner ||
+                        !warningText
+                    ) {
+                        return;
+                    }
+
+
+                    let main =
+                        mainEl.value ||
+                        members[0].name;
+
+
+                    let member =
+                        members.find(
+                            function(item) {
+
+                                return (
+                                    item.name ===
+                                    main
+                                );
+                            }
+                        ) ||
+                        members[0];
+
+
+                    let oldDebt =
+                        Math.max(
+                            0,
+                            parseInt(
+                                member.noOld
+                            ) ||
+                            0
+                        );
+
+
+                    let now =
+                        new Date();
+
+
+                    // GocLogs vẫn đang giữ toàn bộ lịch sử,
+                    // nên helper này luôn đọc đúng tháng hiện tại
+                    // kể cả Admin đang xem tháng cũ.
+                    let paidThisMonth =
+                        Math.max(
+                            0,
+                            getUserGocPaidForMonth_(
+                                main,
+                                now.getMonth() +
+                                    1,
+                                now.getFullYear()
+                            )
+                        );
+
+
+                    let remainingOldDebt =
+                        Math.max(
+                            0,
+                            oldDebt -
+                            paidThisMonth
+                        );
+
+
+                    let period =
+                        getCurrentQuyPeriod();
+
+
+                    let hasPaidCurrentQuarter =
+                        !!findQuyLogForMember(
+                            member.name,
+                            period.quarter,
+                            period.year
+                        );
+
+
+                    let warningItems =
+                        [];
+
+
+                    if (
+                        remainingOldDebt >
+                        0
+                    ) {
+
+                        warningItems.push(
+                            `còn Nợ cũ ${remainingOldDebt.toLocaleString("vi-VN")} đ`
+                        );
+                    }
+
+
+                    if (
+                        !hasPaidCurrentQuarter
+                    ) {
+
+                        warningItems.push(
+                            `chưa đóng quỹ ${period.quarter}/${period.year}`
+                        );
+                    }
+
+
+                    let hasWarning =
+                        member.status ===
+                            "Đang tham gia" &&
+                        warningItems.length >
+                            0;
+
+
+                    if (hasWarning) {
+
+                        warningBanner
+                            .classList
+                            .remove(
+                                "hidden"
+                            );
+
+
+                        warningBanner
+                            .classList
+                            .add(
+                                "flex"
+                            );
+
+
+                        warningText.innerText =
+                            `${member.name} ơi, bạn ${warningItems.join(" và ")}. Vui lòng hoàn thành nhé!`;
+
+                    } else {
+
+                        warningBanner
+                            .classList
+                            .add(
+                                "hidden"
+                            );
+
+
+                        warningBanner
+                            .classList
+                            .remove(
+                                "flex"
+                            );
+                    }
+
+
+                } catch (err) {
+
+                    console.warn(
+                        "PHASE3 DASHBOARD WARNING ERROR:",
+                        err
+                    );
+                }
+            };
+    }
+
+
+    // ==================================================
+    // ISSUE 3 - BỎ CHỮ 10K CỐ ĐỊNH
     // ==================================================
 
     function normalizeSpecialBetLabels_() {
-        ['specialBet', 'emSpecialBet'].forEach(function (id) {
-            let select = document.getElementById(id);
-            if (!select) return;
 
-            let option = select.querySelector('option[value="0"]');
-            if (option) {
-                option.textContent = 'Không có kèo góc đặc biệt';
+        [
+            "specialBet",
+            "emSpecialBet"
+        ]
+        .forEach(
+            function(id) {
+
+                let select =
+                    document.getElementById(
+                        id
+                    );
+
+
+                if (!select) {
+                    return;
+                }
+
+
+                let option =
+                    select.querySelector(
+                        'option[value="0"]'
+                    );
+
+
+                if (option) {
+
+                    option.textContent =
+                        "Không có kèo góc đặc biệt";
+                }
             }
-        });
+        );
     }
 
+
     normalizeSpecialBetLabels_();
+
 
     // ==================================================
     // ISSUE 5 - KHÓA LỊCH SỬ TRƯỚC 08/2026
     // ==================================================
 
-    if (typeof getMonthCloseStatusLocal_ === 'function') {
-        const originalGetMonthCloseStatusLocal_ = getMonthCloseStatusLocal_;
+    if (
+        typeof getMonthCloseStatusLocal_ ===
+        "function"
+    ) {
 
-        getMonthCloseStatusLocal_ = function (month, year) {
-            if (isLegacyFinanceHistory_(month, year)) {
-                return true;
-            }
+        const originalGetMonthCloseStatusLocal_ =
+            getMonthCloseStatusLocal_;
 
-            return originalGetMonthCloseStatusLocal_(
+
+        getMonthCloseStatusLocal_ =
+            function(
                 month,
                 year
-            );
-        };
+            ) {
+
+                if (
+                    isLegacyFinanceHistory_(
+                        month,
+                        year
+                    )
+                ) {
+
+                    return true;
+                }
+
+
+                return originalGetMonthCloseStatusLocal_(
+                    month,
+                    year
+                );
+            };
     }
 
-    if (typeof ensureMonthCloseAdminUI_ === 'function') {
-        const originalEnsureMonthCloseAdminUI_ = ensureMonthCloseAdminUI_;
 
-        ensureMonthCloseAdminUI_ = function () {
-            originalEnsureMonthCloseAdminUI_.apply(this, arguments);
+    if (
+        typeof ensureMonthCloseAdminUI_ ===
+        "function"
+    ) {
 
-            let monthEl = document.getElementById('selectFinanceMonth');
-            let yearEl = document.getElementById('selectFinanceYear');
-            let button = document.getElementById('btnMonthCloseAdmin');
+        const originalEnsureMonthCloseAdminUI_ =
+            ensureMonthCloseAdminUI_;
 
-            if (!monthEl || !yearEl || !button) {
-                return;
-            }
 
-            let month = parseInt(monthEl.value);
-            let year = parseInt(yearEl.value);
+        ensureMonthCloseAdminUI_ =
+            function() {
 
-            if (!isLegacyFinanceHistory_(month, year)) {
-                return;
-            }
-
-            button.disabled = true;
-            button.innerHTML =
-                '<i class="fa-solid fa-lock"></i> ĐÃ KHÓA';
-            button.className =
-                'ml-2 px-3 py-2 rounded-lg bg-slate-300 text-slate-600 text-xs font-black cursor-not-allowed';
-            button.title =
-                `Tháng ${month}/${year} thuộc lịch sử trước Finance V2 và chỉ được xem.`;
-        };
-    }
-
-    if (typeof openEditFinanceModal === 'function') {
-        const originalOpenEditFinanceModal_ = openEditFinanceModal;
-
-        openEditFinanceModal = function (idx) {
-            let monthEl = document.getElementById('selectFinanceMonth');
-            let yearEl = document.getElementById('selectFinanceYear');
-
-            if (monthEl && yearEl) {
-                let month = parseInt(monthEl.value);
-                let year = parseInt(yearEl.value);
-
-                if (isLegacyFinanceHistory_(month, year)) {
-                    alert(
-                        `Tháng ${month}/${year} là dữ liệu lịch sử đã khóa.\n\nKhông được sửa Dư/Nợ.`
+                originalEnsureMonthCloseAdminUI_
+                    .apply(
+                        this,
+                        arguments
                     );
+
+
+                let monthEl =
+                    document.getElementById(
+                        "selectFinanceMonth"
+                    );
+
+
+                let yearEl =
+                    document.getElementById(
+                        "selectFinanceYear"
+                    );
+
+
+                let button =
+                    document.getElementById(
+                        "btnMonthCloseAdmin"
+                    );
+
+
+                if (
+                    !monthEl ||
+                    !yearEl ||
+                    !button
+                ) {
                     return;
                 }
-            }
 
-            return originalOpenEditFinanceModal_.apply(
-                this,
-                arguments
-            );
-        };
-    }
 
-    if (typeof openMonthClosePreview_ === 'function') {
-        const originalOpenMonthClosePreview_ = openMonthClosePreview_;
-
-        openMonthClosePreview_ = function () {
-            let monthEl = document.getElementById('selectFinanceMonth');
-            let yearEl = document.getElementById('selectFinanceYear');
-
-            if (monthEl && yearEl) {
-                let month = parseInt(monthEl.value);
-                let year = parseInt(yearEl.value);
-
-                if (isLegacyFinanceHistory_(month, year)) {
-                    alert(
-                        `Tháng ${month}/${year} thuộc lịch sử trước Finance V2 và đã khóa.\n\nKhông thể chốt ngược tháng cũ.`
+                let month =
+                    parseInt(
+                        monthEl.value
                     );
+
+
+                let year =
+                    parseInt(
+                        yearEl.value
+                    );
+
+
+                if (
+                    !isLegacyFinanceHistory_(
+                        month,
+                        year
+                    )
+                ) {
                     return;
                 }
-            }
 
-            return originalOpenMonthClosePreview_.apply(
-                this,
-                arguments
-            );
-        };
+
+                button.disabled =
+                    true;
+
+
+                button.innerHTML =
+                    '<i class="fa-solid fa-lock"></i> ĐÃ KHÓA';
+
+
+                button.className =
+                    "ml-2 px-3 py-2 rounded-lg bg-slate-300 text-slate-600 text-xs font-black cursor-not-allowed";
+
+
+                button.title =
+                    `Tháng ${month}/${year} thuộc lịch sử trước Finance V2 và chỉ được xem.`;
+            };
     }
 
-    // Đảm bảo chữ trên select được sửa cả sau các lần render/reset form.
-    setTimeout(normalizeSpecialBetLabels_, 0);
+
+    if (
+        typeof openEditFinanceModal ===
+        "function"
+    ) {
+
+        const originalOpenEditFinanceModal_ =
+            openEditFinanceModal;
+
+
+        openEditFinanceModal =
+            function(idx) {
+
+                let monthEl =
+                    document.getElementById(
+                        "selectFinanceMonth"
+                    );
+
+
+                let yearEl =
+                    document.getElementById(
+                        "selectFinanceYear"
+                    );
+
+
+                if (
+                    monthEl &&
+                    yearEl
+                ) {
+
+                    let month =
+                        parseInt(
+                            monthEl.value
+                        );
+
+
+                    let year =
+                        parseInt(
+                            yearEl.value
+                        );
+
+
+                    if (
+                        isLegacyFinanceHistory_(
+                            month,
+                            year
+                        )
+                    ) {
+
+                        alert(
+                            `Tháng ${month}/${year} là dữ liệu lịch sử đã khóa.\n\nKhông được sửa Dư/Nợ.`
+                        );
+
+                        return;
+                    }
+                }
+
+
+                return originalOpenEditFinanceModal_
+                    .apply(
+                        this,
+                        arguments
+                    );
+            };
+    }
+
+
+    if (
+        typeof openMonthClosePreview_ ===
+        "function"
+    ) {
+
+        const originalOpenMonthClosePreview_ =
+            openMonthClosePreview_;
+
+
+        openMonthClosePreview_ =
+            function() {
+
+                let monthEl =
+                    document.getElementById(
+                        "selectFinanceMonth"
+                    );
+
+
+                let yearEl =
+                    document.getElementById(
+                        "selectFinanceYear"
+                    );
+
+
+                if (
+                    monthEl &&
+                    yearEl
+                ) {
+
+                    let month =
+                        parseInt(
+                            monthEl.value
+                        );
+
+
+                    let year =
+                        parseInt(
+                            yearEl.value
+                        );
+
+
+                    if (
+                        isLegacyFinanceHistory_(
+                            month,
+                            year
+                        )
+                    ) {
+
+                        alert(
+                            `Tháng ${month}/${year} thuộc lịch sử trước Finance V2 và đã khóa.\n\nKhông thể chốt ngược tháng cũ.`
+                        );
+
+                        return;
+                    }
+                }
+
+
+                return originalOpenMonthClosePreview_
+                    .apply(
+                        this,
+                        arguments
+                    );
+            };
+    }
+
+
+    setTimeout(
+        normalizeSpecialBetLabels_,
+        0
+    );
 })();

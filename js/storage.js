@@ -8,6 +8,9 @@ function sortCollectionsByTime() {
     if (bookingLogs && bookingLogs.length > 0) {
         bookingLogs.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
     }
+    if (cashbookLogs && cashbookLogs.length > 0) {
+        cashbookLogs.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
+    }
 }
 
 function saveLocalData() {

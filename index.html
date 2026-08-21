@@ -2,12 +2,730 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLB Tennis Thăng Long - Ver1.2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>CLB Tennis Thăng Long - Ver1.3</title>
+    <meta name="theme-color" content="#065f46">
+    <meta name="application-name" content="Tennis Thăng Long">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Tennis Thăng Long">
+    
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icons/tennis-thang-long.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="css/main.css">
+    <style id="iphone-responsive-ui">
+        /* Responsive UI v1.3 - tối ưu bảng dữ liệu cho iPhone */
+        .score-stack {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .18rem;
+            font-weight: 800;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .money-stack {
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: flex-end;
+            gap: .18rem;
+            line-height: 1.05;
+            white-space: nowrap;
+        }
+
+        .time-stack {
+            display: inline-flex;
+            align-items: flex-start;
+            gap: .25rem;
+            white-space: nowrap;
+        }
+
+        .dashboard-fund-actions {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: .55rem;
+            width: 100%;
+        }
+
+        .fund-status-chip,
+        .qr-icon-button {
+            min-width: 0;
+            border-radius: .75rem;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .3rem;
+            padding: .55rem .45rem;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1.15;
+        }
+
+        .fund-status-chip {
+            min-height: 56px;
+            flex: 1 1 auto;
+            color: #047857;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+        }
+
+        .fund-status-chip.is-unpaid {
+            color: #b45309;
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .fund-status-chip i {
+            font-size: 1.15rem;
+        }
+
+        .qr-icon-button {
+            min-height: 56px;
+            flex: 0 0 54px;
+            position: relative;
+            overflow: hidden;
+            z-index: 5;
+            pointer-events: auto !important;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            color: #fff;
+            background: #2563eb;
+            border: 1px solid #1d4ed8;
+            box-shadow: 0 2px 4px rgb(37 99 235 / 24%);
+            cursor: pointer;
+            transition: transform .15s ease, background-color .15s ease;
+            font-size: 13px;
+            letter-spacing: .02em;
+        }
+
+        .qr-icon-button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .finance-total-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: .18rem;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .finance-reward-note {
+            display: block;
+            width: 100%;
+            color: #64748b;
+            font-size: 8px;
+            font-weight: 600;
+            line-height: 1.15;
+            text-align: right;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+
+        .duel-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+            align-items: center;
+            gap: .3rem;
+            min-width: 0;
+        }
+
+        .duel-side {
+            min-width: 0;
+            text-align: center;
+            white-space: normal;
+            overflow-wrap: break-word;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .duel-fire {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+            justify-self: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            color: #ea580c;
+            background: #fff7ed;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard-fund-actions {
+                max-width: none;
+                height: 100%;
+                margin-inline: auto;
+            }
+
+            .desktop-paid-center-card {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                height: 100% !important;
+                min-height: 230px;
+            }
+
+            .desktop-qr-center-card {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                height: 100% !important;
+                min-height: 230px;
+                text-align: center;
+            }
+
+            .desktop-finance-cards-row {
+                align-items: stretch !important;
+            }
+
+            .desktop-finance-card-shell {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                height: 100% !important;
+                min-height: 230px !important;
+                padding: 1rem !important;
+                background: #fff !important;
+                border: 1px solid #6ee7b7 !important;
+                border-radius: .9rem !important;
+                box-shadow: 0 1px 2px rgb(15 23 42 / 5%) !important;
+            }
+
+            .desktop-finance-summary-card {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+            }
+
+            #dashQuyStatusBadge.desktop-fund-status-aligned {
+                position: static !important;
+                display: inline-flex !important;
+                flex: 0 0 auto !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: center !important;
+                align-self: center !important;
+                width: auto !important;
+                min-height: 34px !important;
+                margin: 0 !important;
+                padding: .45rem .8rem !important;
+                gap: .4rem !important;
+                transform: none !important;
+            }
+
+            #dashQuyStatusBadge.desktop-fund-status-aligned i {
+                flex: 0 0 auto;
+                font-size: .8rem !important;
+                line-height: 1 !important;
+            }
+
+            .desktop-qr-image-button {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                flex: 0 0 auto !important;
+                width: auto !important;
+                min-width: 0 !important;
+                min-height: 0 !important;
+                padding: 0 !important;
+                color: inherit !important;
+                background: transparent !important;
+                border: 0 !important;
+                border-radius: .75rem !important;
+                box-shadow: none !important;
+                transform: none !important;
+            }
+
+            .desktop-qr-image-button:hover {
+                background: transparent !important;
+                transform: none !important;
+            }
+
+            .desktop-qr-image-button .qr-button-label {
+                display: none !important;
+            }
+
+            .desktop-qr-image-button .mobile-qr-button-icon {
+                display: none !important;
+            }
+
+            #dashQrImg.desktop-dashboard-qr {
+                display: block !important;
+                position: static !important;
+                width: clamp(160px, 11vw, 190px) !important;
+                height: clamp(160px, 11vw, 190px) !important;
+                max-width: 82% !important;
+                max-height: 190px !important;
+                margin: 0 auto !important;
+                object-fit: contain;
+                pointer-events: auto !important;
+                cursor: zoom-in;
+            }
+        }
+
+        @media (max-width: 767px) {
+            #tab-dashboard .mobile-qr-tap-card {
+                position: relative !important;
+                cursor: pointer !important;
+                pointer-events: auto !important;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            #tab-dashboard .mobile-qr-open-button {
+                display: inline-flex !important;
+                flex: 0 0 58px !important;
+                width: 58px !important;
+                min-width: 58px !important;
+                max-width: 58px !important;
+                height: 58px !important;
+                min-height: 58px !important;
+                margin: .45rem auto .15rem !important;
+                padding: .35rem !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 1px !important;
+                color: #fff !important;
+                background: #2563eb !important;
+                border: 1px solid #1d4ed8 !important;
+                border-radius: .8rem !important;
+                box-shadow: 0 3px 7px rgb(37 99 235 / 28%) !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                overflow: hidden !important;
+                pointer-events: auto !important;
+                cursor: pointer !important;
+            }
+
+            #tab-dashboard .mobile-qr-button-icon {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.45rem;
+                line-height: 1;
+            }
+
+            #tab-dashboard .mobile-qr-open-button .qr-button-label {
+                display: block !important;
+                color: #fff !important;
+                font-size: 9px !important;
+                font-weight: 900 !important;
+                line-height: 1 !important;
+            }
+
+            #dashQrImg.mobile-dashboard-qr-source {
+                display: block !important;
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                inset: 50% auto auto 50% !important;
+                opacity: 0 !important;
+                clip-path: inset(50%) !important;
+                pointer-events: none !important;
+            }
+
+            #tab-dashboard .score-stack {
+                flex-direction: column;
+                gap: 1px;
+            }
+
+            .money-stack {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 1px;
+            }
+
+            .money-stack .money-unit {
+                align-self: flex-end;
+            }
+
+            .time-stack {
+                flex-direction: column;
+                gap: 1px;
+                line-height: 1.15;
+            }
+
+            .mobile-score-cell .score-stack {
+                flex-direction: column;
+                gap: 1px;
+            }
+
+            .mobile-wrap-text {
+                white-space: normal !important;
+                word-break: normal;
+                overflow-wrap: normal;
+                line-height: 1.25;
+            }
+
+            .mobile-priority-card {
+                padding: .6rem !important;
+            }
+
+            #tab-matchLog > div,
+            #tab-gocLogs > div,
+            #tab-finance > div,
+            #tab-booking > div,
+            #tab-quy > div,
+            #tab-members > div {
+                padding: .4rem !important;
+            }
+
+            #tab-cashbook > div {
+                padding: .6rem !important;
+            }
+
+            .mobile-priority-scroll {
+                width: 100%;
+                overflow-x: auto;
+                overscroll-behavior-inline: contain;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+            }
+
+            .mobile-priority-table {
+                table-layout: fixed;
+                width: max-content;
+                max-width: none;
+                font-size: 8px !important;
+                letter-spacing: -.01em;
+            }
+
+            .mobile-priority-table th,
+            .mobile-priority-table td {
+                min-width: 0 !important;
+                padding: .2rem .08rem !important;
+                vertical-align: middle;
+            }
+
+            .mobile-priority-table th {
+                white-space: normal;
+                line-height: 1.15;
+            }
+
+            /* Nhật ký trận: 6 cột đầu nằm trong vùng nhìn, thao tác ở bên phải. */
+            #matchLogTable { width: 350px !important; }
+            #matchLogTable th:nth-child(1), #matchLogTable td:nth-child(1) { width: 24px !important; }
+            #matchLogTable th:nth-child(2), #matchLogTable td:nth-child(2) { width: 48px !important; }
+            #matchLogTable th:nth-child(3), #matchLogTable td:nth-child(3),
+            #matchLogTable th:nth-child(4), #matchLogTable td:nth-child(4) { width: 66px !important; }
+            #matchLogTable th:nth-child(5), #matchLogTable td:nth-child(5) { width: 30px !important; }
+            #matchLogTable th:nth-child(6), #matchLogTable td:nth-child(6) { width: 46px !important; }
+            #matchLogTable th:nth-child(7), #matchLogTable td:nth-child(7) { width: 70px !important; }
+
+            /* Nộp tiền: cột ghi chú vẫn nhìn thấy trước cột thao tác. */
+            #gocLogsTable { width: 350px !important; }
+            #gocLogsTable th:nth-child(1), #gocLogsTable td:nth-child(1) { width: 24px !important; }
+            #gocLogsTable th:nth-child(2), #gocLogsTable td:nth-child(2) { width: 48px !important; }
+            #gocLogsTable th:nth-child(3), #gocLogsTable td:nth-child(3) { width: 68px !important; }
+            #gocLogsTable th:nth-child(4), #gocLogsTable td:nth-child(4) { width: 52px !important; }
+            #gocLogsTable th:nth-child(5), #gocLogsTable td:nth-child(5) { width: 88px !important; }
+            #gocLogsTable th:nth-child(6), #gocLogsTable td:nth-child(6) { width: 70px !important; }
+
+            #gocLogsTable tbody td:nth-child(3),
+            #bookingTable tbody td:nth-child(3),
+            #quyTable tbody td:nth-child(2) {
+                font-size: 10px !important;
+                font-weight: 700 !important;
+                line-height: 1.25 !important;
+            }
+
+            /* Thưởng sân. */
+            #bookingTable { width: 350px !important; }
+            #bookingTable th:nth-child(1), #bookingTable td:nth-child(1) { width: 24px !important; }
+            #bookingTable th:nth-child(2), #bookingTable td:nth-child(2) { width: 48px !important; }
+            #bookingTable th:nth-child(3), #bookingTable td:nth-child(3) { width: 74px !important; }
+            #bookingTable th:nth-child(4), #bookingTable td:nth-child(4) { width: 62px !important; }
+            #bookingTable th:nth-child(5), #bookingTable td:nth-child(5) { width: 56px !important; }
+            #bookingTable th:nth-child(6), #bookingTable td:nth-child(6) { width: 86px !important; }
+
+            /* Đóng quỹ. */
+            #quyTable { width: 360px !important; }
+            #quyTable th:nth-child(1), #quyTable td:nth-child(1) { width: 24px !important; }
+            #quyTable th:nth-child(2), #quyTable td:nth-child(2) { width: 78px !important; }
+            #quyTable th:nth-child(3), #quyTable td:nth-child(3) { width: 66px !important; }
+            #quyTable th:nth-child(4), #quyTable td:nth-child(4) { width: 56px !important; }
+            #quyTable th:nth-child(5), #quyTable td:nth-child(5) { width: 68px !important; }
+            #quyTable th:nth-child(6), #quyTable td:nth-child(6) { width: 68px !important; }
+
+            /* Sổ thu chi: đủ 4 cột, không cần kéo ngang. */
+            #cashbookTable {
+                width: 100%;
+                min-width: 0;
+                table-layout: fixed;
+                font-size: 9px !important;
+            }
+            #cashbookTable th, #cashbookTable td { padding: .35rem .2rem !important; }
+            #cashbookTable th:nth-child(1), #cashbookTable td:nth-child(1) { width: 18%; }
+            #cashbookTable th:nth-child(2), #cashbookTable td:nth-child(2) { width: 45%; }
+            #cashbookTable th:nth-child(3), #cashbookTable td:nth-child(3) { width: 23%; }
+            #cashbookTable th:nth-child(4), #cashbookTable td:nth-child(4) { width: 14%; }
+
+            /* Thành viên: 5 cột chính trước, Username và Thao tác ở cuối. */
+            #membersTable { width: 518px; }
+            #membersTable th:nth-child(1), #membersTable td:nth-child(1) { width: 24px; }
+            #membersTable th:nth-child(2), #membersTable td:nth-child(2) { width: 126px; }
+            #membersTable th:nth-child(3), #membersTable td:nth-child(3) {
+                width: 92px;
+                text-align: right !important;
+                padding-right: .35rem !important;
+            }
+            #membersTable th:nth-child(4), #membersTable td:nth-child(4) { width: 42px; }
+            #membersTable th:nth-child(5), #membersTable td:nth-child(5) { width: 66px; }
+            #membersTable th:nth-child(6), #membersTable td:nth-child(6) { width: 86px; }
+            #membersTable th:nth-child(7), #membersTable td:nth-child(7) { width: 82px; }
+
+            /* Tiền góc: chữ nhỏ, tiêu đề wrap, ghim STT và Tên thành viên. */
+            #financeTable {
+                width: 746px !important;
+                min-width: 746px !important;
+                font-size: 8.5px !important;
+                border-collapse: separate !important;
+                border-spacing: 0;
+                isolation: isolate;
+            }
+            #financeTable th, #financeTable td {
+                min-width: 0 !important;
+                padding: .28rem .14rem !important;
+                line-height: 1.15;
+                overflow: hidden;
+            }
+            #financeTable th { font-size: 8px !important; white-space: normal !important; }
+            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { width: 30px !important; max-width: 30px !important; }
+            #financeTable th:nth-child(2), #financeTable td:nth-child(2) { width: 118px !important; max-width: 118px !important; }
+            #financeTable th:nth-child(3), #financeTable td:nth-child(3),
+            #financeTable th:nth-child(4), #financeTable td:nth-child(4),
+            #financeTable th:nth-child(5), #financeTable td:nth-child(5) { width: 34px !important; max-width: 34px !important; }
+            #financeTable th:nth-child(6), #financeTable td:nth-child(6) { width: 38px !important; max-width: 38px !important; }
+            #financeTable th:nth-child(7), #financeTable td:nth-child(7) { width: 44px !important; max-width: 44px !important; }
+            #financeTable th:nth-child(8), #financeTable td:nth-child(8),
+            #financeTable th:nth-child(9), #financeTable td:nth-child(9),
+            #financeTable th:nth-child(10), #financeTable td:nth-child(10),
+            #financeTable th:nth-child(11), #financeTable td:nth-child(11) { width: 64px !important; max-width: 64px !important; }
+            #financeTable th:nth-child(12), #financeTable td:nth-child(12) { width: 98px !important; max-width: 98px !important; }
+            #financeTable th:nth-child(13), #financeTable td:nth-child(13) { width: 60px !important; max-width: 60px !important; }
+            #financeTable th:nth-child(1), #financeTable td:nth-child(1),
+            #financeTable th:nth-child(2), #financeTable td:nth-child(2) {
+                position: sticky !important;
+                background: #fff !important;
+                background-clip: padding-box;
+                opacity: 1;
+                overflow: hidden;
+            }
+            #financeTable th:nth-child(1), #financeTable td:nth-child(1) { left: 0 !important; z-index: 8 !important; }
+            #financeTable th:nth-child(2), #financeTable td:nth-child(2) {
+                left: 30px !important;
+                z-index: 8 !important;
+                box-shadow: 3px 0 4px rgb(15 23 42 / 16%);
+            }
+            #financeTable thead th:nth-child(1), #financeTable thead th:nth-child(2) {
+                background: #f1f5f9 !important;
+                z-index: 12 !important;
+            }
+            #financeTable tbody tr:nth-child(even) td:nth-child(1),
+            #financeTable tbody tr:nth-child(even) td:nth-child(2) {
+                background: #f8fafc !important;
+            }
+            #financeTable td:nth-child(12) {
+                white-space: normal !important;
+                overflow: hidden !important;
+            }
+            #financeTable .finance-reward-note {
+                font-size: 7px;
+                line-height: 1.12;
+                text-align: right;
+            }
+
+            /* Lớp ghim độc lập: luôn nằm trên toàn bộ phần bảng đang cuộn. */
+            #tab-finance .mobile-priority-scroll {
+                position: relative;
+                isolation: isolate;
+                overflow-x: auto !important;
+                overflow-y: auto !important;
+            }
+            #financeTable thead th {
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 120 !important;
+                background-color: #f1f5f9 !important;
+                background-image: none !important;
+                opacity: 1 !important;
+                box-shadow: 0 2px 0 rgb(148 163 184 / 28%);
+            }
+            #financeTable .finance-scroll-cell {
+                position: relative !important;
+                z-index: 0 !important;
+            }
+            #financeTable .finance-sticky-index,
+            #financeTable .finance-sticky-name {
+                position: sticky !important;
+                background-color: #fff !important;
+                background-image: none !important;
+                background-clip: padding-box !important;
+                opacity: 1 !important;
+                overflow: hidden !important;
+                z-index: 100 !important;
+            }
+            #financeTable .finance-sticky-index {
+                left: 0 !important;
+                text-align: center !important;
+                display: table-cell !important;
+                visibility: visible !important;
+                color: #334155 !important;
+                font-size: 8px !important;
+                line-height: 1.1 !important;
+                text-indent: 0 !important;
+                writing-mode: horizontal-tb !important;
+            }
+            #financeTable .finance-sticky-name {
+                left: 30px !important;
+                box-shadow: 4px 0 5px rgb(15 23 42 / 18%);
+                text-align: left !important;
+            }
+            #financeTable thead .finance-sticky-index,
+            #financeTable thead .finance-sticky-name {
+                background-color: #f1f5f9 !important;
+                top: 0 !important;
+                z-index: 220 !important;
+            }
+            #financeTable thead .finance-header-cell {
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 120 !important;
+                background-color: #f1f5f9 !important;
+            }
+            #financeTable .finance-sticky-index::before,
+            #financeTable .finance-sticky-index::after {
+                content: none !important;
+                display: none !important;
+            }
+            #financeTable .finance-stt-value {
+                display: block !important;
+                position: relative !important;
+                z-index: 300 !important;
+                width: 100% !important;
+                color: #334155 !important;
+                font-size: 8px !important;
+                font-weight: 800 !important;
+                line-height: 1.1 !important;
+                text-align: center !important;
+                text-indent: 0 !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                white-space: nowrap !important;
+            }
+            #financeTable .finance-total-cell,
+            #financeTable th.finance-total-header {
+                text-align: right !important;
+            }
+            #financeTable .finance-total-cell .finance-total-stack,
+            #financeTable .finance-total-cell .money-stack,
+            #financeTable .finance-total-cell .money-value,
+            #financeTable .finance-total-cell .finance-reward-note {
+                margin-left: auto;
+                text-align: right !important;
+            }
+            #financeTable .finance-total-cell .money-stack {
+                display: flex !important;
+                justify-content: flex-end !important;
+                width: max-content;
+                max-width: 100%;
+            }
+
+            #dashboardMatchTable {
+                min-width: 320px;
+                table-layout: fixed;
+                font-size: 9px !important;
+            }
+            #dashboardMatchTable th, #dashboardMatchTable td { padding: .35rem .2rem !important; }
+            #dashboardMatchTable th:nth-child(1), #dashboardMatchTable td:nth-child(1) { width: 12%; }
+            #dashboardMatchTable th:nth-child(2), #dashboardMatchTable td:nth-child(2),
+            #dashboardMatchTable th:nth-child(3), #dashboardMatchTable td:nth-child(3) { width: 28%; }
+            #dashboardMatchTable th:nth-child(4), #dashboardMatchTable td:nth-child(4) { width: 12%; }
+            #dashboardMatchTable th:nth-child(5), #dashboardMatchTable td:nth-child(5) { width: 20%; }
+
+            .duel-layout {
+                grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
+                gap: .2rem;
+            }
+
+            #tab-analytics > .bg-white {
+                padding: .7rem !important;
+            }
+
+            #bestDuosTable {
+                width: max-content;
+                max-width: none;
+                table-layout: fixed;
+                font-size: 9px !important;
+            }
+
+            #bestDuosTable th,
+            #bestDuosTable td {
+                min-width: 0 !important;
+                padding: .35rem .12rem !important;
+                vertical-align: middle;
+            }
+
+            #bestDuosTable th {
+                white-space: normal !important;
+                overflow-wrap: normal;
+                line-height: 1.12;
+            }
+
+            #bestDuosTable th:nth-child(1),
+            #bestDuosTable td:nth-child(1) {
+                font-size: 7.5px !important;
+                line-height: 1.05 !important;
+                text-align: center !important;
+            }
+
+            #bestDuosTable th:nth-child(3),
+            #bestDuosTable th:nth-child(4) {
+                font-size: 7px !important;
+                line-height: 1.08 !important;
+                text-align: center !important;
+            }
+
+            #bestDuosTable td:nth-child(2) {
+                font-size: 9.5px !important;
+                font-weight: 750 !important;
+                line-height: 1.22 !important;
+            }
+
+            .duo-team-stack {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: center;
+                gap: 2px;
+                width: 100%;
+                min-width: 0;
+                white-space: normal;
+            }
+
+            .duo-team-member {
+                display: block;
+                width: 100%;
+                white-space: normal;
+            }
+        }
+    </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col">
 
@@ -62,6 +780,10 @@
 
                     <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Bảng Vàng Vinh Danh">
                         <i class="fa-solid fa-trophy text-sm"></i>
+                    </button>
+
+                    <button type="button" onclick="refreshCloudData(this)" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Làm mới dữ liệu từ Google Cloud" aria-label="Làm mới dữ liệu từ Google Cloud">
+                        <i class="fa-solid fa-rotate text-sm"></i>
                     </button>
 
                     <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản & Thoát">
@@ -185,9 +907,16 @@
                             <p class="text-[10px] text-slate-500 mt-1">Đã nộp dồn: <span id="statPaidDisplay" class="font-bold text-emerald-700">0 đ</span></p>
                         </div>
 
-                        <div class="bg-white p-2.5 rounded-xl border border-emerald-300 shadow-sm flex flex-col items-center text-center">
-                            <span class="text-[9px] font-extrabold text-emerald-900 uppercase mb-1">MÃ QR (BẤM PHÓNG TO)</span>
-                            <img id="dashQrImg" src="" alt="VietQR" onclick="openQRZoomModal()" class="w-20 h-20 object-contain rounded border cursor-pointer hover:scale-105 transition">
+                        <div class="dashboard-fund-actions" aria-label="Trạng thái quỹ và mã QR chuyển khoản">
+                            <div id="dashQuyStatusBadge" class="fund-status-chip" role="status">
+                                <i id="dashQuyStatusIcon" class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                <span id="dashQuyStatusText">Đã đóng quỹ Quý</span>
+                            </div>
+                            <button id="dashboardQrButton" type="button" onclick="openDashboardQrModalResponsive(event)" class="qr-icon-button" title="Mở mã QR chuyển khoản" aria-label="Mở và phóng to mã QR chuyển khoản">
+                                <span class="mobile-qr-button-icon" aria-hidden="true"><i class="fa-solid fa-qrcode"></i></span>
+                                <span class="qr-button-label">QR</span>
+                                <img id="dashQrImg" src="" alt="" hidden aria-hidden="true" style="display:none !important;width:0 !important;height:0 !important;position:absolute !important;pointer-events:none !important;">
+                            </button>
                         </div>
                     </div>
 
@@ -216,7 +945,7 @@
                     <div class="bg-slate-50 p-4 rounded-xl border">
                         <h3 class="font-extrabold text-xs text-slate-700 uppercase mb-3 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-500"></i> NHẬT KÝ THI ĐẤU (THÁNG)</h3>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs border-collapse">
+                            <table id="dashboardMatchTable" class="w-full text-left text-xs border-collapse">
                                 <thead>
                                     <tr class="bg-slate-200 text-slate-700">
                                         <th class="p-2 text-center">Trận</th>
@@ -250,21 +979,21 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                     <div class="flex items-center justify-between border-b pb-3">
                         <h3 class="font-black text-sm md:text-base text-slate-800 uppercase flex items-center gap-2">
-                            <i class="fa-solid fa-handshake-angle text-emerald-600"></i> 1. Bảng Xếp Hạng "Cạ Cứng Ăn Ý Nhất" (Top Cặp Đôi)
+                            <i class="fa-solid fa-handshake-angle text-emerald-600"></i> CẶP ĐÔI ĂN Ý NHẤT
                         </h3>
                         <span class="text-[11px] font-semibold text-slate-500">Ngưỡng tối thiểu >= 3 trận chung</span>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll analytics-duos-scroll">
+                        <table id="bestDuosTable" class="w-full text-left text-xs border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
                                     <th class="p-2.5 text-center">Hạng</th>
-                                    <th class="p-2.5">Đồng Đội (Cặp Cạ Cứng)</th>
+                                    <th class="p-2.5">Đồng Đội</th>
                                     <th class="p-2.5 text-center">Tổng Trận Chung</th>
+                                    <th class="p-2.5 text-center text-emerald-700 font-black">Tỷ Lệ Thắng (%)</th>
                                     <th class="p-2.5 text-center text-blue-600">Thắng</th>
                                     <th class="p-2.5 text-center text-amber-600">Hòa</th>
                                     <th class="p-2.5 text-center text-red-600">Thua</th>
-                                    <th class="p-2.5 text-right text-emerald-700 font-black">Tỷ Lệ Thắng (%)</th>
                                 </tr>
                             </thead>
                             <tbody id="bestDuosTableBody" class="divide-y divide-slate-200"></tbody>
@@ -400,8 +1129,8 @@
                             <span id="todayMatchCountText">Ngày hôm nay có thêm 0 trận đấu được ghi nhận</span>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="matchLogTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 font-bold border-b"><th class="p-2.5 text-center">STT</th><th class="p-2.5">Thời Gian</th><th class="p-2.5">Đội A</th><th class="p-2.5">Đội B</th><th class="p-2.5 text-center">Tỉ Số</th><th class="p-2.5 text-right">Kèo</th><th class="p-2.5 text-center admin-only">Sửa / Xóa</th></tr>
                             </thead>
@@ -431,8 +1160,8 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="gocLogsTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 font-bold border-b">
                                     <th class="p-2.5 text-center">STT</th>
@@ -471,8 +1200,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="overflow-x-auto max-h-[550px]">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto max-h-[550px] mobile-priority-scroll">
+                        <table id="financeTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b text-[11px]">
                                     <th class="p-2 text-center cursor-pointer hover:bg-slate-200 select-none" onclick="sortFinanceTable('stt')">STT <span id="sort-icon-stt" class="text-emerald-700 font-black">↕</span></th>
@@ -520,8 +1249,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="bookingTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 font-bold border-b">
                                     <th class="p-2.5 text-center">STT</th>
@@ -555,8 +1284,8 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="quyTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
                                     <th class="p-2.5 text-center">STT</th>
@@ -582,7 +1311,7 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="bg-amber-50 p-2 rounded-xl border border-amber-300 text-right text-xs">
-                                <span class="font-bold text-amber-900 block text-[9px]">DƯ ĐẦU KỲ:</span>
+                                <span id="openingBalanceLabel" class="font-bold text-amber-900 block text-[9px]">DƯ ĐẦU KỲ:</span>
                                 <span id="openingBalanceDisplay" class="font-black text-slate-900 text-xs">2.656.160 đ</span>
                             </div>
                             <div class="bg-purple-100 text-purple-900 px-4 py-2 rounded-xl border border-purple-200 text-center">
@@ -636,9 +1365,9 @@
                                     Tổng: <span id="selectedCatTotal">0 đ</span>
                                 </div>
                             </div>
-                            <div class="overflow-x-auto max-h-60">
-                                <table class="w-full text-left text-xs border-collapse">
-                                    <thead><tr class="bg-slate-200"><th class="p-1.5">Thời Gian</th><th class="p-1.5">Nội Dung</th><th class="p-1.5 text-right">Số Tiền</th><th class="p-1.5 text-center admin-only">Xóa</th></tr></thead>
+                            <div class="overflow-x-auto overflow-y-auto max-h-60">
+                                <table id="cashbookTable" class="w-full text-left text-xs border-collapse">
+                                    <thead><tr class="bg-slate-200"><th class="p-1.5">Thời Gian</th><th class="p-1.5">Thành Viên / Nội Dung</th><th class="p-1.5 text-right">Số Tiền</th><th class="p-1.5 text-center admin-only">Xóa</th></tr></thead>
                                     <tbody id="categoryLogBody" class="divide-y divide-slate-200"></tbody>
                                 </table>
                             </div>
@@ -660,16 +1389,16 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="overflow-x-auto mobile-priority-scroll">
+                        <table id="membersTable" class="w-full text-left text-xs border-collapse mobile-priority-table">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
                                     <th class="p-2.5 text-center">STT</th>
                                     <th class="p-2.5">Tên Thành Viên</th>
-                                    <th class="p-2.5 text-center">Username</th>
                                     <th class="p-2.5 text-center">Trạng Thái</th>
                                     <th class="p-2.5 text-center bg-amber-50">Base</th>
                                     <th class="p-2.5 text-center">Vai Trò</th>
+                                    <th class="p-2.5 text-center">Username</th>
                                     <th class="p-2.5 text-center admin-only">Thao Tác</th>
                                 </tr>
                             </thead>
@@ -826,6 +1555,25 @@
                                 >
                             </div>
             
+                        </div>
+            
+            
+                        <div>
+                            <label class="block mb-1 font-bold">
+                                Thưởng đặc cách CVTT5 - Hoàng Văn Thái (đ):
+                            </label>
+            
+                            <input
+                                type="number"
+                                id="stRewardCVTT5"
+                                min="0"
+                                required
+                                class="w-full p-2.5 border rounded-xl font-bold text-purple-700"
+                            >
+            
+                            <p class="text-[10px] text-slate-500 mt-1">
+                                Áp dụng riêng cho khung 18h-20h tại CVTT5 do Hoàng Văn Thái (Thanglong15) đặt sân. Đang đặc cách 0đ, có thể chỉnh linh hoạt tại đây.
+                            </p>
                         </div>
             
             
@@ -1132,9 +1880,9 @@
     </div>
 
     <!-- MODAL PHÓNG TO MÃ QR CÁ NHÂN -->
-    <div id="qrZoomModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeQRZoomModal()">
+    <div id="qrZoomModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[250] p-4" onclick="closeDashboardQrModalResponsive(event)">
         <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl text-center relative flex flex-col items-center" onclick="event.stopPropagation()">
-            <button onclick="closeQRZoomModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="closeDashboardQrModalResponsive(event)" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="font-extrabold text-emerald-900 text-xs uppercase mb-3">MÃ QR CHUYỂN KHOẢN</h3>
             <img id="zoomQrImg" src="" alt="VietQR Zoomed" class="w-60 h-60 object-contain rounded-xl border shadow-md mb-2">
             <p class="text-[10px] text-slate-500 font-semibold">Chạm hoặc chụp màn hình để quét mã</p>
@@ -1282,5 +2030,745 @@
     <script src="js/modules/settings.js"></script>
     <script src="js/init.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        // Bộ tăng cường giao diện responsive chạy sau các module hiện có.
+        // Không thay đổi dữ liệu hay luồng API; chỉ định dạng DOM sau mỗi lần render bảng.
+        (() => {
+            const escapeHtml = (value) => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+
+            const cellAt = (row, index) => row?.children?.[index - 1] || null;
+
+            function formatTimeCell(cell) {
+                if (!cell || cell.dataset.responsiveTime === '1') return;
+                const parts = cell.textContent.trim().split(/\s+/).filter(Boolean);
+                if (parts.length < 2) return;
+                cell.innerHTML = `<span class="time-stack">${parts.map(part => `<span>${escapeHtml(part)}</span>`).join('')}</span>`;
+                cell.dataset.responsiveTime = '1';
+            }
+
+            function formatScoreCell(cell) {
+                if (!cell || cell.dataset.responsiveScore === '1') return;
+                const score = cell.textContent.trim().match(/(-?\d+)\s*[-–]\s*(-?\d+)/);
+                if (!score) return;
+                cell.innerHTML = `<span class="score-stack"><span>${escapeHtml(score[1])}</span><span class="score-dash">–</span><span>${escapeHtml(score[2])}</span></span>`;
+                cell.classList.add('mobile-score-cell');
+                cell.dataset.responsiveScore = '1';
+            }
+
+            function formatMoneyCell(cell) {
+                if (!cell || cell.dataset.responsiveMoney === '1') return;
+                const text = cell.textContent.replace(/\s+/g, ' ').trim();
+                const money = text.match(/^(.+?)\s*(?:đ|₫)$/i);
+                if (!money) return;
+                cell.innerHTML = `<span class="money-stack"><span class="money-value">${escapeHtml(money[1].trim())}</span><span class="money-unit">đ</span></span>`;
+                cell.dataset.responsiveMoney = '1';
+            }
+
+            function formatFinanceTotalCell(cell) {
+                if (!cell || cell.dataset.responsiveFinanceTotal === '1') return;
+                cell.classList.add('finance-total-cell');
+                cell.style.setProperty('text-align', 'right', 'important');
+                const text = cell.textContent.replace(/\s+/g, ' ').trim();
+                const rewardAt = text.search(/thưởng\s*sân\s*:/i);
+
+                if (rewardAt < 0) {
+                    formatMoneyCell(cell);
+                    cell.dataset.responsiveFinanceTotal = '1';
+                    return;
+                }
+
+                const totalText = text.slice(0, rewardAt).trim();
+                const rewardText = text.slice(rewardAt).trim();
+                const total = totalText.match(/([+-]?[\d.,]+)\s*(?:đ|₫)?\s*$/i);
+                const reward = rewardText.match(/thưởng\s*sân\s*:\s*([+-]?[\d.,]+)\s*(?:đ|₫)?/i);
+
+                if (!total || !reward) {
+                    formatMoneyCell(cell);
+                    cell.dataset.responsiveFinanceTotal = '1';
+                    return;
+                }
+
+                cell.innerHTML = `
+                    <div class="finance-total-stack">
+                        <span class="money-stack"><span class="money-value">${escapeHtml(total[1])}</span><span class="money-unit">đ</span></span>
+                        <span class="finance-reward-note">Thưởng sân: ${escapeHtml(reward[1])} đ</span>
+                    </div>`;
+                cell.classList.add('finance-total-cell');
+                cell.dataset.responsiveMoney = '1';
+                cell.dataset.responsiveFinanceTotal = '1';
+            }
+
+            function markWrapCell(cell) {
+                if (cell) cell.classList.add('mobile-wrap-text');
+            }
+
+            function setImportant(element, property, value) {
+                if (element) element.style.setProperty(property, value, 'important');
+            }
+
+            function lockTableColumnWidths(tableId, widths, wrapColumns = []) {
+                const table = document.getElementById(tableId);
+                if (!table) return;
+
+                const totalWidth = widths.reduce((sum, width) => sum + width, 0);
+                setImportant(table, 'width', `${totalWidth}px`);
+                setImportant(table, 'min-width', `${totalWidth}px`);
+                setImportant(table, 'max-width', `${totalWidth}px`);
+                setImportant(table, 'table-layout', 'fixed');
+
+                Array.from(table.rows || []).forEach(row => {
+                    Array.from(row.children).forEach((cell, index) => {
+                        const width = widths[index];
+                        if (!width) return;
+
+                        setImportant(cell, 'width', `${width}px`);
+                        setImportant(cell, 'min-width', `${width}px`);
+                        setImportant(cell, 'max-width', `${width}px`);
+                        setImportant(cell, 'padding-left', '1px');
+                        setImportant(cell, 'padding-right', '1px');
+
+                        if (wrapColumns.includes(index + 1)) {
+                            setImportant(cell, 'white-space', 'normal');
+                            setImportant(cell, 'word-break', 'normal');
+                            setImportant(cell, 'overflow-wrap', 'normal');
+                        }
+                    });
+                });
+            }
+
+            function lockAllMobileTableLayouts() {
+                if (!window.matchMedia('(max-width: 767px)').matches) return;
+
+                const visibleWidth = Math.max(320, Math.min(390, window.innerWidth - 40));
+
+                const matchTeamA = Math.floor((visibleWidth - 136) / 2);
+                const matchTeamB = visibleWidth - 136 - matchTeamA;
+                lockTableColumnWidths('matchLogTable', [22, 44, matchTeamA, matchTeamB, 28, 42, 74], [3, 4]);
+
+                const gocMember = visibleWidth - 196;
+                lockTableColumnWidths('gocLogsTable', [22, 44, gocMember, 50, 80, 76], [3, 5]);
+
+                const bookingMember = visibleWidth - 172;
+                lockTableColumnWidths('bookingTable', [22, 44, bookingMember, 56, 50, 82], [3, 4]);
+
+                const quyMember = visibleWidth - 198;
+                lockTableColumnWidths('quyTable', [22, quyMember, 60, 52, 64, 62], [2, 3, 5]);
+
+                const memberFixedWidth = 24 + 42 + 66;
+                const memberFlexibleWidth = visibleWidth - memberFixedWidth;
+                const memberNameWidth = Math.round(memberFlexibleWidth * 0.58);
+                const memberStatusWidth = memberFlexibleWidth - memberNameWidth;
+                lockTableColumnWidths(
+                    'membersTable',
+                    [24, memberNameWidth, memberStatusWidth, 42, 66, 86, 82],
+                    [2, 3, 5, 6]
+                );
+
+                const duoMemberWidth = Math.max(160, visibleWidth - 140);
+                lockTableColumnWidths(
+                    'bestDuosTable',
+                    [28, duoMemberWidth, 58, 54, 42, 42, 42],
+                    [2, 3, 4]
+                );
+                lockTableColumnWidths('financeTable', [30, 118, 34, 34, 34, 38, 44, 64, 64, 64, 64, 98, 60], [2]);
+            }
+
+            function ensureFinanceSttColumn() {
+                const table = document.getElementById('financeTable');
+                const headerRow = table?.tHead?.rows?.[0];
+                const tbody = document.getElementById('financeTableBody');
+                if (!table || !headerRow || !tbody) return;
+
+                let headerCells = Array.from(headerRow.cells);
+                const hasSttHeader = /^STT\b/i.test(headerCells[0]?.textContent?.trim() || '');
+
+                if (!hasSttHeader) {
+                    const sttHeader = document.createElement('th');
+                    sttHeader.className = 'p-2 text-center font-bold';
+                    headerRow.prepend(sttHeader);
+                    headerCells = Array.from(headerRow.cells);
+                }
+
+                const sttHeaderCell = headerCells[0];
+                if (sttHeaderCell && !sttHeaderCell.querySelector('.finance-stt-value')) {
+                    sttHeaderCell.innerHTML = '<span class="finance-stt-value">STT <span id="sort-icon-stt" aria-hidden="true">↕</span></span>';
+                }
+                sttHeaderCell?.setAttribute('aria-label', 'Cột số thứ tự');
+
+                const expectedCount = headerCells.length;
+                Array.from(tbody.rows).forEach((row, index) => {
+                    if (row.cells.length === 1 && row.cells[0].hasAttribute('colspan')) return;
+
+                    if (row.cells.length === expectedCount - 1) {
+                        row.insertCell(0);
+                    }
+
+                    const sttCell = row.cells[0];
+                    if (!sttCell) return;
+                    const stt = String(index + 1);
+                    const sttValue = sttCell.querySelector('.finance-stt-value');
+                    if (!sttValue || sttValue.textContent.trim() !== stt) {
+                        sttCell.innerHTML = `<span class="finance-stt-value">${stt}</span>`;
+                    }
+                    sttCell.classList.add('text-center', 'font-bold');
+                    sttCell.setAttribute('aria-label', `Số thứ tự ${stt}`);
+                });
+            }
+
+            function prepareFinanceStickyColumns() {
+                if (!window.matchMedia('(max-width: 767px)').matches) return;
+                const table = document.getElementById('financeTable');
+                if (!table) return;
+
+                table.querySelectorAll('.sticky-col').forEach(cell => cell.classList.remove('sticky-col'));
+
+                Array.from(table.rows || []).forEach(row => {
+                    const cells = Array.from(row.children);
+                    const isHeader = row.parentElement?.tagName === 'THEAD';
+
+                    cells.forEach((cell, index) => {
+                        cell.classList.remove('finance-sticky-index', 'finance-sticky-name', 'finance-scroll-cell', 'finance-header-cell');
+
+                        if (index === 0) {
+                            cell.classList.add('finance-sticky-index');
+                            setImportant(cell, 'position', 'sticky');
+                            setImportant(cell, 'left', '0');
+                            if (isHeader) setImportant(cell, 'top', '0');
+                            setImportant(cell, 'z-index', isHeader ? '220' : '100');
+                            setImportant(cell, 'background-color', isHeader ? '#f1f5f9' : '#ffffff');
+                        } else if (index === 1) {
+                            cell.classList.add('finance-sticky-name');
+                            setImportant(cell, 'position', 'sticky');
+                            setImportant(cell, 'left', '30px');
+                            if (isHeader) setImportant(cell, 'top', '0');
+                            setImportant(cell, 'z-index', isHeader ? '220' : '100');
+                            setImportant(cell, 'background-color', isHeader ? '#f1f5f9' : '#ffffff');
+                        } else if (isHeader) {
+                            cell.classList.add('finance-header-cell');
+                            setImportant(cell, 'position', 'sticky');
+                            setImportant(cell, 'top', '0');
+                            setImportant(cell, 'z-index', '120');
+                            setImportant(cell, 'background-color', '#f1f5f9');
+                        } else {
+                            cell.classList.add('finance-scroll-cell');
+                            setImportant(cell, 'position', 'relative');
+                            setImportant(cell, 'z-index', '0');
+                        }
+                    });
+
+                    if (cells[11]) {
+                        cells[11].classList.add(isHeader ? 'finance-total-header' : 'finance-total-cell');
+                        setImportant(cells[11], 'text-align', 'right');
+                    }
+                });
+            }
+
+            function reorderMemberRow(row) {
+                if (!row || row.dataset.responsiveMemberOrder === '1') return;
+                const cells = Array.from(row.children);
+                if (cells.length < 7 || cells.some(cell => cell.hasAttribute('colspan'))) return;
+
+                // Cũ: STT, Tên, Username, Trạng thái, Base, Vai trò, Thao tác.
+                // Mới: STT, Tên, Trạng thái, Base, Vai trò, Username, Thao tác.
+                row.append(cells[3], cells[4], cells[5], cells[2], cells[6]);
+                row.dataset.responsiveMemberOrder = '1';
+            }
+
+            function reorderBestDuoRow(row) {
+                if (!row || row.dataset.responsiveBestDuoOrder === '1') return;
+                const cells = Array.from(row.children);
+                if (cells.length < 7 || cells.some(cell => cell.hasAttribute('colspan'))) return;
+
+                // Cũ: Hạng, Đồng đội, Tổng trận, Thắng, Hòa, Thua, Tỷ lệ.
+                // Mới: Hạng, Đồng đội, Tổng trận, Tỷ lệ, Thắng, Hòa, Thua.
+                row.append(cells[0], cells[1], cells[2], cells[6], cells[3], cells[4], cells[5]);
+                row.dataset.responsiveBestDuoOrder = '1';
+            }
+
+            function formatBestDuoMembers(cell) {
+                if (!cell || cell.dataset.responsiveDuoMembers === '1') return;
+                const members = cell.textContent
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .split(/\s*&\s*/)
+                    .filter(Boolean);
+                if (members.length !== 2) return;
+
+                cell.innerHTML = `
+                    <div class="duo-team-stack">
+                        <span class="duo-team-member">${escapeHtml(members[0])}</span>
+                        <span class="duo-team-member">${escapeHtml(members[1])}</span>
+                    </div>`;
+                cell.dataset.responsiveDuoMembers = '1';
+            }
+
+            function formatDuelCell(cell) {
+                if (!cell || cell.dataset.responsiveDuel === '1') return;
+                const text = cell.textContent.replace(/\s+/g, ' ').trim();
+                const divider = text.match(/\s+vs\.?\s+|\s*🔥\s*|\s*↔\s*/i);
+                if (!divider || typeof divider.index !== 'number') return;
+
+                const left = text.slice(0, divider.index).trim();
+                const right = text.slice(divider.index + divider[0].length).trim();
+                if (!left || !right) return;
+
+                cell.innerHTML = `
+                    <div class="duel-layout">
+                        <span class="duel-side">${escapeHtml(left)}</span>
+                        <span class="duel-fire" aria-label="đối đầu"><i class="fa-solid fa-fire" aria-hidden="true"></i></span>
+                        <span class="duel-side">${escapeHtml(right)}</span>
+                    </div>`;
+                cell.dataset.responsiveDuel = '1';
+            }
+
+            function enhanceRows(tbodyId, formatter) {
+                const tbody = document.getElementById(tbodyId);
+                if (!tbody) return;
+                Array.from(tbody.rows).forEach(formatter);
+            }
+
+            function enhanceAllTables() {
+                enhanceRows('userMatchHistoryBody', row => {
+                    markWrapCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    formatScoreCell(cellAt(row, 4));
+                    formatMoneyCell(cellAt(row, 5));
+                });
+
+                enhanceRows('allMatchTableBody', row => {
+                    formatTimeCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    markWrapCell(cellAt(row, 4));
+                    formatScoreCell(cellAt(row, 5));
+                    formatMoneyCell(cellAt(row, 6));
+                });
+
+                enhanceRows('gocLogsTableBody', row => {
+                    formatTimeCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    formatMoneyCell(cellAt(row, 4));
+                    markWrapCell(cellAt(row, 5));
+                });
+
+                enhanceRows('bookingLogTableBody', row => {
+                    formatTimeCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    markWrapCell(cellAt(row, 4));
+                    formatMoneyCell(cellAt(row, 5));
+                });
+
+                enhanceRows('quyTableBody', row => {
+                    markWrapCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    formatMoneyCell(cellAt(row, 4));
+                    markWrapCell(cellAt(row, 5));
+                });
+
+                enhanceRows('categoryLogBody', row => {
+                    formatTimeCell(cellAt(row, 1));
+                    markWrapCell(cellAt(row, 2));
+                    formatMoneyCell(cellAt(row, 3));
+                });
+
+                enhanceRows('memberTableBody', row => {
+                    reorderMemberRow(row);
+                    markWrapCell(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 3));
+                    markWrapCell(cellAt(row, 5));
+                });
+
+                enhanceRows('bestDuosTableBody', row => {
+                    reorderBestDuoRow(row);
+                    formatBestDuoMembers(cellAt(row, 2));
+                    markWrapCell(cellAt(row, 2));
+                });
+
+                ensureFinanceSttColumn();
+                enhanceRows('financeTableBody', row => {
+                    markWrapCell(cellAt(row, 2));
+                    [8, 9, 10, 11].forEach(index => formatMoneyCell(cellAt(row, index)));
+                    formatFinanceTotalCell(cellAt(row, 12));
+                });
+
+                lockAllMobileTableLayouts();
+                prepareFinanceStickyColumns();
+
+                ['rivalsDuyenNoBody', 'rivalsCanSucBody', 'rivalsKhacTinhBody'].forEach(tbodyId => {
+                    enhanceRows(tbodyId, row => formatDuelCell(cellAt(row, 1)));
+                });
+            }
+
+            function syncDashboardFundStatus() {
+                const warning = document.getElementById('quyWarningBanner');
+                const warningText = document.getElementById('quyWarningText');
+                const badge = document.getElementById('dashQuyStatusBadge');
+                const badgeText = document.getElementById('dashQuyStatusText');
+                const badgeIcon = document.getElementById('dashQuyStatusIcon');
+                if (!warning || !badge || !badgeText || !badgeIcon) return;
+
+                const isVisible = !warning.classList.contains('hidden') && warning.style.display !== 'none';
+                const message = warningText?.textContent?.toLocaleLowerCase('vi') || '';
+                const isUnpaid = isVisible && message.includes('chưa đóng quỹ');
+                const currentStatus = badgeText.textContent?.trim() || '';
+                const period = currentStatus.match(/Q[1-4]\s*\/\s*\d{4}/i)?.[0]?.replace(/\s+/g, '') || '';
+
+                badge.classList.toggle('is-unpaid', isUnpaid);
+                badgeText.textContent = isUnpaid
+                    ? `Chưa đóng quỹ ${period || 'Quý'}`
+                    : `Đã đóng quỹ ${period || 'Quý'}`;
+                badgeIcon.className = isUnpaid ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-check';
+            }
+
+            function syncDesktopDashboardFinanceLayout() {
+                const statDebt = document.getElementById('statDebt');
+                const paidInput = document.getElementById('userPaidInput');
+                const qrImage = document.getElementById('dashQrImg');
+                const badge = document.getElementById('dashQuyStatusBadge');
+                if (!paidInput && !qrImage) return;
+
+                const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+                const anchors = [statDebt, paidInput, qrImage].filter(Boolean);
+                let financeRow = anchors[0]?.parentElement || null;
+                const dashboard = document.getElementById('tab-dashboard');
+
+                while (financeRow && financeRow !== dashboard && !anchors.every(anchor => financeRow.contains(anchor))) {
+                    financeRow = financeRow.parentElement;
+                }
+
+                const branchInside = (container, anchor) => {
+                    if (!container || !anchor) return null;
+                    let branch = anchor;
+                    while (branch.parentElement && branch.parentElement !== container) branch = branch.parentElement;
+                    return branch.parentElement === container ? branch : null;
+                };
+
+                let summaryCard = branchInside(financeRow, statDebt);
+                let paidCard = branchInside(financeRow, paidInput);
+                let qrCard = branchInside(financeRow, qrImage);
+                const distinctCards = new Set([summaryCard, paidCard, qrCard].filter(Boolean));
+
+                if (distinctCards.size < 3) {
+                    summaryCard = statDebt?.closest('.bg-white') || statDebt?.parentElement?.parentElement || null;
+                    paidCard = paidInput?.closest('.bg-white') || paidInput?.parentElement?.parentElement || null;
+                    qrCard = qrImage?.closest('.bg-white') || qrImage?.parentElement?.parentElement || null;
+                    financeRow = null;
+                }
+
+                let qrButton = document.getElementById('dashboardQrButton') || qrImage?.closest('button');
+                if (!qrButton && qrCard) {
+                    qrButton = document.createElement('button');
+                    qrButton.id = 'dashboardQrButton';
+                    qrButton.type = 'button';
+                    qrButton.setAttribute('aria-label', 'Mở và phóng to mã QR chuyển khoản');
+                    qrCard.append(qrButton);
+                }
+
+                if (qrButton && !qrButton.querySelector('.mobile-qr-button-icon')) {
+                    const icon = document.createElement('span');
+                    icon.className = 'mobile-qr-button-icon';
+                    icon.setAttribute('aria-hidden', 'true');
+                    icon.innerHTML = '<i class="fa-solid fa-qrcode"></i>';
+                    qrButton.prepend(icon);
+                }
+
+                if (qrButton && !qrButton.querySelector('.qr-button-label')) {
+                    const label = document.createElement('span');
+                    label.className = 'qr-button-label';
+                    label.textContent = 'QR';
+                    qrButton.append(label);
+                }
+
+                if (qrButton) {
+                    qrButton.hidden = false;
+                    qrButton.removeAttribute('aria-hidden');
+                    ['display', 'width', 'min-width', 'max-width', 'height', 'min-height', 'visibility', 'opacity', 'pointer-events'].forEach(property => {
+                        qrButton.style.removeProperty(property);
+                    });
+                }
+
+                financeRow?.classList.toggle('desktop-finance-cards-row', isDesktop);
+                [summaryCard, paidCard, qrCard].forEach(card => {
+                    card?.classList.toggle('desktop-finance-card-shell', isDesktop);
+                });
+                summaryCard?.classList.toggle('desktop-finance-summary-card', isDesktop);
+
+                paidCard?.classList.toggle('desktop-paid-center-card', isDesktop);
+                qrCard?.classList.toggle('desktop-qr-center-card', isDesktop);
+                qrButton?.classList.toggle('desktop-qr-image-button', isDesktop);
+                badge?.classList.toggle('desktop-fund-status-aligned', isDesktop);
+
+                qrCard?.classList.toggle('mobile-qr-tap-card', !isDesktop);
+                qrButton?.classList.toggle('mobile-qr-open-button', !isDesktop);
+
+                if (!qrImage) return;
+
+                const currentSource = qrImage.currentSrc || qrImage.getAttribute('src') || qrImage.dataset.src || '';
+                if (!isUsableQrImageSource(currentSource)) {
+                    const generatedSource = buildDashboardVietQrSource();
+                    if (generatedSource) qrImage.src = generatedSource;
+                }
+
+                qrImage.classList.toggle('desktop-dashboard-qr', isDesktop);
+                qrImage.classList.toggle('mobile-dashboard-qr-source', !isDesktop);
+                if (isDesktop) {
+                    qrImage.hidden = false;
+                    qrImage.removeAttribute('aria-hidden');
+                    ['display', 'width', 'height', 'position', 'inset', 'opacity', 'clip-path', 'pointer-events'].forEach(property => {
+                        qrImage.style.removeProperty(property);
+                    });
+                } else {
+                    qrImage.hidden = false;
+                    qrImage.setAttribute('aria-hidden', 'true');
+                    ['display', 'width', 'height', 'position', 'inset', 'opacity', 'clip-path', 'pointer-events'].forEach(property => {
+                        qrImage.style.removeProperty(property);
+                    });
+                }
+            }
+
+            function normalizeSettingKey(value) {
+                return String(value || '').toLocaleLowerCase('vi').replace(/[^a-z0-9]/g, '');
+            }
+
+            function getSettingsCandidates() {
+                const candidates = [];
+                try { if (typeof appData !== 'undefined') candidates.push(appData); } catch (_) {}
+                try { if (typeof appState !== 'undefined') candidates.push(appState); } catch (_) {}
+                try { if (typeof state !== 'undefined') candidates.push(state); } catch (_) {}
+                try { if (typeof systemSettings !== 'undefined') candidates.push(systemSettings); } catch (_) {}
+                try { if (typeof settings !== 'undefined') candidates.push(settings); } catch (_) {}
+                return candidates.filter(Boolean);
+            }
+
+            function readSettingValue(keys, inputId) {
+                const inputValue = document.getElementById(inputId)?.value?.trim();
+                if (inputValue) return inputValue;
+
+                const wantedKeys = new Set(keys.map(normalizeSettingKey));
+                const queue = getSettingsCandidates().map(value => ({ value, depth: 0 }));
+                const visited = new WeakSet();
+
+                [window.localStorage, window.sessionStorage].forEach(storage => {
+                    try {
+                        for (let index = 0; index < storage.length; index += 1) {
+                            const storageKey = storage.key(index);
+                            const rawValue = storage.getItem(storageKey);
+                            if (wantedKeys.has(normalizeSettingKey(storageKey)) && rawValue?.trim()) {
+                                queue.unshift({
+                                    value: { key: storageKey, value: rawValue.trim() },
+                                    depth: 0
+                                });
+                            }
+
+                            if (!rawValue || !/^[\[{]/.test(rawValue.trim())) continue;
+                            try {
+                                queue.push({ value: JSON.parse(rawValue), depth: 0 });
+                            } catch (_) {}
+                        }
+                    } catch (_) {}
+                });
+
+                while (queue.length) {
+                    const { value, depth } = queue.shift();
+                    if (!value || typeof value !== 'object' || visited.has(value)) continue;
+                    visited.add(value);
+
+                    if (Array.isArray(value)) {
+                        value.forEach(item => queue.push({ value: item, depth }));
+                        continue;
+                    }
+
+                    const recordKey = value.key ?? value.Key ?? value.name ?? value.Name ?? value.code ?? value.Code;
+                    const recordValue = value.value ?? value.Value ?? value.val ?? value.Val;
+                    if (wantedKeys.has(normalizeSettingKey(recordKey)) && recordValue != null && String(recordValue).trim()) {
+                        return String(recordValue).trim();
+                    }
+
+                    for (const [key, child] of Object.entries(value)) {
+                        if (wantedKeys.has(normalizeSettingKey(key)) && child != null && typeof child !== 'object' && String(child).trim()) {
+                            return String(child).trim();
+                        }
+
+                        const normalizedKey = normalizeSettingKey(key);
+                        if (depth < 3 && child && typeof child === 'object' && [
+                            'settings', 'systemsettings', 'config', 'configuration', 'data', 'appdata'
+                        ].includes(normalizedKey)) {
+                            queue.push({ value: child, depth: depth + 1 });
+                        }
+                    }
+                }
+
+                return '';
+            }
+
+            function buildDashboardVietQrSource() {
+                const bankId = readSettingValue(['BANK_ID', 'bankId'], 'stBankId');
+                const account = readSettingValue(
+                    ['BANK_ACCOUNT', 'bankAccount', 'ACCOUNT_NUMBER', 'accountNumber'],
+                    'stBankAccount'
+                );
+                const accountName = readSettingValue(
+                    ['ACCOUNT_NAME', 'accountName', 'BANK_ACCOUNT_NAME'],
+                    'stAccountName'
+                );
+
+                if (!bankId || !account) return '';
+                const path = `${encodeURIComponent(bankId)}-${encodeURIComponent(account)}-compact2.png`;
+                const query = accountName ? `?accountName=${encodeURIComponent(accountName)}` : '';
+                return `https://img.vietqr.io/image/${path}${query}`;
+            }
+
+            function isUsableQrImageSource(source) {
+                const value = String(source || '').trim();
+                if (!value || /(?:undefined|null)/i.test(value)) return false;
+                if (/^(?:data:image\/|blob:)/i.test(value)) return true;
+                if (/vietqr/i.test(value)) return true;
+                return /\.(?:png|jpe?g|webp|gif|svg)(?:[?#]|$)/i.test(value);
+            }
+
+            function getDashboardQrSource() {
+                const candidates = [
+                    document.getElementById('dashQrImg'),
+                    document.getElementById('zoomQrImg')
+                ];
+
+                for (const image of candidates) {
+                    if (!image) continue;
+                    const source = image.currentSrc || image.getAttribute('src') || image.dataset.src || '';
+                    if (isUsableQrImageSource(source)) return source;
+                }
+                return buildDashboardVietQrSource();
+            }
+
+            window.openDashboardQrModalResponsive = function openDashboardQrModalResponsive(event) {
+                event?.preventDefault();
+                event?.stopPropagation();
+                const modal = document.getElementById('qrZoomModal');
+                const zoomImage = document.getElementById('zoomQrImg');
+                const source = getDashboardQrSource();
+
+                if (!modal || !zoomImage) return;
+                if (!source) {
+                    const message = 'Mã QR đang được tải. Vui lòng chờ vài giây rồi bấm lại.';
+                    if (typeof window.showToast === 'function') window.showToast(message, 'warning');
+                    else window.alert(message);
+                    return;
+                }
+
+                zoomImage.src = source;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.classList.add('overflow-hidden');
+            };
+
+            window.closeDashboardQrModalResponsive = function closeDashboardQrModalResponsive(event) {
+                event?.preventDefault();
+                event?.stopPropagation();
+                const modal = document.getElementById('qrZoomModal');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.classList.remove('overflow-hidden');
+            };
+
+            function handleDashboardQrTap(event) {
+                const button = event.target?.closest?.(
+                    '#dashboardQrButton, .qr-icon-button, .mobile-qr-open-button, .mobile-qr-tap-card'
+                );
+                if (!button || !document.getElementById('tab-dashboard')?.contains(button)) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                window.openDashboardQrModalResponsive(event);
+            }
+
+            window.refreshCloudData = async function refreshCloudData(button) {
+                if (!navigator.onLine) {
+                    const message = 'Điện thoại đang ngoại tuyến. Hãy bật mạng rồi thử lại.';
+                    if (typeof window.showToast === 'function') window.showToast(message, 'warning');
+                    else window.alert(message);
+                    return;
+                }
+
+                if (button?.dataset.refreshing === '1') return;
+                if (button) {
+                    button.dataset.refreshing = '1';
+                    button.disabled = true;
+                    button.querySelector('i')?.classList.add('fa-spin');
+                }
+
+                try {
+                    if ('serviceWorker' in navigator) {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        await Promise.allSettled(registrations.map(registration => registration.update()));
+                    }
+                } finally {
+                    window.location.reload();
+                }
+            };
+
+            let queued = false;
+            function queueEnhance() {
+                if (queued) return;
+                queued = true;
+                requestAnimationFrame(() => {
+                    queued = false;
+                    enhanceAllTables();
+                    syncDashboardFundStatus();
+                    syncDesktopDashboardFinanceLayout();
+                });
+            }
+
+            function initResponsiveEnhancements() {
+                document.addEventListener('click', handleDashboardQrTap, true);
+
+                const observedBodies = [
+                    'userMatchHistoryBody', 'allMatchTableBody', 'gocLogsTableBody',
+                    'bookingLogTableBody', 'quyTableBody', 'categoryLogBody',
+                    'memberTableBody', 'financeTableBody', 'rivalsDuyenNoBody',
+                    'rivalsCanSucBody', 'rivalsKhacTinhBody', 'bestDuosTableBody'
+                ];
+
+                const tableObserver = new MutationObserver(queueEnhance);
+                observedBodies.forEach(id => {
+                    const tbody = document.getElementById(id);
+                    if (tbody) tableObserver.observe(tbody, { childList: true, subtree: true });
+                });
+
+                const warning = document.getElementById('quyWarningBanner');
+                if (warning) {
+                    new MutationObserver(syncDashboardFundStatus).observe(warning, {
+                        attributes: true,
+                        childList: true,
+                        subtree: true,
+                        characterData: true
+                    });
+                }
+
+                const dashboard = document.getElementById('tab-dashboard');
+                if (dashboard) {
+                    new MutationObserver(queueEnhance).observe(dashboard, {
+                        attributes: true,
+                        attributeFilter: ['class', 'style', 'hidden', 'src'],
+                        childList: true,
+                        subtree: true
+                    });
+                }
+
+                window.addEventListener('resize', queueEnhance, { passive: true });
+
+                queueEnhance();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initResponsiveEnhancements, { once: true });
+            } else {
+                initResponsiveEnhancements();
+            }
+        })();
+    </script>
 </body>
 </html>
