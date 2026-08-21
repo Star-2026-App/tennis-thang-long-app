@@ -1,922 +1,1949 @@
 // ======================================================
-// UI CHUNG
+// MATCHES.JS - PHASE 3 A7 FIX
+//
+// NỀN TẢNG: A6 ĐÃ PASS
+//
+// Chỉ bổ sung:
+// - Nút "↩ Tháng hiện tại" khi đang chọn một ngày.
+// - Bấm nút -> xóa ngày lọc -> trở lại toàn bộ trận tháng hiện tại.
+//
+// KHÔNG thay đổi:
+// - Month cache
+// - Lazy loading
+// - activeDataMonth / activeDataYear
+// - Dashboard / Finance
 // ======================================================
 
-function showToast(msg) {
 
-    let toast =
-        document.getElementById(
-            'appToast'
-        );
+// ======================================================
+// STATE RIÊNG CHO NHẬT KÝ TRẬN
+// ======================================================
 
-    let msgSpan =
+window.matchLogViewMatches =
+    Array.isArray(
+        window.matchLogViewMatches
+    )
+        ? window.matchLogViewMatches
+        : [];
+
+
+window.matchLogViewMonth =
+    parseInt(
+        window.matchLogViewMonth
+    ) || 0;
+
+
+window.matchLogViewYear =
+    parseInt(
+        window.matchLogViewYear
+    ) || 0;
+
+
+window.matchLogLoadingKey =
+    window.matchLogLoadingKey ||
+    "";
+
+
+// ======================================================
+// BỎ NÚT "TẤT CẢ CÁC NGÀY" CŨ
+// ======================================================
+
+function removeLegacyAllDatesButton_() {
+
+    let dateInput =
         document.getElementById(
-            'toastMsg'
+            "filterMatchDate"
         );
 
 
     if (
-        !toast ||
-        !msgSpan
+        !dateInput ||
+        !dateInput.parentElement
     ) {
         return;
     }
 
 
-    msgSpan.innerText =
-        msg;
-
-
-    toast.classList.remove(
-        'translate-y-12',
-        'opacity-0'
-    );
-
-
-    setTimeout(
-        function() {
-
-            toast.classList.add(
-                'translate-y-12',
-                'opacity-0'
+    let buttons =
+        dateInput
+            .parentElement
+            .querySelectorAll(
+                "button"
             );
-        },
-        2500
-    );
-}
 
 
-// ======================================================
-// TAB
-// ======================================================
+    buttons.forEach(
+        function(button) {
 
-function switchTab(tabId) {
-
-    document
-        .querySelectorAll(
-            '.tab-content'
-        )
-        .forEach(
-            function(el) {
-
-                el.classList.remove(
-                    'active'
-                );
-            }
-        );
-
-
-    document
-        .querySelectorAll(
-            '.tab-btn'
-        )
-        .forEach(
-            function(el) {
-
-                el.classList.remove(
-                    'border-amber-400',
-                    'text-amber-300',
-                    'font-bold',
-                    'bg-emerald-800'
-                );
-            }
-        );
-
-
-    let targetTab =
-        document.getElementById(
-            'tab-' + tabId
-        );
-
-
-    if (!targetTab) {
-        return;
-    }
-
-
-    targetTab.classList.add(
-        'active'
-    );
-
-
-    let activeBtn =
-        document.getElementById(
-            'btn-' + tabId
-        );
-
-
-    if (activeBtn) {
-
-        activeBtn.classList.add(
-            'border-amber-400',
-            'text-amber-300',
-            'font-bold',
-            'bg-emerald-800'
-        );
-    }
-
-
-    let mobileDrawer =
-        document.getElementById(
-            'mobileMenuDrawer'
-        );
-
-
-    if (mobileDrawer) {
-
-        mobileDrawer.classList.add(
-            'hidden'
-        );
-    }
-
-
-    if (
-        tabId ===
-            'analytics' &&
-        typeof renderAnalyticsTab ===
-            'function'
-    ) {
-
-        renderAnalyticsTab();
-    }
-}
-
-
-function switchTabMobile(
-    tabId,
-    label
-) {
-
-    let labelEl =
-        document.getElementById(
-            'currentActiveTabLabel'
-        );
-
-
-    if (labelEl) {
-
-        labelEl.innerText =
-            label;
-    }
-
-
-    switchTab(
-        tabId
-    );
-}
-
-
-function toggleMobileMenu() {
-
-    let drawer =
-        document.getElementById(
-            'mobileMenuDrawer'
-        );
-
-
-    if (!drawer) {
-        return;
-    }
-
-
-    if (
-        drawer.classList.contains(
-            'hidden'
-        )
-    ) {
-
-        drawer.classList.remove(
-            'hidden'
-        );
-
-    } else {
-
-        drawer.classList.add(
-            'hidden'
-        );
-    }
-}
-
-
-// ======================================================
-// USER PROFILE
-// ======================================================
-
-function openUserProfileModal() {
-
-    let modal =
-        document.getElementById(
-            'userProfileModal'
-        );
-
-
-    if (modal) {
-
-        modal.classList.remove(
-            'hidden'
-        );
-
-        modal.classList.add(
-            'flex'
-        );
-    }
-}
-
-
-function closeUserProfileModal() {
-
-    let modal =
-        document.getElementById(
-            'userProfileModal'
-        );
-
-
-    if (modal) {
-
-        modal.classList.add(
-            'hidden'
-        );
-
-        modal.classList.remove(
-            'flex'
-        );
-    }
-}
-
-
-// ======================================================
-// CONFIRM
-// ======================================================
-
-function showActionConfirm(
-    message,
-    callback
-) {
-
-    let textEl =
-        document.getElementById(
-            'actionConfirmText'
-        );
-
-
-    if (textEl) {
-
-        textEl.innerText =
-            message;
-    }
-
-
-    pendingActionCallback =
-        callback;
-
-
-    let modal =
-        document.getElementById(
-            'actionConfirmModal'
-        );
-
-
-    let okBtn =
-        document.getElementById(
-            'actionConfirmOkBtn'
-        );
-
-
-    if (
-        !modal ||
-        !okBtn
-    ) {
-        return;
-    }
-
-
-    okBtn.disabled =
-        false;
-
-    okBtn.classList.remove(
-        'opacity-50',
-        'cursor-not-allowed'
-    );
-
-
-    okBtn.onclick =
-        function() {
-
-            // Chặn double-click/double-tap: vô hiệu hóa
-            // ngay lập tức, không chờ modal ẩn xong.
-            if (okBtn.disabled) {
+            // Không xóa nút mới của Phase 3 A7 FIX
+            if (
+                button.id ===
+                "btnMatchCurrentMonth"
+            ) {
                 return;
             }
 
-            okBtn.disabled =
-                true;
 
-            okBtn.classList.add(
-                'opacity-50',
-                'cursor-not-allowed'
-            );
-
-
-            closeActionConfirmModal(
-                true
-            );
-        };
+            let onclickText =
+                String(
+                    button.getAttribute(
+                        "onclick"
+                    ) || ""
+                );
 
 
-    modal.classList.remove(
-        'hidden'
-    );
+            if (
+                onclickText.indexOf(
+                    "clearMatchDateFilter"
+                ) !== -1
+            ) {
 
-    modal.classList.add(
-        'flex'
-    );
-}
-
-
-function closeActionConfirmModal(
-    isConfirmed
-) {
-
-    let modal =
-        document.getElementById(
-            'actionConfirmModal'
-        );
-
-
-    if (modal) {
-
-        modal.classList.add(
-            'hidden'
-        );
-
-        modal.classList.remove(
-            'flex'
-        );
-    }
-
-
-    // Rút callback ra và xóa NGAY LẬP TỨC trước khi
-    // thực thi, để không thể vô tình chạy 2 lần dù
-    // hàm này bị gọi lại bằng đường nào khác.
-    let callback =
-        pendingActionCallback;
-
-    pendingActionCallback =
-        null;
-
-
-    if (
-        isConfirmed &&
-        typeof callback ===
-            'function'
-    ) {
-
-        callback();
-    }
-}
-
-
-function showCustomConfirm(
-    message,
-    onConfirm
-) {
-
-    let modal =
-        document.getElementById(
-            'customConfirmModal'
-        );
-
-    let textEl =
-        document.getElementById(
-            'customConfirmText'
-        );
-
-    let okBtn =
-        document.getElementById(
-            'customConfirmOkBtn'
-        );
-
-    let cancelBtn =
-        document.getElementById(
-            'customConfirmCancelBtn'
-        );
-
-
-    if (
-        !modal ||
-        !textEl ||
-        !okBtn ||
-        !cancelBtn
-    ) {
-        return;
-    }
-
-
-    textEl.innerText =
-        message;
-
-
-    modal.classList.remove(
-        'hidden'
-    );
-
-    modal.classList.add(
-        'flex'
-    );
-
-
-    let newOkBtn =
-        okBtn.cloneNode(
-            true
-        );
-
-
-    let newCancelBtn =
-        cancelBtn.cloneNode(
-            true
-        );
-
-
-    okBtn.parentNode.replaceChild(
-        newOkBtn,
-        okBtn
-    );
-
-
-    cancelBtn.parentNode.replaceChild(
-        newCancelBtn,
-        cancelBtn
-    );
-
-
-    newOkBtn.addEventListener(
-        'click',
-        function() {
-
-            modal.classList.add(
-                'hidden'
-            );
-
-            modal.classList.remove(
-                'flex'
-            );
-
-            onConfirm(
-                true
-            );
-        }
-    );
-
-
-    newCancelBtn.addEventListener(
-        'click',
-        function() {
-
-            modal.classList.add(
-                'hidden'
-            );
-
-            modal.classList.remove(
-                'flex'
-            );
-
-            onConfirm(
-                false
-            );
+                button.remove();
+            }
         }
     );
 }
 
 
 // ======================================================
-// BẢNG VÀNG
+// NÚT "THÁNG HIỆN TẠI"
 // ======================================================
 
-function openNotificationModal() {
+function ensureMatchCurrentMonthButton_() {
 
-    if (
-        typeof renderGamification ===
-        'function'
-    ) {
-
-        renderGamification();
-    }
-
-
-    let modal =
+    let dateInput =
         document.getElementById(
-            'notificationModal'
+            "filterMatchDate"
         );
 
 
-    if (modal) {
-
-        modal.classList.remove(
-            'hidden'
-        );
-
-        modal.classList.add(
-            'flex'
-        );
-    }
-}
-
-
-function closeNotificationModal() {
-
-    let modal =
-        document.getElementById(
-            'notificationModal'
-        );
-
-
-    if (modal) {
-
-        modal.classList.add(
-            'hidden'
-        );
-
-        modal.classList.remove(
-            'flex'
-        );
-    }
-}
-
-
-// ======================================================
-// EXCEL
-// ======================================================
-
-function exportToExcel() {
-
-    let wb =
-        XLSX.utils.book_new();
-
-
-    let wsMem =
-        XLSX.utils.json_to_sheet(
-            members
-        );
-
-
-    XLSX.utils.book_append_sheet(
-        wb,
-        wsMem,
-        "ThanhVien"
-    );
-
-
-    let wsMatch =
-        XLSX.utils.json_to_sheet(
-            matches
-        );
-
-
-    XLSX.utils.book_append_sheet(
-        wb,
-        wsMatch,
-        "TranDau"
-    );
-
-
-    let wsGoc =
-        XLSX.utils.json_to_sheet(
-            gocLogs
-        );
-
-
-    XLSX.utils.book_append_sheet(
-        wb,
-        wsGoc,
-        "NopTienGoc"
-    );
-
-
-    XLSX.writeFile(
-        wb,
-        "CLB_Tennis_Thang_Long_Ver1.2_Backup.xlsx"
-    );
-}
-
-
-// ======================================================
-// PHASE 3B - PWA INSTALL
-// ======================================================
-
-let thangLongDeferredInstallPrompt =
-    null;
-
-
-function isIosDevice_() {
-
-    let ua =
-        window.navigator.userAgent ||
-        '';
-
-
-    let iOS =
-        /iPad|iPhone|iPod/i
-            .test(
-                ua
-            );
-
-
-    let iPadDesktopMode =
-        navigator.platform ===
-            'MacIntel' &&
-        navigator.maxTouchPoints >
-            1;
-
-
-    return (
-        iOS ||
-        iPadDesktopMode
-    );
-}
-
-
-function isPwaStandalone_() {
-
-    let displayStandalone =
-        window.matchMedia &&
-        window
-            .matchMedia(
-                '(display-mode: standalone)'
-            )
-            .matches;
-
-
-    let iosStandalone =
-        window.navigator.standalone ===
-        true;
-
-
-    return (
-        displayStandalone ||
-        iosStandalone
-    );
-}
-
-
-function ensurePwaInstallButton_() {
-
-    let profileButton =
-        document.querySelector(
-            'button[onclick="openUserProfileModal()"]'
-        );
-
-
-    if (
-        !profileButton ||
-        !profileButton.parentElement
-    ) {
+    if (!dateInput) {
         return;
     }
 
 
-    let installButton =
+    let button =
         document.getElementById(
-            'pwaInstallButton'
+            "btnMatchCurrentMonth"
         );
 
 
-    if (!installButton) {
+    if (!button) {
 
-        installButton =
+        button =
             document.createElement(
-                'button'
+                "button"
             );
 
 
-        installButton.id =
-            'pwaInstallButton';
+        button.id =
+            "btnMatchCurrentMonth";
 
 
-        installButton.type =
-            'button';
+        button.type =
+            "button";
 
 
-        installButton.className =
-            'pwa-install-btn hidden bg-amber-400 hover:bg-amber-300 text-emerald-950 p-2 rounded-full shadow transition';
+        button.innerHTML =
+            '<i class="fa-solid fa-rotate-left mr-1"></i> Tháng hiện tại';
 
 
-        installButton.title =
-            'Cài Tennis Thăng Long lên thiết bị';
+        button.className =
+            "ml-2 px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black shadow-sm";
 
 
-        installButton.innerHTML =
-            '<i class="fa-solid fa-download text-sm"></i>';
+        button.title =
+            "Bỏ lọc ngày và quay về toàn bộ trận của tháng hiện tại";
 
 
-        installButton.onclick =
-            installPwaApp;
+        button.addEventListener(
+            "click",
+            function() {
 
-
-        profileButton
-            .parentElement
-            .insertBefore(
-                installButton,
-                profileButton
-            );
-    }
-
-
-    let shouldShow =
-        !isPwaStandalone_() &&
-        (
-            !!thangLongDeferredInstallPrompt ||
-            isIosDevice_()
+                returnMatchLogToCurrentMonth_();
+            }
         );
 
 
-    if (shouldShow) {
+        dateInput.insertAdjacentElement(
+            "afterend",
+            button
+        );
+    }
 
-        installButton.classList.remove(
-            'hidden'
+
+    // Chỉ hiện khi đang lọc một ngày cụ thể
+    if (dateInput.value) {
+
+        button.classList.remove(
+            "hidden"
         );
 
     } else {
 
-        installButton.classList.add(
-            'hidden'
+        button.classList.add(
+            "hidden"
         );
     }
 }
 
 
-async function installPwaApp() {
+// ======================================================
+// QUAY VỀ THÁNG HIỆN TẠI
+//
+// CHỈ:
+// - xóa ngày đang lọc
+// - gọi lại renderAllMatchLog()
+//
+// renderAllMatchLog() của A6 tự xác định tháng hiện tại.
+// Không can thiệp activeDataMonth.
+// ======================================================
+
+function returnMatchLogToCurrentMonth_() {
+
+    let dateInput =
+        document.getElementById(
+            "filterMatchDate"
+        );
+
+
+    if (dateInput) {
+
+        dateInput.value =
+            "";
+    }
+
+
+    renderAllMatchLog();
+}
+
+
+// ======================================================
+// PARSE NGÀY TỪ MATCH.TIME
+// ======================================================
+
+function getMatchDateParts_(
+    value
+) {
+
+    let text =
+        String(
+            value || ""
+        ).trim();
+
+
+    let match =
+        text.match(
+            /(\d{1,2})\/(\d{1,2})\/(\d{4})/
+        );
+
+
+    if (!match) {
+        return null;
+    }
+
+
+    return {
+
+        day:
+            parseInt(
+                match[1]
+            ) || 0,
+
+        month:
+            parseInt(
+                match[2]
+            ) || 0,
+
+        year:
+            parseInt(
+                match[3]
+            ) || 0
+    };
+}
+
+
+// ======================================================
+// PARSE NGÀY ĐƯỢC CHỌN TRÊN INPUT TYPE=DATE
+// yyyy-mm-dd
+// ======================================================
+
+function getSelectedMatchDateParts_() {
+
+    let dateInput =
+        document.getElementById(
+            "filterMatchDate"
+        );
+
 
     if (
-        isPwaStandalone_()
+        !dateInput ||
+        !dateInput.value
+    ) {
+        return null;
+    }
+
+
+    let parts =
+        String(
+            dateInput.value
+        ).split(
+            "-"
+        );
+
+
+    if (
+        parts.length !==
+        3
+    ) {
+        return null;
+    }
+
+
+    let year =
+        parseInt(
+            parts[0]
+        ) || 0;
+
+
+    let month =
+        parseInt(
+            parts[1]
+        ) || 0;
+
+
+    let day =
+        parseInt(
+            parts[2]
+        ) || 0;
+
+
+    if (
+        !day ||
+        !month ||
+        !year
+    ) {
+        return null;
+    }
+
+
+    return {
+
+        day:
+            day,
+
+        month:
+            month,
+
+        year:
+            year
+    };
+}
+
+
+// ======================================================
+// CACHE THÁNG CHO NHẬT KÝ TRẬN
+// ======================================================
+
+function getMatchLogMonthCache_(
+    month,
+    year
+) {
+
+    if (
+        typeof getCachedMonthData_ ===
+        "function"
     ) {
 
-        showToast(
-            'Ứng dụng đã được cài trên thiết bị.'
+        return getCachedMonthData_(
+            month,
+            year
         );
+    }
+
+
+    let key =
+        parseInt(year) +
+        "_" +
+        parseInt(month);
+
+
+    return (
+        window.monthDataCache &&
+        window.monthDataCache[
+            key
+        ]
+    ) || null;
+}
+
+
+function setMatchLogViewFromCache_(
+    month,
+    year
+) {
+
+    let cache =
+        getMatchLogMonthCache_(
+            month,
+            year
+        );
+
+
+    if (!cache) {
+        return false;
+    }
+
+
+    window.matchLogViewMatches =
+        Array.isArray(
+            cache.matches
+        )
+            ? cache.matches.slice()
+            : [];
+
+
+    window.matchLogViewMonth =
+        parseInt(
+            month
+        );
+
+
+    window.matchLogViewYear =
+        parseInt(
+            year
+        );
+
+
+    return true;
+}
+
+
+// ======================================================
+// LƯU MONTH DATA VÀO CACHE NHƯNG KHÔNG ACTIVATE
+//
+// Chọn ngày tháng cũ trong Nhật ký Trận không được làm
+// Dashboard/Finance chuyển sang tháng cũ theo.
+// ======================================================
+
+function saveMatchLogMonthDataToCache_(
+    month,
+    year,
+    data
+) {
+
+    if (
+        typeof setCachedMonthData_ ===
+        "function"
+    ) {
+
+        setCachedMonthData_(
+            month,
+            year,
+            {
+
+                matches:
+                    data &&
+                    Array.isArray(
+                        data.matches
+                    )
+                        ? data.matches
+                        : [],
+
+                bookingLogs:
+                    data &&
+                    Array.isArray(
+                        data.bookingLogs
+                    )
+                        ? data.bookingLogs
+                        : []
+            }
+        );
+
 
         return;
     }
 
 
     if (
-        thangLongDeferredInstallPrompt
+        !window.monthDataCache ||
+        typeof window.monthDataCache !==
+            "object"
     ) {
 
-        let promptEvent =
-            thangLongDeferredInstallPrompt;
+        window.monthDataCache =
+            {};
+    }
 
 
-        promptEvent.prompt();
+    let key =
+        parseInt(year) +
+        "_" +
+        parseInt(month);
 
 
-        try {
+    window.monthDataCache[
+        key
+    ] = {
 
-            let choice =
-                await promptEvent.userChoice;
+        month:
+            parseInt(
+                month
+            ),
+
+        year:
+            parseInt(
+                year
+            ),
+
+        matches:
+            data &&
+            Array.isArray(
+                data.matches
+            )
+                ? data.matches.slice()
+                : [],
+
+        bookingLogs:
+            data &&
+            Array.isArray(
+                data.bookingLogs
+            )
+                ? data.bookingLogs.slice()
+                : [],
+
+        loadedAt:
+            Date.now()
+    };
+}
+
+
+// ======================================================
+// TẢI DỮ LIỆU THÁNG RIÊNG CHO NHẬT KÝ TRẬN
+//
+// GIỮ NGUYÊN LOGIC A6 ĐÃ PASS.
+// ======================================================
+
+function ensureMatchLogMonthLoaded_(
+    month,
+    year
+) {
+
+    month =
+        parseInt(
+            month
+        );
+
+
+    year =
+        parseInt(
+            year
+        );
+
+
+    if (
+        !month ||
+        !year
+    ) {
+        return;
+    }
+
+
+    if (
+        setMatchLogViewFromCache_(
+            month,
+            year
+        )
+    ) {
+
+        return;
+    }
+
+
+    let key =
+        year +
+        "_" +
+        month;
+
+
+    if (
+        window.matchLogLoadingKey ===
+        key
+    ) {
+        return;
+    }
+
+
+    // Nếu đúng tháng đang active nhưng cache chưa sẵn,
+    // dùng state hiện tại trước khi Cloud hoàn tất.
+    if (
+        parseInt(
+            window.activeDataMonth
+        ) === month &&
+        parseInt(
+            window.activeDataYear
+        ) === year &&
+        Array.isArray(
+            matches
+        )
+    ) {
+
+        window.matchLogViewMatches =
+            matches.slice();
+
+
+        window.matchLogViewMonth =
+            month;
+
+
+        window.matchLogViewYear =
+            year;
+
+
+        return;
+    }
+
+
+    if (
+        typeof fetchJsonpPhase3_ !==
+        "function"
+    ) {
+
+        console.error(
+            "MATCH LOG MONTH LOAD ERROR: fetchJsonpPhase3_ chưa sẵn sàng."
+        );
+
+
+        return;
+    }
+
+
+    window.matchLogLoadingKey =
+        key;
+
+
+    let tbody =
+        document.getElementById(
+            "allMatchTableBody"
+        );
+
+
+    if (tbody) {
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    class="p-5 text-center text-slate-400 italic"
+                >
+                    Đang tải dữ liệu tháng ${month}/${year}...
+                </td>
+
+            </tr>
+        `;
+    }
+
+
+    fetchJsonpPhase3_(
+        {
+
+            action:
+                "monthData",
+
+            month:
+                month,
+
+            year:
+                year
+        },
+
+        true,
+
+        function(
+            error,
+            data
+        ) {
+
+            window.matchLogLoadingKey =
+                "";
+
+
+            if (error) {
+
+                console.error(
+                    "MATCH LOG MONTH DATA ERROR:",
+                    error
+                );
+
+
+                if (
+                    typeof showToast ===
+                    "function"
+                ) {
+
+                    showToast(
+                        `Chưa tải được Nhật ký trận tháng ${month}/${year}.`
+                    );
+                }
+
+
+                if (tbody) {
+
+                    tbody.innerHTML = `
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="p-5 text-center text-red-500 italic"
+                            >
+                                Không tải được dữ liệu tháng ${month}/${year}.
+                            </td>
+
+                        </tr>
+                    `;
+                }
+
+
+                return;
+            }
 
 
             if (
-                choice &&
-                choice.outcome ===
-                    'accepted'
+                !data ||
+                data.status !==
+                    "SUCCESS"
             ) {
 
-                showToast(
-                    'Đã xác nhận cài Tennis Thăng Long.'
+                console.error(
+                    "MATCH LOG MONTH DATA INVALID:",
+                    data
                 );
+
+
+                return;
             }
 
-        } catch (error) {
 
-            console.warn(
-                'PWA INSTALL CHOICE ERROR:',
-                error
+            saveMatchLogMonthDataToCache_(
+                month,
+                year,
+                data
             );
+
+
+            setMatchLogViewFromCache_(
+                month,
+                year
+            );
+
+
+            renderAllMatchLog();
         }
+    );
+}
 
 
-        thangLongDeferredInstallPrompt =
-            null;
+// ======================================================
+// GIỮ HÀM CŨ ĐỂ TƯƠNG THÍCH
+// ======================================================
+
+function clearMatchDateFilter() {
+
+    let dateInput =
+        document.getElementById(
+            "filterMatchDate"
+        );
 
 
-        ensurePwaInstallButton_();
+    if (dateInput) {
+
+        dateInput.value =
+            "";
+    }
+
+
+    renderAllMatchLog();
+}
+
+
+// ======================================================
+// DANH SÁCH TRẬN THÁNG HIỆN TẠI CHO BADGE "HÔM NAY"
+// ======================================================
+
+function getCurrentMonthMatchesForTodayBadge_() {
+
+    let now =
+        new Date();
+
+
+    let month =
+        now.getMonth() +
+        1;
+
+
+    let year =
+        now.getFullYear();
+
+
+    let cache =
+        getMatchLogMonthCache_(
+            month,
+            year
+        );
+
+
+    if (
+        cache &&
+        Array.isArray(
+            cache.matches
+        )
+    ) {
+
+        return cache.matches;
+    }
+
+
+    if (
+        parseInt(
+            window.activeDataMonth
+        ) === month &&
+        parseInt(
+            window.activeDataYear
+        ) === year &&
+        Array.isArray(
+            matches
+        )
+    ) {
+
+        return matches;
+    }
+
+
+    return [];
+}
+
+
+// ======================================================
+// RENDER NHẬT KÝ TRẬN
+// ======================================================
+
+function renderAllMatchLog() {
+
+    let tbody =
+        document.getElementById(
+            "allMatchTableBody"
+        );
+
+
+    if (!tbody) {
+        return;
+    }
+
+
+    removeLegacyAllDatesButton_();
+
+
+    // A7 FIX:
+    // Chỉ thêm/ẩn/hiện nút giao diện.
+    // Không gọi render từ helper này.
+    ensureMatchCurrentMonthButton_();
+
+
+    let selectedDate =
+        getSelectedMatchDateParts_();
+
+
+    let now =
+        new Date();
+
+
+    let targetMonth =
+        selectedDate
+            ? selectedDate.month
+            : (
+                now.getMonth() +
+                1
+            );
+
+
+    let targetYear =
+        selectedDate
+            ? selectedDate.year
+            : now.getFullYear();
+
+
+    let cache =
+        getMatchLogMonthCache_(
+            targetMonth,
+            targetYear
+        );
+
+
+    // ==================================================
+    // NẾU CHƯA CÓ CACHE THÁNG CẦN XEM -> TẢI THEO NHU CẦU
+    // ==================================================
+
+    if (!cache) {
+
+        ensureMatchLogMonthLoaded_(
+            targetMonth,
+            targetYear
+        );
+
 
         return;
     }
 
 
+    setMatchLogViewFromCache_(
+        targetMonth,
+        targetYear
+    );
+
+
+    let monthMatches =
+        (
+            window.matchLogViewMatches ||
+            []
+        )
+        .slice()
+        .sort(
+            function(
+                a,
+                b
+            ) {
+
+                return (
+                    (
+                        parseInt(
+                            b.id
+                        ) || 0
+                    ) -
+                    (
+                        parseInt(
+                            a.id
+                        ) || 0
+                    )
+                );
+            }
+        );
+
+
+    let filteredMatches =
+        monthMatches;
+
+
+    if (selectedDate) {
+
+        filteredMatches =
+            monthMatches.filter(
+                function(match) {
+
+                    let parts =
+                        getMatchDateParts_(
+                            match.time
+                        );
+
+
+                    if (!parts) {
+                        return false;
+                    }
+
+
+                    return (
+                        parts.day ===
+                            selectedDate.day &&
+                        parts.month ===
+                            selectedDate.month &&
+                        parts.year ===
+                            selectedDate.year
+                    );
+                }
+            );
+    }
+
+
+    // ==================================================
+    // BADGE HÔM NAY
+    // ==================================================
+
+    let todayMatches =
+        getCurrentMonthMatchesForTodayBadge_();
+
+
+    let todayDay =
+        now.getDate();
+
+
+    let todayMonth =
+        now.getMonth() +
+        1;
+
+
+    let todayYear =
+        now.getFullYear();
+
+
+    let todayCount =
+        todayMatches.filter(
+            function(match) {
+
+                let parts =
+                    getMatchDateParts_(
+                        match.time
+                    );
+
+
+                return (
+                    parts &&
+                    parts.day ===
+                        todayDay &&
+                    parts.month ===
+                        todayMonth &&
+                    parts.year ===
+                        todayYear
+                );
+            }
+        )
+        .length;
+
+
+    let todayText =
+        document.getElementById(
+            "todayMatchCountText"
+        );
+
+
+    if (todayText) {
+
+        if (selectedDate) {
+
+            todayText.innerText =
+                `Ngày ${selectedDate.day}/${selectedDate.month}/${selectedDate.year} có ${filteredMatches.length} trận đấu`;
+
+        } else {
+
+            todayText.innerText =
+                `Ngày hôm nay có thêm ${todayCount} trận đấu được ghi nhận`;
+        }
+    }
+
+
+    // ==================================================
+    // TABLE
+    // ==================================================
+
+    tbody.innerHTML =
+        "";
+
+
     if (
-        isIosDevice_()
+        filteredMatches.length ===
+        0
+    ) {
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    class="p-5 text-center text-slate-400 italic"
+                >
+                    ${
+                        selectedDate
+                            ? `Không có trận đấu ngày ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}.`
+                            : `Chưa có trận đấu trong tháng ${targetMonth}/${targetYear}.`
+                    }
+                </td>
+
+            </tr>
+        `;
+
+
+        if (
+            typeof applyRolePermissions ===
+            "function"
+        ) {
+
+            applyRolePermissions();
+        }
+
+
+        return;
+    }
+
+
+    filteredMatches.forEach(
+        function(
+            m,
+            idx
+        ) {
+
+            let stt =
+                filteredMatches.length -
+                idx;
+
+
+            let idArg =
+                JSON.stringify(
+                    String(
+                        m.id
+                    )
+                );
+
+
+            tbody.innerHTML += `
+
+                <tr class="border-b hover:bg-slate-50">
+
+                    <td class="p-2.5 text-center font-bold text-slate-500">
+                        ${stt}
+                    </td>
+
+                    <td class="p-2.5 text-slate-600">
+                        ${m.time || "-"}
+                    </td>
+
+                    <td class="p-2.5 font-semibold text-slate-900">
+                        ${m.p1_v1} & ${m.p2_v1}
+                    </td>
+
+                    <td class="p-2.5 font-semibold text-slate-900">
+                        ${m.p1_v2} & ${m.p2_v2}
+                    </td>
+
+                    <td class="p-2.5 text-center font-black text-emerald-800">
+                        ${m.scoreA} - ${m.scoreB}
+                    </td>
+
+                    <td class="p-2.5 text-right font-bold text-amber-800">
+                        ${
+                            parseInt(
+                                m.specialBet
+                            ) > 0
+                                ? (
+                                    parseInt(
+                                        m.specialBet
+                                    )
+                                    .toLocaleString(
+                                        "vi-VN"
+                                    ) +
+                                    " đ"
+                                )
+                                : "-"
+                        }
+                    </td>
+
+                    <td class="
+                        p-2.5
+                        text-center
+                        admin-only
+                        ${
+                            currentUserRole ===
+                                "admin"
+                                ? ""
+                                : "hidden"
+                        }
+                        space-x-2
+                    ">
+
+                        <button
+                            onclick='openEditMatchModal(${idArg})'
+                            class="text-blue-600 font-bold"
+                        >
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+
+                        <button
+                            onclick='deleteMatch(${idArg})'
+                            class="text-red-600 font-bold"
+                        >
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+
+                    </td>
+
+                </tr>
+            `;
+        }
+    );
+
+
+    if (
+        typeof applyRolePermissions ===
+        "function"
+    ) {
+
+        applyRolePermissions();
+    }
+}
+
+
+// ======================================================
+// TÌM MATCH TRONG TOÀN BỘ CACHE ĐÃ TẢI
+// ======================================================
+
+function findMatchForEdit_(
+    id
+) {
+
+    if (
+        typeof findMatchInMonthCaches_ ===
+        "function"
+    ) {
+
+        let found =
+            findMatchInMonthCaches_(
+                id
+            );
+
+
+        if (found) {
+            return found;
+        }
+    }
+
+
+    let viewMatch =
+        (
+            window.matchLogViewMatches ||
+            []
+        )
+        .find(
+            function(item) {
+
+                return (
+                    String(
+                        item.id
+                    ) ===
+                    String(
+                        id
+                    )
+                );
+            }
+        );
+
+
+    if (viewMatch) {
+        return viewMatch;
+    }
+
+
+    return (
+        matches ||
+        []
+    )
+    .find(
+        function(item) {
+
+            return (
+                String(
+                    item.id
+                ) ===
+                    String(
+                        id
+                    )
+            );
+        }
+    ) || null;
+}
+
+
+// ======================================================
+// SỬA TRẬN
+// ======================================================
+
+function openEditMatchModal(
+    id
+) {
+
+    let m =
+        findMatchForEdit_(
+            id
+        );
+
+
+    if (!m) {
+        return;
+    }
+
+
+    document.getElementById(
+        "emMatchId"
+    ).value =
+        m.id;
+
+
+    document.getElementById(
+        "emMatchInfo"
+    ).value =
+        `${m.time} | (${m.p1_v1}&${m.p2_v1}) vs (${m.p1_v2}&${m.p2_v2})`;
+
+
+    document.getElementById(
+        "emScoreA"
+    ).value =
+        m.scoreA;
+
+
+    document.getElementById(
+        "emScoreB"
+    ).value =
+        m.scoreB;
+
+
+    document.getElementById(
+        "emSpecialBet"
+    ).value =
+        m.specialBet ||
+        0;
+
+
+    document
+        .getElementById(
+            "editMatchModal"
+        )
+        .classList
+        .remove(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "editMatchModal"
+        )
+        .classList
+        .add(
+            "flex"
+        );
+}
+
+
+function closeEditMatchModal() {
+
+    document
+        .getElementById(
+            "editMatchModal"
+        )
+        .classList
+        .add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "editMatchModal"
+        )
+        .classList
+        .remove(
+            "flex"
+        );
+}
+
+
+function saveMatchEdit(
+    e
+) {
+
+    e.preventDefault();
+
+
+    let id =
+        String(
+            document
+                .getElementById(
+                    "emMatchId"
+                )
+                .value ||
+            ""
+        );
+
+
+    let scoreA =
+        parseInt(
+            document
+                .getElementById(
+                    "emScoreA"
+                )
+                .value
+        ) || 0;
+
+
+    let scoreB =
+        parseInt(
+            document
+                .getElementById(
+                    "emScoreB"
+                )
+                .value
+        ) || 0;
+
+
+    let specialBet =
+        parseInt(
+            document
+                .getElementById(
+                    "emSpecialBet"
+                )
+                .value
+        ) || 0;
+
+
+    closeEditMatchModal();
+
+
+    enqueueAction(
+        "updateMatch",
+        {
+
+            match: {
+
+                id:
+                    id,
+
+                scoreA:
+                    scoreA,
+
+                scoreB:
+                    scoreB,
+
+                specialBet:
+                    specialBet
+            }
+        },
+        "Đã cập nhật trận đấu thành công!"
+    );
+}
+
+
+// ======================================================
+// XÓA TRẬN
+// ======================================================
+
+function deleteMatch(
+    id
+) {
+
+    showActionConfirm(
+        "Bạn có chắc chắn muốn xóa trận đấu này không?",
+        function() {
+
+            enqueueAction(
+                "deleteItem",
+                {
+
+                    sheetName:
+                        "Matches",
+
+                    id:
+                        id
+                },
+                "Đã xóa trận đấu thành công!"
+            );
+        }
+    );
+}
+
+
+// ======================================================
+// CÁC TRẬN ĐÃ LOAD DÙNG KIỂM TRA TRÙNG
+// ======================================================
+
+function getLoadedMatchesForDuplicateCheck_() {
+
+    let result = [];
+
+    let seen = {};
+
+
+    Object.keys(
+        window.monthDataCache ||
+        {}
+    )
+    .forEach(
+        function(key) {
+
+            let cache =
+                window.monthDataCache[
+                    key
+                ];
+
+
+            (
+                cache &&
+                Array.isArray(
+                    cache.matches
+                )
+                    ? cache.matches
+                    : []
+            )
+            .forEach(
+                function(item) {
+
+                    let itemKey =
+                        String(
+                            item.id
+                        );
+
+
+                    if (
+                        seen[
+                            itemKey
+                        ]
+                    ) {
+                        return;
+                    }
+
+
+                    seen[
+                        itemKey
+                    ] =
+                        true;
+
+
+                    result.push(
+                        item
+                    );
+                }
+            );
+        }
+    );
+
+
+    (
+        matches ||
+        []
+    )
+    .forEach(
+        function(item) {
+
+            let itemKey =
+                String(
+                    item.id
+                );
+
+
+            if (
+                seen[
+                    itemKey
+                ]
+            ) {
+                return;
+            }
+
+
+            seen[
+                itemKey
+            ] =
+                true;
+
+
+            result.push(
+                item
+            );
+        }
+    );
+
+
+    return result;
+}
+
+
+// ======================================================
+// THÊM TRẬN
+// ======================================================
+
+function addMatch(
+    e
+) {
+
+    e.preventDefault();
+
+
+    let p1A =
+        document.getElementById(
+            "matchP1A"
+        ).value;
+
+
+    let p2A =
+        document.getElementById(
+            "matchP2A"
+        ).value;
+
+
+    let p1B =
+        document.getElementById(
+            "matchP1B"
+        ).value;
+
+
+    let p2B =
+        document.getElementById(
+            "matchP2B"
+        ).value;
+
+
+    if (
+        !p1A ||
+        !p2A ||
+        !p1B ||
+        !p2B
     ) {
 
         alert(
-            "Cài Tennis Thăng Long trên iPhone/iPad:\n\n" +
-            "1. Mở trang bằng Safari.\n" +
-            "2. Bấm nút Chia sẻ.\n" +
-            "3. Chọn “Thêm vào Màn hình chính”.\n" +
-            "4. Bấm Thêm."
+            "⚠️ Vui lòng chọn đầy đủ tên của cả 4 cầu thủ trước khi lưu trận đấu!"
         );
 
+
         return;
     }
 
 
-    alert(
-        "Trình duyệt chưa sẵn sàng hiển thị nút cài ứng dụng.\n\n" +
-        "Hãy tải lại trang sau khi PWA được triển khai."
-    );
-}
+    let playersSet =
+        new Set(
+            [
+                p1A,
+                p2A,
+                p1B,
+                p2B
+            ]
+        );
 
-
-function registerPwaServiceWorker_() {
 
     if (
-        !(
-            'serviceWorker' in
-            navigator
-        )
+        playersSet.size <
+        4
     ) {
+
+        alert(
+            "⚠️ Lỗi: 4 cầu thủ trong một trận đấu đôi phải là 4 cá nhân khác nhau hoàn toàn! Vui lòng kiểm tra lại danh sách lựa chọn."
+        );
+
+
         return;
     }
 
 
-    window.addEventListener(
-        'load',
+    let checkedScoreA =
+        document.querySelector(
+            'input[name="scoreA"]:checked'
+        );
+
+
+    let checkedScoreB =
+        document.querySelector(
+            'input[name="scoreB"]:checked'
+        );
+
+
+    if (
+        !checkedScoreA ||
+        !checkedScoreB
+    ) {
+
+        alert(
+            "⚠️ Vui lòng chọn đầy đủ điểm số cho cả Vế A và Vế B trước khi lưu trận đấu!"
+        );
+
+
+        return;
+    }
+
+
+    let scoreA =
+        parseInt(
+            checkedScoreA.value
+        );
+
+
+    let scoreB =
+        parseInt(
+            checkedScoreB.value
+        );
+
+
+    let specialBet =
+        parseInt(
+            document.getElementById(
+                "specialBet"
+            ).value
+        ) || 0;
+
+
+    showActionConfirm(
+        `Xác nhận lưu kết quả trận đấu:\n(${p1A} & ${p2A}) vs (${p1B} & ${p2B})\nTỉ số: ${scoreA} - ${scoreB}?`,
         function() {
 
-            navigator
-                .serviceWorker
-                .register(
-                    '/service-worker.js',
-                    {
-                        scope:
-                            '/'
-                    }
-                )
-                .then(
-                    function(registration) {
+            const NOW =
+                new Date()
+                    .getTime();
 
-                        console.log(
-                            'PWA SERVICE WORKER READY:',
-                            registration.scope
-                        );
-                    }
-                )
-                .catch(
-                    function(error) {
 
-                        console.warn(
-                            'PWA SERVICE WORKER ERROR:',
-                            error
+            const TIME_LIMIT =
+                18 *
+                60 *
+                60 *
+                1000;
+
+
+            let teamANew =
+                [
+                    p1A,
+                    p2A
+                ]
+                .sort();
+
+
+            let teamBNew =
+                [
+                    p1B,
+                    p2B
+                ]
+                .sort();
+
+
+            let duplicateSource =
+                getLoadedMatchesForDuplicateCheck_();
+
+
+            let isDuplicateMatch =
+                duplicateSource.some(
+                    function(item) {
+
+                        let itemTime =
+                            parseInt(
+                                item.id
+                            ) || 0;
+
+
+                        let isWithin18h =
+                            (
+                                NOW -
+                                itemTime
+                            ) <=
+                            TIME_LIMIT;
+
+
+                        if (
+                            !isWithin18h
+                        ) {
+                            return false;
+                        }
+
+
+                        let teamAOld =
+                            [
+                                item.p1_v1,
+                                item.p2_v1
+                            ]
+                            .sort();
+
+
+                        let teamBOld =
+                            [
+                                item.p1_v2,
+                                item.p2_v2
+                            ]
+                            .sort();
+
+
+                        let sameAsDirect =
+                            (
+                                teamAOld[0] ===
+                                    teamANew[0] &&
+                                teamAOld[1] ===
+                                    teamANew[1] &&
+                                teamBOld[0] ===
+                                    teamBNew[0] &&
+                                teamBOld[1] ===
+                                    teamBNew[1] &&
+                                parseInt(
+                                    item.scoreA
+                                ) ===
+                                    scoreA &&
+                                parseInt(
+                                    item.scoreB
+                                ) ===
+                                    scoreB
+                            );
+
+
+                        let sameAsSwapped =
+                            (
+                                teamAOld[0] ===
+                                    teamBNew[0] &&
+                                teamAOld[1] ===
+                                    teamBNew[1] &&
+                                teamBOld[0] ===
+                                    teamANew[0] &&
+                                teamBOld[1] ===
+                                    teamANew[1] &&
+                                parseInt(
+                                    item.scoreA
+                                ) ===
+                                    scoreB &&
+                                parseInt(
+                                    item.scoreB
+                                ) ===
+                                    scoreA
+                            );
+
+
+                        return (
+                            sameAsDirect ||
+                            sameAsSwapped
                         );
                     }
                 );
+
+
+            if (
+                isDuplicateMatch
+            ) {
+
+                showCustomConfirm(
+                    "Phát hiện có trận đấu tương tự đã được nhập trong 18 giờ trước đó. Nếu thực sự là trận đấu mới thì chọn OK, nếu không phải chọn Hủy",
+                    function(
+                        confirmed
+                    ) {
+
+                        if (
+                            !confirmed
+                        ) {
+                            return;
+                        }
+
+
+                        saveNewMatchData(
+                            p1A,
+                            p2A,
+                            p1B,
+                            p2B,
+                            scoreA,
+                            scoreB,
+                            specialBet
+                        );
+                    }
+                );
+
+            } else {
+
+                saveNewMatchData(
+                    p1A,
+                    p2A,
+                    p1B,
+                    p2B,
+                    scoreA,
+                    scoreB,
+                    specialBet
+                );
+            }
         }
     );
 }
 
 
-window.addEventListener(
-    'beforeinstallprompt',
-    function(event) {
+function saveNewMatchData(
+    p1A,
+    p2A,
+    p1B,
+    p2B,
+    scoreA,
+    scoreB,
+    specialBet
+) {
 
-        event.preventDefault();
+    let newMatch = {
+
+        id:
+            Date.now(),
+
+        time:
+            new Date()
+                .toLocaleString(
+                    "vi-VN"
+                ),
+
+        p1_v1:
+            p1A,
+
+        p2_v1:
+            p2A,
+
+        scoreA:
+            scoreA,
+
+        scoreB:
+            scoreB,
+
+        p1_v2:
+            p1B,
+
+        p2_v2:
+            p2B,
+
+        specialBet:
+            specialBet
+    };
 
 
-        thangLongDeferredInstallPrompt =
-            event;
+    enqueueAction(
+        "addMatch",
+        {
+
+            match:
+                newMatch
+        },
+        "Đã lưu kết quả trận đấu thành công!"
+    );
 
 
-        ensurePwaInstallButton_();
-    }
-);
+    document
+        .getElementById(
+            "matchForm"
+        )
+        .reset();
 
 
-window.addEventListener(
-    'appinstalled',
-    function() {
-
-        thangLongDeferredInstallPrompt =
-            null;
+    populateSelectors();
 
 
-        ensurePwaInstallButton_();
+    document
+        .querySelectorAll(
+            'input[name="scoreA"]'
+        )
+        .forEach(
+            function(el) {
 
-
-        showToast(
-            'Tennis Thăng Long đã được cài thành công!'
+                el.checked =
+                    false;
+            }
         );
-    }
-);
 
 
-document.addEventListener(
-    'DOMContentLoaded',
-    function() {
+    document
+        .querySelectorAll(
+            'input[name="scoreB"]'
+        )
+        .forEach(
+            function(el) {
 
-        ensurePwaInstallButton_();
-    }
-);
+                el.checked =
+                    false;
+            }
+        );
 
 
-registerPwaServiceWorker_();
+    document
+        .getElementById(
+            "specialBet"
+        )
+        .value =
+            "0";
+}
