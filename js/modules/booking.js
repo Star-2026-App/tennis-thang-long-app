@@ -34,7 +34,15 @@ function renderBookingLogs() {
 }
 
 function deleteBooking(id) {
-    showActionConfirm("Bạn có chắc chắn muốn xóa lịch sử thưởng sân này không?", function() {
+    let b = (bookingLogs || []).find(function(item) {
+        return String(item.id) === String(id);
+    });
+
+    let message = b
+        ? `Bạn có muốn xóa thưởng đặt sân ${b.frame} của [${b.name}] này không?`
+        : "Bạn có chắc chắn muốn xóa lịch sử thưởng sân này không?";
+
+    showActionConfirm(message, function() {
         enqueueAction("deleteItem", { sheetName: "Bookings", id: id }, "Đã xóa thưởng đặt sân thành công!");
     });
 }
