@@ -290,8 +290,32 @@ function showActionConfirm(
     }
 
 
+    okBtn.disabled =
+        false;
+
+    okBtn.classList.remove(
+        'opacity-50',
+        'cursor-not-allowed'
+    );
+
+
     okBtn.onclick =
         function() {
+
+            // Chặn double-click/double-tap: vô hiệu hóa
+            // ngay lập tức, không chờ modal ẩn xong.
+            if (okBtn.disabled) {
+                return;
+            }
+
+            okBtn.disabled =
+                true;
+
+            okBtn.classList.add(
+                'opacity-50',
+                'cursor-not-allowed'
+            );
+
 
             closeActionConfirmModal(
                 true
@@ -331,18 +355,24 @@ function closeActionConfirmModal(
     }
 
 
-    if (
-        isConfirmed &&
-        typeof pendingActionCallback ===
-            'function'
-    ) {
-
-        pendingActionCallback();
-    }
-
+    // Rút callback ra và xóa NGAY LẬP TỨC trước khi
+    // thực thi, để không thể vô tình chạy 2 lần dù
+    // hàm này bị gọi lại bằng đường nào khác.
+    let callback =
+        pendingActionCallback;
 
     pendingActionCallback =
         null;
+
+
+    if (
+        isConfirmed &&
+        typeof callback ===
+            'function'
+    ) {
+
+        callback();
+    }
 }
 
 
