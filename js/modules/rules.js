@@ -18,9 +18,9 @@ function addNewRule(e) {
 }
 
 function deleteRule(id) {
-    if (confirm("Xóa thông báo này?")) {
+    showActionConfirm("Bạn có chắc chắn muốn xóa thông báo này không?", function() {
         enqueueAction("deleteItem", { sheetName: "Rules", id: id }, "Đã xóa thông báo thành công!");
-    }
+    });
 }
 
 function renderRulesTab() {
@@ -33,7 +33,7 @@ function renderRulesTab() {
             id: 1,
             time: "01/08/2026",
             title: "Quy định đặt sân 18h-20h tại CVTT5",
-            content: "Khung giờ 18h-20h tại CVTT5 do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app. Tiền thưởng đặt sân áp dụng đặc cách = 0 đ."
+            content: "Khung giờ 18h-20h tại CVTT do Hoàng Văn Thái 94 (Thanglong15) đại diện đặt sân qua app."
         },
         {
             id: 2,
