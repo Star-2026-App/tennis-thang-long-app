@@ -3580,8 +3580,20 @@ function addCashbookEntry(e) {
 
 function deleteCashbookLog(id) {
 
+    let c =
+        (cashbookLogs || []).find(
+            function(item) {
+                return String(item.id) === String(id);
+            }
+        );
+
+    let message =
+        c
+            ? `Bạn có muốn xóa khoản [${c.category}] số tiền ${(parseInt(c.amount) || 0).toLocaleString('vi-VN')}đ này không?`
+            : "Bạn có chắc chắn muốn xóa giao dịch thu/chi này không?";
+
     showActionConfirm(
-        "Bạn có chắc chắn muốn xóa giao dịch thu/chi này không?",
+        message,
         function() {
 
             enqueueAction(
@@ -4013,8 +4025,20 @@ function saveGocLogEdit(e) {
 
 function deleteGocLog(id) {
 
+    let g =
+        (gocLogs || []).find(
+            function(item) {
+                return String(item.id) === String(id);
+            }
+        );
+
+    let message =
+        g
+            ? `Bạn có muốn xóa lượt nộp góc [${g.name}], số tiền ${(parseInt(g.amount) || 0).toLocaleString('vi-VN')}đ này không?`
+            : "Bạn có chắc chắn muốn xóa lượt nộp tiền góc này không?";
+
     showActionConfirm(
-        "Bạn có chắc chắn muốn xóa lượt nộp tiền góc này không?",
+        message,
         function() {
 
             enqueueAction(
