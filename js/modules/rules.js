@@ -18,7 +18,15 @@ function addNewRule(e) {
 }
 
 function deleteRule(id) {
-    showActionConfirm("Bạn có chắc chắn muốn xóa thông báo này không?", function() {
+    let r = (rulesList || []).find(function(item) {
+        return String(item.id) === String(id);
+    });
+
+    let message = r
+        ? `Bạn có muốn xóa thông báo [${r.title}] này không?`
+        : "Bạn có chắc chắn muốn xóa thông báo này không?";
+
+    showActionConfirm(message, function() {
         enqueueAction("deleteItem", { sheetName: "Rules", id: id }, "Đã xóa thông báo thành công!");
     });
 }
