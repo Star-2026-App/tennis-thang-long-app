@@ -4342,7 +4342,137 @@ function selectCategory(cat) {
 }
 
 
+// ======================================================
+// DƯ ĐẦU KỲ THEO QUÝ
+//
+// "Dư đầu kỳ" hiển thị số dư tại thời điểm bắt đầu quý
+// hiện tại (= số dư cuối quý trước chuyển sang), để CLB
+// biết sau mỗi quý đóng quỹ còn lại bao nhiêu tiền.
+//
+// Cách tính: mốc dư ban đầu (Settings > DU_QUY_DAU) cộng
+// dồn toàn bộ thu/chi xảy ra TRƯỚC ngày 1 của quý hiện tại.
+// "Dư quỹ hiện tại" (cashbookBalance) vẫn là tổng số dư
+// thực tế tính đến hôm nay, không đổi.
+// ======================================================
+
+function parseVNDateOnly_(text) {
+
+    let match =
+        String(text || '')
+            .match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+
+    if (!match) {
+        return null;
+    }
+
+    let day = parseInt(match[1]);
+    let month = parseInt(match[2]);
+    let year = parseInt(match[3]);
+
+    if (!day || !month || !year) {
+        return null;
+    }
+
+    return new Date(year, month - 1, day);
+}
+
+
+function getCurrentQuarterInfo_() {
+
+    let now = new Date();
+    let month = now.getMonth() + 1;
+    let year = now.getFullYear();
+    let quarterNum = Math.ceil(month / 3);
+    let startMonthIndex = (quarterNum - 1) * 3;
+
+    return {
+        quarterNum: quarterNum,
+        year: year,
+        startDate: new Date(year, startMonthIndex, 1)
+    };
+}
+
+
+function computeQuarterOpeningBalance_(quarterInfo) {
+
+    // Mốc dư ban đầu (trước khi app bắt đầu ghi sổ).
+    let base = openingBalance;
+
+    let quyBefore =
+        (quyLogs || [])
+            .filter(function(q) {
+
+                let qYear = parseInt(q.year) || 0;
+                let qNum =
+                    parseInt(String(q.quarter || '').replace('Q', '')) || 0;
+
+                return (
+                    qYear < quarterInfo.year ||
+                    (qYear === quarterInfo.year && qNum < quarterInfo.quarterNum)
+                );
+            })
+            .reduce(function(sum, q) {
+                return sum + (parseInt(q.amount) || 0);
+            }, 0);
+
+    let gocBefore =
+        (gocLogs || [])
+            .filter(function(g) {
+                let d = parseVNDateOnly_(g.time);
+                return d && d < quarterInfo.startDate;
+            })
+            .reduce(function(sum, g) {
+                return sum + (parseInt(g.amount) || 0);
+            }, 0);
+
+    let cbBefore =
+        (cashbookLogs || [])
+            .filter(function(c) {
+                let d = parseVNDateOnly_(c.time);
+                return d && d < quarterInfo.startDate;
+            });
+
+    let thuBefore =
+        cbBefore
+            .filter(function(c) {
+                return (
+                    c.category === "Tiền bán sân" ||
+                    c.category === "Tiền ủng hộ / Tài trợ"
+                );
+            })
+            .reduce(function(sum, c) {
+                return sum + (parseInt(c.amount) || 0);
+            }, 0);
+
+    let chiBefore =
+        cbBefore
+            .filter(function(c) {
+                let cat = String(c.category || '');
+                return (
+                    cat.includes("Tiền app") ||
+                    cat.includes("mua bóng") ||
+                    cat.includes("thưởng") ||
+                    cat.includes("liên hoan") ||
+                    cat.includes("chi khác")
+                );
+            })
+            .reduce(function(sum, c) {
+                return sum + (parseInt(c.amount) || 0);
+            }, 0);
+
+    return base + quyBefore + gocBefore + thuBefore - chiBefore;
+}
+
+
 function renderCashbook() {
+
+    let quarterInfo =
+        getCurrentQuarterInfo_();
+
+    let quarterOpeningBalance =
+        computeQuarterOpeningBalance_(
+            quarterInfo
+        );
 
     let totalQuyThu =
         (quyLogs || [])
@@ -4523,11 +4653,27 @@ function renderCashbook() {
             'openingBalanceDisplay'
         )
         .innerText =
-            openingBalance
+            quarterOpeningBalance
                 .toLocaleString(
                     'vi-VN'
                 ) +
             " đ";
+
+
+    let openingLabelEl =
+        document.getElementById(
+            'openingBalanceLabel'
+        );
+
+    if (openingLabelEl) {
+
+        openingLabelEl.innerText =
+            "DƯ ĐẦU KỲ (Q" +
+            quarterInfo.quarterNum +
+            "/" +
+            quarterInfo.year +
+            "):";
+    }
 
 
     selectCategory(
