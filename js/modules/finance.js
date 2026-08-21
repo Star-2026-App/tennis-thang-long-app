@@ -3580,27 +3580,26 @@ function addCashbookEntry(e) {
 
 function deleteCashbookLog(id) {
 
-    if (
-        confirm(
-            "Xóa giao dịch thu/chi này?"
-        )
-    ) {
+    showActionConfirm(
+        "Bạn có chắc chắn muốn xóa giao dịch thu/chi này không?",
+        function() {
 
-        enqueueAction(
+            enqueueAction(
 
-            "deleteItem",
+                "deleteItem",
 
-            {
-                sheetName:
-                    "Cashbook",
+                {
+                    sheetName:
+                        "Cashbook",
 
-                id:
-                    id
-            },
+                    id:
+                        id
+                },
 
-            "Đã xóa giao dịch thành công!"
-        );
-    }
+                "Đã xóa giao dịch thành công!"
+            );
+        }
+    );
 }
 
 
@@ -4014,28 +4013,27 @@ function saveGocLogEdit(e) {
 
 function deleteGocLog(id) {
 
-    if (
-        confirm(
-            "Xóa lượt nộp tiền góc này?"
-        )
-    ) {
+    showActionConfirm(
+        "Bạn có chắc chắn muốn xóa lượt nộp tiền góc này không?",
+        function() {
 
-        enqueueAction(
+            enqueueAction(
 
-            "deleteItem",
+                "deleteItem",
 
-            {
+                {
 
-                sheetName:
-                    "GocLogs",
+                    sheetName:
+                        "GocLogs",
 
-                id:
-                    id
-            },
+                    id:
+                        id
+                },
 
-            "Đã xóa lượt nộp thành công!"
-        );
-    }
+                "Đã xóa lượt nộp thành công!"
+            );
+        }
+    );
 }
 
 
