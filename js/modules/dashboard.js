@@ -247,7 +247,7 @@ function handleDashboardSubmit() {
 
                 let rewardAmount =
                     isHoangVanThai
-                        ? 0
+                        ? (parseInt(systemSettings.rewardCVTT5) || 0)
                         : systemSettings.reward18h;
 
 
@@ -271,7 +271,7 @@ function handleDashboardSubmit() {
                     { booking: newBooking },
 
                     isHoangVanThai
-                        ? "Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng 0đ)!"
+                        ? `Đã ghi nhận lịch sân 18h (Hoàng Văn Thái đặc cách thưởng ${rewardAmount.toLocaleString('vi-VN')}đ)!`
                         : "Đã ghi nhận Thưởng sân 18h thành công!"
                 );
             }
