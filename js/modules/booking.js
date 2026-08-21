@@ -34,9 +34,9 @@ function renderBookingLogs() {
 }
 
 function deleteBooking(id) {
-    if (confirm("Xóa lịch sử thưởng này?")) {
+    showActionConfirm("Bạn có chắc chắn muốn xóa lịch sử thưởng sân này không?", function() {
         enqueueAction("deleteItem", { sheetName: "Bookings", id: id }, "Đã xóa thưởng đặt sân thành công!");
-    }
+    });
 }
 
 function openTodayCourtsModal() {
