@@ -4,45 +4,52 @@
 
 function populateSettingsForm() {
 
-    document.getElementById('stQuyAmount').value =
-        parseInt(systemSettings.quyAmount) || 600000;
+    // Helper an toàn: không crash nếu thiếu phần tử HTML
+    // (ví dụ do cache PWA cũ chưa cập nhật kịp).
+    function setVal_(id, value) {
 
-    document.getElementById('stReward16').value =
-        parseInt(systemSettings.reward16h) || 20000;
+        let el =
+            document.getElementById(id);
 
-    document.getElementById('stReward18').value =
-        parseInt(systemSettings.reward18h) || 30000;
+        if (el) {
+            el.value = value;
+        } else {
+            console.warn(
+                "populateSettingsForm: không tìm thấy #" + id
+            );
+        }
+    }
 
-    document.getElementById('stRewardCVTT5').value =
-        parseInt(systemSettings.rewardCVTT5) || 0;
 
-    document.getElementById('stMaxLimit').value =
-        parseInt(systemSettings.maxRewardLimit) || 15;
+    setVal_('stQuyAmount', parseInt(systemSettings.quyAmount) || 600000);
+
+    setVal_('stReward16', parseInt(systemSettings.reward16h) || 20000);
+
+    setVal_('stReward18', parseInt(systemSettings.reward18h) || 30000);
+
+    setVal_('stRewardCVTT5', parseInt(systemSettings.rewardCVTT5) || 0);
+
+    setVal_('stMaxLimit', parseInt(systemSettings.maxRewardLimit) || 15);
 
 
     // ==================================================
     // TIỀN GÓC - CẤU HÌNH MỚI
     // ==================================================
 
-    document.getElementById('stGocDefaultPerMatch').value =
-        parseInt(systemSettings.gocDefaultPerMatch) || 10000;
+    setVal_('stGocDefaultPerMatch', parseInt(systemSettings.gocDefaultPerMatch) || 10000);
 
-    document.getElementById('stGocMonthlyCap').value =
-        parseInt(systemSettings.gocMonthlyCap) || 150000;
+    setVal_('stGocMonthlyCap', parseInt(systemSettings.gocMonthlyCap) || 150000);
 
 
     // ==================================================
     // NGÂN HÀNG
     // ==================================================
 
-    document.getElementById('stBankId').value =
-        systemSettings.bankId || "TCB";
+    setVal_('stBankId', systemSettings.bankId || "TCB");
 
-    document.getElementById('stBankAccount').value =
-        systemSettings.bankAccount || "";
+    setVal_('stBankAccount', systemSettings.bankAccount || "");
 
-    document.getElementById('stAccountName').value =
-        systemSettings.accountName || "";
+    setVal_('stAccountName', systemSettings.accountName || "");
 
 
     let qrUrl =
@@ -52,8 +59,12 @@ function populateSettingsForm() {
         `?accountName=${encodeURIComponent(systemSettings.accountName)}`;
 
 
-    document.getElementById('dashQrImg').src =
-        qrUrl;
+    let qrImgEl =
+        document.getElementById('dashQrImg');
+
+    if (qrImgEl) {
+        qrImgEl.src = qrUrl;
+    }
 }
 
 
