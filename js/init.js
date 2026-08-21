@@ -14,31 +14,59 @@ function initApp() {
     }
 
 
-    populateSettingsForm();
+    // ==================================================
+    // Chạy TỪNG bước độc lập bằng try/catch riêng.
+    //
+    // Lý do: nếu để gọi tuần tự bình thường, chỉ cần 1
+    // bước lỗi (ví dụ do thiếu 1 phần tử HTML nào đó) là
+    // toàn bộ các bước phía SAU sẽ không chạy nữa — kể cả
+    // renderMemberList()/renderAllMatchLog() vốn không hề
+    // liên quan gì tới bước bị lỗi.
+    // ==================================================
 
-    populateSelectors();
+    function safeRun_(label, fn) {
 
-    recalculateMemberPaidTotals();
+        try {
 
-    renderGamification();
+            fn();
 
-    renderDashboard();
+        } catch (err) {
 
-    renderFinance();
+            console.error(
+                "initApp() lỗi ở bước [" +
+                label +
+                "]:",
+                err
+            );
+        }
+    }
 
-    renderAllMatchLog();
 
-    renderGocLogsTab();
+    safeRun_("populateSettingsForm", populateSettingsForm);
 
-    renderBookingLogs();
+    safeRun_("populateSelectors", populateSelectors);
 
-    renderQuyTable();
+    safeRun_("recalculateMemberPaidTotals", recalculateMemberPaidTotals);
 
-    renderCashbook();
+    safeRun_("renderGamification", renderGamification);
 
-    renderMemberList();
+    safeRun_("renderDashboard", renderDashboard);
 
-    renderRulesTab();
+    safeRun_("renderFinance", renderFinance);
+
+    safeRun_("renderAllMatchLog", renderAllMatchLog);
+
+    safeRun_("renderGocLogsTab", renderGocLogsTab);
+
+    safeRun_("renderBookingLogs", renderBookingLogs);
+
+    safeRun_("renderQuyTable", renderQuyTable);
+
+    safeRun_("renderCashbook", renderCashbook);
+
+    safeRun_("renderMemberList", renderMemberList);
+
+    safeRun_("renderRulesTab", renderRulesTab);
 
 
     // ==================================================
@@ -49,7 +77,7 @@ function initApp() {
     // ==================================================
 
 
-    applyRolePermissions();
+    safeRun_("applyRolePermissions", applyRolePermissions);
 }
 
 
