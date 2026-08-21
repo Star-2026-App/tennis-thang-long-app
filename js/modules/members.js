@@ -33,11 +33,11 @@ function renderMemberList() {
 
 function deleteMember(idx) {
     let m = members[idx];
-    if (confirm(`Xóa thành viên [${m.name}]? (Lịch sử trận đấu và nộp tiền góc vẫn được bảo lưu)`)) {
+    showActionConfirm(`Bạn có chắc chắn muốn xóa thành viên [${m.name}] này không? (Lịch sử trận đấu và nộp tiền góc vẫn được bảo lưu)`, function() {
         members.splice(idx, 1);
-        members.forEach((mem, i) => { mem.stt = i + 1; });
+        // KHÔNG đánh số lại STT của các thành viên còn lại — xem giải thích bên dưới.
         enqueueAction("updateMember", { members: members }, "Đã xóa thành viên thành công!");
-    }
+    });
 }
 
 function toggleMemberRole(idx) {
