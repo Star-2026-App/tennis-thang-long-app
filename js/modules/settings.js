@@ -13,6 +13,9 @@ function populateSettingsForm() {
     document.getElementById('stReward18').value =
         parseInt(systemSettings.reward18h) || 30000;
 
+    document.getElementById('stRewardCVTT5').value =
+        parseInt(systemSettings.rewardCVTT5) || 0;
+
     document.getElementById('stMaxLimit').value =
         parseInt(systemSettings.maxRewardLimit) || 15;
 
@@ -83,6 +86,11 @@ function saveSystemSettings(e) {
                     document.getElementById('stReward18').value
                 );
 
+            let rewardCVTT5 =
+                parseInt(
+                    document.getElementById('stRewardCVTT5').value
+                );
+
             let maxRewardLimit =
                 parseInt(
                     document.getElementById('stMaxLimit').value
@@ -151,6 +159,19 @@ function saveSystemSettings(e) {
             }
 
 
+            if (
+                isNaN(rewardCVTT5) ||
+                rewardCVTT5 < 0
+            ) {
+
+                alert(
+                    "Thưởng đặc cách CVTT5 không được để trống hoặc là số âm (có thể để 0)."
+                );
+
+                return;
+            }
+
+
             // ==========================================
             // UPDATE LOCAL SETTINGS
             // ==========================================
@@ -163,6 +184,9 @@ function saveSystemSettings(e) {
 
             systemSettings.reward18h =
                 reward18h || 30000;
+
+            systemSettings.rewardCVTT5 =
+                rewardCVTT5;
 
             systemSettings.maxRewardLimit =
                 maxRewardLimit || 15;
