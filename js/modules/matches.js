@@ -1429,8 +1429,21 @@ function deleteMatch(
     id
 ) {
 
+    let m =
+        getLoadedMatchesForDuplicateCheck_()
+            .find(
+                function(item) {
+                    return String(item.id) === String(id);
+                }
+            );
+
+    let message =
+        m
+            ? `Bạn có muốn xóa trận đấu (${m.p1_v1} & ${m.p2_v1}) vs (${m.p1_v2} & ${m.p2_v2}), tỉ số ${m.scoreA}-${m.scoreB} này không?`
+            : "Bạn có chắc chắn muốn xóa trận đấu này không?";
+
     showActionConfirm(
-        "Bạn có chắc chắn muốn xóa trận đấu này không?",
+        message,
         function() {
 
             enqueueAction(
