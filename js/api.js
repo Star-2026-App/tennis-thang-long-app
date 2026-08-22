@@ -1533,6 +1533,137 @@ function processQueue() {
         );
 
 
+    let payloadJson =
+        JSON.stringify(
+            itemWithToken
+        );
+
+
+    // ==================================================
+    // NGƯỠNG AN TOÀN ĐỘ DÀI URL (v1.5)
+    //
+    // JSONP dùng GET nên payload phải nằm gọn trong URL.
+    // Với các thao tác ghi 1 bản ghi đơn lẻ, payload luôn
+    // rất nhỏ. Chỉ vài thao tác ghi hàng loạt (VD cập nhật
+    // toàn bộ danh sách Thành Viên) mới có thể vượt ngưỡng
+    // -> tự động rơi về POST no-cors như cũ cho AN TOÀN,
+    // chấp nhận không đọc được response ở riêng các thao
+    // tác hiếm gặp và có payload lớn này.
+    // ==================================================
+
+    let SAFE_PAYLOAD_LENGTH =
+        6000;
+
+
+    function onQueueItemDone_(
+        success
+    ) {
+
+        syncQueue.shift();
+
+        isSyncing =
+            false;
+
+        saveLocalData();
+
+        savePhase3LocalState_();
+
+        if (
+            syncQueue.length > 0
+        ) {
+
+            processQueue();
+        }
+    }
+
+
+    if (
+        payloadJson.length <=
+        SAFE_PAYLOAD_LENGTH
+    ) {
+
+        // ==============================================
+        // ĐƯỜNG TIN CẬY: JSONP - ĐỌC ĐƯỢC KẾT QUẢ THẬT
+        // ==============================================
+
+        fetchJsonpPhase3_(
+            {
+
+                payload:
+                    payloadJson
+            },
+            false,
+            function(
+                error,
+                data
+            ) {
+
+                if (error) {
+
+                    // Lỗi mạng/timeout -> GIỮ LẠI hàng đợi,
+                    // sẽ tự thử lại ở lượt processQueue kế tiếp.
+                    console.error(
+                        "POST CLOUD NETWORK ERROR:",
+                        error
+                    );
+
+                    isSyncing =
+                        false;
+
+                    return;
+                }
+
+
+                if (
+                    !data ||
+                    data.status !== "SUCCESS"
+                ) {
+
+                    // Backend TỪ CHỐI GHI THẬT SỰ (lỗi nghiệp
+                    // vụ) -> loại khỏi hàng đợi (thử lại cũng
+                    // sẽ lỗi y hệt) NHƯNG báo rõ cho người
+                    // dùng biết, không âm thầm coi là thành công.
+                    let message =
+                        (data && data.message)
+                            ? data.message
+                            : "Không rõ nguyên nhân.";
+
+                    console.error(
+                        "POST CLOUD REJECTED:",
+                        message
+                    );
+
+                    onQueueItemDone_(
+                        false
+                    );
+
+                    alert(
+                        "Một thao tác đã KHÔNG được lưu lên hệ thống:\n\n" +
+                        message +
+                        "\n\nVui lòng kiểm tra lại và thực hiện lại nếu cần."
+                    );
+
+                    return;
+                }
+
+
+                // THÀNH CÔNG - ĐÃ XÁC NHẬN THẬT TỪ BACKEND
+                onQueueItemDone_(
+                    true
+                );
+            }
+        );
+
+        return;
+    }
+
+
+    // ======================================================
+    // ĐƯỜNG DỰ PHÒNG: payload quá lớn cho URL - dùng lại
+    // POST no-cors như trước (hiếm gặp, chỉ với thao tác ghi
+    // hàng loạt lớn).
+    // ======================================================
+
     fetch(
         GOOGLE_SCRIPT_URL,
         {
@@ -1550,34 +1681,16 @@ function processQueue() {
             },
 
             body:
-                JSON.stringify(
-                    itemWithToken
-                )
+                payloadJson
         }
     )
 
     .then(
         function() {
 
-            syncQueue.shift();
-
-
-            isSyncing =
-                false;
-
-
-            saveLocalData();
-
-
-            savePhase3LocalState_();
-
-
-            if (
-                syncQueue.length > 0
-            ) {
-
-                processQueue();
-            }
+            onQueueItemDone_(
+                true
+            );
         }
     )
 
@@ -1585,10 +1698,9 @@ function processQueue() {
         function(err) {
 
             console.error(
-                "POST CLOUD NETWORK ERROR:",
+                "POST CLOUD NETWORK ERROR (fallback):",
                 err
             );
-
 
             isSyncing =
                 false;
