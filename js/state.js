@@ -23,6 +23,7 @@ let rulesList = [];
 
 let syncQueue = [];
 let isSyncing = false;
+let syncIntervalId = null;
 
 let financeSortField = 'stt';
 let financeSortAsc = true;
