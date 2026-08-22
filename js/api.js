@@ -1495,6 +1495,16 @@ function enqueueAction(
     );
 
 
+    if (typeof maybeNotifyPush_ === 'function') {
+
+        try {
+            maybeNotifyPush_(actionName, payload);
+        } catch (err) {
+            console.warn('PUSH NOTIFY HOOK ERROR:', err);
+        }
+    }
+
+
     processQueue();
 }
 
