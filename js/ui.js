@@ -139,6 +139,17 @@ function switchTab(tabId) {
 
         renderAnalyticsTab();
     }
+
+
+    if (
+        typeof syncBottomNavState ===
+            'function'
+    ) {
+
+        syncBottomNavState(
+            tabId
+        );
+    }
 }
 
 
@@ -920,3 +931,236 @@ document.addEventListener(
 
 
 registerPwaServiceWorker_();
+
+
+// ======================================================
+// BOTTOM NAV (MOBILE) — Tổng quan / Tài chính / Ghi nhận / Sổ thu chi / Thêm
+// ======================================================
+
+var __lastFinanceTab = 'finance';
+var __cbGroup = 'thu';
+
+var FINANCE_CLUSTER_TABS = ['booking', 'gocLogs', 'quy', 'finance'];
+var FINANCE_TAB_LABELS = {
+    booking: 'Thưởng Sân',
+    gocLogs: 'Nộp Tiền',
+    quy: 'Đóng Quỹ',
+    finance: 'Bảng Tổng Kết'
+};
+
+// Gọi ở cuối switchTab() cho MỌI lần chuyển tab (desktop lẫn mobile) để:
+// 1. Bật đúng icon đang active ở bottom nav.
+// 2. Hiện/ẩn dải pill "Tài chính" và tô đậm đúng pill.
+// 3. Đổi màu nút Ghi nhận khi đang ở Ghi Trận.
+// 4. Khởi tạo bộ lọc Thu/Chi khi vào Sổ thu chi trên mobile.
+// Toàn bộ hàm chỉ thao tác trên các phần tử .md:hidden (chỉ hiện trên mobile) nên
+// không ảnh hưởng gì tới giao diện desktop.
+function syncBottomNavState(tabId) {
+
+    document.querySelectorAll('.bn-item').forEach(function(el) {
+        el.classList.remove('active');
+    });
+
+    var isFinance = FINANCE_CLUSTER_TABS.indexOf(tabId) !== -1;
+
+    var highlightId = null;
+    if (tabId === 'dashboard') highlightId = 'bn-dashboard';
+    else if (tabId === 'cashbook') highlightId = 'bn-cashbook';
+    else if (isFinance) highlightId = 'bn-finance';
+
+    if (highlightId) {
+        var navEl = document.getElementById(highlightId);
+        if (navEl) navEl.classList.add('active');
+    }
+
+    var pillsBar = document.getElementById('financePillsBar');
+    if (pillsBar) {
+
+        if (isFinance) {
+
+            pillsBar.classList.remove('hidden');
+            __lastFinanceTab = tabId;
+
+            document.querySelectorAll('.fp-pill').forEach(function(el) {
+                el.classList.remove('active');
+            });
+
+            var activePill = document.getElementById('fp-' + tabId);
+            if (activePill) activePill.classList.add('active');
+
+        } else {
+
+            pillsBar.classList.add('hidden');
+        }
+    }
+
+    var fabBtn = document.getElementById('ghiNhanFabBtn');
+    if (fabBtn && !fabBtn.classList.contains('is-open')) {
+        fabBtn.style.background = (tabId === 'matches') ? '#0f172a' : '#047857';
+    }
+
+    if (
+        tabId === 'cashbook' &&
+        window.innerWidth < 768 &&
+        typeof setCashbookGroup === 'function'
+    ) {
+        setCashbookGroup(__cbGroup);
+    }
+}
+
+
+function openFinanceHub() {
+
+    var tabId = __lastFinanceTab || 'finance';
+    switchTabMobile(tabId, FINANCE_TAB_LABELS[tabId] || 'Tài chính');
+}
+
+
+function goFinanceTab(tabId, label) {
+
+    switchTabMobile(tabId, label);
+}
+
+
+function toggleGhiNhanSheet() {
+
+    var sheet = document.getElementById('ghiNhanSheet');
+    var overlay = document.getElementById('ghiNhanOverlay');
+
+    if (!sheet || !overlay) return;
+
+    if (sheet.classList.contains('is-open')) {
+        closeGhiNhanSheet();
+        return;
+    }
+
+    overlay.classList.remove('hidden');
+    sheet.classList.remove('hidden');
+
+    requestAnimationFrame(function() {
+        sheet.classList.add('is-open');
+    });
+
+    var fabBtn = document.getElementById('ghiNhanFabBtn');
+    var fabIcon = document.getElementById('ghiNhanFabIcon');
+
+    if (fabBtn) fabBtn.classList.add('is-open');
+
+    if (fabIcon) {
+        fabIcon.classList.remove('fa-pen-to-square');
+        fabIcon.classList.add('fa-xmark');
+    }
+}
+
+
+function closeGhiNhanSheet() {
+
+    var sheet = document.getElementById('ghiNhanSheet');
+    var overlay = document.getElementById('ghiNhanOverlay');
+
+    if (!sheet || !overlay) return;
+
+    sheet.classList.remove('is-open');
+
+    var fabBtn = document.getElementById('ghiNhanFabBtn');
+    var fabIcon = document.getElementById('ghiNhanFabIcon');
+
+    if (fabBtn) fabBtn.classList.remove('is-open');
+
+    if (fabIcon) {
+        fabIcon.classList.remove('fa-xmark');
+        fabIcon.classList.add('fa-pen-to-square');
+    }
+
+    setTimeout(function() {
+        sheet.classList.add('hidden');
+        overlay.classList.add('hidden');
+    }, 180);
+}
+
+
+// action: 'match' | 'dat16' | 'dat18' | 'quy'
+// Dùng lại nguyên vẹn logic đã có ở khối "TÁC VỤ NHANH" trên Tổng quan
+// (input[name="actType"] + handleDashboardSubmit trong dashboard.js) — khối đó
+// vẫn còn trong DOM (chỉ ẩn trên mobile bằng CSS), nên không cần viết lại nghiệp vụ.
+function ghiNhanGo(action) {
+
+    closeGhiNhanSheet();
+
+    if (action === 'match') {
+        switchTabMobile('matches', 'Ghi Trận');
+        return;
+    }
+
+    var radio = document.querySelector(
+        'input[name="actType"][value="' + action + '"]'
+    );
+
+    if (!radio) return;
+
+    radio.checked = true;
+
+    if (typeof handleDashboardSubmit === 'function') {
+        handleDashboardSubmit();
+    }
+}
+
+
+function openMoreSheet() {
+
+    var sheet = document.getElementById('moreSheet');
+    var overlay = document.getElementById('moreOverlay');
+
+    if (!sheet || !overlay) return;
+
+    overlay.classList.remove('hidden');
+    sheet.classList.remove('hidden');
+
+    requestAnimationFrame(function() {
+        sheet.classList.add('is-open');
+    });
+}
+
+
+function closeMoreSheet() {
+
+    var sheet = document.getElementById('moreSheet');
+    var overlay = document.getElementById('moreOverlay');
+
+    if (!sheet || !overlay) return;
+
+    sheet.classList.remove('is-open');
+
+    setTimeout(function() {
+        sheet.classList.add('hidden');
+        overlay.classList.add('hidden');
+    }, 200);
+}
+
+
+function moreGo(tabId, label) {
+
+    closeMoreSheet();
+    switchTabMobile(tabId, label);
+}
+
+
+// Lọc danh mục Sổ thu chi theo Thu/Chi (chỉ áp dụng trên mobile — các nút
+// data-cbgroup vẫn hiển thị đầy đủ, không lọc, trên desktop vì hàm này chỉ được
+// gọi từ bottom nav / pill mobile).
+function setCashbookGroup(group) {
+
+    __cbGroup = group;
+    window.__cbGroup = group;
+
+    document.querySelectorAll('[data-cbgroup]').forEach(function(el) {
+        el.style.display =
+            (el.getAttribute('data-cbgroup') === group) ? '' : 'none';
+    });
+
+    var pillThu = document.getElementById('cbPillThu');
+    var pillChi = document.getElementById('cbPillChi');
+
+    if (pillThu) pillThu.classList.toggle('active', group === 'thu');
+    if (pillChi) pillChi.classList.toggle('active', group === 'chi');
+}
