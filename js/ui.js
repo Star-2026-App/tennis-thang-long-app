@@ -1164,3 +1164,136 @@ function setCashbookGroup(group) {
     if (pillThu) pillThu.classList.toggle('active', group === 'thu');
     if (pillChi) pillChi.classList.toggle('active', group === 'chi');
 }
+
+
+// ======================================================
+// PULL-TO-REFRESH (mobile) — thay cho nút 🔄 làm mới cũ.
+// Không dùng preventDefault (listener passive) để không phá
+// cuộn trang mặc định của iOS; chỉ vẽ chỉ báo trực quan bằng
+// cách tăng chiều cao #ptrIndicator (phần tử nằm trong luồng
+// trang, KHÔNG position:fixed) rồi gọi lại refreshCloudData().
+// ======================================================
+
+(function initPullToRefresh_() {
+
+    var PTR_THRESHOLD = 62;
+    var PTR_MAX = 78;
+
+    var startY = 0;
+    var pulling = false;
+    var refreshing = false;
+
+    var indicator, iconEl, textEl;
+
+    function els_() {
+        if (!indicator) indicator = document.getElementById('ptrIndicator');
+        if (!iconEl) iconEl = document.getElementById('ptrIcon');
+        if (!textEl) textEl = document.getElementById('ptrText');
+        return !!(indicator && iconEl && textEl);
+    }
+
+    function atTop_() {
+        return (window.scrollY || document.documentElement.scrollTop || 0) <= 0;
+    }
+
+    function sheetOpen_() {
+        var g = document.getElementById('ghiNhanSheet');
+        var m = document.getElementById('moreSheet');
+        return (g && g.classList.contains('is-open')) ||
+               (m && m.classList.contains('is-open'));
+    }
+
+    function resetIndicator_() {
+        if (!els_()) return;
+        indicator.style.height = '0px';
+        iconEl.classList.remove('fa-rotate-180', 'fa-spinner', 'fa-spin');
+        iconEl.classList.add('fa-arrow-down');
+        textEl.innerText = 'Kéo xuống để làm mới';
+    }
+
+    function onTouchStart_(e) {
+        if (refreshing || window.innerWidth >= 768) { pulling = false; return; }
+
+        var appScreen = document.getElementById('appScreen');
+        if (!appScreen || appScreen.classList.contains('hidden')) { pulling = false; return; }
+
+        if (sheetOpen_() || !atTop_() || !e.touches || e.touches.length !== 1) {
+            pulling = false;
+            return;
+        }
+
+        startY = e.touches[0].clientY;
+        pulling = true;
+    }
+
+    function onTouchMove_(e) {
+        if (!pulling || refreshing || !els_()) return;
+
+        if (!atTop_() || sheetOpen_()) {
+            pulling = false;
+            indicator.style.height = '0px';
+            return;
+        }
+
+        var dy = e.touches[0].clientY - startY;
+
+        if (dy <= 0) {
+            indicator.style.height = '0px';
+            return;
+        }
+
+        var dist = Math.min(dy * 0.5, PTR_MAX);
+        indicator.style.height = dist + 'px';
+
+        if (dist >= PTR_THRESHOLD) {
+            iconEl.classList.add('fa-rotate-180');
+            textEl.innerText = 'Thả ra để làm mới';
+        } else {
+            iconEl.classList.remove('fa-rotate-180');
+            textEl.innerText = 'Kéo xuống để làm mới';
+        }
+    }
+
+    function onTouchEnd_() {
+        if (!pulling || refreshing || !els_()) { pulling = false; return; }
+
+        pulling = false;
+
+        var dist = parseFloat(indicator.style.height) || 0;
+
+        if (dist < PTR_THRESHOLD) {
+            indicator.style.height = '0px';
+            return;
+        }
+
+        refreshing = true;
+        indicator.style.height = PTR_MAX + 'px';
+        iconEl.classList.remove('fa-arrow-down', 'fa-rotate-180');
+        iconEl.classList.add('fa-spinner', 'fa-spin');
+        textEl.innerText = 'Đang làm mới...';
+
+        function done_() {
+            refreshing = false;
+            resetIndicator_();
+        }
+
+        try {
+            if (typeof window.refreshCloudData === 'function') {
+                Promise.resolve(window.refreshCloudData(null)).then(done_).catch(done_);
+            } else {
+                setTimeout(done_, 600);
+            }
+        } catch (err) {
+            done_();
+        }
+    }
+
+    document.addEventListener('touchstart', onTouchStart_, { passive: true });
+    document.addEventListener('touchmove', onTouchMove_, { passive: true });
+    document.addEventListener('touchend', onTouchEnd_, { passive: true });
+    document.addEventListener('touchcancel', function() {
+        pulling = false;
+        if (!refreshing) resetIndicator_();
+    }, { passive: true });
+
+})();
