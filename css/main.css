@@ -1368,10 +1368,140 @@ thead th {
         left: 12px;
         right: 12px;
 
-        bottom: max(
-            16px,
-            env(safe-area-inset-bottom)
-        );
+        /* Nâng toast lên trên bottom nav mới (~78px) để không bị che khuất. */
+        bottom: calc(78px + max(16px, env(safe-area-inset-bottom)));
+    }
+
+
+    /* =====================================================
+       M. BOTTOM NAV + GHI NHẬN + THÊM (mobile)
+       ===================================================== */
+
+    /* Chừa chỗ cuối trang cho bottom nav cố định, tránh che nội dung/nút cuối mỗi tab.
+       Selector cụ thể hơn class "py-4" của Tailwind để chắc chắn thắng specificity. */
+    main.max-w-7xl {
+        padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    .bn-item {
+        color: #94a3b8;
+        background: none;
+        border: none;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .bn-item.active {
+        color: #047857;
+    }
+
+    #ghiNhanFabBtn {
+        transition: transform .15s ease, background-color .15s ease;
+    }
+
+    #ghiNhanFabBtn.is-open {
+        background: #0f172a;
+        transform: rotate(45deg);
+    }
+
+    #ghiNhanSheet {
+        transition: opacity .18s ease, transform .18s ease;
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+    }
+
+    #ghiNhanSheet.is-open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .ghi-nhan-opt {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 264px;
+        background: #ffffff;
+        border: none;
+        border-radius: 9999px;
+        padding: 8px 8px 8px 18px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, .22);
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .ghi-nhan-opt-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    #moreSheet {
+        transition: transform .2s ease;
+        transform: translateY(100%);
+    }
+
+    #moreSheet.is-open {
+        transform: translateY(0);
+    }
+
+    .more-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        background: none;
+        border: none;
+        border-bottom: 1px solid #f1f5f9;
+        padding: 12px 4px;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #1e293b;
+        text-align: left;
+    }
+
+    .more-row:last-child {
+        border-bottom: none;
+    }
+
+    .more-row-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: #f1f5f9;
+        color: #475569;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .fp-pill {
+        background: #ffffff;
+        border-color: #e2e8f0;
+        color: #475569;
+    }
+
+    .fp-pill.active {
+        background: #065f46;
+        border-color: #065f46;
+        color: #ffffff;
+    }
+
+    .cb-pill {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .cb-pill.active {
+        background: #065f46;
+        color: #ffffff;
     }
 }
 
