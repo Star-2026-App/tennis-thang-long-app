@@ -3,7 +3,7 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbPZaEG-qqUB
 // ======================================================
 // API_TOKEN (v1.5)
 //
-// Giá trị này PHẢI khớp với "API_SECRET" đã set trong
+// Giá trị này PHẢI khớp với "API_SECRET" đã set trong d
 // Script Properties của Apps Script (Project Settings >
 // Script Properties). Đổi giá trị bên dưới thì cũng phải
 // đổi lại giá trị API_SECRET tương ứng ở backend.
