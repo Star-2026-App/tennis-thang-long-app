@@ -780,6 +780,10 @@ function fetchMonthCloseStatusLight_(
             encodeURIComponent(
                 year
             ) +
+            '&token=' +
+            encodeURIComponent(
+                API_TOKEN || ""
+            ) +
             '&prefix=' +
             encodeURIComponent(
                 callbackName
@@ -2554,6 +2558,9 @@ function saveFinanceData(e) {
                     action:
                         "updateSingleMember",
 
+                    token:
+                        API_TOKEN || "",
+
                     member:
                         payloadMember
                 })
@@ -3334,6 +3341,9 @@ function deleteQuyLog(id) {
                             action:
                                 "deleteItem",
 
+                            token:
+                                API_TOKEN || "",
+
                             sheetName:
                                 "QuyLogs",
 
@@ -3877,6 +3887,9 @@ function saveGocLogEdit(e) {
 
                     action:
                         "updateGocLog",
+
+                    token:
+                        API_TOKEN || "",
 
                     gocLog:
                         payload
@@ -6027,6 +6040,9 @@ function executeMonthClose_() {
 
                             action:
                                 'closeMonth',
+
+                            token:
+                                API_TOKEN || "",
 
                             monthClose: {
 
