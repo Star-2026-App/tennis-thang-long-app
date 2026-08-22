@@ -2700,13 +2700,68 @@
                     button.querySelector('i')?.classList.add('fa-spin');
                 }
 
+                if (typeof window.showCloudLoading_ === 'function') {
+                    window.showCloudLoading_();
+                }
+
+                function finishRefresh_(success) {
+                    if (typeof window.hideCloudLoading_ === 'function') {
+                        window.hideCloudLoading_();
+                    }
+                    if (button) {
+                        button.dataset.refreshing = '';
+                        button.disabled = false;
+                        button.querySelector('i')?.classList.remove('fa-spin');
+                    }
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(
+                            success ? 'Đã cập nhật dữ liệu mới nhất!' : 'Không thể tải dữ liệu mới. Kiểm tra lại mạng.',
+                            success ? 'success' : 'warning'
+                        );
+                    }
+                }
+
                 try {
                     if ('serviceWorker' in navigator) {
                         const registrations = await navigator.serviceWorker.getRegistrations();
                         await Promise.allSettled(registrations.map(registration => registration.update()));
                     }
-                } finally {
-                    window.location.reload();
+                } catch (err) {
+                    console.warn('SERVICE WORKER UPDATE ERROR:', err);
+                }
+
+                // Làm mới dữ liệu nền (Members, Settings, tháng hiện tại...)
+                // KHÔNG reload cả trang — tránh cảm giác "phải logout mới thấy mới".
+                if (typeof window.fetchCloudData === 'function') {
+                    window.fetchCloudData(true, function() {
+
+                        // Nếu người dùng đang xem 1 tháng cụ thể (không phải tháng
+                        // hiện tại) ở tab Nhật Ký Trận / Thưởng Sân, ép tải lại đúng
+                        // tháng đó bỏ qua mọi cache cũ.
+                        try {
+                            let selected =
+                                typeof window.getSelectedMatchDateParts_ === 'function'
+                                    ? window.getSelectedMatchDateParts_()
+                                    : null;
+
+                            let now = new Date();
+                            let targetMonth = selected ? selected.month : (now.getMonth() + 1);
+                            let targetYear = selected ? selected.year : now.getFullYear();
+
+                            if (typeof window.fetchMonthData === 'function') {
+                                window.fetchMonthData(targetMonth, targetYear, false, function() {
+                                    finishRefresh_(true);
+                                }, true);
+                                return;
+                            }
+                        } catch (err) {
+                            console.warn('FORCE REFRESH MONTH DATA ERROR:', err);
+                        }
+
+                        finishRefresh_(true);
+                    });
+                } else {
+                    finishRefresh_(false);
                 }
             };
 
