@@ -1039,6 +1039,18 @@ function enqueueAction(
 
     else if (
         actionName ===
+            "addQuyLog" &&
+        payload.quyLog
+    ) {
+
+        quyLogs.unshift(
+            payload.quyLog
+        );
+    }
+
+
+    else if (
+        actionName ===
             "addBooking" &&
         payload.booking
     ) {
@@ -1510,6 +1522,17 @@ function processQueue() {
         syncQueue[0];
 
 
+    let itemWithToken =
+        Object.assign(
+            {},
+            item,
+            {
+                token:
+                    API_TOKEN || ""
+            }
+        );
+
+
     fetch(
         GOOGLE_SCRIPT_URL,
         {
@@ -1528,7 +1551,7 @@ function processQueue() {
 
             body:
                 JSON.stringify(
-                    item
+                    itemWithToken
                 )
         }
     )
@@ -1867,6 +1890,14 @@ function fetchJsonpPhase3_(
         "prefix=" +
         encodeURIComponent(
             callbackName
+        )
+    );
+
+
+    query.push(
+        "token=" +
+        encodeURIComponent(
+            API_TOKEN || ""
         )
     );
 
