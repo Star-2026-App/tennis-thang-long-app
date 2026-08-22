@@ -308,202 +308,26 @@ function handleDashboardSubmit() {
 
         () => {
 
-            // ==================================================
-            // 2. TẠO BẢN GHI TẠM TRÊN TRÌNH DUYỆT
-            // Backend vẫn là nơi quyết định dữ liệu chính thức
-            // ==================================================
-
-            let tempId = "PENDING_QUY_" + Date.now();
-
-            let tempLog = {
-                id: tempId,
+            let newQuyLog = {
+                id: "QUY_" + Date.now(),
                 time: new Date().toLocaleString('vi-VN'),
                 name: main,
                 quarter: period.quarter,
                 year: period.year,
                 amount: parseInt(systemSettings.quyAmount) || 0,
-                note: "Đang đồng bộ...",
-                pending: true
+                note: "Xác nhận đóng đủ quỹ " + period.quarter + "/" + period.year
             };
 
-
-            // ==================================================
-            // 3. CẬP NHẬT GIAO DIỆN NGAY
-            // ==================================================
-
-            quyLogs.push(tempLog);
-
-            renderDashboard();
-
-            if (typeof renderQuyTable === "function") {
-                renderQuyTable();
-            }
-
-            if (typeof renderCashbook === "function") {
-                renderCashbook();
-            }
-
-            showToast(
-                `Đang ghi nhận quỹ ${period.quarter}/${period.year}...`
+            enqueueAction(
+                "addQuyLog",
+                { quyLog: newQuyLog },
+                `Đã ghi nhận đóng quỹ ${period.quarter}/${period.year} thành công!`
             );
-
-
-            // ==================================================
-            // 4. BACKEND CHẠY PHÍA SAU
-            // ==================================================
-
-            fetch(GOOGLE_SCRIPT_URL, {
-
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-
-                body: JSON.stringify({
-                    action: "addQuyLog",
-                    quyLog: {
-                        name: main
-                    }
-                })
-            })
-
-            .then(res => res.json())
-
-            .then(data => {
-
-                // ==================================================
-                // BACKEND BÁO LỖI → HOÀN TÁC LOCAL
-                // ==================================================
-
-                if (data.status !== "SUCCESS") {
-
-                    quyLogs = (quyLogs || []).filter(function(item) {
-                        return String(item.id) !== String(tempId);
-                    });
-
-                    renderDashboard();
-
-                    if (typeof renderQuyTable === "function") {
-                        renderQuyTable();
-                    }
-
-                    if (typeof renderCashbook === "function") {
-                        renderCashbook();
-                    }
-
-
-                    let message =
-                        data.message ||
-                        "Không thể ghi nhận đóng quỹ.";
-
-                    message =
-                        message.replace(/^Error:\s*/i, "");
-
-
-                    // Nếu lỗi do dữ liệu local cũ nhưng Backend đã có bản ghi
-                    // thì tải lại Cloud để đồng bộ chính xác.
-                    if (
-                        message.toLowerCase().includes("đã xác nhận đóng quỹ")
-                    ) {
-                        alert(message);
-                        fetchCloudData(true);
-                        return;
-                    }
-
-                    alert(
-                        message +
-                        "\n\nGiao diện đã tự hoàn tác."
-                    );
-
-                    return;
-                }
-
-
-                // ==================================================
-                // 5. BACKEND THÀNH CÔNG
-                // Thay bản ghi tạm bằng bản ghi thật
-                // ==================================================
-
-                let newLog = data.result;
-
-                if (!newLog || !newLog.id) {
-
-                    // Trường hợp hiếm: Backend đã ghi nhưng không trả result
-                    // tải lại Cloud để đảm bảo dữ liệu chính xác
-                    fetchCloudData(true);
-                    return;
-                }
-
-
-                quyLogs = (quyLogs || []).filter(function(item) {
-                    return String(item.id) !== String(tempId);
-                });
-
-                // Tránh duplicate local
-                quyLogs = quyLogs.filter(function(item) {
-                    return !(
-                        String(item.name || '').trim().toLowerCase() ===
-                            String(newLog.name || '').trim().toLowerCase() &&
-
-                        String(item.quarter || '').toUpperCase() ===
-                            String(newLog.quarter || '').toUpperCase() &&
-
-                        parseInt(item.year) ===
-                            parseInt(newLog.year)
-                    );
-                });
-
-                quyLogs.push(newLog);
-
-
-                // Không cần render toàn bộ app
-                renderDashboard();
-
-                if (typeof renderQuyTable === "function") {
-                    renderQuyTable();
-                }
-
-                if (typeof renderCashbook === "function") {
-                    renderCashbook();
-                }
-
-
-                showToast(
-                    `Đã lưu quỹ ${newLog.quarter}/${newLog.year} thành công!`
-                );
-            })
-
-            .catch(() => {
-
-                // ==================================================
-                // MẤT MẠNG / BACKEND KHÔNG KẾT NỐI
-                // → HOÀN TÁC
-                // ==================================================
-
-                quyLogs = (quyLogs || []).filter(function(item) {
-                    return String(item.id) !== String(tempId);
-                });
-
-                renderDashboard();
-
-                if (typeof renderQuyTable === "function") {
-                    renderQuyTable();
-                }
-
-                if (typeof renderCashbook === "function") {
-                    renderCashbook();
-                }
-
-                alert(
-                    "Không thể kết nối hệ thống.\n\n" +
-                    "Xác nhận đóng quỹ đã được hoàn tác trên màn hình."
-                );
-            });
         }
     );
+
 }
-    
+
 }
 
 function renderDashboard() {
