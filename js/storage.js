@@ -20,6 +20,7 @@ function saveLocalData() {
     localStorage.setItem('clb_bookingLogs', JSON.stringify(bookingLogs));
     localStorage.setItem('clb_cashbookLogs', JSON.stringify(cashbookLogs));
     localStorage.setItem('clb_gocLogs', JSON.stringify(gocLogs));
+    localStorage.setItem('clb_quyLogs', JSON.stringify(quyLogs));
     localStorage.setItem('clb_rulesList', JSON.stringify(rulesList));
     localStorage.setItem('clb_openingBalance', openingBalance);
     localStorage.setItem('clb_settings', JSON.stringify(systemSettings));
@@ -32,6 +33,7 @@ function loadLocalData() {
     bookingLogs = JSON.parse(localStorage.getItem('clb_bookingLogs')) || [];
     cashbookLogs = JSON.parse(localStorage.getItem('clb_cashbookLogs')) || [];
     gocLogs = JSON.parse(localStorage.getItem('clb_gocLogs')) || [];
+    quyLogs = JSON.parse(localStorage.getItem('clb_quyLogs')) || [];
     rulesList = JSON.parse(localStorage.getItem('clb_rulesList')) || [];
     let storedBal = localStorage.getItem('clb_openingBalance');
     if (storedBal !== null) openingBalance = parseFloat(storedBal);
