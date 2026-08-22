@@ -67,7 +67,14 @@ function saveNewMember(e) {
     let name = document.getElementById('newMemName').value.trim();
     let base = parseFloat(document.getElementById('newMemBase').value) || 6.2;
     let status = document.getElementById('newMemStatus').value;
-    let newStt = members.length + 1;
+    // KHÔNG dùng members.length + 1: sau khi xóa thành viên, độ dài mảng
+    // giảm nhưng STT lớn nhất đã cấp thì không đổi -> dùng lại members.length+1
+    // sẽ ra trùng STT/username với thành viên còn tồn tại có STT lớn hơn.
+    // Luôn lấy STT lớn nhất đang có (kể cả thành viên đã xóa nếu còn trong sheet) + 1.
+    let newStt = members.reduce(function(max, m) {
+        let stt = parseInt(m.stt) || 0;
+        return stt > max ? stt : max;
+    }, 0) + 1;
 
     members.push({
         stt: newStt,
