@@ -734,7 +734,7 @@
         <p class="font-bold text-sm">Đang tải dữ liệu Cloud...</p>
     </div>
 
-    <div id="appToast" class="fixed bottom-6 right-6 bg-slate-900/95 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-2xl z-[200] transition-all duration-300 transform translate-y-12 opacity-0 flex items-center gap-3 border border-slate-700">
+    <div id="appToast" class="pointer-events-none fixed bottom-6 right-6 bg-slate-900/95 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-2xl z-[200] transition-all duration-300 transform translate-y-12 opacity-0 flex items-center gap-3 border border-slate-700">
         <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
         <span id="toastMsg">Đã ghi nhận thành công!</span>
     </div>
@@ -782,11 +782,16 @@
                         <i class="fa-solid fa-trophy text-sm"></i>
                     </button>
 
-                    <button type="button" onclick="refreshCloudData(this)" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Làm mới dữ liệu từ Google Cloud" aria-label="Làm mới dữ liệu từ Google Cloud">
+                    <button type="button" onclick="openNotificationCenterModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Thông báo">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                        <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center leading-none">0</span>
+                    </button>
+
+                    <button type="button" onclick="refreshCloudData(this)" class="hidden md:inline-flex relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Làm mới dữ liệu từ Google Cloud" aria-label="Làm mới dữ liệu từ Google Cloud">
                         <i class="fa-solid fa-rotate text-sm"></i>
                     </button>
 
-                    <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản & Thoát">
+                    <button onclick="openUserProfileModal()" class="hidden md:inline-flex bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản & Thoát">
                         <i class="fa-solid fa-user-shield text-sm text-amber-300"></i>
                     </button>
                 </div>
@@ -834,6 +839,12 @@
                 <button onclick="switchTabMobile('settings', 'Cài Đặt')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2 admin-only hidden"><i class="fa-solid fa-gears text-amber-300"></i> Cài Đặt</button>
             </div>
         </header>
+
+        <!-- CHỈ BÁO KÉO-XUỐNG-ĐỂ-LÀM-MỚI (mobile) — nằm ngoài <main>, tự "đẩy" nội dung xuống khi cao lên, không dùng position:fixed để tránh án ngữ các nút khác (xem bài học từ lỗi #appToast). -->
+        <div id="ptrIndicator" class="md:hidden flex items-center justify-center gap-2 overflow-hidden" style="height:0px; transition:height .15s ease;">
+            <i id="ptrIcon" class="fa-solid fa-arrow-down text-emerald-700 text-xs"></i>
+            <span id="ptrText" class="text-[11px] font-bold text-emerald-700">Kéo xuống để làm mới</span>
+        </div>
 
         <main class="max-w-7xl mx-auto px-3 py-4 flex-grow w-full space-y-4">
 
@@ -1975,6 +1986,28 @@
         </div>
     </div>
 
+    <!-- TRUNG TÂM THÔNG BÁO (chuông 🔔) -->
+    <div id="notificationCenterModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[300] p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl flex flex-col" style="max-height:85dvh;">
+            <div class="flex items-center justify-between p-4 border-b border-slate-100">
+                <h3 class="font-black text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-bell text-emerald-700"></i> Thông báo</h3>
+                <button onclick="closeNotificationCenterModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="p-3 border-b border-slate-100">
+                <button type="button" id="pushToggleBtn" onclick="enablePushNotifications()" class="w-full flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold py-2.5 px-3 rounded-xl text-xs transition">
+                    <i class="fa-solid fa-bell"></i> <span class="flex-1 text-left">Bật thông báo đẩy</span>
+                </button>
+            </div>
+
+            <div id="notificationCenterList" class="overflow-y-auto flex-1"></div>
+
+            <div class="p-3 border-t border-slate-100">
+                <button type="button" onclick="clearAllNotifications()" class="w-full text-red-600 hover:bg-red-50 font-bold py-2 rounded-xl text-xs transition">Xoá tất cả thông báo</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL HIỂN THỊ TÊN KHI BẤM ICON THÀNH VIÊN + NÚT THOÁT AN TOÀN -->
     <div id="userProfileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-6 space-y-4 shadow-2xl text-center relative">
@@ -2144,6 +2177,7 @@
     <script src="js/modules/matches.js"></script>
     <script src="js/modules/dashboard.js"></script>
     <script src="js/modules/settings.js"></script>
+    <script src="js/modules/notifications.js"></script>
     <script src="js/init.js"></script>
     <script src="js/app.js"></script>
     <script>
