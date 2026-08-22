@@ -78,6 +78,10 @@ function initApp() {
 
 
     safeRun_("applyRolePermissions", applyRolePermissions);
+
+    safeRun_("renderNotificationBadge", renderNotificationBadge);
+
+    safeRun_("updatePushToggleUi_", updatePushToggleUi_);
 }
 
 
