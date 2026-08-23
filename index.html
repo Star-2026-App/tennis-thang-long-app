@@ -782,7 +782,7 @@
                         <i class="fa-solid fa-trophy text-sm"></i>
                     </button>
 
-                    <button type="button" onclick="openNotificationCenterModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Thông báo">
+                    <button type="button" onclick="openNotificationCenterModal()" id="notifBellBtn" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Thông báo">
                         <i class="fa-solid fa-bell text-sm"></i>
                         <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center leading-none">0</span>
                     </button>
@@ -1709,7 +1709,7 @@
                     <i class="fa-solid fa-wallet text-lg"></i>
                     <span class="text-[9.5px] font-bold">Tài chính</span>
                 </button>
-                <button type="button" onclick="toggleGhiNhanSheet()" class="flex flex-col items-center -mt-8">
+                <button type="button" onclick="toggleGhiNhanSheet()" id="bn-ghinhan" class="flex flex-col items-center -mt-8">
                     <span id="ghiNhanFabBtn" class="w-14 h-14 rounded-full bg-emerald-700 text-white flex items-center justify-center border-4 border-white" style="box-shadow:0 10px 18px -6px rgba(4,120,87,0.55);">
                         <i id="ghiNhanFabIcon" class="fa-solid fa-pen-to-square text-xl"></i>
                     </span>
@@ -1782,6 +1782,11 @@
                     <span class="flex-1 text-left">Cài Đặt</span>
                     <span class="text-[9px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">ADMIN</span>
                 </button>
+                <button type="button" onclick="replayOnboardingTour()" class="more-row">
+                    <span class="more-row-icon"><i class="fa-solid fa-circle-info"></i></span>
+                    <span class="flex-1 text-left">Xem hướng dẫn sử dụng</span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>
                 <button type="button" onclick="closeMoreSheet(); openUserProfileModal();" class="more-row">
                     <span class="more-row-icon"><i class="fa-solid fa-user-shield"></i></span>
                     <span class="flex-1 text-left">Tài khoản của tôi</span>
@@ -1792,6 +1797,28 @@
                     <span class="flex-1 text-left font-extrabold">Đăng xuất</span>
                 </button>
             </div>
+        </div>
+
+        <!-- ==========================================================
+             ONBOARDING TOUR - bong bóng giới thiệu giao diện mới
+             (chỉ mobile). #onbClickBlocker chặn chạm ra ngoài, có 1 lỗ
+             clip-path đúng vị trí nút đang giới thiệu để nút đó vẫn bấm
+             được. #onbHighlightRing dùng box-shadow phủ tối toàn màn
+             hình TRỪ đúng vị trí nút (hiệu ứng spotlight), không cần vẽ
+             overlay tối riêng.
+             ========================================================== -->
+        <div id="onbClickBlocker" class="md:hidden hidden fixed inset-0 z-[9999]"></div>
+
+        <div id="onbHighlightRing" class="md:hidden hidden fixed z-[10000] pointer-events-none" style="box-shadow:0 0 0 9999px rgba(15,23,42,.75); transition:left .25s ease, top .25s ease, width .25s ease, height .25s ease, border-radius .25s ease;"></div>
+
+        <div id="onbTooltip" class="md:hidden hidden fixed z-[10001] bg-white rounded-2xl shadow-2xl p-4" style="width:260px; transition:left .25s ease, top .25s ease;">
+            <div class="flex items-center justify-between mb-2">
+                <span id="onbStepDots" class="flex gap-1"></span>
+                <button type="button" onclick="skipOnboardingTour()" class="text-slate-400 hover:text-slate-600 text-[11px] font-bold">Bỏ qua</button>
+            </div>
+            <h4 id="onbStepTitle" class="font-black text-slate-800 text-sm mb-1">Tổng quan</h4>
+            <p id="onbStepDesc" class="text-xs text-slate-600 leading-relaxed mb-3">Nội dung hướng dẫn.</p>
+            <button type="button" id="onbNextBtn" onclick="nextOnboardingStep()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-2 rounded-xl text-xs">Tiếp theo</button>
         </div>
     </div>
 
@@ -2178,6 +2205,7 @@
     <script src="js/modules/dashboard.js"></script>
     <script src="js/modules/settings.js"></script>
     <script src="js/modules/notifications.js"></script>
+    <script src="js/modules/onboarding.js"></script>
     <script src="js/init.js"></script>
     <script src="js/app.js"></script>
     <script>
