@@ -19,6 +19,12 @@ const ONBOARDING_STORAGE_KEY = 'tlt_onboarding_seen_v1';
 
 const ONBOARDING_STEPS = [
     {
+        selector: '#bn-ghinhan',
+        radius: 20,
+        title: 'Ghi nhận',
+        desc: 'Nút nổi này để ghi trận đấu, thưởng sân 16h/18h hoặc đóng quỹ thật nhanh - bấm vào sẽ hiện các lựa chọn.'
+    },
+    {
         selector: '#bn-dashboard',
         radius: 16,
         title: 'Tổng quan',
@@ -29,12 +35,6 @@ const ONBOARDING_STEPS = [
         radius: 16,
         title: 'Tài chính',
         desc: 'Thưởng sân, Nộp tiền, Đóng quỹ và Bảng tổng kết của cả CLB được gộp chung vào 1 mục để dễ tìm hơn.'
-    },
-    {
-        selector: '#bn-ghinhan',
-        radius: 20,
-        title: 'Ghi nhận',
-        desc: 'Nút nổi này để ghi trận đấu, thưởng sân 16h/18h hoặc đóng quỹ thật nhanh - bấm vào sẽ hiện các lựa chọn.'
     },
     {
         selector: '#bn-cashbook',
@@ -53,6 +53,18 @@ const ONBOARDING_STEPS = [
         radius: 9999,
         title: 'Thông báo',
         desc: 'Bấm chuông để bật thông báo đẩy - nhận tin ngay khi có ai ghi nhận thưởng sân, đóng quỹ hay trận đấu mới.'
+    },
+    {
+        selector: '#courtsTodayBtn',
+        radius: 9999,
+        title: 'Thông báo sân tập',
+        desc: 'Xem nhanh các sân đã đặt gần đây - nhắc bạn đừng quên ghi nhận thưởng sân.'
+    },
+    {
+        selector: '#hallOfFameBtn',
+        radius: 9999,
+        title: 'Bảng vàng thành tích',
+        desc: 'Xem bảng vàng vinh danh - thành viên chơi nhiều, đóng góp tích cực trong tháng.'
     }
 ];
 
