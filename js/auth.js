@@ -46,6 +46,10 @@ function handleLogin(e) {
         syncBottomNavState('dashboard');
     }
 
+    if (typeof maybeAutoStartOnboarding_ === 'function') {
+        maybeAutoStartOnboarding_();
+    }
+
     let dashSelect = document.getElementById('dashMainUser');
     if (dashSelect) {
         dashSelect.value = loggedInMemberName;
