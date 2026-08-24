@@ -15,16 +15,20 @@ function renderBookingLogs() {
     let totalRewardSum = currentMonthBookings.reduce((sum, b) => sum + parseInt(b.reward || 0), 0);
     document.getElementById('totalBookingRewardDisplay').innerText = totalRewardSum.toLocaleString('vi-VN') + " đ";
 
+    // (v2.0 - điểm yếu #9): tên thành viên đặt sân - escape trước
+    // khi chèn HTML.
+    let esc_ = (typeof escapeHtml_ === 'function') ? escapeHtml_ : (s => String(s == null ? '' : s));
+
     currentMonthBookings.forEach((b, idx) => {
         let stt = currentMonthBookings.length - idx;
         tbody.innerHTML += `
             <tr class="border-b">
                 <td class="p-2.5 text-center font-bold">${stt}</td>
                 <td class="p-2.5">${b.time}</td>
-                <td class="p-2.5 font-bold">${b.name}</td>
+                <td class="p-2.5 font-bold">${esc_(b.name)}</td>
                 <td class="p-2.5 text-center font-bold text-amber-700">${b.frame}</td>
                 <td class="p-2.5 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td>
-                <td class="p-2.5 text-center admin-only ${currentUserRole==='admin'?'':'hidden'}">
+                <td class="p-2.5 text-center admin-only ${(currentUserRole==='admin'||currentUserRole==='owner')?'':'hidden'}">
                     <button onclick="deleteBooking(${b.id})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
@@ -64,11 +68,13 @@ function openTodayCourtsModal() {
     if (yesterdayBookings.length === 0) {
         container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs italic">Không có lịch đặt sân nào được ghi nhận từ ngày hôm qua.</div>`;
     } else {
+        let esc_ = (typeof escapeHtml_ === 'function') ? escapeHtml_ : (s => String(s == null ? '' : s));
+
         yesterdayBookings.forEach(b => {
             container.innerHTML += `
                 <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between shadow-sm">
                     <div>
-                        <h4 class="font-black text-xs text-slate-900">${b.name}</h4>
+                        <h4 class="font-black text-xs text-slate-900">${esc_(b.name)}</h4>
                         <p class="text-[10px] text-slate-500 mt-0.5">Thời gian đặt: ${b.time}</p>
                     </div>
                     <span class="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-3 py-1 rounded-xl shadow-sm">${b.frame}</span>

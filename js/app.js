@@ -117,44 +117,30 @@ window.addEventListener(
 
 
         // ==============================================
-        // LOCAL FIRST
+        // v2.0 (sửa điểm yếu #11): KHÔNG còn loadLocalData()/
+        // fetchCloudData() vô điều kiện ở đây. Trước đây app.js
+        // tải toàn bộ dữ liệu CLB (kể cả tài chính) ngay khi mở
+        // trang, TRƯỚC khi biết người dùng đã đăng nhập hay chưa
+        // - màn hình đăng nhập chỉ là lớp phủ hình ảnh, dữ liệu
+        // vẫn nằm sẵn trong bộ nhớ/localStorage.
+        //
+        // Từ v2.0, bước ĐẦU TIÊN và DUY NHẤT là hỏi server "tôi
+        // có đang đăng nhập không" (GET /api/auth/session, xem
+        // auth.js checkExistingSession_()). CHỈ khi server xác
+        // nhận có phiên hợp lệ, enterAppScreen_() mới gọi
+        // loadLocalData() (đã namespace theo actor - storage.js)
+        // và fetchCloudData(). Nếu chưa đăng nhập, màn hình đăng
+        // nhập là nơi DUY NHẤT hiển thị, không có dữ liệu CLB nào
+        // được đưa vào bộ nhớ trình duyệt.
         // ==============================================
 
-        loadLocalData();
+        // restorePhase3LocalState_ (khôi phục memberStats/tháng đang
+        // xem từ localStorage) chuyển vào enterAppScreen_() trong
+        // auth.js - cũng là dữ liệu CLB, không nên đụng tới trước
+        // khi có xác nhận phiên đăng nhập hợp lệ.
+        window.__pendingCurMonth = curMonth;
+        window.__pendingCurYear = curYear;
 
-
-        if (
-            typeof restorePhase3LocalState_ ===
-            "function"
-        ) {
-
-            restorePhase3LocalState_(
-                curMonth,
-                curYear
-            );
-        }
-
-
-        if (
-            !members ||
-            members.length === 0
-        ) {
-
-            members =
-                defaultFallbackMembers;
-        }
-
-
-        // Hiển thị cache/local trước để app mở nhanh.
-        initApp();
-
-
-        // ==============================================
-        // CLOUD INITIAL DATA NHẸ
-        // ==============================================
-
-        fetchCloudData(
-            false
-        );
+        checkExistingSession_();
     }
 );

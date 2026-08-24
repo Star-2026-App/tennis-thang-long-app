@@ -360,6 +360,10 @@ function renderBestDuosTable() {
             10
         );
 
+    // (v2.0 - điểm yếu #9): tên thành viên trong danh sách cặp đôi -
+    // escape trước khi chèn HTML.
+    let esc_ = (typeof escapeHtml_ === 'function') ? escapeHtml_ : (s => String(s == null ? '' : s));
+
 
     if (
         duosArr.length === 0
@@ -423,7 +427,7 @@ function renderBestDuosTable() {
                         ${rankBadge}
                     </td>
                     <td class="p-2.5 font-bold text-slate-900">
-                        ${d.p1} & ${d.p2}
+                        ${esc_(d.p1)} & ${esc_(d.p2)}
                     </td>
                     <td class="p-2.5 text-center font-semibold">
                         ${d.total}
@@ -486,6 +490,10 @@ function renderRivalsAnalytics() {
 
     khacTinhBody.innerHTML =
         "";
+
+    // (v2.0 - điểm yếu #9): tên thành viên trong bảng "cạ cứng"/"khắc tinh" -
+    // escape trước khi chèn HTML.
+    let esc_ = (typeof escapeHtml_ === 'function') ? escapeHtml_ : (s => String(s == null ? '' : s));
 
 
     let headToHeadMap =
@@ -779,9 +787,9 @@ function renderRivalsAnalytics() {
                 duyenNoBody.innerHTML += `
                     <tr class="border-b">
                         <td class="p-1.5 font-semibold text-xs text-slate-800">
-                            <span class="text-emerald-800 font-bold">${d.t1}</span>
+                            <span class="text-emerald-800 font-bold">${esc_(d.t1)}</span>
                             <div class="text-center my-0.5"><span class="text-lg">🔥</span></div>
-                            <span class="text-blue-800 font-bold">${d.t2}</span>
+                            <span class="text-blue-800 font-bold">${esc_(d.t2)}</span>
                         </td>
                         <td class="p-1.5 text-center font-black text-amber-600 align-middle">
                             ${d.count} trận
@@ -884,9 +892,9 @@ function renderRivalsAnalytics() {
                 canSucBody.innerHTML += `
                     <tr class="border-b">
                         <td class="p-1.5 font-semibold text-xs text-slate-800">
-                            <span class="text-emerald-800 font-bold">${c.player}</span>
+                            <span class="text-emerald-800 font-bold">${esc_(c.player)}</span>
                             <div class="text-center my-0.5"><span class="text-lg">🔥</span></div>
-                            <span class="text-blue-800 font-bold">${c.vs}</span>
+                            <span class="text-blue-800 font-bold">${esc_(c.vs)}</span>
                         </td>
                         <td class="p-1.5 text-center font-bold text-blue-700 align-middle">
                             ${c.wins}T - ${c.losses}B (${winR}%)
@@ -991,9 +999,9 @@ function renderRivalsAnalytics() {
                 khacTinhBody.innerHTML += `
                     <tr class="border-b">
                         <td class="p-1.5 font-semibold text-xs text-slate-800">
-                            <span class="text-purple-800 font-bold">${k.player}</span>
+                            <span class="text-purple-800 font-bold">${esc_(k.player)}</span>
                             <div class="text-center my-0.5"><span class="text-lg">🔥</span></div>
-                            <span class="text-red-700 font-bold">${k.vs}</span>
+                            <span class="text-red-700 font-bold">${esc_(k.vs)}</span>
                         </td>
                         <td class="p-1.5 text-right font-black text-purple-700 align-middle">
                             ${lossRate}% (${k.losses}T)
@@ -1921,6 +1929,10 @@ function openTop5PersonalModalReady_() {
     partBody.innerHTML =
         "";
 
+    // (v2.0 - điểm yếu #9): tên thành viên trong Top 5 - escape trước khi
+    // chèn HTML.
+    let esc_ = (typeof escapeHtml_ === 'function') ? escapeHtml_ : (s => String(s == null ? '' : s));
+
 
     if (
         partnersArr.length ===
@@ -1961,7 +1973,7 @@ function openTop5PersonalModalReady_() {
 
                 partBody.innerHTML += `
                     <tr class="border-b">
-                        <td class="p-2 font-bold text-slate-900">${p.name}</td>
+                        <td class="p-2 font-bold text-slate-900">${esc_(p.name)}</td>
                         <td class="p-2 text-center font-semibold">${p.total}</td>
                         <td class="p-2 text-center font-bold text-blue-600">${p.wins}</td>
                         <td class="p-2 text-right font-black text-emerald-700">${rate}</td>
@@ -2071,7 +2083,7 @@ function openTop5PersonalModalReady_() {
 
                 rivalBody.innerHTML += `
                     <tr class="border-b">
-                        <td class="p-2 font-bold text-slate-900">${r.name}</td>
+                        <td class="p-2 font-bold text-slate-900">${esc_(r.name)}</td>
                         <td class="p-2 text-center font-semibold">${r.total}</td>
                         <td class="p-2 text-center font-bold text-red-600">${r.losses}</td>
                         <td class="p-2 text-right font-black text-purple-700">${lossRate}</td>

@@ -558,55 +558,64 @@ function closeNotificationModal() {
 // EXCEL
 // ======================================================
 
-function exportToExcel() {
+// (v2.0 - điểm yếu #12): bản cũ chỉ xuất 3 bảng (ThanhVien/TranDau/
+// NopTienGoc) từ dữ liệu ĐANG có sẵn trên máy (không đầy đủ, không
+// phục hồi được). Bản này gọi GET /api/data/backup (owner-only, dùng
+// action getFullBackupData_ ở backend) để lấy TOÀN BỘ dữ liệu hệ
+// thống rồi xuất thành 1 file Excel nhiều sheet - đúng nghĩa 1 bản
+// backup có thể dùng để phục hồi.
+async function exportToExcel() {
 
-    let wb =
-        XLSX.utils.book_new();
+    showToast("Đang tải dữ liệu backup đầy đủ...");
 
+    let backup;
 
-    let wsMem =
-        XLSX.utils.json_to_sheet(
-            members
-        );
+    try {
+        backup = await callBackendRead_("/api/data/backup");
+    } catch (err) {
+        alert("Không thể tải dữ liệu backup: " + ((err && err.message) || err));
+        return;
+    }
 
+    let wb = XLSX.utils.book_new();
 
-    XLSX.utils.book_append_sheet(
-        wb,
-        wsMem,
-        "ThanhVien"
+    let sheetDefs = [
+        { key: "members", name: "ThanhVien" },
+        { key: "matches", name: "TranDau" },
+        { key: "gocLogs", name: "NopTienGoc" },
+        { key: "quyLogs", name: "NopQuy" },
+        { key: "bookingLogs", name: "ThuongSan" },
+        { key: "cashbookLogs", name: "SoThuChi" },
+        { key: "rules", name: "QuyDinh" },
+        { key: "monthlyBalances", name: "SoDuThang" },
+        { key: "memberStats", name: "ThongKe" },
+        { key: "balanceAdjustments", name: "DieuChinhSoDu" },
+        { key: "auditLogs", name: "NhatKyThaoTac" }
+    ];
+
+    sheetDefs.forEach(function(def) {
+        let rows = Array.isArray(backup[def.key]) ? backup[def.key] : [];
+        let ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{}]);
+        XLSX.utils.book_append_sheet(wb, ws, def.name);
+    });
+
+    // settings + openingBalance không phải mảng bản ghi -> gộp vào 1 sheet riêng.
+    let settingsRow = Object.assign(
+        { openingBalance: backup.openingBalance, generatedAt: backup.generatedAt },
+        (backup.settings && typeof backup.settings === "object") ? backup.settings : {}
     );
 
+    let wsSettings = XLSX.utils.json_to_sheet([settingsRow]);
+    XLSX.utils.book_append_sheet(wb, wsSettings, "CaiDat");
 
-    let wsMatch =
-        XLSX.utils.json_to_sheet(
-            matches
-        );
-
-
-    XLSX.utils.book_append_sheet(
-        wb,
-        wsMatch,
-        "TranDau"
-    );
-
-
-    let wsGoc =
-        XLSX.utils.json_to_sheet(
-            gocLogs
-        );
-
-
-    XLSX.utils.book_append_sheet(
-        wb,
-        wsGoc,
-        "NopTienGoc"
-    );
-
+    let stamp = String(backup.generatedAt || new Date().toISOString()).replace(/[:.]/g, "-");
 
     XLSX.writeFile(
         wb,
-        "CLB_Tennis_Thang_Long_Ver1.2_Backup.xlsx"
+        `CLB_Tennis_Thang_Long_v2.0.0_FullBackup_${stamp}.xlsx`
     );
+
+    showToast("Đã tải xong file backup đầy đủ!");
 }
 
 

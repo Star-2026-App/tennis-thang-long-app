@@ -1095,6 +1095,14 @@ function renderAllMatchLog() {
                 );
 
 
+            // (v2.0 - điểm yếu #9): tên VĐV là dữ liệu người dùng
+            // (tên thành viên) - escape trước khi chèn HTML.
+            let esc_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_
+                    : (s => String(s == null ? '' : s));
+
+
             tbody.innerHTML += `
 
                 <tr class="border-b hover:bg-slate-50">
@@ -1108,11 +1116,11 @@ function renderAllMatchLog() {
                     </td>
 
                     <td class="p-2.5 font-semibold text-slate-900">
-                        ${m.p1_v1} & ${m.p2_v1}
+                        ${esc_(m.p1_v1)} & ${esc_(m.p2_v1)}
                     </td>
 
                     <td class="p-2.5 font-semibold text-slate-900">
-                        ${m.p1_v2} & ${m.p2_v2}
+                        ${esc_(m.p1_v2)} & ${esc_(m.p2_v2)}
                     </td>
 
                     <td class="p-2.5 text-center font-black text-emerald-800">
@@ -1142,8 +1150,7 @@ function renderAllMatchLog() {
                         text-center
                         admin-only
                         ${
-                            currentUserRole ===
-                                "admin"
+                            (currentUserRole === "admin" || currentUserRole === "owner")
                                 ? ""
                                 : "hidden"
                         }

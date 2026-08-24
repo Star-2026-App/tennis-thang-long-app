@@ -49,6 +49,74 @@ window.activeDataYear =
 
 
 // ======================================================
+// v2.0 - TRANSPORT DUY NHẤT TỚI BACKEND (Vercel BFF)
+// ======================================================
+//
+// TOÀN BỘ network call trong app (api.js, finance.js, matches.js,
+// notifications.js...) đi qua 2 hàm này. KHÔNG còn JSONP, KHÔNG
+// còn GOOGLE_SCRIPT_URL/API_TOKEN trong frontend - mọi request
+// đều same-origin (`credentials:'include'` để gửi kèm session
+// cookie HttpOnly).
+// ======================================================
+
+function generateIdempotencyKey_() {
+
+    if (
+        window.crypto &&
+        typeof crypto.randomUUID === "function"
+    ) {
+        return crypto.randomUUID();
+    }
+
+    return (
+        "idem-" + Date.now() + "-" +
+        Math.random().toString(36).slice(2)
+    );
+}
+
+// Gọi 1 action GHI qua POST /api/actions/write. Trả về Promise
+// resolve với JSON {status, result} hoặc {status:"ERROR", message}
+// - KHÔNG BAO GIỜ reject vì lỗi nghiệp vụ (chỉ reject khi mất
+// mạng/không parse được JSON), để nơi gọi tự phân biệt 2 loại lỗi
+// giống hệt hành vi JSONP cũ.
+function callBackendAction_(action, data, idempotencyKey) {
+
+    return fetch("/api/actions/write", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: action,
+            data: data || {},
+            idempotencyKey: idempotencyKey || generateIdempotencyKey_()
+        })
+    }).then(function(res) {
+        return res.json();
+    });
+}
+
+// Gọi 1 action ĐỌC qua GET /api/data/<đường dẫn tương ứng>. Trả về
+// Promise resolve với PHẦN "result" đã bóc vỏ (shape giống hệt
+// response Apps Script trả trực tiếp trước đây - có .status ở
+// gốc), để updateStateFromCloud()/các callback cũ không cần sửa gì.
+function callBackendRead_(path) {
+
+    return fetch(path, {
+        method: "GET",
+        credentials: "include"
+    }).then(function(res) {
+        return res.json();
+    }).then(function(json) {
+
+        if (!json || json.status !== "SUCCESS") {
+            throw new Error((json && json.message) || "Không tải được dữ liệu.");
+        }
+
+        return json.result;
+    });
+}
+
+// ======================================================
 // COMMON HELPERS
 // ======================================================
 
@@ -948,6 +1016,25 @@ function enqueueAction(
     }
 
 
+    // ==================================================
+    // v2.0: gắn idempotencyKey (chống ghi trùng khi mất mạng
+    // sau commit), chủ sở hữu hàng đợi (chống 1 thiết bị gửi
+    // nhầm queue của người đăng nhập trước đó - điểm yếu #6),
+    // và câu thông báo thành công THẬT (chỉ hiển thị SAU KHI
+    // backend xác nhận - xem onQueueItemDone_ trong processQueue).
+    // ==================================================
+
+    payload.idempotencyKey =
+        payload.idempotencyKey ||
+        generateIdempotencyKey_();
+
+    payload.__ownerStt =
+        (typeof loggedInMemberStt !== "undefined" && loggedInMemberStt) || 0;
+
+    payload.__successMessage =
+        successMessage ||
+        "Đã ghi nhận thành công!";
+
     syncQueue.push(
         payload
     );
@@ -1489,21 +1576,20 @@ function enqueueAction(
     }
 
 
-    showToast(
-        successMessage ||
-        "Đã ghi nhận thành công!"
-    );
+    // ==================================================
+    // v2.0 (P3): KHÔNG báo "thành công" ở đây nữa - đây mới chỉ
+    // là đưa vào hàng đợi, CHƯA có xác nhận thật từ backend. Câu
+    // thông báo thành công thật (payload.__successMessage) chỉ
+    // hiển thị trong onQueueItemDone_ khi backend đã commit xong.
+    //
+    // Push notification cũng KHÔNG còn bắn từ trình duyệt ở đây
+    // (điểm yếu #8: v1.6 gọi maybeNotifyPush_ ngay khi enqueue,
+    // trước khi backend xác nhận, và tải cả danh sách subscription
+    // về máy). Từ v2.0, server (api/actions/write.js) tự bắn push
+    // SAU KHI Apps Script xác nhận commit.
+    // ==================================================
 
-
-    if (typeof maybeNotifyPush_ === 'function') {
-
-        try {
-            maybeNotifyPush_(actionName, payload);
-        } catch (err) {
-            console.warn('PUSH NOTIFY HOOK ERROR:', err);
-        }
-    }
-
+    showToast("Đang đồng bộ...");
 
     processQueue();
 }
@@ -1517,52 +1603,48 @@ function processQueue() {
 
     if (
         isSyncing ||
-        syncQueue.length === 0 ||
-        !GOOGLE_SCRIPT_URL
+        syncQueue.length === 0
     ) {
         return;
     }
-
-
-    isSyncing =
-        true;
 
 
     let item =
         syncQueue[0];
 
 
-    let itemWithToken =
-        Object.assign(
-            {},
-            item,
-            {
-                token:
-                    API_TOKEN || ""
-            }
-        );
-
-
-    let payloadJson =
-        JSON.stringify(
-            itemWithToken
-        );
-
-
     // ==================================================
-    // NGƯỠNG AN TOÀN ĐỘ DÀI URL (v1.5)
-    //
-    // JSONP dùng GET nên payload phải nằm gọn trong URL.
-    // Với các thao tác ghi 1 bản ghi đơn lẻ, payload luôn
-    // rất nhỏ. Chỉ vài thao tác ghi hàng loạt (VD cập nhật
-    // toàn bộ danh sách Thành Viên) mới có thể vượt ngưỡng
-    // -> tự động rơi về POST no-cors như cũ cho AN TOÀN,
-    // chấp nhận không đọc được response ở riêng các thao
-    // tác hiếm gặp và có payload lớn này.
+    // v2.0 (điểm yếu #6): mỗi thiết bị chỉ được xử lý hàng đợi
+    // của CHÍNH actor đang đăng nhập. Nếu người dùng B đăng nhập
+    // trên thiết bị vừa đăng xuất người dùng A, các item còn sót
+    // của A (nếu storage.js chưa dọn kịp) sẽ bị BỎ QUA ở đây thay
+    // vì âm thầm gửi thay B.
     // ==================================================
 
-    let SAFE_PAYLOAD_LENGTH =
-        6000;
+    let currentOwnerStt =
+        (typeof loggedInMemberStt !== "undefined" && loggedInMemberStt) || 0;
+
+    if (
+        item.__ownerStt &&
+        currentOwnerStt &&
+        item.__ownerStt !== currentOwnerStt
+    ) {
+
+        console.warn(
+            "SYNC QUEUE: bỏ qua item không thuộc actor hiện tại.",
+            item
+        );
+
+        syncQueue.shift();
+        saveLocalData();
+
+        if (syncQueue.length > 0) processQueue();
+        return;
+    }
+
+
+    isSyncing =
+        true;
 
 
     function onQueueItemDone_(
@@ -1587,135 +1669,105 @@ function processQueue() {
     }
 
 
-    if (
-        payloadJson.length <=
-        SAFE_PAYLOAD_LENGTH
-    ) {
+    let action =
+        item.action;
 
-        // ==============================================
-        // ĐƯỜNG TIN CẬY: JSONP - ĐỌC ĐƯỢC KẾT QUẢ THẬT
-        // ==============================================
+    let idempotencyKey =
+        item.idempotencyKey;
 
-        fetchJsonpPhase3_(
-            {
+    // data gửi lên = toàn bộ payload TRỪ các trường transport nội bộ
+    // (action/idempotencyKey/__ownerStt/__successMessage) - giữ
+    // nguyên shape { match: {...} } / { gocLog: {...} } ... mà
+    // Router.gs.txt đang mong đợi, không cần sửa các module gọi
+    // enqueueAction() ở nơi khác.
+    let data =
+        Object.assign({}, item);
 
-                payload:
-                    payloadJson
-            },
-            false,
-            function(
-                error,
-                data
-            ) {
-
-                if (error) {
-
-                    // Lỗi mạng/timeout -> GIỮ LẠI hàng đợi,
-                    // sẽ tự thử lại ở lượt processQueue kế tiếp.
-                    console.error(
-                        "POST CLOUD NETWORK ERROR:",
-                        error
-                    );
-
-                    isSyncing =
-                        false;
-
-                    return;
-                }
+    delete data.action;
+    delete data.idempotencyKey;
+    delete data.__ownerStt;
+    delete data.__successMessage;
 
 
-                if (
-                    !data ||
-                    data.status !== "SUCCESS"
-                ) {
-
-                    // Backend TỪ CHỐI GHI THẬT SỰ (lỗi nghiệp
-                    // vụ) -> loại khỏi hàng đợi (thử lại cũng
-                    // sẽ lỗi y hệt) NHƯNG báo rõ cho người
-                    // dùng biết, không âm thầm coi là thành công.
-                    let message =
-                        (data && data.message)
-                            ? data.message
-                            : "Không rõ nguyên nhân.";
-
-                    console.error(
-                        "POST CLOUD REJECTED:",
-                        message
-                    );
-
-                    onQueueItemDone_(
-                        false
-                    );
-
-                    alert(
-                        "Một thao tác đã KHÔNG được lưu lên hệ thống:\n\n" +
-                        message +
-                        "\n\nVui lòng kiểm tra lại và thực hiện lại nếu cần."
-                    );
-
-                    return;
-                }
-
-
-                // THÀNH CÔNG - ĐÃ XÁC NHẬN THẬT TỪ BACKEND
-                onQueueItemDone_(
-                    true
-                );
-            }
-        );
-
-        return;
-    }
-
-
-    // ======================================================
-    // ĐƯỜNG DỰ PHÒNG: payload quá lớn cho URL - dùng lại
-    // POST no-cors như trước (hiếm gặp, chỉ với thao tác ghi
-    // hàng loạt lớn).
-    // ======================================================
-
-    fetch(
-        GOOGLE_SCRIPT_URL,
-        {
-
-            method:
-                "POST",
-
-            mode:
-                "no-cors",
-
-            headers: {
-
-                "Content-Type":
-                    "text/plain;charset=utf-8"
-            },
-
-            body:
-                payloadJson
-        }
+    callBackendAction_(
+        action,
+        data,
+        idempotencyKey
     )
 
-    .then(
-        function() {
+    .then(function(responseJson) {
 
-            onQueueItemDone_(
-                true
-            );
-        }
-    )
+        if (
+            !responseJson ||
+            responseJson.status !== "SUCCESS"
+        ) {
 
-    .catch(
-        function(err) {
+            // Backend TỪ CHỐI GHI THẬT SỰ (lỗi nghiệp vụ) -> loại
+            // khỏi hàng đợi (thử lại cũng sẽ lỗi y hệt), báo rõ
+            // cho người dùng, và TẢI LẠI dữ liệu gốc từ server để
+            // thay thế trạng thái optimistic có thể đã sai (P3:
+            // "Rollback hoặc reload authoritative state khi backend
+            // từ chối" - chọn reload vì an toàn hơn viết rollback
+            // tay cho từng loại action).
+            let message =
+                (responseJson && responseJson.message)
+                    ? responseJson.message
+                    : "Không rõ nguyên nhân.";
 
             console.error(
-                "POST CLOUD NETWORK ERROR (fallback):",
-                err
+                "WRITE ACTION REJECTED:",
+                action,
+                message
             );
 
-            isSyncing =
-                false;
+            onQueueItemDone_(false);
+
+            alert(
+                "Một thao tác đã KHÔNG được lưu lên hệ thống:\n\n" +
+                message +
+                "\n\nDữ liệu sẽ được tải lại từ máy chủ để đảm bảo chính xác."
+            );
+
+            if (typeof fetchCloudData === "function") {
+                fetchCloudData(false);
+            }
+
+            return;
         }
-    );
+
+
+        // THÀNH CÔNG - ĐÃ XÁC NHẬN THẬT TỪ BACKEND
+        showToast(
+            item.__successMessage ||
+            "Đã đồng bộ thành công!"
+        );
+
+        // Ghi vào lịch sử thông báo CỤC BỘ (chuông) của chính thiết
+        // bị này - việc gửi Web Push thật cho các thiết bị KHÁC đã
+        // do server tự làm (xem pushSender.js), không phải ở đây.
+        if (typeof maybeNotifyPush_ === "function") {
+
+            try {
+                maybeNotifyPush_(action, data);
+            } catch (err) {
+                console.warn("LOCAL NOTIF HOOK ERROR:", err);
+            }
+        }
+
+        onQueueItemDone_(true);
+    })
+
+    .catch(function(err) {
+
+        // Lỗi mạng/timeout -> GIỮ LẠI hàng đợi, sẽ tự thử lại ở
+        // lượt processQueue kế tiếp (setInterval trong auth.js).
+        console.error(
+            "WRITE ACTION NETWORK ERROR:",
+            err
+        );
+
+        isSyncing = false;
+    });
 }
 
 
@@ -1772,7 +1824,25 @@ function hideCloudLoading_() {
 
 
 // ======================================================
-// GENERIC JSONP
+// v2.0 - THAY THẾ JSONP CŨ (điểm yếu #1/#2/#8: JSONP để lộ
+// API_TOKEN + payload nguyên văn trong URL, ai xem DevTools/lịch
+// sử trình duyệt/log server trung gian cũng thấy được).
+//
+// Giữ NGUYÊN chữ ký hàm fetchJsonpPhase3_(params, showSpinner,
+// callback) vì matches.js và notifications.js gọi trực tiếp hàm
+// này - đổi nội bộ, không cần sửa các nơi gọi.
+//
+// Cách dịch params -> route mới:
+//   {action:'initialData'}                  -> GET /api/data/initial
+//   {action:'monthData', month, year}        -> GET /api/data/month
+//   {action:'analyticsData'}                 -> GET /api/data/analytics
+//   {payload: '<json 1 item trong syncQueue>'} -> xử lý qua
+//        processQueue()/callBackendAction_ (KHÔNG dùng nữa ở đây
+//        kể từ v2.0 - processQueue() giờ gọi callBackendAction_
+//        trực tiếp, xem phía trên).
+//   {action:'getPushSubscriptions'}          -> ĐÃ NGƯNG (điểm yếu
+//        #8): trình duyệt không bao giờ được phép tải danh sách
+//        subscription của người khác nữa - trả lỗi ngay.
 // ======================================================
 
 function fetchJsonpPhase3_(
@@ -1781,9 +1851,7 @@ function fetchJsonpPhase3_(
     callback
 ) {
 
-    if (!GOOGLE_SCRIPT_URL) {
-        return;
-    }
+    params = params || {};
 
 
     if (showSpinner) {
@@ -1792,264 +1860,102 @@ function fetchJsonpPhase3_(
     }
 
 
-    let callbackName =
-        "__thanglong_phase3_" +
-        Date.now() +
-        "_" +
-        Math.floor(
-            Math.random() *
-            100000
-        );
-
-
-    let script =
-        document.createElement(
-            "script"
-        );
-
-
-    let finished =
-        false;
-
-
-    let slowTimer =
-        null;
-
-
-    function removeScript_() {
-
-        if (
-            script &&
-            script.parentNode
-        ) {
-
-            script.parentNode
-                .removeChild(
-                    script
-                );
-        }
-    }
-
-
-    function finish_(
-        error,
-        data
-    ) {
-
-        if (finished) {
-            return;
-        }
-
-
-        finished =
-            true;
-
-
-        if (slowTimer) {
-
-            clearTimeout(
-                slowTimer
-            );
-        }
-
-
-        removeScript_();
-
+    function finish_(error, data) {
 
         if (showSpinner) {
 
             hideCloudLoading_();
         }
 
+        if (typeof callback === "function") {
 
-        if (
-            typeof callback ===
-            "function"
-        ) {
-
-            callback(
-                error,
-                data
-            );
+            callback(error, data);
         }
-
-
-        // Sau khi nhận response thật mới dọn callback.
-        setTimeout(
-            function() {
-
-                try {
-
-                    delete window[
-                        callbackName
-                    ];
-
-                } catch (e) {
-
-                    window[
-                        callbackName
-                    ] =
-                        undefined;
-                }
-            },
-            0
-        );
     }
 
 
-    window[
-        callbackName
-    ] = function(data) {
+    var action = params.action;
+    var readPath = null;
 
-        if (
-            !data
-        ) {
+    if (action === "initialData") {
 
-            finish_(
-                new Error(
-                    "Apps Script không trả dữ liệu."
-                ),
-                null
-            );
+        readPath = "/api/data/initial";
 
-            return;
+    } else if (action === "monthData") {
+
+        readPath =
+            "/api/data/month?month=" +
+            encodeURIComponent(params.month) +
+            "&year=" +
+            encodeURIComponent(params.year);
+
+    } else if (action === "analyticsData") {
+
+        readPath = "/api/data/analytics";
+
+    } else if (action === "monthCloseStatus") {
+
+        readPath =
+            "/api/data/month-close-status?month=" +
+            encodeURIComponent(params.month) +
+            "&year=" +
+            encodeURIComponent(params.year);
+
+    } else if (action === "getPushSubscriptions") {
+
+        // (v2.0) Đã loại bỏ vĩnh viễn - xem _lib/pushSender.js phía
+        // Vercel: trình duyệt không bao giờ còn thấy danh sách
+        // subscription nữa. Bất kỳ code cũ nào còn gọi tới đây sẽ
+        // nhận lỗi rõ ràng thay vì âm thầm thất bại.
+        finish_(
+            new Error(
+                "getPushSubscriptions đã ngưng dùng từ v2.0 - push chỉ gửi từ server."
+            ),
+            null
+        );
+        return;
+
+    } else if (params.payload !== undefined) {
+
+        // Đường ghi cũ (dùng bởi processQueue() phiên bản trước) -
+        // processQueue() v2.0 không còn gọi qua đây nữa (gọi thẳng
+        // callBackendAction_), giữ lại nhánh này chỉ để không vỡ
+        // nếu còn code nào khác lỡ gọi theo shape cũ.
+        try {
+
+            var item = JSON.parse(params.payload);
+            var data = Object.assign({}, item);
+
+            delete data.action;
+            delete data.idempotencyKey;
+            delete data.__ownerStt;
+            delete data.__successMessage;
+
+            callBackendAction_(item.action, data, item.idempotencyKey)
+                .then(function(json) { finish_(null, json); })
+                .catch(function(err) { finish_(err, null); });
+
+        } catch (err) {
+
+            finish_(err, null);
         }
 
+        return;
 
-        finish_(
-            null,
-            data
-        );
-    };
+    } else {
 
-
-    script.onerror =
-        function() {
-
-            // Giữ callback an toàn để response muộn không gây ReferenceError.
-            window[
-                callbackName
-            ] = function() {};
+        finish_(new Error("Action không xác định: " + action), null);
+        return;
+    }
 
 
-            removeScript_();
-
-
-            if (showSpinner) {
-
-                hideCloudLoading_();
-            }
-
-
-            if (
-                !finished &&
-                typeof callback ===
-                    "function"
-            ) {
-
-                finished =
-                    true;
-
-
-                callback(
-                    new Error(
-                        "Không tải được Apps Script."
-                    ),
-                    null
-                );
-            }
-        };
-
-
-    // 15 giây chỉ báo chậm và ẩn spinner.
-    // Không xóa callback.
-    slowTimer =
-        setTimeout(
-            function() {
-
-                if (finished) {
-                    return;
-                }
-
-
-                if (showSpinner) {
-
-                    hideCloudLoading_();
-                }
-
-
-                console.warn(
-                    "PHASE3 JSONP SLOW - vẫn tiếp tục chờ dữ liệu..."
-                );
-            },
-            15000
-        );
-
-
-    let query =
-        Object.keys(
-            params || {}
-        )
-        .map(
-            function(key) {
-
-                return (
-                    encodeURIComponent(
-                        key
-                    ) +
-                    "=" +
-                    encodeURIComponent(
-                        params[
-                            key
-                        ]
-                    )
-                );
-            }
-        );
-
-
-    query.push(
-        "prefix=" +
-        encodeURIComponent(
-            callbackName
-        )
-    );
-
-
-    query.push(
-        "token=" +
-        encodeURIComponent(
-            API_TOKEN || ""
-        )
-    );
-
-
-    query.push(
-        "_=" +
-        Date.now()
-    );
-
-
-    let separator =
-        GOOGLE_SCRIPT_URL
-            .includes("?")
-                ? "&"
-                : "?";
-
-
-    script.src =
-        GOOGLE_SCRIPT_URL +
-        separator +
-        query.join("&");
-
-
-    script.async =
-        true;
-
-
-    document.head.appendChild(
-        script
-    );
+    callBackendRead_(readPath)
+        .then(function(result) {
+            finish_(null, result);
+        })
+        .catch(function(err) {
+            finish_(err, null);
+        });
 }
 
 
@@ -2234,6 +2140,15 @@ function updateStateFromCloud(
                 systemSettings,
                 data.settings
             );
+    }
+
+
+    if (
+        data.ownerStt !== undefined
+    ) {
+
+        window.ownerStt =
+            parseInt(data.ownerStt) || 0;
     }
 
 
@@ -2607,10 +2522,13 @@ function fetchAnalyticsData(
 
 function savePhase3LocalState_() {
 
+    // (v2.0) Không đăng nhập -> không ghi (giống saveLocalData()).
+    if (!loggedInMemberStt) return;
+
     try {
 
         localStorage.setItem(
-            "clb_memberStats_phase3",
+            getActorStorageKey_("clb_memberStats_phase3"),
             JSON.stringify(
                 window.memberStats || []
             )
@@ -2618,7 +2536,7 @@ function savePhase3LocalState_() {
 
 
         localStorage.setItem(
-            "clb_activeMonth_phase3",
+            getActorStorageKey_("clb_activeMonth_phase3"),
             String(
                 window.activeDataMonth || 0
             )
@@ -2626,7 +2544,7 @@ function savePhase3LocalState_() {
 
 
         localStorage.setItem(
-            "clb_activeYear_phase3",
+            getActorStorageKey_("clb_activeYear_phase3"),
             String(
                 window.activeDataYear || 0
             )
@@ -2648,12 +2566,16 @@ function restorePhase3LocalState_(
     currentYear
 ) {
 
+    // (v2.0) Chưa đăng nhập -> không đọc gì (được gọi từ
+    // enterAppScreen_() trong auth.js, LUÔN SAU khi đã có actor).
+    if (!loggedInMemberStt) return;
+
     try {
 
         let storedStats =
             JSON.parse(
                 localStorage.getItem(
-                    "clb_memberStats_phase3"
+                    getActorStorageKey_("clb_memberStats_phase3")
                 ) ||
                 "[]"
             );
@@ -2673,7 +2595,7 @@ function restorePhase3LocalState_(
         let storedMonth =
             parseInt(
                 localStorage.getItem(
-                    "clb_activeMonth_phase3"
+                    getActorStorageKey_("clb_activeMonth_phase3")
                 )
             ) || 0;
 
@@ -2681,7 +2603,7 @@ function restorePhase3LocalState_(
         let storedYear =
             parseInt(
                 localStorage.getItem(
-                    "clb_activeYear_phase3"
+                    getActorStorageKey_("clb_activeYear_phase3")
                 )
             ) || 0;
 

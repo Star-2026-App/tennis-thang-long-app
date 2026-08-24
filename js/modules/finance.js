@@ -416,6 +416,13 @@ function isMonthClosePeriodFuture_(
 // GET NHẸ - KIỂM TRA TRẠNG THÁI CHỐT THÁNG
 // ======================================================
 
+// ======================================================
+// v2.0 - thay JSONP (script tag + token trong URL) bằng
+// GET /api/data/month-close-status qua callBackendRead_ (fetch
+// same-origin, cookie session HttpOnly). Giữ NGUYÊN chữ ký hàm và
+// hành vi thử lại (retry) cho các nơi gọi khác không cần sửa.
+// ======================================================
+
 function fetchMonthCloseStatusLight_(
     month,
     year,
@@ -431,12 +438,6 @@ function fetchMonthCloseStatusLight_(
         parseInt(
             options.maxAttempts
         ) || 3;
-
-
-    let timeoutMs =
-        parseInt(
-            options.timeoutMs
-        ) || 10000;
 
 
     let retryDelayMs =
@@ -516,289 +517,44 @@ function fetchMonthCloseStatusLight_(
             return;
         }
 
-
         attempt++;
 
+        callBackendRead_(
+            '/api/data/month-close-status?month=' +
+            encodeURIComponent(month) +
+            '&year=' +
+            encodeURIComponent(year)
+        )
 
-        let callbackName =
-            '__thanglong_month_close_' +
-            Date.now() +
-            '_' +
-            Math.floor(
-                Math.random() * 100000
-            );
+        .then(function(data) {
 
-
-        let script =
-            document.createElement(
-                'script'
-            );
-
-
-        let timer = null;
-        let responded = false;
-        let retryStarted = false;
-
-
-        function removeScript_() {
-
-            if (
-                script &&
-                script.parentNode
-            ) {
-
-                script.parentNode
-                    .removeChild(
-                        script
-                    );
-            }
-        }
-
-
-        // QUAN TRỌNG:
-        // Không xóa callback chỉ vì timeout.
-        // Apps Script có thể đã chạy xong nhưng file JSONP về trình duyệt chậm.
-        // Nếu xóa callback sớm, response đến sau sẽ gây:
-        // ReferenceError: __thanglong_month_close_xxx is not defined.
-        window[
-            callbackName
-        ] = function(data) {
-
-            responded = true;
-
-
-            if (timer) {
-
-                clearTimeout(
-                    timer
-                );
-            }
-
-
-            removeScript_();
-
-
-            // Nếu một request khác đã kết thúc luồng trước,
-            // response đến muộn vẫn được hấp thụ an toàn,
-            // tuyệt đối không tạo ReferenceError.
             if (finished) {
 
                 try {
-                    applyValidResponse_(
-                        data
-                    );
+                    applyValidResponse_(data);
                 } catch (e) {
-                    console.warn(
-                        'LATE MONTH CLOSE STATUS RESPONSE:',
-                        e
-                    );
+                    console.warn('LATE MONTH CLOSE STATUS RESPONSE:', e);
                 }
 
                 return;
             }
 
+            applyValidResponse_(data);
+            finish_(null, data);
+        })
 
-            if (
-                !data ||
-                data.status !==
-                    'SUCCESS'
-            ) {
+        .catch(function(err) {
 
-                let message =
-                    data &&
-                    data.message
-                        ? data.message
-                        : 'Backend không trả trạng thái hợp lệ.';
+            if (finished) return;
 
+            if (attempt < maxAttempts) {
 
-                if (
-                    attempt <
-                    maxAttempts
-                ) {
-
-                    if (!retryStarted) {
-
-                        retryStarted = true;
-
-                        setTimeout(
-                            runAttempt_,
-                            retryDelayMs
-                        );
-                    }
-
-                    return;
-                }
-
-
-                finish_(
-                    new Error(
-                        message
-                    ),
-                    data || null
-                );
-
+                setTimeout(runAttempt_, retryDelayMs);
                 return;
             }
 
-
-            applyValidResponse_(
-                data
-            );
-
-
-            finish_(
-                null,
-                data
-            );
-        };
-
-
-        script.onerror =
-            function() {
-
-                if (timer) {
-
-                    clearTimeout(
-                        timer
-                    );
-                }
-
-
-                removeScript_();
-
-
-                // Giữ callback tồn tại như một hàm rỗng.
-                // Một số trình duyệt/proxy có thể phát sự kiện lỗi
-                // trước khi response JSONP muộn được xử lý.
-                window[
-                    callbackName
-                ] = function() {};
-
-
-                if (finished) {
-                    return;
-                }
-
-
-                if (
-                    attempt <
-                    maxAttempts
-                ) {
-
-                    if (!retryStarted) {
-
-                        retryStarted = true;
-
-                        setTimeout(
-                            runAttempt_,
-                            retryDelayMs
-                        );
-                    }
-
-                    return;
-                }
-
-
-                finish_(
-                    new Error(
-                        'Không tải được API trạng thái chốt tháng.'
-                    ),
-                    null
-                );
-            };
-
-
-        timer =
-            setTimeout(
-                function() {
-
-                    if (
-                        responded ||
-                        finished
-                    ) {
-                        return;
-                    }
-
-
-                    console.warn(
-                        'MONTH CLOSE STATUS SLOW - vẫn tiếp tục chờ dữ liệu...'
-                    );
-
-
-                    // Timeout chỉ là tín hiệu "chậm".
-                    // Không xóa script, không xóa callback.
-                    // Có thể tạo thêm một request dự phòng.
-                    if (
-                        attempt <
-                        maxAttempts
-                    ) {
-
-                        if (!retryStarted) {
-
-                            retryStarted = true;
-
-                            setTimeout(
-                                runAttempt_,
-                                retryDelayMs
-                            );
-                        }
-
-                        return;
-                    }
-
-
-                    // Hết số lần thử: báo cho thao tác hiện tại biết
-                    // là chưa xác minh được, nhưng callback vẫn sống.
-                    // Nếu JSONP đến muộn, nó sẽ được hấp thụ an toàn.
-                    finish_(
-                        new Error(
-                            'API trạng thái chốt tháng phản hồi quá chậm.'
-                        ),
-                        null
-                    );
-                },
-                timeoutMs
-            );
-
-
-        let separator =
-            GOOGLE_SCRIPT_URL
-                .includes('?')
-                    ? '&'
-                    : '?';
-
-
-        script.src =
-            GOOGLE_SCRIPT_URL +
-            separator +
-            'action=monthCloseStatus' +
-            '&month=' +
-            encodeURIComponent(
-                month
-            ) +
-            '&year=' +
-            encodeURIComponent(
-                year
-            ) +
-            '&token=' +
-            encodeURIComponent(
-                API_TOKEN || ""
-            ) +
-            '&prefix=' +
-            encodeURIComponent(
-                callbackName
-            ) +
-            '&_=' +
-            Date.now();
-
-
-        script.async =
-            true;
-
-
-        document.head.appendChild(
-            script
-        );
+            finish_(err, null);
+        });
     }
 
 
@@ -1524,6 +1280,19 @@ function renderGocLogsTab() {
                 );
 
 
+            // (v2.0 - điểm yếu #9): tên thành viên + ghi chú là dữ
+            // liệu người dùng nhập - escape trước khi chèn HTML.
+            let safeName_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_(g.name)
+                    : String(g.name || '');
+
+            let safeNote_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_(g.note || '-')
+                    : String(g.note || '-');
+
+
             tbody.innerHTML += `
 
                 <tr class="border-b hover:bg-slate-50">
@@ -1537,7 +1306,7 @@ function renderGocLogsTab() {
                     </td>
 
                     <td class="p-2.5 font-bold text-slate-900">
-                        ${g.name}
+                        ${safeName_}
                     </td>
 
                     <td class="
@@ -1552,13 +1321,13 @@ function renderGocLogsTab() {
                     </td>
 
                     <td class="p-2.5 text-slate-500">
-                        ${g.note || '-'}
+                        ${safeNote_}
                     </td>
 
                     <td class="
                         p-2.5 text-center admin-only
                         ${
-                            currentUserRole === 'admin'
+                            (currentUserRole === 'admin' || currentUserRole === 'owner')
                                 ? ''
                                 : 'hidden'
                         }
@@ -1989,6 +1758,15 @@ function renderFinance() {
                     : '';
 
 
+            // (v2.0 - điểm yếu #9): tên thành viên - escape trước
+            // khi chèn HTML (bảng Tài chính hiển thị cho MỌI thành
+            // viên xem, rủi ro cao nhất nếu không escape).
+            let safeMemberName_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_(m.name)
+                    : String(m.name || '');
+
+
             tbody.innerHTML += `
 
                 <tr class="border-b hover:bg-slate-50">
@@ -1998,7 +1776,7 @@ function renderFinance() {
                     </td>
 
                     <td class="p-2 sticky-col font-bold text-slate-900 border-r">
-                        ${m.name}
+                        ${safeMemberName_}
                     </td>
 
                     <td class="p-2 text-center font-bold text-blue-600">
@@ -2100,7 +1878,7 @@ function renderFinance() {
                         </button>
 
                         ${
-                            currentUserRole === 'admin'
+                            (currentUserRole === 'admin' || currentUserRole === 'owner')
 
                                 ? (
                                     financeMonthCloseStatus === true
@@ -2181,8 +1959,8 @@ function renderFinance() {
 function openEditFinanceModal(idx) {
 
     if (
-        currentUserRole !==
-        'admin'
+        currentUserRole !== 'admin' &&
+        currentUserRole !== 'owner'
     ) {
         return;
     }
@@ -2441,6 +2219,22 @@ function closeEditFinanceModal() {
 }
 
 
+// ======================================================
+// v2.0 (sửa điểm yếu #5 - "Sửa nợ cũ" kiến trúc sai):
+//
+// v1.6 ghi ĐÈ TRỰC TIẾP member.noOld (cột Dư/Nợ Chuyển Kỳ, dùng
+// chung cho MỌI kỳ) bất kể đang xem tháng nào - có thể làm sai
+// lệch số dư mở đầu của một tháng CHƯA CHỐT khi admin sửa trong
+// lúc đang xem một tháng KHÁC.
+//
+// v2.0: KHÔNG còn ghi đè trực tiếp. Thay vào đó tạo 1 bản ghi
+// "điều chỉnh" (BalanceAdjustments) - CHỈ áp dụng cho kỳ hiện
+// đang mở (backend tự chặn nếu không phải kỳ mở, xem
+// BalanceAdjustmentService.gs.txt) - không bao giờ đụng tới lịch
+// sử các tháng đã chốt. Số dư hiển thị được tính lại từ server
+// sau khi tải lại dữ liệu, không suy đoán ở client nữa.
+// ======================================================
+
 function saveFinanceData(e) {
 
     e.preventDefault();
@@ -2470,7 +2264,7 @@ function saveFinanceData(e) {
     }
 
 
-    let newCarry =
+    let newValue =
         parseInt(
             document
                 .getElementById(
@@ -2480,97 +2274,63 @@ function saveFinanceData(e) {
         ) || 0;
 
 
-    let oldCarry =
+    let currentEffective =
         parseInt(
             member.noOld
         ) || 0;
 
 
-    let payloadMember = {
+    let delta =
+        newValue - currentEffective;
 
-        stt:
-            member.stt,
 
-        name:
-            member.name,
+    if (delta === 0) {
 
-        status:
-            member.status ||
-            "Đang tham gia",
+        closeEditFinanceModal();
+        return;
+    }
 
-        base:
-            parseFloat(
-                member.base
-            ) || 6.2,
 
-        noOld:
-            newCarry,
+    let reason =
+        (window.prompt(
+            "Nhập lý do điều chỉnh Dư/Nợ chuyển kỳ cho " +
+            member.name +
+            " (bắt buộc - sẽ được lưu vào lịch sử điều chỉnh, không sửa trực tiếp số dư gốc):",
+            ""
+        ) || "").trim();
 
-        role:
-            member.role ||
-            "member"
-    };
+
+    if (!reason) {
+
+        alert(
+            "Phải nhập lý do điều chỉnh. Đã huỷ thao tác."
+        );
+
+        return;
+    }
 
 
     closeEditFinanceModal();
 
-
-    // Optimistic UI
-    member.noOld =
-        newCarry;
-
-
-    renderFinance();
-
-
-    if (
-        typeof renderDashboard ===
-        "function"
-    ) {
-
-        renderDashboard();
-    }
-
-
     showToast(
-        "Đang cập nhật Dư/Nợ chuyển kỳ..."
+        "Đang gửi điều chỉnh Dư/Nợ chuyển kỳ..."
     );
 
 
-    fetch(
+    callBackendAction_(
 
-        GOOGLE_SCRIPT_URL,
+        "addBalanceAdjustment",
 
         {
+            adjustment: {
+                memberStt: member.stt,
+                amount: delta,
+                reason: reason
+            }
+        },
 
-            method:
-                "POST",
-
-            headers: {
-
-                "Content-Type":
-                    "text/plain;charset=utf-8"
-            },
-
-            body:
-                JSON.stringify({
-
-                    action:
-                        "updateSingleMember",
-
-                    token:
-                        API_TOKEN || "",
-
-                    member:
-                        payloadMember
-                })
-        }
+        generateIdempotencyKey_()
     )
-
-    .then(function(res) {
-
-        return res.json();
-    })
 
     .then(function(data) {
 
@@ -2579,85 +2339,37 @@ function saveFinanceData(e) {
             "SUCCESS"
         ) {
 
-            member.noOld =
-                oldCarry;
-
-
-            renderFinance();
-
-
-            if (
-                typeof renderDashboard ===
-                "function"
-            ) {
-
-                renderDashboard();
-            }
-
-
             alert(
-
                 (
                     data.message ||
-                    "Không thể cập nhật Dư/Nợ chuyển kỳ."
+                    "Không thể ghi điều chỉnh Dư/Nợ chuyển kỳ."
                 ) +
 
-                "\n\nDữ liệu đã được hoàn tác trên màn hình."
+                "\n\nKHÔNG có gì thay đổi (v2.0 không còn ghi đè " +
+                "trực tiếp số dư trên màn hình trước khi có xác " +
+                "nhận thật từ máy chủ)."
             );
-
 
             return;
         }
 
 
-        if (data.result) {
-
-            member.noOld =
-                parseInt(
-                    data.result.noOld
-                ) || 0;
-        }
-
-
-        renderFinance();
-
-
-        if (
-            typeof renderDashboard ===
-            "function"
-        ) {
-
-            renderDashboard();
-        }
-
-
         showToast(
-            "Đã cập nhật Dư/Nợ chuyển kỳ thành công!"
+            "Đã ghi điều chỉnh. Đang tải lại số dư mới nhất..."
         );
+
+
+        if (typeof fetchCloudData === "function") {
+
+            fetchCloudData(false);
+        }
     })
 
     .catch(function() {
 
-        member.noOld =
-            oldCarry;
-
-
-        renderFinance();
-
-
-        if (
-            typeof renderDashboard ===
-            "function"
-        ) {
-
-            renderDashboard();
-        }
-
-
         alert(
-
             "Không thể kết nối hệ thống.\n\n" +
-            "Dữ liệu Dư/Nợ đã được hoàn tác."
+            "Điều chỉnh CHƯA được ghi nhận, vui lòng thử lại."
         );
     });
 }
@@ -3069,8 +2781,7 @@ function renderQuyTable() {
 
 
             if (
-                currentUserRole ===
-                    'admin' &&
+                (currentUserRole === 'admin' || currentUserRole === 'owner') &&
                 quyLog
             ) {
 
@@ -3111,6 +2822,12 @@ function renderQuyTable() {
             }
 
 
+            let safeQuyMemberName_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_(m.name)
+                    : String(m.name || '');
+
+
             tbody.innerHTML += `
 
                 <tr class="border-b hover:bg-slate-50">
@@ -3120,7 +2837,7 @@ function renderQuyTable() {
                     </td>
 
                     <td class="p-2.5 font-bold text-slate-900">
-                        ${m.name}
+                        ${safeQuyMemberName_}
                     </td>
 
                     <td class="p-2.5 text-center">
@@ -3182,8 +2899,7 @@ function renderQuyTable() {
                         text-center
                         admin-only
                         ${
-                            currentUserRole ===
-                            'admin'
+                            (currentUserRole === 'admin' || currentUserRole === 'owner')
                                 ? ''
                                 : 'hidden'
                         }
@@ -3204,12 +2920,12 @@ function renderQuyTable() {
 function deleteQuyLog(id) {
 
     if (
-        currentUserRole !==
-        'admin'
+        currentUserRole !== 'admin' &&
+        currentUserRole !== 'owner'
     ) {
 
         alert(
-            "Chỉ Admin mới được xóa xác nhận đóng quỹ."
+            "Chỉ Admin hoặc Owner mới được xóa xác nhận đóng quỹ."
         );
 
         return;
@@ -3320,44 +3036,16 @@ function deleteQuyLog(id) {
             );
 
 
-            fetch(
+            callBackendAction_(
 
-                GOOGLE_SCRIPT_URL,
+                "deleteItem",
 
                 {
+                    sheetName: "QuyLogs",
+                    id: log.id
+                },
 
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "text/plain;charset=utf-8"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:
-                                "deleteItem",
-
-                            token:
-                                API_TOKEN || "",
-
-                            sheetName:
-                                "QuyLogs",
-
-                            id:
-                                log.id
-                        })
-                }
-            )
-
-            .then(
-                function(res) {
-
-                    return res.json();
-                }
+                generateIdempotencyKey_()
             )
 
             .then(
@@ -3867,41 +3555,13 @@ function saveGocLogEdit(e) {
     );
 
 
-    fetch(
+    callBackendAction_(
 
-        GOOGLE_SCRIPT_URL,
+        "updateGocLog",
 
-        {
+        { gocLog: payload },
 
-            method:
-                "POST",
-
-            headers: {
-
-                "Content-Type":
-                    "text/plain;charset=utf-8"
-            },
-
-            body:
-                JSON.stringify({
-
-                    action:
-                        "updateGocLog",
-
-                    token:
-                        API_TOKEN || "",
-
-                    gocLog:
-                        payload
-                })
-        }
-    )
-
-    .then(
-        function(res) {
-
-            return res.json();
-        }
+        generateIdempotencyKey_()
     )
 
     .then(
@@ -4173,6 +3833,12 @@ function selectCategory(cat) {
                     amount;
 
 
+                let safeLogName_ =
+                    (typeof escapeHtml_ === 'function')
+                        ? escapeHtml_(log.name)
+                        : String(log.name || '');
+
+
                 tbody.innerHTML += `
 
                     <tr class="border-b">
@@ -4182,7 +3848,7 @@ function selectCategory(cat) {
                         </td>
 
                         <td class="p-1.5 font-bold">
-                            ${log.name}
+                            ${safeLogName_}
                         </td>
 
                         <td class="p-1.5 text-right font-bold text-emerald-700">
@@ -4225,6 +3891,12 @@ function selectCategory(cat) {
                         amount;
 
 
+                    let safeGocName_ =
+                        (typeof escapeHtml_ === 'function')
+                            ? escapeHtml_(g.name)
+                            : String(g.name || '');
+
+
                     tbody.innerHTML += `
 
                         <tr class="border-b">
@@ -4234,7 +3906,7 @@ function selectCategory(cat) {
                             </td>
 
                             <td class="p-1.5 font-bold">
-                                ${g.name}
+                                ${safeGocName_}
                             </td>
 
                             <td class="
@@ -4255,8 +3927,7 @@ function selectCategory(cat) {
                                 text-center
                                 admin-only
                                 ${
-                                    currentUserRole ===
-                                    'admin'
+                                    (currentUserRole === 'admin' || currentUserRole === 'owner')
                                         ? ''
                                         : 'hidden'
                                 }
@@ -4304,6 +3975,12 @@ function selectCategory(cat) {
                     ) || 0;
 
 
+                let safeCashNote_ =
+                    (typeof escapeHtml_ === 'function')
+                        ? escapeHtml_(c.note)
+                        : String(c.note || '');
+
+
                 tbody.innerHTML += `
 
                     <tr class="border-b">
@@ -4313,7 +3990,7 @@ function selectCategory(cat) {
                         </td>
 
                         <td class="p-1.5 font-bold">
-                            ${c.note}
+                            ${safeCashNote_}
                         </td>
 
                         <td class="p-1.5 text-right font-bold">
@@ -4334,8 +4011,7 @@ function selectCategory(cat) {
                             text-center
                             admin-only
                             ${
-                                currentUserRole ===
-                                'admin'
+                                (currentUserRole === 'admin' || currentUserRole === 'owner')
                                     ? ''
                                     : 'hidden'
                             }
@@ -4728,9 +4404,13 @@ function ensureMonthCloseAdminUI_() {
         );
 
 
+    // (v2.0 - theo đúng ma trận quyền của Chủ CLB): "Chốt tháng" cho
+    // phép CẢ Owner và Admin, không chỉ riêng Admin như bản cũ - nếu
+    // không sửa, Owner sẽ không bao giờ thấy nút này dù backend
+    // (Router.gs.txt: closeMonth cấp độ 2) đã cho phép cả hai.
     if (
-        currentUserRole !==
-        'admin'
+        currentUserRole !== 'admin' &&
+        currentUserRole !== 'owner'
     ) {
 
         if (oldButton) {
@@ -5635,8 +5315,8 @@ function showMonthClosePreviewModal_(
 function openMonthClosePreview_() {
 
     if (
-        currentUserRole !==
-        'admin'
+        currentUserRole !== 'admin' &&
+        currentUserRole !== 'owner'
     ) {
         return;
     }
@@ -6019,176 +5699,130 @@ function executeMonthClose_() {
             // POST CHỐT THÁNG
             // ==================================================
 
-            fetch(
-                GOOGLE_SCRIPT_URL,
-                {
+            // ==================================================
+            // POST CHỐT THÁNG (v2.0)
+            //
+            // Trước đây (v1.6): POST no-cors "bắn và quên" rồi PHẢI
+            // polling riêng để biết kết quả, và khi xác nhận xong lại
+            // áp dụng "preview" tự tính ở CLIENT (có thể lệch với
+            // dữ liệu thật) thay vì dữ liệu authoritative backend vừa
+            // trả về (điểm yếu #4, phần cuối).
+            //
+            // v2.0: gọi thẳng qua BFF, ĐỌC ĐƯỢC kết quả thật ngay
+            // trong 1 request - không cần polling nữa, và áp dụng
+            // TRỰC TIẾP data.result (đã có đủ month/year/rows/totals
+            // giống hệt shape "preview" cũ) làm snapshot chính thức.
+            // ==================================================
 
-                    method:
-                        'POST',
+            callBackendAction_(
 
-                    mode:
-                        'no-cors',
+                'closeMonth',
 
-                    headers: {
+                { monthClose: { month: month, year: year } },
 
-                        'Content-Type':
-                            'text/plain;charset=utf-8'
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:
-                                'closeMonth',
-
-                            token:
-                                API_TOKEN || "",
-
-                            monthClose: {
-
-                                month:
-                                    month,
-
-                                year:
-                                    year
-                            }
-                        })
-                }
+                generateIdempotencyKey_()
             )
 
             .then(
-                function() {
+                function(data) {
+
+                    if (
+                        data.status !==
+                        'SUCCESS'
+                    ) {
+
+                        resetConfirmButton_();
+
+                        setMonthCloseButtonState_(
+                            'error',
+                            month,
+                            year
+                        );
+
+                        alert(
+                            (data.message || 'Không thể chốt tháng.') +
+                            '\n\nChưa có gì được ghi nhận trên hệ thống.'
+                        );
+
+                        return;
+                    }
+
 
                     closeMonthCloseModal_();
 
 
+                    // Dùng ĐÚNG dữ liệu authoritative backend vừa trả
+                    // về (data.result: {month,year,rows,totals,...})
+                    // thay vì preview tự đoán ở client.
+                    applyMonthCloseLocalSnapshot_(
+                        data.result
+                    );
+
+
+                    if (
+                        !window.monthCloseStatusLastCheck
+                    ) {
+
+                        window.monthCloseStatusLastCheck =
+                            {};
+                    }
+
+
+                    window
+                        .monthCloseStatusLastCheck[
+                            getMonthCloseStatusKey_(
+                                month,
+                                year
+                            )
+                        ] = {
+
+                            time:
+                                Date.now(),
+
+                            closed:
+                                true
+                        };
+
+
+                    resetConfirmButton_();
+
                     setMonthCloseButtonState_(
-                        'checking',
+                        'closed',
                         month,
                         year
                     );
 
 
                     showToast(
-                        `Đã gửi lệnh chốt tháng ${month}/${year}. Đang xác nhận trên Cloud...`
+                        `Đã chốt tháng ${month}/${year} thành công!`
                     );
 
 
-                    // ==========================================
-                    // POLL API NHẸ CHO ĐẾN KHI BACKEND XÁC NHẬN
-                    // ==========================================
+                    if (
+                        typeof renderFinance ===
+                        'function'
+                    ) {
 
-                    pollMonthCloseStatus_(
-                        month,
-                        year,
-
-                        function(
-                            confirmed,
-                            result
-                        ) {
-
-                            resetConfirmButton_();
+                        renderFinance();
+                    }
 
 
-                            if (!confirmed) {
+                    if (
+                        typeof renderDashboard ===
+                        'function'
+                    ) {
 
-                                setMonthCloseButtonState_(
-                                    'error',
-                                    month,
-                                    year
-                                );
-
-
-                                alert(
-                                    "Đã gửi lệnh chốt nhưng chưa xác nhận được trạng thái trên Cloud.\n\n" +
-                                    "KHÔNG bấm chốt lại.\n" +
-                                    "Vui lòng kiểm tra sheet MonthlyBalances hoặc thử tải lại trang sau."
-                                );
-
-                                return;
-                            }
+                        renderDashboard();
+                    }
 
 
-                            // ==================================
-                            // BACKEND ĐÃ XÁC NHẬN THÁNG ĐÃ CHỐT
-                            // ==================================
+                    if (
+                        typeof renderCashbook ===
+                        'function'
+                    ) {
 
-                            applyMonthCloseLocalSnapshot_(
-                                preview
-                            );
-
-
-                            if (
-                                !window.monthCloseStatusLastCheck
-                            ) {
-
-                                window.monthCloseStatusLastCheck =
-                                    {};
-                            }
-
-
-                            window
-                                .monthCloseStatusLastCheck[
-                                    getMonthCloseStatusKey_(
-                                        month,
-                                        year
-                                    )
-                                ] = {
-
-                                    time:
-                                        Date.now(),
-
-                                    closed:
-                                        true
-                                };
-
-
-                            setMonthCloseButtonState_(
-                                'closed',
-                                month,
-                                year
-                            );
-
-
-                            showToast(
-                                `Đã chốt tháng ${month}/${year} thành công!`
-                            );
-
-
-                            if (
-                                typeof renderFinance ===
-                                'function'
-                            ) {
-
-                                renderFinance();
-                            }
-
-
-                            if (
-                                typeof renderDashboard ===
-                                'function'
-                            ) {
-
-                                renderDashboard();
-                            }
-
-
-                            if (
-                                typeof renderCashbook ===
-                                'function'
-                            ) {
-
-                                renderCashbook();
-                            }
-
-
-                            setMonthCloseButtonState_(
-                                'closed',
-                                month,
-                                year
-                            );
-                        }
-                    );
+                        renderCashbook();
+                    }
                 }
             )
 
@@ -6212,8 +5846,11 @@ function executeMonthClose_() {
 
 
                     alert(
-                        "Không thể gửi yêu cầu chốt tháng.\n\n" +
-                        "Chưa có xác nhận rằng Backend đã nhận lệnh."
+                        "Không thể kết nối hệ thống.\n\n" +
+                        "Nếu vừa mất mạng NGAY SAU KHI gửi lệnh, có thể " +
+                        "backend đã chốt thành công - vui lòng tải lại " +
+                        "trang để kiểm tra trước khi bấm chốt lại " +
+                        "(idempotencyKey đã gửi giúp chống chốt trùng)."
                     );
                 }
             );

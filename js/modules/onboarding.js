@@ -1,5 +1,5 @@
 // ======================================================
-// ONBOARDING TOUR (v1.7)
+// ONBOARDING TOUR
 //
 // Bong bóng hướng dẫn kiểu "coachmark" cuốn chiếu từng bước,
 // chỉ vào từng nút cụ thể trên bottom nav mới - giúp thành

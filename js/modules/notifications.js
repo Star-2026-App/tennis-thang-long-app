@@ -1,12 +1,18 @@
 // ======================================================
-// CHUÔNG THÔNG BÁO (v1.6)
+// CHUÔNG THÔNG BÁO (v2.0)
 //
 // - Lịch sử thông báo lưu TRÊN TỪNG THIẾT BỊ (localStorage),
 //   không đồng bộ qua Cloud - đúng như đã thống nhất.
-// - Việc GỬI thông báo đẩy thật (Web Push, hiện cả khi tắt
-//   app) đi qua API /api/send-push (Vercel) + danh sách
-//   Push Subscription lưu trên Google Sheet (để biết cần
-//   gửi tới thiết bị nào - xem PushSubscriptionService.gs).
+// - Việc GỬI thông báo đẩy THẬT (Web Push, hiện cả khi tắt app)
+//   giờ HOÀN TOÀN do SERVER thực hiện, tự động ngay sau khi 1
+//   action nghiệp vụ đã được Apps Script XÁC NHẬN COMMIT (xem
+//   frontend/api/_lib/pushSender.js + api/actions/write.js).
+//   Trình duyệt không còn tải danh sách Push Subscription của
+//   người khác, và không còn tự gọi endpoint gửi push nào (điểm
+//   yếu #8 đã sửa). File này giờ chỉ còn quản lý: (1) lịch sử
+//   thông báo cục bộ hiển thị ở chuông, (2) đăng ký/huỷ đăng ký
+//   nhận Push của CHÍNH thiết bị, (3) gửi thông báo thủ công cho
+//   cả CLB qua /api/push/broadcast (chỉ Admin/Owner).
 // ======================================================
 
 const NOTIF_STORAGE_KEY = 'tlt_notifications_v1';
@@ -327,48 +333,35 @@ async function updatePushToggleUi_() {
 
 function triggerClubPushNotification(title, body) {
 
+    // ==================================================
+    // v2.0 (sửa điểm yếu #8): CHỈ còn ghi vào lịch sử thông báo
+    // CỤC BỘ của chính thiết bị đang thao tác (chuông ở góc màn
+    // hình). Việc gửi Web Push THẬT tới TẤT CẢ thiết bị khác giờ
+    // do SERVER tự làm ngay sau khi backend xác nhận commit (xem
+    // frontend/api/_lib/pushSender.js, gọi từ api/actions/write.js)
+    // - trình duyệt không bao giờ còn tải danh sách subscription
+    // hay tự gọi endpoint gửi push nữa.
+    // ==================================================
+
     try {
         addNotificationToHistory_(title, body);
     } catch (err) {
         console.warn('LOCAL NOTIF ERROR:', err);
     }
+}
 
-    try {
+// Gửi thông báo thủ công cho CẢ CLB - CHỈ Admin/Owner (server tự
+// xác minh lại role qua whoAmI, xem api/push/broadcast.js). Dùng
+// cho ô "Soạn thông báo" trong Cài đặt (nếu có) thay cho việc tự
+// gọi thẳng /api/send-push như v1.6.
+function sendClubBroadcast_(title, body) {
 
-        if (typeof fetchJsonpPhase3_ !== 'function' || !PUSH_API_ENDPOINT) {
-            return;
-        }
-
-        fetchJsonpPhase3_(
-            { action: 'getPushSubscriptions' },
-            false,
-            function(error, data) {
-
-                if (error || !data || data.status !== 'SUCCESS') {
-                    return;
-                }
-
-                let subscriptions = data.subscriptions || [];
-                if (subscriptions.length === 0) return;
-
-                fetch(PUSH_API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        subscriptions: subscriptions,
-                        title: title,
-                        body: body
-                    })
-                }).catch(function(err) {
-                    console.warn('SEND PUSH API ERROR:', err);
-                });
-            }
-        );
-
-    } catch (err) {
-
-        console.warn('TRIGGER PUSH ERROR:', err);
-    }
+    return fetch('/api/push/broadcast', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title, body: body })
+    }).then(function(res) { return res.json(); });
 }
 
 

@@ -1,14 +1,16 @@
 // ======================================================
 // CLB TENNIS THĂNG LONG - SERVICE WORKER
-// PHASE 3B
+// v2.0.0
 //
 // - Không cache dữ liệu tài chính/API.
-// - Không cache HTML/JS/CSS.
+// - Không cache HTML/JS/CSS (network-only cho mọi GET cùng origin),
+//   nên không có rủi ro "cache cũ phục vụ code v1 đã lỗi thời" sau
+//   khi nâng cấp lên v2.0 - không cần cơ chế xoá Cache Storage cũ.
 // - Luôn ưu tiên dữ liệu mới nhất từ Network.
 // ======================================================
 
 const SERVICE_WORKER_VERSION =
-    'tennis-thang-long-pwa-v1';
+    'tennis-thang-long-pwa-v2.0.0';
 
 
 self.addEventListener(

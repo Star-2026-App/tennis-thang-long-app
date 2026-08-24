@@ -425,7 +425,12 @@ function renderDashboard() {
         
         let displayScore = isV1 ? `${mItem.scoreA}-${mItem.scoreB}` : `${mItem.scoreB}-${mItem.scoreA}`;
 
-        matchBody.innerHTML += `<tr class="border-b"><td class="p-2 text-center font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2 font-semibold text-slate-800">${teammate}</td><td class="p-2 font-semibold text-slate-800">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${displayScore}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
+        // (v2.0 - điểm yếu #9): teammate/opponents lấy từ tên thành
+        // viên (dữ liệu người dùng có thể sửa qua "Sửa thành viên") -
+        // phải escape trước khi chèn HTML.
+        let esc_ = (typeof escapeHtml_ === 'function') ? escapeHtml_ : (s => String(s == null ? '' : s));
+
+        matchBody.innerHTML += `<tr class="border-b"><td class="p-2 text-center font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2 font-semibold text-slate-800">${esc_(teammate)}</td><td class="p-2 font-semibold text-slate-800">${esc_(opponents)}</td><td class="p-2 text-center font-bold text-emerald-800">${displayScore}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
     });
 
     let rewardBody = document.getElementById('userRewardHistoryBody');
@@ -441,11 +446,15 @@ function renderDashboard() {
         gocBody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-slate-400 italic">Chưa có lượt nộp</td></tr>`;
     } else {
         userGocs.forEach(g => {
+            // (v2.0 - điểm yếu #9): g.note là ghi chú tự do do người
+            // dùng nhập khi nộp tiền góc - phải escape.
+            let safeNote = (typeof escapeHtml_ === 'function') ? escapeHtml_(g.note || '-') : String(g.note || '-');
+
             gocBody.innerHTML += `
                 <tr class="border-b">
                     <td class="p-1.5 text-slate-600">${g.time}</td>
                     <td class="p-1.5 text-right font-bold text-emerald-700">${parseInt(g.amount).toLocaleString()} đ</td>
-                    <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${g.note || '-'}</td>
+                    <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${safeNote}</td>
                 </tr>
             `;
         });
@@ -986,11 +995,14 @@ function renderDashboard() {
                             ? parseInt(m.specialBet).toLocaleString("vi-VN") + "đ"
                             : "-";
 
+                    let escTeammate_ = (typeof escapeHtml_ === 'function') ? escapeHtml_(teammate) : String(teammate || '');
+                    let escOpponents_ = (typeof escapeHtml_ === 'function') ? escapeHtml_(opponents) : String(opponents || '');
+
                     matchBody.innerHTML += `
                         <tr class="border-b">
                             <td class="p-2 text-center font-bold">${userMatches.length - idx}</td>
-                            <td class="p-2 font-semibold text-slate-800">${teammate}</td>
-                            <td class="p-2 font-semibold text-slate-800">${opponents}</td>
+                            <td class="p-2 font-semibold text-slate-800">${escTeammate_}</td>
+                            <td class="p-2 font-semibold text-slate-800">${escOpponents_}</td>
                             <td class="p-2 text-center font-bold text-emerald-800">${score}</td>
                             <td class="p-2 text-right font-bold text-amber-800">${special}</td>
                         </tr>
@@ -1068,11 +1080,13 @@ function renderDashboard() {
                     `<tr><td colspan="3" class="p-3 text-center text-slate-400 italic">Chưa có lượt nộp trong tháng</td></tr>`;
             } else {
                 userGocs.forEach(function (g) {
+                    let safeNote_ = (typeof escapeHtml_ === 'function') ? escapeHtml_(g.note || "-") : String(g.note || "-");
+
                     gocBody.innerHTML += `
                         <tr class="border-b">
                             <td class="p-1.5 text-slate-600">${g.time}</td>
                             <td class="p-1.5 text-right font-bold text-emerald-700">${money_(g.amount)}</td>
-                            <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${g.note || "-"}</td>
+                            <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${safeNote_}</td>
                         </tr>
                     `;
                 });
@@ -1280,7 +1294,7 @@ function renderDashboard() {
         reportButton.className =
             "bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition admin-only" +
             (
-                currentUserRole === "admin"
+                (currentUserRole === "admin" || currentUserRole === "owner")
                     ? ""
                     : " hidden"
             );
@@ -1296,11 +1310,11 @@ function renderDashboard() {
         function () {
 
             if (
-                currentUserRole !==
-                "admin"
+                currentUserRole !== "admin" &&
+                currentUserRole !== "owner"
             ) {
                 alert(
-                    "Chỉ Admin mới được tạo báo cáo tài chính tổng hợp."
+                    "Chỉ Admin hoặc Owner mới được tạo báo cáo tài chính tổng hợp."
                 );
                 return;
             }

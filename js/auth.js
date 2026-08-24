@@ -1,45 +1,243 @@
-function handleLogin(e) {
+// ======================================================
+// AUTH.JS (v2.0) - ĐĂNG NHẬP THẬT QUA VERCEL BFF
+// ======================================================
+//
+// THAY THẾ HOÀN TOÀN v1.6: không còn mật khẩu gõ cứng
+// "admin"/"123456", không còn tự gán role ở biến trình duyệt dựa
+// theo STT (1/2/15). Toàn bộ xác thực/phân quyền giờ do server
+// quyết định (POST /api/auth/login), trình duyệt chỉ hiển thị lại
+// những gì server xác nhận.
+//
+// KHÔNG có bất kỳ dữ liệu CLB nào (members/matches/tài chính...)
+// được tải - kể cả từ localStorage - trước khi có xác nhận phiên
+// đăng nhập hợp lệ (sửa điểm yếu #11: app.js cũ tải dữ liệu ngay
+// trong DOMContentLoaded, màn hình đăng nhập trước đây chỉ là lớp
+// phủ hình ảnh).
+// ======================================================
+
+function roleLabel_(role) {
+
+    if (role === 'owner') return 'Owner';
+    if (role === 'admin') return 'Admin Tổng';
+    return 'Thành Viên';
+}
+
+function showLoginScreen_() {
+
+    let appScreen = document.getElementById('appScreen');
+    if (appScreen) {
+        appScreen.classList.add('hidden');
+        appScreen.classList.remove('flex');
+    }
+
+    let loginScreen = document.getElementById('loginScreen');
+    if (loginScreen) loginScreen.classList.remove('hidden');
+
+    let loginUser = document.getElementById('loginUser');
+    if (loginUser) loginUser.value = '';
+
+    let loginPass = document.getElementById('loginPass');
+    if (loginPass) loginPass.value = '';
+}
+
+function applySessionInfo_(data) {
+
+    loggedInMemberStt = parseInt(data.stt) || 0;
+    loggedInMemberName = data.name || '';
+    currentUserRole = data.role || 'member';
+}
+
+// ======================================================
+// KIỂM TRA PHIÊN CÓ SẴN (gọi 1 lần khi mở app - xem app.js)
+// ======================================================
+
+async function checkExistingSession_() {
+
+    try {
+
+        let res = await fetch('/api/auth/session', { credentials: 'include' });
+        let data = await res.json();
+
+        if (data && data.authenticated) {
+
+            applySessionInfo_(data);
+
+            if (data.mustChangePassword) {
+
+                await forcePasswordChangeFlow_();
+                return;
+            }
+
+            enterAppScreen_();
+            return;
+        }
+
+    } catch (err) {
+
+        console.warn('CHECK SESSION ERROR:', err);
+    }
+
+    showLoginScreen_();
+}
+
+// ======================================================
+// ĐĂNG NHẬP
+// ======================================================
+
+async function handleLogin(e) {
+
     e.preventDefault();
+
     let u = document.getElementById('loginUser').value.trim();
-    let p = document.getElementById('loginPass').value.trim();
+    let p = document.getElementById('loginPass').value;
 
-    loadLocalData();
-    if (!members || members.length === 0) members = defaultFallbackMembers;
+    if (!u || !p) {
+        alert('Vui lòng nhập tên đăng nhập và mật khẩu.');
+        return;
+    }
 
-    let foundMem = members.find(m => m.username && m.username.toLowerCase() === u.toLowerCase());
+    let submitBtn = document.querySelector('#loginScreen button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
 
-    if (!foundMem) {
-        let match = u.match(/^Thanglong(\d+)$/i);
-        if (match) {
-            let sttNum = parseInt(match[1]);
-            foundMem = members.find(m => m.stt === sttNum);
+    try {
+
+        let res = await fetch('/api/auth/login', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: u, password: p })
+        });
+
+        let data = await res.json();
+
+        if (!res.ok || data.status === 'ERROR') {
+
+            alert(data.message || 'Đăng nhập thất bại.');
+            return;
+        }
+
+        applySessionInfo_(data);
+
+        if (data.mustChangePassword) {
+
+            await forcePasswordChangeFlow_();
+            return;
+        }
+
+        enterAppScreen_();
+
+    } catch (err) {
+
+        console.error('LOGIN ERROR:', err);
+        alert('Không thể kết nối hệ thống. Vui lòng kiểm tra mạng và thử lại.');
+
+    } finally {
+
+        if (submitBtn) submitBtn.disabled = false;
+    }
+}
+
+// ======================================================
+// BẮT BUỘC ĐỔI MẬT KHẨU LẦN ĐẦU (P1)
+//
+// Áp dụng cho: (1) Owner ngay sau khi bootstrap lần đầu, (2) bất
+// kỳ Admin/Member nào vừa được Owner/Admin cấp mật khẩu tạm qua
+// resetMemberPassword. Đổi mật khẩu THÀNH CÔNG sẽ thu hồi TOÀN BỘ
+// session cũ (kể cả phiên hiện tại) - nên sau khi đổi xong phải
+// đăng nhập lại bằng mật khẩu mới, không tự vào thẳng app.
+// ======================================================
+
+async function forcePasswordChangeFlow_() {
+
+    while (true) {
+
+        let pw1 = window.prompt(
+            'Đây là lần đăng nhập đầu tiên (hoặc mật khẩu vừa được đặt lại).\n' +
+            'Vui lòng đặt MẬT KHẨU MỚI cho tài khoản ' + (loggedInMemberName || '') +
+            ' (ít nhất 6 ký tự):',
+            ''
+        );
+
+        if (pw1 === null) {
+
+            alert('Bạn PHẢI đổi mật khẩu để tiếp tục sử dụng hệ thống. Đang đăng xuất...');
+            await logout();
+            return;
+        }
+
+        pw1 = pw1.trim();
+
+        if (pw1.length < 6) {
+
+            alert('Mật khẩu phải có ít nhất 6 ký tự.');
+            continue;
+        }
+
+        let pw2 = window.prompt('Nhập lại mật khẩu mới để xác nhận:', '');
+
+        if (pw2 === null || pw2.trim() !== pw1) {
+
+            alert('Hai lần nhập không khớp. Vui lòng thử lại.');
+            continue;
+        }
+
+        try {
+
+            let res = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newPassword: pw1 })
+            });
+
+            let data = await res.json();
+
+            if (data.status !== 'SUCCESS') {
+
+                alert(data.message || 'Không đổi được mật khẩu. Vui lòng thử lại.');
+                continue;
+            }
+
+            alert('Đã đổi mật khẩu thành công!\n\nVui lòng đăng nhập lại bằng mật khẩu mới.');
+            showLoginScreen_();
+            return;
+
+        } catch (err) {
+
+            console.error('CHANGE PASSWORD ERROR:', err);
+            alert('Không thể kết nối hệ thống. Vui lòng thử lại.');
         }
     }
+}
 
-    if (!foundMem) {
-        alert("Tài khoản không tồn tại trên hệ thống!");
-        return;
-    }
+// ======================================================
+// VÀO APP (chỉ sau khi có phiên hợp lệ) - đây là nơi DUY NHẤT
+// tải dữ liệu cục bộ/cloud, thay cho app.js cũ tải vô điều kiện.
+// ======================================================
 
-    let isSystemAdmin = (foundMem.role === 'admin' || foundMem.stt === 1 || foundMem.stt === 2 || foundMem.stt === 15);
-    let requiredPass = isSystemAdmin ? 'admin' : '123456';
-
-    if (p !== requiredPass) {
-        alert("Mật khẩu không chính xác!");
-        return;
-    }
-
-    currentUserRole = isSystemAdmin ? "admin" : "member";
-    loggedInMemberName = foundMem.name;
+function enterAppScreen_() {
 
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('appScreen').classList.remove('hidden');
     document.getElementById('appScreen').classList.add('flex');
-    
+
     document.getElementById('mobileHeaderUserDisplay').innerText = loggedInMemberName;
     document.getElementById('modalProfileName').innerText = loggedInMemberName;
-    document.getElementById('modalProfileRole').innerText = "Vai trò: " + (currentUserRole === 'admin' ? "Admin Tổng" : "Thành Viên");
-    
+    document.getElementById('modalProfileRole').innerText = 'Vai trò: ' + roleLabel_(currentUserRole);
+
+    // Namespace theo actor - xem storage.js. Chỉ TỪ ĐÂY mới đọc
+    // localStorage/gọi cloud, không còn tải trước khi đăng nhập.
+    loadLocalData();
+
+    if (typeof restorePhase3LocalState_ === 'function') {
+        restorePhase3LocalState_(
+            window.__pendingCurMonth || (new Date()).getMonth() + 1,
+            window.__pendingCurYear || (new Date()).getFullYear()
+        );
+    }
+
+    if (!members || members.length === 0) members = defaultFallbackMembers;
+
     initApp();
 
     if (typeof syncBottomNavState === 'function') {
@@ -53,7 +251,7 @@ function handleLogin(e) {
     let dashSelect = document.getElementById('dashMainUser');
     if (dashSelect) {
         dashSelect.value = loggedInMemberName;
-        if (currentUserRole !== 'admin') dashSelect.disabled = true;
+        if (currentUserRole === 'member') dashSelect.disabled = true;
     }
 
     fetchCloudData(true);
@@ -64,53 +262,70 @@ function handleLogin(e) {
     syncIntervalId = setInterval(() => { processQueue(); }, 5000);
 }
 
-function logout() {
-    // Đăng xuất "mềm": chuyển màn hình ngay lập tức thay vì reload
-    // lại toàn bộ trang (vốn phải tải lại HTML/CSS/JS/CDN từ mạng
-    // nên cảm giác rất chậm, nhất là trên mạng di động yếu).
+// ======================================================
+// ĐĂNG XUẤT
+// ======================================================
+
+async function logout() {
 
     if (typeof closeMoreSheet === 'function') closeMoreSheet();
     if (typeof closeUserProfileModal === 'function') closeUserProfileModal();
     if (typeof closeGhiNhanSheet === 'function') closeGhiNhanSheet();
 
-    // Dừng vòng đồng bộ nền của phiên cũ (tránh chạy chồng nhiều
-    // interval nếu đăng nhập/đăng xuất nhiều lần trong 1 lần mở app).
     if (syncIntervalId) {
         clearInterval(syncIntervalId);
         syncIntervalId = null;
     }
-    // syncQueue vẫn được giữ nguyên trong bộ nhớ + đã lưu trong
-    // localStorage sau mỗi lần xử lý (saveLocalData trong processQueue),
-    // nên các thao tác chưa kịp đồng bộ sẽ tự tiếp tục ở lần đăng
-    // nhập kế tiếp, không bị mất.
 
-    currentUserRole = "member";
-    loggedInMemberName = "";
+    let loggedOutStt = loggedInMemberStt;
+
+    try {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (err) {
+        console.warn('LOGOUT REQUEST ERROR:', err);
+    }
+
+    // (điểm yếu #11) Dọn dữ liệu tài chính cục bộ của ĐÚNG actor
+    // vừa đăng xuất - không để lộ dữ liệu cho người dùng tiếp theo
+    // trên cùng thiết bị. Hàng đợi CHƯA đồng bộ hết của actor này
+    // (nếu có) vẫn được GIỮ LẠI dưới key riêng để không mất thao
+    // tác, và sẽ tự tiếp tục khi actor đó đăng nhập lại.
+    if (typeof clearFinancialLocalDataForActor_ === 'function') {
+        clearFinancialLocalDataForActor_(loggedOutStt);
+    }
+
+    currentUserRole = 'member';
+    loggedInMemberName = '';
+    loggedInMemberStt = 0;
+
+    members = [];
+    matches = [];
+    bookingLogs = [];
+    cashbookLogs = [];
+    gocLogs = [];
+    quyLogs = [];
+    rulesList = [];
+    syncQueue = [];
 
     if (typeof switchTab === 'function') {
         switchTab('dashboard');
     }
 
-    let appScreen = document.getElementById('appScreen');
-    if (appScreen) {
-        appScreen.classList.add('hidden');
-        appScreen.classList.remove('flex');
-    }
-
-    let loginScreen = document.getElementById('loginScreen');
-    if (loginScreen) {
-        loginScreen.classList.remove('hidden');
-    }
-
-    let loginUser = document.getElementById('loginUser');
-    if (loginUser) loginUser.value = '';
-    let loginPass = document.getElementById('loginPass');
-    if (loginPass) loginPass.value = '';
+    showLoginScreen_();
 }
 
 function applyRolePermissions() {
+
     document.querySelectorAll('.admin-only').forEach(el => {
-        if (currentUserRole === 'admin') el.classList.remove('hidden');
+        if (currentUserRole === 'admin' || currentUserRole === 'owner') el.classList.remove('hidden');
+        else el.classList.add('hidden');
+    });
+
+    // (v2.0) Ma trận quyền P1: "Cài đặt hệ thống, phân quyền Admin"
+    // CHỈ Owner. Class mới "owner-only" tách riêng khỏi "admin-only"
+    // (trước đây Admin và Owner dùng chung 1 mức quyền "admin").
+    document.querySelectorAll('.owner-only').forEach(el => {
+        if (currentUserRole === 'owner') el.classList.remove('hidden');
         else el.classList.add('hidden');
     });
 }

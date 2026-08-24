@@ -3,16 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>CLB Tennis Thăng Long - Ver1.3</title>
+    <title>CLB Tennis Thăng Long - v2.0.0</title>
     <meta name="theme-color" content="#065f46">
     <meta name="application-name" content="Tennis Thăng Long">
-    
+
     <meta name="mobile-web-app-capable" content="yes">
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Tennis Thăng Long">
-    
+
+    <!-- v2.0 (P3 - điểm yếu #9): CSP. Giữ 'unsafe-inline'/'unsafe-eval' cho
+         script vì trang dùng Tailwind CDN (JIT runtime) và hàng trăm
+         onclick="..." nội tuyến có sẵn trong toàn bộ file - loại bỏ hết
+         là một refactor quá lớn cho lần sửa này. connect-src chỉ còn
+         'self' vì từ v2.0 trình duyệt không còn gọi thẳng Apps Script nữa,
+         mọi request đều đi qua route /api/* cùng origin (Vercel BFF). -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+        font-src 'self' https://cdnjs.cloudflare.com;
+        img-src 'self' data: https://img.vietqr.io;
+        connect-src 'self';
+        manifest-src 'self';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'none';
+    ">
+
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="/icons/tennis-thang-long.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -811,7 +830,7 @@
                     <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu Chi</button>
                     <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên</button>
                     <button onclick="switchTab('rules')" id="btn-rules" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
-                    <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 admin-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
+                    <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 owner-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
 
                 <!-- Hàng hamburger cũ trên mobile đã được thay bằng bottom nav (xem #bottomNav cuối trang).
@@ -836,7 +855,7 @@
                 <button onclick="switchTabMobile('cashbook', 'Sổ Thu Chi')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-amber-300"></i> Sổ Thu Chi</button>
                 <button onclick="switchTabMobile('members', 'Thành Viên')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-users text-amber-300"></i> Thành Viên</button>
                 <button onclick="switchTabMobile('rules', 'Quy định và thông báo')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
-                <button onclick="switchTabMobile('settings', 'Cài Đặt')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2 admin-only hidden"><i class="fa-solid fa-gears text-amber-300"></i> Cài Đặt</button>
+                <button onclick="switchTabMobile('settings', 'Cài Đặt')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2 owner-only hidden"><i class="fa-solid fa-gears text-amber-300"></i> Cài Đặt</button>
             </div>
         </header>
 
@@ -1413,7 +1432,7 @@
                             <h2 class="text-base font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB</h2>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                            <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1 owner-only hidden"><i class="fa-solid fa-file-excel"></i> Backup Excel</button>
                             <button onclick="openAddMemberModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow admin-only">+ Thêm</button>
                         </div>
                     </div>
@@ -1777,10 +1796,10 @@
                     <span class="flex-1 text-left">Quy định</span>
                     <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
                 </button>
-                <button type="button" onclick="moreGo('settings','Cài Đặt')" class="more-row admin-only hidden">
+                <button type="button" onclick="moreGo('settings','Cài Đặt')" class="more-row owner-only hidden">
                     <span class="more-row-icon"><i class="fa-solid fa-gears"></i></span>
                     <span class="flex-1 text-left">Cài Đặt</span>
-                    <span class="text-[9px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">ADMIN</span>
+                    <span class="text-[9px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">OWNER</span>
                 </button>
                 <button type="button" onclick="replayOnboardingTour()" class="more-row">
                     <span class="more-row-icon"><i class="fa-solid fa-circle-info"></i></span>
