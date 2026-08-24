@@ -850,6 +850,22 @@ function renderDashboard() {
                             Đã trả tiền (thành viên đang dư)
                         </button>
 
+                        <!-- (v2.0) Nút "Hoàn tác" cho ĐÚNG lần "Đã trả tiền" gần nhất
+                        (payOutMemberCreditByAdmin()) - chỉ hiện khi "còn cần đóng" = 0
+                        VÀ hệ thống tìm thấy cặp dòng (GocLogsAdjustment ẩn + Cashbook
+                        "Tiền thưởng đặt sân") của ĐÚNG thành viên/tháng đang xem còn
+                        tồn tại (xem findLatestUndoablePayout_() + undoLatestPayoutForMember()
+                        bên dưới). Lý do cần nút riêng: xóa tay 1 trong 2 dòng đó thôi
+                        (vd chỉ xóa ở Sổ Thu Chi) sẽ để lại dữ liệu SAI - xem giải thích
+                        đã trao đổi với người vận hành CLB. -->
+                        <button type="button"
+                                id="dashboardFdUndoPayoutBtn"
+                                onclick="undoLatestPayoutForMember()"
+                                class="hidden w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            Hoàn tác lần "Đã trả tiền" gần nhất
+                        </button>
+
                         <button type="button"
                                 onclick="closeDashboardFinanceDetailModal()"
                                 class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black py-2.5 rounded-xl text-xs">
@@ -1293,6 +1309,31 @@ function renderDashboard() {
                     !(isAdminOrOwner && closing < 0)
                 );
             }
+
+            // (v2.0) Nút "Hoàn tác" - CHỈ hiện khi "còn cần đóng" đúng bằng 0
+            // VÀ tìm thấy dòng điều chỉnh/Cashbook của ĐÚNG lần trả tiền dư
+            // gần nhất cho thành viên/tháng đang xem (không chỉ dựa vào dấu
+            // của "closing" - nếu 0 vì lý do khác, vd nộp đủ bình thường,
+            // sẽ không tìm thấy gì và nút không hiện).
+            let undoPayoutBtn =
+                document.getElementById(
+                    "dashboardFdUndoPayoutBtn"
+                );
+
+            if (undoPayoutBtn) {
+                let undoablePayout =
+                    (isAdminOrOwner && closing === 0)
+                        ? findLatestUndoablePayout_(main, p.month, p.year)
+                        : null;
+
+                let hasSomethingToUndo =
+                    !!(undoablePayout && (undoablePayout.adjustment || undoablePayout.cashbook));
+
+                undoPayoutBtn.classList.toggle(
+                    "hidden",
+                    !hasSomethingToUndo
+                );
+            }
         };
 
     window.closeDashboardFinanceDetailModal =
@@ -1465,8 +1506,18 @@ function renderDashboard() {
                     // chỉnh Dư/Nợ riêng của thành viên).
                     let doubleCountTag_ = "[ĐÃ GHI CASHBOOK]";
 
+                    // (v2.0) "Mã giao dịch" dùng ĐỂ GHÉP ĐÚNG CẶP 2 dòng (dòng
+                    // điều chỉnh Dư/Nợ ở GocLogs + dòng chi ở Cashbook) của CÙNG
+                    // 1 lần bấm "Đã trả tiền" - CHỈ dùng cho nút "Hoàn tác"
+                    // (undoLatestPayoutForMember() bên dưới) tìm lại đúng cặp cần
+                    // xóa, không dùng để tính toán tiền bạc gì. Không dùng
+                    // Date.now() thô (dài, khó đọc) - đổi sang cơ số 36 cho ngắn
+                    // gọn, viết hoa cho dễ nhìn trong sổ.
+                    let payoutTxnId_ =
+                        "HT" + Date.now().toString(36).toUpperCase();
+
                     let adjustmentReason_ =
-                        `Trả tiền dư thưởng đặt sân bằng tiền mặt/CK - dòng tiền thật đã ghi ở Cashbook ${doubleCountTag_}`;
+                        `Trả tiền dư thưởng đặt sân bằng tiền mặt/CK - dòng tiền thật đã ghi ở Cashbook ${doubleCountTag_} (Mã: ${payoutTxnId_})`;
 
                     let adjustment = {
                         id: Date.now(),
@@ -1496,7 +1547,7 @@ function renderDashboard() {
                         id: Date.now(),
                         category: "Tiền thưởng đặt sân",
                         amount: payoutAmount,
-                        note: `Trả tiền dư thưởng đặt sân cho ${main} - Tháng ${p.month}/${p.year}`,
+                        note: `Trả tiền dư thưởng đặt sân cho ${main} - Tháng ${p.month}/${p.year} (Mã: ${payoutTxnId_})`,
                         time: new Date().toLocaleDateString('vi-VN')
                     };
 
@@ -1505,6 +1556,144 @@ function renderDashboard() {
                         { cashbook: newCashbook },
                         "Đã ghi nhận khoản chi vào Sổ Thu Chi!"
                     );
+
+                    closeDashboardFinanceDetailModal();
+
+                    if (typeof renderDashboard === "function") {
+                        renderDashboard();
+                    }
+                }
+            );
+        };
+
+    // ==================================================
+    // (v2.0) HOÀN TÁC LẦN "ĐÃ TRẢ TIỀN" GẦN NHẤT
+    // ==================================================
+    // Vì sao cần riêng 1 nút thay vì để Admin tự xóa tay: payOutMemberCreditByAdmin()
+    // ghi 2 dòng cho 1 sự kiện tiền thật duy nhất - (1) dòng điều chỉnh ÂM ở
+    // GocLogs (ẩn khỏi tab "Nộp Tiền" vì gắn thẻ GOC_ADJUSTMENT_HIDE_TAG_ -
+    // xem finance.js) và (2) dòng chi ở Cashbook mục "Tiền thưởng đặt sân".
+    // Nếu Admin chỉ xóa 1 trong 2 (vd chỉ xóa ở Sổ Thu Chi vì đó là chỗ DUY
+    // NHẤT nhìn thấy được trên giao diện) thì Dư/Nợ riêng của thành viên vẫn
+    // bị kẹt ở 0 mãi mãi (dòng GocLogs ẩn vẫn còn nguyên) - ĐÃ giải thích rõ
+    // nguyên lý này với người vận hành CLB. Nút này xóa ĐÚNG CẢ 2 dòng cùng lúc.
+    //
+    // findLatestUndoablePayout_(): tìm dòng GocLogsAdjustment MỚI NHẤT (id lớn
+    // nhất trong số các id sinh từ Date.now(), tức tăng dần theo thời gian) của
+    // ĐÚNG thành viên/tháng đang xem, có gắn thẻ ẩn; đọc "Mã: HTxxxx" trong note
+    // của nó rồi tìm dòng Cashbook mang ĐÚNG mã đó. Chỉ hỗ trợ hoàn tác lần GẦN
+    // NHẤT - nếu có nhiều lần trả tiền dư trong cùng tháng, hoàn tác xong 1 lần
+    // thì lần trước đó sẽ trở thành "gần nhất" tiếp theo, bấm lại nút để hoàn
+    // tác tiếp (không hoàn tác nhiều lần cùng lúc để tránh xóa nhầm).
+    function findLatestUndoablePayout_(memberName, month, year) {
+
+        let adjustmentRows =
+            (gocLogs || []).filter(function(g) {
+                return (
+                    g.name === memberName &&
+                    typeof GOC_ADJUSTMENT_HIDE_TAG_ !== "undefined" &&
+                    String(g.note || '').indexOf(GOC_ADJUSTMENT_HIDE_TAG_) !== -1 &&
+                    typeof isLogInMonth_ === "function" &&
+                    isLogInMonth_(g.time, month, year)
+                );
+            });
+
+        if (adjustmentRows.length === 0) return null;
+
+        adjustmentRows.sort(function(a, b) {
+            return (parseInt(b.id) || 0) - (parseInt(a.id) || 0);
+        });
+
+        let latestAdjustment = adjustmentRows[0];
+
+        let maCode = null;
+        let codeMatch = String(latestAdjustment.note || '').match(/\(Mã: (HT[A-Z0-9]+)\)/);
+        if (codeMatch) maCode = codeMatch[1];
+
+        let matchingCashbook = null;
+
+        if (maCode) {
+            matchingCashbook =
+                (cashbookLogs || []).find(function(c) {
+                    return String(c.note || '').indexOf('(Mã: ' + maCode + ')') !== -1;
+                }) || null;
+        }
+
+        return {
+            adjustment: latestAdjustment,
+            cashbook: matchingCashbook,
+            maCode: maCode
+        };
+    }
+
+    window.undoLatestPayoutForMember =
+        function () {
+
+            if (currentUserRole !== "admin" && currentUserRole !== "owner") {
+                alert("Chỉ Admin hoặc Owner mới được dùng chức năng này.");
+                return;
+            }
+
+            if (!members || members.length === 0) {
+                members = defaultFallbackMembers;
+            }
+
+            let mainEl = document.getElementById("dashMainUser");
+            let main = mainEl && mainEl.value
+                ? mainEl.value
+                : (members[0] ? members[0].name : "");
+
+            if (!main) return;
+
+            let p = period_();
+            let found = findLatestUndoablePayout_(main, p.month, p.year);
+
+            if (!found || (!found.adjustment && !found.cashbook)) {
+                alert(
+                    `Không tìm thấy lần "Đã trả tiền" nào của [${main}] trong tháng ${p.month}/${p.year} để hoàn tác.`
+                );
+                return;
+            }
+
+            let amountForDisplay =
+                found.adjustment
+                    ? Math.abs(parseInt(found.adjustment.amount) || 0)
+                    : (found.cashbook ? (parseInt(found.cashbook.amount) || 0) : 0);
+
+            let amountText = amountForDisplay.toLocaleString('vi-VN') + ' đ';
+
+            let warningExtra = '';
+
+            if (found.adjustment && !found.cashbook) {
+                warningExtra =
+                    '\n\n(Lưu ý: không tìm thấy dòng Cashbook tương ứng - có thể đã bị xóa trước đó. Hệ thống sẽ chỉ hoàn tác dòng điều chỉnh Dư/Nợ.)';
+            } else if (!found.adjustment && found.cashbook) {
+                warningExtra =
+                    '\n\n(Lưu ý: không tìm thấy dòng điều chỉnh Dư/Nợ tương ứng - có thể đã bị xóa trước đó. Hệ thống sẽ chỉ hoàn tác dòng Cashbook.)';
+            }
+
+            showActionConfirm(
+                `Hoàn tác lần "Đã trả tiền" GẦN NHẤT cho [${main}] (${amountText}, tháng ${p.month}/${p.year})?\n\n` +
+                `Hệ thống sẽ xóa dòng điều chỉnh Dư/Nợ (đưa Dư/Nợ về lại đúng mức dư ${amountText} như trước khi trả) VÀ dòng chi tương ứng ở Sổ Thu Chi. ` +
+                `CHỈ xác nhận khi bạn đã thực sự lấy lại đúng khoản tiền này từ thành viên.` +
+                warningExtra,
+                () => {
+
+                    if (found.adjustment) {
+                        enqueueAction(
+                            "deleteItem",
+                            { sheetName: "GocLogs", id: found.adjustment.id },
+                            `Đã hoàn tác điều chỉnh Dư/Nợ của [${main}]!`
+                        );
+                    }
+
+                    if (found.cashbook) {
+                        enqueueAction(
+                            "deleteItem",
+                            { sheetName: "Cashbook", id: found.cashbook.id },
+                            "Đã xóa khoản chi tương ứng ở Sổ Thu Chi!"
+                        );
+                    }
 
                     closeDashboardFinanceDetailModal();
 
