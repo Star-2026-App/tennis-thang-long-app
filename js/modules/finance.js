@@ -32,7 +32,29 @@ function isLogInMonth_(timeValue, targetMonth, targetYear) {
     );
 }
 
+// (v2.0 fix) "GOC_ADJUSTMENT_HIDE_TAG_": các dòng addGocLogAdjustment
+// (số ÂM) do payOutMemberCreditByAdmin() (dashboard.js) tạo ra khi CLB
+// trả tiền dư thưởng đặt sân cho thành viên - CHỈ để đưa Dư/Nợ RIÊNG
+// của thành viên đó về 0 (vẫn phải cộng đầy đủ ở getUserGocPaidForMonth_
+// bên dưới - KHÔNG lọc ở đó), KHÔNG phải tiền thật thành viên nộp vào.
+// Dòng tiền thật của khoản trả này đã ghi RIÊNG 1 lần ở Cashbook (mục
+// "Tiền thưởng đặt sân"). Theo góp ý của người vận hành CLB: những dòng
+// này không nên hiện/tính vào tab "Nộp Tiền" (dành cho tiền thành viên
+// NỘP VÀO) hay bất kỳ chỗ nào khác coi GocLogs là tiền thật đã về quỹ -
+// dùng getRealGocLogs_() ở TẤT CẢ các chỗ đó (renderGocLogsTab, tổng
+// quỹ, lịch sử "Tiền góc thực thu"...), thay vì đọc thẳng biến gocLogs.
+var GOC_ADJUSTMENT_HIDE_TAG_ = "[ĐÃ GHI CASHBOOK]";
+
+function getRealGocLogs_() {
+    return (gocLogs || []).filter(function(g) {
+        return String(g.note || '').indexOf(GOC_ADJUSTMENT_HIDE_TAG_) === -1;
+    });
+}
+
 function getUserGocPaidForMonth_(memberName, targetMonth, targetYear) {
+    // Cố ý dùng thẳng gocLogs (KHÔNG lọc qua getRealGocLogs_) - Dư/Nợ
+    // RIÊNG của từng thành viên bắt buộc phải thấy đủ dòng điều chỉnh
+    // này thì mới về đúng 0 sau khi được trả tiền dư.
     return (gocLogs || []).reduce(function(sum, log) {
 
         if (
@@ -1209,8 +1231,13 @@ function renderGocLogsTab() {
     tbody.innerHTML = '';
 
 
+    // (v2.0 fix) Tab "Nộp Tiền" chỉ dành cho tiền thành viên THỰC NỘP
+    // VÀO - các dòng điều chỉnh trả tiền dư thưởng đặt sân (tiền CHI RA,
+    // đã ghi riêng ở Cashbook) không nên hiện/tính vào đây, theo đúng
+    // góp ý của người vận hành CLB. Dùng getRealGocLogs_() thay vì đọc
+    // thẳng gocLogs (xem định nghĩa đầu file).
     let logsToDisplay =
-        (gocLogs || []).slice();
+        getRealGocLogs_();
 
 
     if (filterUser !== 'ALL') {
@@ -3871,7 +3898,11 @@ function selectCategory(cat) {
         'Tiền góc thực thu'
     ) {
 
-        (gocLogs || [])
+        // (v2.0 fix) Cùng lý do như renderGocLogsTab()/renderCashbook() -
+        // đây là view "gương" dựng từ GocLogs (không phải từ cashbookLogs
+        // thật), nên cũng phải loại các dòng điều chỉnh trả tiền dư ra để
+        // không hiện/tính trùng ở màn "Tiền góc thực thu" này.
+        getRealGocLogs_()
             .forEach(
                 function(g) {
 
@@ -4131,13 +4162,10 @@ function computeQuarterOpeningBalance_(quarterInfo) {
     // 2 lần các khoản trả tiền dư thưởng đặt sân đã ghi qua
     // payOutMemberCreditByAdmin() (dashboard.js) mỗi khi sang quý mới.
     let gocBefore =
-        (gocLogs || [])
+        getRealGocLogs_()
             .filter(function(g) {
                 let d = parseVNDateOnly_(g.time);
-                return (
-                    d && d < quarterInfo.startDate &&
-                    String(g.note || '').indexOf("[ĐÃ GHI CASHBOOK]") === -1
-                );
+                return d && d < quarterInfo.startDate;
             })
             .reduce(function(sum, g) {
                 return sum + (parseInt(g.amount) || 0);
@@ -4221,17 +4249,9 @@ function renderCashbook() {
     // sẽ bị trừ trùng 2 lần trên quỹ thật (thành viên phát hiện) - loại
     // trừ đúng các dòng có thẻ đánh dấu này ra khỏi tổng.
     let totalGocThu =
-        (gocLogs || [])
+        getRealGocLogs_()
             .reduce(
                 function(sum, g) {
-
-                    if (
-                        String(g.note || '').indexOf(
-                            "[ĐÃ GHI CASHBOOK]"
-                        ) !== -1
-                    ) {
-                        return sum;
-                    }
 
                     return (
                         sum +
