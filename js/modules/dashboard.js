@@ -1453,6 +1453,21 @@ function renderDashboard() {
                 `CHỈ xác nhận khi bạn đã thực sự chi tiền cho thành viên.`,
                 () => {
 
+                    // (v2.0 fix) Thẻ đánh dấu bắt buộc phải xuất hiện NGUYÊN VẸN
+                    // trong "reason" (backend lưu note = "Điều chỉnh: " + reason) -
+                    // renderCashbook() (finance.js, tính "DƯ QUỸ HIỆN TẠI") sẽ dò
+                    // đúng chuỗi này để LOẠI TRỪ dòng điều chỉnh này khỏi tổng
+                    // "góc thực thu". Lý do: dòng tiền thật của khoản trả này ĐÃ
+                    // được ghi 1 lần ở khoản Cashbook "Tiền thưởng đặt sân" ngay
+                    // dưới đây rồi - nếu cộng thêm cả ở đây sẽ bị tính trùng 2 lần
+                    // trên quỹ thật của CLB (đúng lỗi thành viên phát hiện: dòng
+                    // GocLogs âm này KHÔNG phải tiền thật ra/vào quỹ, chỉ là điều
+                    // chỉnh Dư/Nợ riêng của thành viên).
+                    let doubleCountTag_ = "[ĐÃ GHI CASHBOOK]";
+
+                    let adjustmentReason_ =
+                        `Trả tiền dư thưởng đặt sân bằng tiền mặt/CK - dòng tiền thật đã ghi ở Cashbook ${doubleCountTag_}`;
+
                     let adjustment = {
                         id: Date.now(),
                         time: new Date().toLocaleString('vi-VN'),
@@ -1461,7 +1476,14 @@ function renderDashboard() {
                         // trừ thẳng vào Đã nộp, đưa Dư/Nợ về đúng 0 (xem công thức
                         // trong calculateUserFinanceForMonth: totalPay = ... - Đã nộp - Thưởng sân).
                         amount: closing,
-                        reason: `Trả tiền dư (thưởng đặt sân) bằng tiền mặt/CK - ${loggedInMemberName || 'Admin/Owner'} xác nhận`
+                        reason: adjustmentReason_,
+                        // (v2.0 fix) addGocLogAdjustmentData ở backend lưu note =
+                        // "Điều chỉnh: " + reason và trả về đúng "note" đó, nhưng
+                        // cache tạm ở trình duyệt (enqueueAction) hiển thị NGAY object
+                        // này - nếu thiếu "note" thì renderGocLogsTab() hiện tạm chữ
+                        // "-" cho tới lần tải lại kế tiếp (bug đã gặp khi test). Set
+                        // sẵn "note" khớp đúng backend để hiện đúng ngay lập tức.
+                        note: "Điều chỉnh: " + adjustmentReason_
                     };
 
                     enqueueAction(
@@ -1474,7 +1496,7 @@ function renderDashboard() {
                         id: Date.now(),
                         category: "Tiền thưởng đặt sân",
                         amount: payoutAmount,
-                        note: `Trả tiền dư thưởng đặt sân cho ${main} - Tháng ${p.month}/${p.year} (xác nhận qua nút "Đã trả tiền" - ${loggedInMemberName || 'Admin/Owner'})`,
+                        note: `Trả tiền dư thưởng đặt sân cho ${main} - Tháng ${p.month}/${p.year}`,
                         time: new Date().toLocaleDateString('vi-VN')
                     };
 

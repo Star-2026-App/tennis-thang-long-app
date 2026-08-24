@@ -4126,11 +4126,18 @@ function computeQuarterOpeningBalance_(quarterInfo) {
                 return sum + (parseInt(q.amount) || 0);
             }, 0);
 
+    // (v2.0 fix) Cùng lý do loại trừ như totalGocThu trong renderCashbook()
+    // ở trên - nếu không, "DƯ ĐẦU KỲ" của quý SAU sẽ tiếp tục tính trùng
+    // 2 lần các khoản trả tiền dư thưởng đặt sân đã ghi qua
+    // payOutMemberCreditByAdmin() (dashboard.js) mỗi khi sang quý mới.
     let gocBefore =
         (gocLogs || [])
             .filter(function(g) {
                 let d = parseVNDateOnly_(g.time);
-                return d && d < quarterInfo.startDate;
+                return (
+                    d && d < quarterInfo.startDate &&
+                    String(g.note || '').indexOf("[ĐÃ GHI CASHBOOK]") === -1
+                );
             })
             .reduce(function(sum, g) {
                 return sum + (parseInt(g.amount) || 0);
@@ -4203,10 +4210,28 @@ function renderCashbook() {
             );
 
 
+    // (v2.0 fix) "Dư Quỹ Hiện Tại" cộng NGUYÊN tổng GocLogs vào đây coi
+    // như tiền thật đã về quỹ - đúng với addGocLog/addGocLogAdjustment
+    // bình thường (điều chỉnh sổ sau khi chốt - P2). NHƯNG dòng điều
+    // chỉnh do payOutMemberCreditByAdmin() (dashboard.js) tạo ra khi trả
+    // tiền dư thưởng đặt sân cho thành viên KHÔNG phải tiền thật ra/vào
+    // quỹ - nó chỉ để đưa Dư/Nợ riêng của thành viên đó về 0, còn dòng
+    // tiền CHI thật đã được ghi RIÊNG 1 lần vào Cashbook mục "Tiền
+    // thưởng đặt sân" (tính trong totalChi ở dưới). Cộng luôn cả ở đây
+    // sẽ bị trừ trùng 2 lần trên quỹ thật (thành viên phát hiện) - loại
+    // trừ đúng các dòng có thẻ đánh dấu này ra khỏi tổng.
     let totalGocThu =
         (gocLogs || [])
             .reduce(
                 function(sum, g) {
+
+                    if (
+                        String(g.note || '').indexOf(
+                            "[ĐÃ GHI CASHBOOK]"
+                        ) !== -1
+                    ) {
+                        return sum;
+                    }
 
                     return (
                         sum +
