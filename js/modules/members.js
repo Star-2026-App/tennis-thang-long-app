@@ -50,6 +50,16 @@ function renderMemberList() {
         let canManageRole = (currentUserRole === 'owner') && !isOwnerRow;
         let canEditOrDelete = (currentUserRole === 'admin' || currentUserRole === 'owner') && !isOwnerRow;
 
+        // Đặt lại mật khẩu (resetMemberPassword): không áp dụng cho
+        // hàng Owner (backend từ chối, phải mở lại bằng
+        // OWNER_BOOTSTRAP_PASSWORD); đặt mật khẩu của 1 Admin khác thì
+        // CHỈ Owner được phép (khớp đúng kiểm tra ở
+        // resetMemberPasswordAction_ trong Router.gs.txt) - Admin
+        // không tự reset cho Admin khác được, nhưng vẫn reset được cho
+        // Member bình thường.
+        let canResetPassword = !isOwnerRow &&
+            (isAdminRow ? currentUserRole === 'owner' : (currentUserRole === 'admin' || currentUserRole === 'owner'));
+
         tbody.innerHTML += `
             <tr class="border-b hover:bg-slate-50">
                 <td class="p-2.5 text-center font-bold text-slate-500">${stt}</td>
@@ -61,6 +71,7 @@ function renderMemberList() {
                 <td class="p-2.5 text-center admin-only ${(currentUserRole==='admin'||currentUserRole==='owner')?'':'hidden'} space-x-1">
                     ${canEditOrDelete ? `<button onclick="openEditMemberModal(${idx})" class="text-blue-600 font-bold"><i class="fa-solid fa-pen"></i></button>` : ''}
                     ${canManageRole ? `<button onclick="toggleMemberRole(${idx})" class="text-amber-600 font-bold text-[10px] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Quyền</button>` : ''}
+                    ${canResetPassword ? `<button onclick="resetMemberPasswordPrompt(${idx})" title="Đặt lại mật khẩu" class="text-indigo-600 font-bold"><i class="fa-solid fa-key"></i></button>` : ''}
                     ${canEditOrDelete ? `<button onclick="deleteMember(${idx})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button>` : ''}
                 </td>
             </tr>
@@ -119,6 +130,65 @@ function toggleMemberRole(idx) {
             { member: { stt: m.stt, name: m.name, status: m.status, base: m.base, role: newRole } },
             "Đã cập nhật quyền thành công!"
         );
+    }
+}
+
+// (v2.0) Đặt lại mật khẩu cho Member/Admin - dùng khi họ quên mật
+// khẩu, hoặc khi mới cấp tài khoản lần đầu (thành viên chưa từng có
+// PasswordHash sẽ không tự đăng nhập được, phải được Owner/Admin cấp
+// mật khẩu tạm qua đây - xem CHANGELOG_v2.md mục "Thứ tự triển khai").
+// Gọi trực tiếp callBackendAction_ (không qua hàng đợi enqueueAction)
+// để biết ngay kết quả thành công/thất bại - đây là thao tác nhạy
+// cảm, không nên để "âm thầm" xử lý nền như các action thường khác.
+async function resetMemberPasswordPrompt(idx) {
+    let m = members[idx];
+    let ownerStt = parseInt(window.ownerStt) || 0;
+
+    if (ownerStt && parseInt(m.stt) === ownerStt) {
+        alert("Không thể đặt lại mật khẩu của Owner qua đây. Xem hướng dẫn khôi phục Owner trong CHANGELOG_v2.md.");
+        return;
+    }
+
+    if (m.role === 'admin' && currentUserRole !== 'owner') {
+        alert("Chỉ Owner được phép đặt lại mật khẩu của Admin khác.");
+        return;
+    }
+
+    let newPassword = window.prompt(
+        `Nhập mật khẩu TẠM THỜI mới cho [${m.name}] (ít nhất 6 ký tự).\n` +
+        `Thành viên sẽ bị bắt buộc đổi mật khẩu ngay khi đăng nhập lần đầu bằng mật khẩu này - hãy báo mật khẩu tạm qua kênh riêng (Zalo/tin nhắn), không thông báo công khai.`
+    );
+
+    if (newPassword === null) return; // bấm Cancel
+
+    newPassword = newPassword.trim();
+
+    if (newPassword.length < 6) {
+        alert("Mật khẩu mới phải có ít nhất 6 ký tự.");
+        return;
+    }
+
+    if (!confirm(`Xác nhận đặt lại mật khẩu cho [${m.name}]? Mật khẩu cũ (nếu có) sẽ không dùng được nữa.`)) {
+        return;
+    }
+
+    showToast("Đang đặt lại mật khẩu...");
+
+    try {
+        let res = await callBackendAction_(
+            "resetMemberPassword",
+            { targetStt: m.stt, newPassword: newPassword },
+            (typeof generateIdempotencyKey_ === 'function') ? generateIdempotencyKey_() : ("resetpw-" + Date.now())
+        );
+
+        if (!res || res.status !== "SUCCESS") {
+            throw new Error((res && res.message) || "Đặt lại mật khẩu thất bại.");
+        }
+
+        alert(`Đã đặt lại mật khẩu cho [${m.name}] thành công. Nhớ báo mật khẩu tạm này cho họ qua kênh riêng.`);
+
+    } catch (err) {
+        alert("Lỗi: " + ((err && err.message) || err));
     }
 }
 

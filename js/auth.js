@@ -96,8 +96,22 @@ async function handleLogin(e) {
         return;
     }
 
-    let submitBtn = document.querySelector('#loginScreen button[type="submit"]');
+    // (v2.0 fix) Đăng nhập giờ phải gọi tuần tự nhiều action hệ thống
+    // sang Apps Script (rate limit -> tra tài khoản -> reset lần sai ->
+    // tạo session), mỗi lần gọi Apps Script có thể mất 1-3 giây - cộng
+    // dồn lại người dùng phải chờ vài giây mà trước đây nút bấm không
+    // hề đổi trạng thái, trông như hệ thống bị treo/không nhận input
+    // (bug người dùng báo: "chờ 1 lúc sau mới vào, không có thông báo
+    // đang đăng nhập"). Đây CHỈ là sửa cảm giác chờ (thêm phản hồi trực
+    // quan), KHÔNG đổi tốc độ xử lý thật.
+    let submitBtn = document.getElementById('loginSubmitBtn');
+    let submitBtnText = document.getElementById('loginSubmitBtnText');
+    let originalBtnHtml = submitBtnText ? submitBtnText.innerHTML : '';
+
     if (submitBtn) submitBtn.disabled = true;
+    if (submitBtnText) {
+        submitBtnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đăng nhập...';
+    }
 
     try {
 
@@ -133,7 +147,12 @@ async function handleLogin(e) {
 
     } finally {
 
+        // Khôi phục lại nút bấm dù thành công hay thất bại - trường
+        // hợp thành công thì màn hình sẽ chuyển đi ngay sau đó nên việc
+        // khôi phục ở đây chỉ để tránh sót trạng thái "Đang đăng nhập..."
+        // nếu người dùng quay lại màn hình đăng nhập (vd sau khi logout).
         if (submitBtn) submitBtn.disabled = false;
+        if (submitBtnText) submitBtnText.innerHTML = originalBtnHtml;
     }
 }
 

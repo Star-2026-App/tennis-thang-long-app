@@ -185,12 +185,24 @@ function handleDashboardSubmit() {
                 }
 
 
+                // (v2.0 fix) Backend (BookingService.addBookingData) giờ CHỈ
+                // nhận `frameType` ("16h"/"18h") + `targetStt` - tự tính lại
+                // reward/frame/time/name phía server, KHÔNG còn tin số liệu
+                // client gửi lên (xem ghi chú đầu BookingService.txt). Thiếu
+                // `frameType` khiến server luôn báo "Khung giờ không hợp lệ."
+                // - đây chính là lỗi "thử nhiều lần vẫn không ghi nhận được
+                // thưởng đặt sân". Vẫn giữ đủ id/time/name/frame/reward để
+                // cache tạm (addBookingToLocalMonthCache_) và phần kiểm tra
+                // trùng/hiển thị ở trên tiếp tục hoạt động ngay - server sẽ
+                // bỏ qua các trường thừa này.
                 let newBooking = {
                     id: Date.now(),
                     time: new Date().toLocaleString('vi-VN'),
                     name: main,
                     frame: "16h-18h",
-                    reward: systemSettings.reward16h
+                    reward: systemSettings.reward16h,
+                    frameType: "16h",
+                    targetStt: m.stt
                 };
 
 
@@ -257,12 +269,17 @@ function handleDashboardSubmit() {
                         : "18h-20h";
 
 
+                // (v2.0 fix) Cùng lý do như nhánh 16h ở trên - server tự
+                // xác định CVTT5 qua Script Property CVTT5_MEMBER_STT dựa
+                // trên targetStt, không dựa vào frame label client gửi.
                 let newBooking = {
                     id: Date.now(),
                     time: new Date().toLocaleString('vi-VN'),
                     name: main,
                     frame: frameLabel,
-                    reward: rewardAmount
+                    reward: rewardAmount,
+                    frameType: "18h",
+                    targetStt: m.stt
                 };
 
 
@@ -807,6 +824,32 @@ function renderDashboard() {
                             Công thức: Dư/Nợ đầu kỳ + Góc cơ bản + Kèo đặc biệt - Đã nộp - Thưởng sân = Dư/Nợ cuối kỳ.
                         </div>
 
+                        <!-- (v2.0) 2 nút cho Admin/Owner, hiện tùy dấu của "còn cần
+                        đóng"/"đang dư" (KHÔNG dùng class admin-only chung - ẩn/hiện
+                        tự quản lý trong openDashboardFinanceDetailModal() vì còn phụ
+                        thuộc số tiền, không chỉ vai trò, xem hàm đó + markMemberFullyPaidByAdmin()/
+                        payOutMemberCreditByAdmin()). Mặc định ẩn để tránh nháy hình
+                        trước khi JS tính lại đúng trạng thái. -->
+                        <button type="button"
+                                id="dashboardFdMarkPaidBtn"
+                                onclick="markMemberFullyPaidByAdmin()"
+                                class="hidden w-full bg-emerald-700 hover:bg-emerald-800 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Xác nhận ĐÃ NỘP đủ (ghi hộ thành viên)
+                        </button>
+
+                        <!-- Thành viên đang DƯ (thưởng sân > tiền cần đóng) và CLB
+                        đã trả tiền dư đó bằng tiền mặt/CK cho họ - đưa Dư/Nợ về 0 +
+                        ghi 1 khoản CHI "Tiền thưởng đặt sân" vào Sổ Thu Chi, tránh
+                        Admin phải tự sửa tay Dư/Nợ ở Bảng Tổng Kết. -->
+                        <button type="button"
+                                id="dashboardFdPayoutBtn"
+                                onclick="payOutMemberCreditByAdmin()"
+                                class="hidden w-full bg-cyan-600 hover:bg-cyan-700 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                            Đã trả tiền (thành viên đang dư)
+                        </button>
+
                         <button type="button"
                                 onclick="closeDashboardFinanceDetailModal()"
                                 class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black py-2.5 rounded-xl text-xs">
@@ -1218,6 +1261,38 @@ function renderDashboard() {
                 modal.classList.remove("hidden");
                 modal.classList.add("flex");
             }
+
+            // (v2.0) 2 nút Admin/Owner: hiện đúng 1 trong 2 tùy dấu của
+            // "closing" - không dùng chung cơ chế admin-only/applyRolePermissions()
+            // vì còn phụ thuộc số tiền (vd: Admin nhưng thành viên không nợ/không
+            // dư thì KHÔNG hiện nút nào), nên tự tính ở đây mỗi lần mở modal.
+            let isAdminOrOwner =
+                currentUserRole === "admin" ||
+                currentUserRole === "owner";
+
+            let markPaidBtn =
+                document.getElementById(
+                    "dashboardFdMarkPaidBtn"
+                );
+
+            let payoutBtn =
+                document.getElementById(
+                    "dashboardFdPayoutBtn"
+                );
+
+            if (markPaidBtn) {
+                markPaidBtn.classList.toggle(
+                    "hidden",
+                    !(isAdminOrOwner && closing > 0)
+                );
+            }
+
+            if (payoutBtn) {
+                payoutBtn.classList.toggle(
+                    "hidden",
+                    !(isAdminOrOwner && closing < 0)
+                );
+            }
         };
 
     window.closeDashboardFinanceDetailModal =
@@ -1231,6 +1306,191 @@ function renderDashboard() {
 
             modal.classList.add("hidden");
             modal.classList.remove("flex");
+        };
+
+    // ==================================================
+    // (v2.0) ADMIN/OWNER GHI HỘ "ĐÃ NỘP ĐỦ TIỀN GÓC"
+    // ==================================================
+    // Lý do: nhiều thành viên (đặc biệt người lớn tuổi) chuyển khoản
+    // riêng đúng số tiền thông báo cho thủ quỹ (Nguyễn Anh Thi) nhưng
+    // không tự thao tác "Tự nhập tiền GÓC CK" trên app - Admin/Owner
+    // trước đây phải tự tính lại đúng số "còn cần đóng" rồi nhập tay.
+    // Nút này lấy ĐÚNG số tiền hệ thống đang tính cho thành viên đang
+    // xem (main = dashMainUser, tháng hiện tại) và ghi 1 LẦN xuống CẢ
+    // 2 nơi: GocLogs (để trừ vào "còn cần đóng" của thành viên - đúng
+    // vai trò hiện có của addGocLog) và Cashbook mục "Tiền góc thực
+    // thu" (để sổ thu chi thật của CLB phản ánh đúng khoản tiền mặt
+    // đã về tay thủ quỹ - trước giờ 2 sổ này hoàn toàn tách rời, addGocLog
+    // không tự động ghi Cashbook). Admin/Owner vẫn có thể chỉnh sửa/xóa
+    // lại 2 dòng này sau đó ở tab Nộp Tiền/Sổ Thu Chi như bình thường
+    // nếu ghi nhầm.
+    window.markMemberFullyPaidByAdmin =
+        function () {
+
+            if (currentUserRole !== "admin" && currentUserRole !== "owner") {
+                alert("Chỉ Admin hoặc Owner mới được dùng chức năng này.");
+                return;
+            }
+
+            if (!members || members.length === 0) {
+                members = defaultFallbackMembers;
+            }
+
+            let mainEl = document.getElementById("dashMainUser");
+            let main = mainEl && mainEl.value
+                ? mainEl.value
+                : (members[0] ? members[0].name : "");
+
+            if (!main) return;
+
+            let p = period_();
+            let f = calculateUserFinanceForMonth(main, p.month, p.year);
+            let amountDue = parseInt(f.totalPay) || 0;
+
+            if (amountDue <= 0) {
+                alert(
+                    `Thành viên [${main}] hiện không còn khoản tiền góc nào cần đóng trong tháng ${p.month}/${p.year} (đã nộp đủ hoặc đang dư quỹ) - không cần ghi thêm.`
+                );
+                return;
+            }
+
+            showActionConfirm(
+                `Xác nhận thành viên [${main}] ĐÃ CHUYỂN KHOẢN đủ ${amountDue.toLocaleString('vi-VN')} đ cho tháng ${p.month}/${p.year}?\n\n` +
+                `Hệ thống sẽ tự ghi 1 dòng "Nộp tiền góc" và 1 dòng Cashbook (Tiền góc thực thu) đúng bằng số tiền này. ` +
+                `CHỈ xác nhận khi bạn chắc chắn tiền đã thực sự chuyển vào tài khoản thủ quỹ.`,
+                () => {
+
+                    let newGoc = {
+                        id: Date.now(),
+                        time: new Date().toLocaleString('vi-VN'),
+                        name: main,
+                        amount: amountDue,
+                        note: `${loggedInMemberName || 'Admin/Owner'} xác nhận đã nộp đủ (chuyển khoản riêng cho thủ quỹ)`
+                    };
+
+                    enqueueAction(
+                        "addGocLog",
+                        { gocLog: newGoc },
+                        `Đã ghi nhận [${main}] nộp đủ tiền góc tháng ${p.month}/${p.year}!`
+                    );
+
+                    let newCashbook = {
+                        id: Date.now(),
+                        category: "Tiền góc thực thu",
+                        amount: amountDue,
+                        note: `${main} đã nộp đủ tháng ${p.month}/${p.year} (xác nhận qua nút "Đã nộp" - ${loggedInMemberName || 'Admin/Owner'})`,
+                        time: new Date().toLocaleDateString('vi-VN')
+                    };
+
+                    enqueueAction(
+                        "addCashbook",
+                        { cashbook: newCashbook },
+                        "Đã ghi nhận vào Sổ Thu Chi!"
+                    );
+
+                    closeDashboardFinanceDetailModal();
+
+                    if (typeof renderDashboard === "function") {
+                        renderDashboard();
+                    }
+                }
+            );
+        };
+
+    // ==================================================
+    // (v2.0) ADMIN/OWNER TRẢ TIỀN DƯ (THƯỞNG SÂN) BẰNG TIỀN MẶT
+    // ==================================================
+    // Trường hợp ngược lại với markMemberFullyPaidByAdmin(): thành
+    // viên có Thưởng sân tích lũy nhiều hơn số Góc cơ bản cần đóng
+    // ("closing" = f.totalPay ÂM, hiển thị "THÀNH VIÊN ĐANG DƯ"). Thay
+    // vì để khoản dư đó tiếp tục treo sang tháng sau, CLB trả thẳng
+    // bằng tiền mặt/CK cho thành viên - nút này:
+    // 1. Ghi 1 dòng addGocLogAdjustment (P2 - CHỈ Admin/Owner, cho phép
+    //    số âm, luôn ở kỳ hiện tại) với amount = ĐÚNG closing (số âm) để
+    //    trừ thẳng vào "Đã nộp" của tháng, đưa Dư/Nợ về CHÍNH XÁC 0 -
+    //    không dùng addGocLog thường vì action đó bắt buộc amount > 0
+    //    (addGocLogData: "Số tiền góc phải lớn hơn 0").
+    // 2. Ghi 1 khoản CHI vào Cashbook đúng mục có sẵn "Tiền thưởng đặt
+    //    sân" (nằm trong CASHBOOK_ALLOWED_CATEGORIES_ - Router đã cho
+    //    phép) bằng đúng số tiền dương đã trả - khoản này tự động hiện
+    //    trong "Lịch sử: Tiền thưởng đặt sân" ở tab Sổ Thu Chi vì UI đó
+    //    vốn lọc theo category, không cần sửa gì thêm ở tab Sổ Thu Chi.
+    window.payOutMemberCreditByAdmin =
+        function () {
+
+            if (currentUserRole !== "admin" && currentUserRole !== "owner") {
+                alert("Chỉ Admin hoặc Owner mới được dùng chức năng này.");
+                return;
+            }
+
+            if (!members || members.length === 0) {
+                members = defaultFallbackMembers;
+            }
+
+            let mainEl = document.getElementById("dashMainUser");
+            let main = mainEl && mainEl.value
+                ? mainEl.value
+                : (members[0] ? members[0].name : "");
+
+            if (!main) return;
+
+            let p = period_();
+            let f = calculateUserFinanceForMonth(main, p.month, p.year);
+            let closing = parseInt(f.totalPay) || 0;
+
+            if (closing >= 0) {
+                alert(
+                    `Thành viên [${main}] hiện không có khoản tiền dư nào cần trả trong tháng ${p.month}/${p.year}.`
+                );
+                return;
+            }
+
+            let payoutAmount = Math.abs(closing);
+
+            showActionConfirm(
+                `Xác nhận CLB ĐÃ TRẢ ${payoutAmount.toLocaleString('vi-VN')} đ tiền dư (thưởng đặt sân) bằng tiền mặt/CK cho thành viên [${main}] - tháng ${p.month}/${p.year}?\n\n` +
+                `Dư/Nợ tháng này của thành viên sẽ về 0 đ, đồng thời hệ thống ghi 1 khoản CHI "Tiền thưởng đặt sân" vào Sổ Thu Chi. ` +
+                `CHỈ xác nhận khi bạn đã thực sự chi tiền cho thành viên.`,
+                () => {
+
+                    let adjustment = {
+                        id: Date.now(),
+                        time: new Date().toLocaleString('vi-VN'),
+                        name: main,
+                        // closing đang ÂM - ghi ĐÚNG giá trị này (không đổi dấu) để
+                        // trừ thẳng vào Đã nộp, đưa Dư/Nợ về đúng 0 (xem công thức
+                        // trong calculateUserFinanceForMonth: totalPay = ... - Đã nộp - Thưởng sân).
+                        amount: closing,
+                        reason: `Trả tiền dư (thưởng đặt sân) bằng tiền mặt/CK - ${loggedInMemberName || 'Admin/Owner'} xác nhận`
+                    };
+
+                    enqueueAction(
+                        "addGocLogAdjustment",
+                        { gocLog: adjustment },
+                        `Đã đưa Dư/Nợ của [${main}] về 0!`
+                    );
+
+                    let newCashbook = {
+                        id: Date.now(),
+                        category: "Tiền thưởng đặt sân",
+                        amount: payoutAmount,
+                        note: `Trả tiền dư thưởng đặt sân cho ${main} - Tháng ${p.month}/${p.year} (xác nhận qua nút "Đã trả tiền" - ${loggedInMemberName || 'Admin/Owner'})`,
+                        time: new Date().toLocaleDateString('vi-VN')
+                    };
+
+                    enqueueAction(
+                        "addCashbook",
+                        { cashbook: newCashbook },
+                        "Đã ghi nhận khoản chi vào Sổ Thu Chi!"
+                    );
+
+                    closeDashboardFinanceDetailModal();
+
+                    if (typeof renderDashboard === "function") {
+                        renderDashboard();
+                    }
+                }
+            );
         };
 
 })();

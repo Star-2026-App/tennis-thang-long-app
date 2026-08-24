@@ -1112,12 +1112,16 @@ function enqueueAction(
 
 
     else if (
-        actionName ===
-            "addGocLog" &&
+        (
+            actionName === "addGocLog" ||
+            actionName === "addGocLogAdjustment"
+        ) &&
         payload.gocLog
     ) {
 
-        // GocLogs tạm thời vẫn giữ toàn bộ lịch sử.
+        // GocLogs tạm thời vẫn giữ toàn bộ lịch sử. addGocLogAdjustment
+        // (v2.0) ghi cùng sheet GocLogs qua cùng khóa payload "gocLog",
+        // chỉ khác amount có thể âm - dùng chung 1 nhánh cache tạm này.
         gocLogs.unshift(
             payload.gocLog
         );
@@ -1318,6 +1322,7 @@ function enqueueAction(
 
     if (
         actionName === "addGocLog" ||
+        actionName === "addGocLogAdjustment" ||
         (
             actionName ===
                 "deleteItem" &&
@@ -2043,8 +2048,20 @@ function updateStateFromCloud(
         data.members.length > 0
     ) {
 
+        // (v2.0 fix) Backend giờ trả về CẢ thành viên đã xóa mềm
+        // (IsActive=false) để các service khác tra cứu lịch sử theo
+        // STT (xem MemberService.txt). Nếu gán thẳng vào `members`
+        // không lọc, thành viên vừa xóa sẽ "sống lại" trên UI ngay
+        // lần fetchCloudData() kế tiếp (vd: sau khi thêm thành viên
+        // mới) dù server đã xóa đúng - trông như xóa không có tác
+        // dụng. Chỉ giữ thành viên đang hoạt động cho toàn bộ giao
+        // diện (danh sách, dropdown chọn người...); lịch sử trận đấu/
+        // sổ quỹ vẫn dùng tên/STT lưu sẵn trong chính bản ghi đó, KHÔNG
+        // tra cứu lại qua mảng `members` này nên không bị ảnh hưởng.
         members =
-            data.members;
+            data.members.filter(function(m) {
+                return m && m.isActive !== false;
+            });
     }
 
 
