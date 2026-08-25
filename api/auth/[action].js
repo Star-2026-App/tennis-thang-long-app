@@ -13,6 +13,14 @@ const appsScript = require("../_lib/appsScript");
 const sessionCookie = require("../_lib/sessionCookie");
 
 const GENERIC_FAIL_MESSAGE = "Sai tên đăng nhập hoặc mật khẩu.";
+const LOGIN_UPSTREAM_TIMEOUT_MS = 15000;
+
+function isLoginRateLimitError_(err) {
+  return !!(
+    err && err.isAppError &&
+    /tạm khoá|đăng nhập sai quá nhiều|thử lại sau\s+\d+\s+phút/i.test(err.message || "")
+  );
+}
 
 module.exports = async function handler(req, res) {
   var action = req.query && req.query.action;
@@ -68,10 +76,17 @@ module.exports = async function handler(req, res) {
 
       var rateLimitKey = "login:" + username + ":" + http.clientIp(req);
 
+      var prepared;
+
       try {
-        await appsScript.callSystemAction("authCheckLoginRateLimit", { key: rateLimitKey });
+        // Tối ưu: 1 lượt Apps Script thay cho 2 lượt tuần tự
+        // authCheckLoginRateLimit -> authLookupMemberByUsername.
+        prepared = await appsScript.callSystemAction("authPrepareLogin", {
+          key: rateLimitKey,
+          username: username
+        }, { timeoutMs: LOGIN_UPSTREAM_TIMEOUT_MS });
       } catch (err) {
-        if (err && err.isAppError) {
+        if (isLoginRateLimitError_(err)) {
           // Apps Script đã xác nhận ĐÚNG là bị khoá đăng nhập tạm thời
           // (quá số lần sai cho phép trong khung thời gian - xem
           // RateLimitService.gs.txt) - đây mới là lỗi nghiệp vụ thật.
@@ -81,22 +96,12 @@ module.exports = async function handler(req, res) {
           });
         }
 
-        // (v2.0 fix - gói 1, mục 1) TRƯỚC ĐÂY: bất kỳ lỗi nào ở bước
-        // này - kể cả mất kết nối/timeout tới Apps Script khi "cold
-        // start" (err.isUpstreamError, rất hay gặp ở LẦN ĐẦU đăng nhập
-        // trong ngày) - đều bị coi như "đăng nhập sai quá nhiều lần",
-        // khiến user lần đầu luôn thấy nhầm thông báo khoá tài khoản dù
-        // chưa hề gõ sai mật khẩu (đúng hiện tượng đã báo: lần đầu báo
-        // "không kết nối server", thử lại lần 2 lại báo "đăng nhập quá
-        // nhiều lần"). Giờ ném lại đúng bản chất lỗi kết nối để catch
-        // ngoài cùng (http.sendError) trả về 502 + thông báo đúng, KHÔNG
-        // còn báo nhầm là bị khoá tài khoản.
-        var connErr = new Error("Không kết nối được tới máy chủ dữ liệu. Vui lòng thử lại.");
-        connErr.isUpstreamError = true;
-        throw connErr;
+        // Giữ nguyên loại lỗi từ transport: timeout sẽ ra 504, mất kết
+        // nối ra 502. Không đổi chúng thành lỗi khóa tài khoản.
+        throw err;
       }
 
-      var member = await appsScript.callSystemAction("authLookupMemberByUsername", { username: username });
+      var member = prepared && prepared.member;
 
       if (!member || !member.isActive) {
         await appsScript.callSystemAction("authRecordFailedLogin", { key: rateLimitKey });
@@ -138,17 +143,18 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      await appsScript.callSystemAction("authResetLoginAttempts", { key: rateLimitKey });
-
       var sessionId2 = sessionCookie.newSessionId();
 
-      await appsScript.callSystemAction("authCreateSession", {
+      // Tối ưu: 1 lượt Apps Script thay cho 2 lượt tuần tự
+      // authResetLoginAttempts -> authCreateSession.
+      await appsScript.callSystemAction("authCompleteLogin", {
+        key: rateLimitKey,
         sessionId: sessionId2,
         stt: member.stt,
         name: member.name,
         role: member.role,
         userAgent: String(req.headers["user-agent"] || "").slice(0, 200)
-      });
+      }, { timeoutMs: LOGIN_UPSTREAM_TIMEOUT_MS });
 
       http.setSessionCookie(res, sessionId2);
 

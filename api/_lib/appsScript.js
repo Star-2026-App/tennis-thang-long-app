@@ -57,23 +57,45 @@ function buildSystemClaim_() {
   return { claimJson: claimJsonString, signature: signClaim_(claimJsonString) };
 }
 
-async function postToAppsScript_(payload) {
+async function postToAppsScript_(payload, options) {
+  options = options || {};
+  var timeoutMs = parseInt(options.timeoutMs, 10) || env.appsScriptTimeoutMs();
+  var controller = new AbortController();
+  var timeoutId = setTimeout(function () { controller.abort(); }, timeoutMs);
   var res;
+  var text;
 
   try {
     res = await fetch(env.appsScriptUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller.signal
     });
+
+    // Giữ AbortController hoạt động cả khi đang đọc response body;
+    // nếu Google mở kết nối nhưng treo không trả hết dữ liệu thì request
+    // vẫn bị ngắt đúng hạn thay vì chiếm serverless function vô thời hạn.
+    text = await res.text();
   } catch (err) {
+    if (controller.signal.aborted || (err && err.name === "AbortError")) {
+      var timeoutErr = new Error(
+        "Máy chủ dữ liệu phản hồi quá chậm (quá " + Math.ceil(timeoutMs / 1000) + " giây). Vui lòng thử lại."
+      );
+      timeoutErr.cause = err;
+      timeoutErr.isTimeoutError = true;
+      timeoutErr.isUpstreamError = true;
+      throw timeoutErr;
+    }
+
     var netErr = new Error("Không kết nối được tới máy chủ dữ liệu. Vui lòng thử lại.");
     netErr.cause = err;
     netErr.isUpstreamError = true;
     throw netErr;
+  } finally {
+    clearTimeout(timeoutId);
   }
 
-  var text = await res.text();
   var body;
 
   try {
@@ -95,7 +117,7 @@ async function postToAppsScript_(payload) {
 
 // Gọi 1 action nghiệp vụ thay mặt actor đã đăng nhập (sessionId
 // lấy từ cookie đã xác minh).
-async function callBusinessAction(sessionId, action, data, idempotencyKey) {
+async function callBusinessAction(sessionId, action, data, idempotencyKey, options) {
   var claim = buildBusinessClaim_(sessionId);
 
   return postToAppsScript_({
@@ -104,14 +126,14 @@ async function callBusinessAction(sessionId, action, data, idempotencyKey) {
     signature: claim.signature,
     data: data || {},
     idempotencyKey: idempotencyKey || undefined
-  });
+  }, options);
 }
 
 // Gọi 1 action hệ thống (KHÔNG có sessionId - dùng cho luồng
 // đăng nhập/đăng xuất/push nội bộ). Chỉ những route được liệt kê
 // trong SYSTEM_ACTIONS_ ở Router.gs.txt mới được Apps Script chấp
 // nhận qua đường này.
-async function callSystemAction(action, data) {
+async function callSystemAction(action, data, options) {
   var claim = buildSystemClaim_();
 
   return postToAppsScript_({
@@ -119,7 +141,7 @@ async function callSystemAction(action, data) {
     claimJson: claim.claimJson,
     signature: claim.signature,
     data: data || {}
-  });
+  }, options);
 }
 
 module.exports = {

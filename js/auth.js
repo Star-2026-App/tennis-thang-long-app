@@ -47,6 +47,24 @@ function applySessionInfo_(data) {
     currentUserRole = data.role || 'member';
 }
 
+var AUTH_SESSION_TIMEOUT_MS_ = 12000;
+var AUTH_LOGIN_TIMEOUT_MS_ = 35000;
+
+async function fetchAuthJsonWithTimeout_(url, options, timeoutMs) {
+
+    let controller = new AbortController();
+    let timeoutId = setTimeout(function() { controller.abort(); }, timeoutMs);
+    let requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
+
+    try {
+        let response = await fetch(url, requestOptions);
+        let data = await response.json();
+        return { response: response, data: data };
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 // ======================================================
 // KIỂM TRA PHIÊN CÓ SẴN (gọi 1 lần khi mở app - xem app.js)
 // ======================================================
@@ -55,8 +73,12 @@ async function checkExistingSession_() {
 
     try {
 
-        let res = await fetch('/api/auth/session', { credentials: 'include' });
-        let data = await res.json();
+        let result = await fetchAuthJsonWithTimeout_(
+            '/api/auth/session',
+            { credentials: 'include' },
+            AUTH_SESSION_TIMEOUT_MS_
+        );
+        let data = result.data;
 
         if (data && data.authenticated) {
 
@@ -96,33 +118,37 @@ async function handleLogin(e) {
         return;
     }
 
-    // (v2.0 fix) Đăng nhập giờ phải gọi tuần tự nhiều action hệ thống
-    // sang Apps Script (rate limit -> tra tài khoản -> reset lần sai ->
-    // tạo session), mỗi lần gọi Apps Script có thể mất 1-3 giây - cộng
-    // dồn lại người dùng phải chờ vài giây mà trước đây nút bấm không
-    // hề đổi trạng thái, trông như hệ thống bị treo/không nhận input
-    // (bug người dùng báo: "chờ 1 lúc sau mới vào, không có thông báo
-    // đang đăng nhập"). Đây CHỈ là sửa cảm giác chờ (thêm phản hồi trực
-    // quan), KHÔNG đổi tốc độ xử lý thật.
+    // Khóa nút để chống submit lặp. Sau 8 giây đổi thông báo để người
+    // dùng biết Apps Script đang cold-start; sau 35 giây trình duyệt tự
+    // hủy request thay vì quay spinner vô hạn.
     let submitBtn = document.getElementById('loginSubmitBtn');
     let submitBtnText = document.getElementById('loginSubmitBtnText');
     let originalBtnHtml = submitBtnText ? submitBtnText.innerHTML : '';
+    let slowMessageTimer = null;
 
     if (submitBtn) submitBtn.disabled = true;
     if (submitBtnText) {
         submitBtnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đăng nhập...';
+        slowMessageTimer = setTimeout(function() {
+            submitBtnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Máy chủ đang khởi động...';
+        }, 8000);
     }
 
     try {
 
-        let res = await fetch('/api/auth/login', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: u, password: p })
-        });
+        let result = await fetchAuthJsonWithTimeout_(
+            '/api/auth/login',
+            {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            },
+            AUTH_LOGIN_TIMEOUT_MS_
+        );
 
-        let data = await res.json();
+        let res = result.response;
+        let data = result.data;
 
         if (!res.ok || data.status === 'ERROR') {
 
@@ -143,7 +169,14 @@ async function handleLogin(e) {
     } catch (err) {
 
         console.error('LOGIN ERROR:', err);
-        alert('Không thể kết nối hệ thống. Vui lòng kiểm tra mạng và thử lại.');
+
+        if (err && err.name === 'AbortError') {
+            alert('Đăng nhập quá thời gian chờ 35 giây. Máy chủ có thể đang bận; vui lòng thử lại sau ít phút.');
+        } else if (err instanceof SyntaxError) {
+            alert('Máy chủ trả về phản hồi không hợp lệ. Vui lòng thử lại.');
+        } else {
+            alert('Không thể kết nối hệ thống. Vui lòng kiểm tra mạng và thử lại.');
+        }
 
     } finally {
 
@@ -151,6 +184,7 @@ async function handleLogin(e) {
         // hợp thành công thì màn hình sẽ chuyển đi ngay sau đó nên việc
         // khôi phục ở đây chỉ để tránh sót trạng thái "Đang đăng nhập..."
         // nếu người dùng quay lại màn hình đăng nhập (vd sau khi logout).
+        if (slowMessageTimer) clearTimeout(slowMessageTimer);
         if (submitBtn) submitBtn.disabled = false;
         if (submitBtnText) submitBtnText.innerHTML = originalBtnHtml;
     }
