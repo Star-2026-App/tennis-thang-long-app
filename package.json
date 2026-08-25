@@ -1,9 +1,9 @@
 {
   "name": "tennis-thang-long-app",
   "private": true,
-  "version": "2.0.6",
+  "version": "2.0.7",
   "scripts": {
-    "test": "node tests/server-id-reconciliation.test.js && node tests/member-stt-finance.test.js && node ../tests/backend-member-stats-stt.test.js"
+    "test": "node tests/server-id-reconciliation.test.js && node tests/member-stt-finance.test.js && node ../tests/backend-member-stats-stt.test.js && node ../tests/historical-member-identity-migration.test.js"
   },
   "engines": {
     "node": ">=18.0.0"

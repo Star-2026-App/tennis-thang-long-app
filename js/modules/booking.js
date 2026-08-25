@@ -20,11 +20,12 @@ function renderBookingLogs() {
 
     currentMonthBookings.forEach((b, idx) => {
         let stt = currentMonthBookings.length - idx;
+        let displayName = getCurrentMemberNameByStt_(b.memberStt, b.name);
         tbody.innerHTML += `
             <tr class="border-b">
                 <td class="p-2.5 text-center font-bold">${stt}</td>
                 <td class="p-2.5">${formatVNTimeForDisplay_(b.time)}</td>
-                <td class="p-2.5 font-bold">${esc_(b.name)}</td>
+                <td class="p-2.5 font-bold">${esc_(displayName)}</td>
                 <td class="p-2.5 text-center font-bold text-amber-700">${b.frame}</td>
                 <td class="p-2.5 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td>
                 <td class="p-2.5 text-center admin-only ${(currentUserRole==='admin'||currentUserRole==='owner')?'':'hidden'}">
@@ -42,7 +43,7 @@ function deleteBooking(id) {
     });
 
     let message = b
-        ? `Bạn có muốn xóa thưởng đặt sân ${b.frame} của [${b.name}] này không?`
+        ? `Bạn có muốn xóa thưởng đặt sân ${b.frame} của [${getCurrentMemberNameByStt_(b.memberStt, b.name)}] này không?`
         : "Bạn có chắc chắn muốn xóa lịch sử thưởng sân này không?";
 
     showActionConfirm(message, function() {
@@ -77,10 +78,11 @@ function openTodayCourtsModal() {
         let esc_ = (typeof escapeHtml_ === 'function') ? escapeHtml_ : (s => String(s == null ? '' : s));
 
         yesterdayBookings.forEach(b => {
+            let displayName = getCurrentMemberNameByStt_(b.memberStt, b.name);
             container.innerHTML += `
                 <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between shadow-sm">
                     <div>
-                        <h4 class="font-black text-xs text-slate-900">${esc_(b.name)}</h4>
+                        <h4 class="font-black text-xs text-slate-900">${esc_(displayName)}</h4>
                         <p class="text-[10px] text-slate-500 mt-0.5">Thời gian đặt: ${formatVNTimeForDisplay_(b.time)}</p>
                     </div>
                     <span class="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-3 py-1 rounded-xl shadow-sm">${b.frame}</span>

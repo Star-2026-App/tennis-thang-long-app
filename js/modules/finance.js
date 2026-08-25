@@ -1527,6 +1527,12 @@ function renderGocLogsTab() {
             let amount =
                 parseInt(g.amount) || 0;
 
+            let displayName =
+                getCurrentMemberNameByStt_(
+                    g.memberStt,
+                    g.name
+                );
+
 
             let idArg =
                 JSON.stringify(
@@ -1538,8 +1544,8 @@ function renderGocLogsTab() {
             // liệu người dùng nhập - escape trước khi chèn HTML.
             let safeName_ =
                 (typeof escapeHtml_ === 'function')
-                    ? escapeHtml_(g.name)
-                    : String(g.name || '');
+                    ? escapeHtml_(displayName)
+                    : String(displayName || '');
 
             let safeNote_ =
                 (typeof escapeHtml_ === 'function')
@@ -3412,7 +3418,10 @@ function openEditGocLog(id) {
             'egMemberName'
         )
         .value =
-            g.name;
+            getCurrentMemberNameByStt_(
+                g.memberStt,
+                g.name
+            );
 
 
     document
@@ -3552,7 +3561,13 @@ function saveGocLogEdit(e) {
             g.time,
 
         name:
-            g.name,
+            getCurrentMemberNameByStt_(
+                g.memberStt,
+                g.name
+            ),
+
+        memberStt:
+            parseInt(g.memberStt) || 0,
 
         amount:
             newAmount,
@@ -3587,7 +3602,7 @@ function deleteGocLog(id) {
 
     let message =
         g
-            ? `Bạn có muốn xóa lượt nộp góc [${g.name}], số tiền ${(parseInt(g.amount) || 0).toLocaleString('vi-VN')}đ này không?`
+            ? `Bạn có muốn xóa lượt nộp góc [${getCurrentMemberNameByStt_(g.memberStt, g.name)}], số tiền ${(parseInt(g.amount) || 0).toLocaleString('vi-VN')}đ này không?`
             : "Bạn có chắc chắn muốn xóa lượt nộp tiền góc này không?";
 
     showActionConfirm(
@@ -3715,8 +3730,8 @@ function selectCategory(cat) {
 
                 let safeLogName_ =
                     (typeof escapeHtml_ === 'function')
-                        ? escapeHtml_(log.name)
-                        : String(log.name || '');
+                        ? escapeHtml_(getCurrentMemberNameByStt_(log.memberStt, log.name))
+                        : String(getCurrentMemberNameByStt_(log.memberStt, log.name) || '');
 
 
                 tbody.innerHTML += `
@@ -3777,8 +3792,8 @@ function selectCategory(cat) {
 
                     let safeGocName_ =
                         (typeof escapeHtml_ === 'function')
-                            ? escapeHtml_(g.name)
-                            : String(g.name || '');
+                            ? escapeHtml_(getCurrentMemberNameByStt_(g.memberStt, g.name))
+                            : String(getCurrentMemberNameByStt_(g.memberStt, g.name) || '');
 
 
                     tbody.innerHTML += `
