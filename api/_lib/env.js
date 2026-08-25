@@ -15,7 +15,7 @@
 //   VAPID_PRIVATE_KEY             - khoá riêng Web Push
 //   VAPID_CONTACT_EMAIL           - (tuỳ chọn) mailto:...
 //   APPS_SCRIPT_TIMEOUT_MS         - (tuỳ chọn) timeout mỗi lượt gọi
-//                                    Apps Script; mặc định 15000ms
+//                                    Apps Script; mặc định 25000ms
 // ======================================================
 
 function required_(name) {
@@ -45,7 +45,7 @@ module.exports = {
   vapidPublicKey: function () { return process.env.VAPID_PUBLIC_KEY || ""; },
   vapidPrivateKey: function () { return process.env.VAPID_PRIVATE_KEY || ""; },
   vapidContactEmail: function () { return process.env.VAPID_CONTACT_EMAIL || "mailto:admin@example.com"; },
-  appsScriptTimeoutMs: function () { return optionalInt_("APPS_SCRIPT_TIMEOUT_MS", 15000, 5000, 25000); },
+  appsScriptTimeoutMs: function () { return optionalInt_("APPS_SCRIPT_TIMEOUT_MS", 25000, 5000, 30000); },
   cookieName: "tlt_session",
   sessionTtlHours: 12
 };

@@ -105,11 +105,20 @@ function callBackendRead_(path) {
         method: "GET",
         credentials: "include"
     }).then(function(res) {
-        return res.json();
-    }).then(function(json) {
+        return res.json().then(function(json) {
+            return { statusCode: res.status, json: json };
+        }).catch(function(err) {
+            err.statusCode = res.status;
+            throw err;
+        });
+    }).then(function(response) {
+
+        var json = response.json;
 
         if (!json || json.status !== "SUCCESS") {
-            throw new Error((json && json.message) || "Không tải được dữ liệu.");
+            var readErr = new Error((json && json.message) || "Không tải được dữ liệu.");
+            readErr.statusCode = response.statusCode;
+            throw readErr;
         }
 
         return json.result;
@@ -1970,58 +1979,97 @@ function fetchJsonpPhase3_(
 
 function fetchCloudData(
     showSpinner,
-    onSuccess
+    onSuccess,
+    onFailure
 ) {
 
-    fetchJsonpPhase3_(
-        {
-            action:
-                "initialData"
-        },
-        showSpinner,
-        function(
-            error,
-            data
-        ) {
+    var attempt = 0;
+    var maxAttempts = 2;
 
-            if (error) {
+    function isRetryableInitialError_(error) {
+        var statusCode = parseInt(error && error.statusCode) || 0;
+        return !statusCode || statusCode === 408 || statusCode === 429 || statusCode >= 500;
+    }
 
-                console.error(
-                    "INITIAL DATA ERROR:",
-                    error
-                );
+    function loadInitialData_() {
 
-                return;
-            }
+        attempt++;
 
+        fetchJsonpPhase3_(
+            {
+                action:
+                    "initialData"
+            },
+            showSpinner,
+            function(
+                error,
+                data
+            ) {
 
-            try {
+                if (error) {
 
-                updateStateFromCloud(
-                    data
-                );
+                    if (attempt < maxAttempts && isRetryableInitialError_(error)) {
+                        console.warn(
+                            "INITIAL DATA RETRY " + attempt + "/" + maxAttempts + ":",
+                            error
+                        );
 
+                        // Giữ trạng thái loading trong lúc chờ retry để màn
+                        // hình không hiện số 0 như thể đã tải xong.
+                        if (showSpinner) showCloudLoading_();
 
-                if (
-                    typeof onSuccess ===
-                    "function"
-                ) {
+                        setTimeout(loadInitialData_, 1200);
+                        return;
+                    }
 
-                    onSuccess(
-                        data
+                    console.error(
+                        "INITIAL DATA ERROR AFTER " + attempt + " ATTEMPT(S):",
+                        error
                     );
+
+                    if (typeof showToast === "function") {
+                        showToast("Chưa tải được dữ liệu. Vui lòng thử nút Làm mới.", "warning");
+                    }
+
+                    if (typeof onFailure === "function") {
+                        onFailure(error);
+                    }
+
+                    return;
                 }
 
+                try {
 
-            } catch (err) {
+                    updateStateFromCloud(
+                        data
+                    );
 
-                console.error(
-                    "UPDATE INITIAL STATE ERROR:",
-                    err
-                );
+                    if (
+                        typeof onSuccess ===
+                        "function"
+                    ) {
+
+                        onSuccess(
+                            data
+                        );
+                    }
+
+                } catch (err) {
+
+                    console.error(
+                        "UPDATE INITIAL STATE ERROR:",
+                        err
+                    );
+
+                    if (typeof onFailure === "function") {
+                        onFailure(err);
+                    }
+                }
             }
-        }
-    );
+        );
+    }
+
+    loadInitialData_();
 }
 
 

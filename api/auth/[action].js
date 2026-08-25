@@ -13,7 +13,10 @@ const appsScript = require("../_lib/appsScript");
 const sessionCookie = require("../_lib/sessionCookie");
 
 const GENERIC_FAIL_MESSAGE = "Sai tên đăng nhập hoặc mật khẩu.";
-const LOGIN_UPSTREAM_TIMEOUT_MS = 15000;
+// Baseline thực tế của Apps Script từng lên gần 13 giây; 15 giây chỉ
+// có 2 giây dự phòng nên dễ ngắt nhầm khi cold-start. Cho mỗi phase
+// login tối đa 25 giây, vẫn ngắn hơn ngưỡng trình duyệt 60 giây.
+const LOGIN_UPSTREAM_TIMEOUT_MS = 25000;
 
 function isLoginRateLimitError_(err) {
   return !!(

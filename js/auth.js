@@ -47,8 +47,8 @@ function applySessionInfo_(data) {
     currentUserRole = data.role || 'member';
 }
 
-var AUTH_SESSION_TIMEOUT_MS_ = 12000;
-var AUTH_LOGIN_TIMEOUT_MS_ = 35000;
+var AUTH_SESSION_TIMEOUT_MS_ = 30000;
+var AUTH_LOGIN_TIMEOUT_MS_ = 60000;
 
 async function fetchAuthJsonWithTimeout_(url, options, timeoutMs) {
 
@@ -119,7 +119,7 @@ async function handleLogin(e) {
     }
 
     // Khóa nút để chống submit lặp. Sau 8 giây đổi thông báo để người
-    // dùng biết Apps Script đang cold-start; sau 35 giây trình duyệt tự
+    // dùng biết Apps Script đang cold-start; sau 60 giây trình duyệt tự
     // hủy request thay vì quay spinner vô hạn.
     let submitBtn = document.getElementById('loginSubmitBtn');
     let submitBtnText = document.getElementById('loginSubmitBtnText');
@@ -171,7 +171,7 @@ async function handleLogin(e) {
         console.error('LOGIN ERROR:', err);
 
         if (err && err.name === 'AbortError') {
-            alert('Đăng nhập quá thời gian chờ 35 giây. Máy chủ có thể đang bận; vui lòng thử lại sau ít phút.');
+            alert('Đăng nhập quá thời gian chờ 60 giây. Máy chủ có thể đang bận; vui lòng thử lại sau ít phút.');
         } else if (err instanceof SyntaxError) {
             alert('Máy chủ trả về phản hồi không hợp lệ. Vui lòng thử lại.');
         } else {
