@@ -131,8 +131,17 @@ function startOnboardingTour() {
 
 function maybeAutoStartOnboarding_() {
 
-    if (hasSeenOnboarding_()) return;
-    if (window.innerWidth >= 768) return;
+    // Thành viên đã xem tour từ phiên bản trước (hoặc đang dùng desktop,
+    // nơi tour mobile không chạy) vẫn cần được mời bật thông báo nếu thiết
+    // bị chưa đăng ký. Hàm bên Notifications tự kiểm tra và bỏ qua khi đã bật.
+    if (hasSeenOnboarding_() || window.innerWidth >= 768) {
+
+        if (typeof schedulePushPermissionPrompt_ === 'function') {
+            schedulePushPermissionPrompt_(800);
+        }
+
+        return;
+    }
 
     // Đợi layout ổn định (đăng nhập xong, bottom nav đã render)
     // trước khi đo vị trí các nút để chỉ bong bóng vào đúng chỗ.
@@ -309,4 +318,11 @@ function finishOnboardingTour() {
     if (tooltip) tooltip.classList.add('hidden');
 
     markOnboardingSeen_();
+
+    // Cả hai đường đi "Xong" và "Bỏ qua" đều kết thúc tại đây.
+    // Đợi coachmark đóng hẳn rồi đưa yêu cầu bật Push ra ngay trước mặt
+    // thành viên, không cần họ tự mò vào biểu tượng chuông.
+    if (typeof schedulePushPermissionPrompt_ === 'function') {
+        schedulePushPermissionPrompt_(300);
+    }
 }

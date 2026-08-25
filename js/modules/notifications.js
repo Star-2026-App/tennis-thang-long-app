@@ -18,6 +18,11 @@
 const NOTIF_STORAGE_KEY = 'tlt_notifications_v1';
 const NOTIF_MAX_ITEMS = 50;
 
+// Chỉ hiện tối đa một lần trong mỗi lần tải trang. Nếu thành viên đã
+// bật Push trên thiết bị thì hàm kiểm tra trạng thái sẽ tự bỏ qua.
+let pushPermissionPromptShownThisSession_ = false;
+let pushPermissionPromptTimer_ = null;
+
 
 // ======================================================
 // LƯU TRỮ CỤC BỘ (từng thiết bị)
@@ -232,6 +237,7 @@ function urlBase64ToUint8Array_(base64String) {
 function isPushSupported_() {
 
     return (
+        'Notification' in window &&
         'serviceWorker' in navigator &&
         'PushManager' in window &&
         typeof VAPID_PUBLIC_KEY === 'string' &&
@@ -240,31 +246,47 @@ function isPushSupported_() {
 }
 
 
-async function enablePushNotifications() {
+async function enablePushNotifications(options) {
+
+    options = options || {};
 
     if (!isPushSupported_()) {
 
-        showToast('Trình duyệt này chưa hỗ trợ thông báo đẩy. Trên iPhone cần thêm app ra Màn hình chính (Add to Home Screen) và dùng iOS 16.4 trở lên.');
-        return;
+        if (!options.silent) {
+            showToast('Trình duyệt này chưa hỗ trợ thông báo đẩy. Trên iPhone cần thêm app ra Màn hình chính (Add to Home Screen) và dùng iOS 16.4 trở lên.');
+        }
+
+        return { status: 'unsupported' };
     }
 
     try {
 
-        let permission = await Notification.requestPermission();
+        let permission = Notification.permission;
+
+        if (permission !== 'granted' && permission !== 'denied') {
+            permission = await Notification.requestPermission();
+        }
 
         if (permission !== 'granted') {
 
-            showToast('Bạn chưa cho phép thông báo. Có thể bật lại trong Cài đặt trình duyệt/điện thoại.');
+            if (!options.silent) {
+                showToast('Bạn chưa cho phép thông báo. Có thể bật lại trong Cài đặt trình duyệt/điện thoại.');
+            }
+
             updatePushToggleUi_();
-            return;
+            return { status: permission === 'denied' ? 'denied' : 'dismissed' };
         }
 
         let registration = await navigator.serviceWorker.ready;
 
-        let subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array_(VAPID_PUBLIC_KEY)
-        });
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array_(VAPID_PUBLIC_KEY)
+            });
+        }
 
         let subJson = subscription.toJSON();
 
@@ -283,10 +305,183 @@ async function enablePushNotifications() {
 
         updatePushToggleUi_();
 
+        return { status: 'enabled', subscription: subscription };
+
     } catch (err) {
 
         console.error('ENABLE PUSH ERROR:', err);
-        showToast('Không bật được thông báo đẩy trên thiết bị này.');
+
+        if (!options.silent) {
+            showToast('Không bật được thông báo đẩy trên thiết bị này.');
+        }
+
+        return { status: 'error', error: err };
+    }
+}
+
+
+// ======================================================
+// HỘP YÊU CẦU BẬT PUSH SAU HƯỚNG DẪN / SAU ĐĂNG NHẬP
+//
+// Browser chỉ cho gọi Notification.requestPermission() từ thao tác
+// bấm trực tiếp của người dùng. Vì vậy app hiện modal riêng, đưa nút
+// "Bật thông báo ngay" ra trước mặt thành viên thay vì bắt họ tự tìm
+// chuông. Modal không có nút X và không đóng khi chạm ra ngoài.
+// ======================================================
+
+function schedulePushPermissionPrompt_(delayMs) {
+
+    if (pushPermissionPromptShownThisSession_) return;
+
+    if (pushPermissionPromptTimer_) {
+        clearTimeout(pushPermissionPromptTimer_);
+    }
+
+    pushPermissionPromptTimer_ = setTimeout(function() {
+        pushPermissionPromptTimer_ = null;
+        maybeShowPushPermissionPrompt_();
+    }, Math.max(0, Number(delayMs) || 0));
+}
+
+
+async function maybeShowPushPermissionPrompt_() {
+
+    if (pushPermissionPromptShownThisSession_) return;
+
+    let modal = document.getElementById('pushPermissionPromptModal');
+    if (!modal) return;
+
+    let state = 'needs-permission';
+
+    if (!isPushSupported_()) {
+        state = 'unsupported';
+    } else if (Notification.permission === 'denied') {
+        state = 'denied';
+    } else if (Notification.permission === 'granted') {
+
+        try {
+            let registration = await navigator.serviceWorker.ready;
+            let existing = await registration.pushManager.getSubscription();
+
+            if (existing) {
+                updatePushToggleUi_();
+                return;
+            }
+
+            state = 'needs-subscription';
+
+        } catch (err) {
+            console.warn('PUSH PROMPT STATE ERROR:', err);
+            state = 'error';
+        }
+    }
+
+    pushPermissionPromptShownThisSession_ = true;
+    renderPushPermissionPromptState_(state);
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+
+function renderPushPermissionPromptState_(state) {
+
+    let title = document.getElementById('pushPermissionPromptTitle');
+    let desc = document.getElementById('pushPermissionPromptDesc');
+    let note = document.getElementById('pushPermissionPromptNote');
+    let enableBtn = document.getElementById('pushPermissionPromptEnableBtn');
+    let continueBtn = document.getElementById('pushPermissionPromptContinueBtn');
+
+    if (!title || !desc || !note || !enableBtn || !continueBtn) return;
+
+    enableBtn.disabled = false;
+    enableBtn.innerHTML = '<i class="fa-solid fa-bell"></i> BẬT THÔNG BÁO NGAY';
+    enableBtn.classList.remove('hidden');
+    continueBtn.classList.add('hidden');
+    note.classList.add('hidden');
+    note.innerText = '';
+
+    if (state === 'unsupported') {
+
+        title.innerText = 'CẦN CÀI APP ĐỂ NHẬN THÔNG BÁO';
+        desc.innerText = 'Trên iPhone/iPad, hãy mở bằng Safari và chọn Chia sẻ → Thêm vào Màn hình chính. Sau đó mở app vừa cài để bật thông báo.';
+        enableBtn.classList.add('hidden');
+        continueBtn.classList.remove('hidden');
+        continueBtn.innerText = 'ĐÃ HIỂU, TIẾP TỤC';
+        return;
+    }
+
+    if (state === 'denied') {
+
+        title.innerText = 'THÔNG BÁO ĐANG BỊ CHẶN';
+        desc.innerText = 'Thiết bị đã từ chối quyền thông báo. Hãy mở Cài đặt của trình duyệt/điện thoại, cho phép Thông báo đối với app CLB Tennis Thăng Long.';
+        enableBtn.classList.add('hidden');
+        continueBtn.classList.remove('hidden');
+        continueBtn.innerText = 'ĐÃ HIỂU, TIẾP TỤC';
+        return;
+    }
+
+    if (state === 'error') {
+
+        title.innerText = 'CHƯA KIỂM TRA ĐƯỢC THÔNG BÁO';
+        desc.innerText = 'Dịch vụ thông báo chưa sẵn sàng. Bạn có thể tiếp tục vào ứng dụng và thử lại sau.';
+        enableBtn.classList.add('hidden');
+        continueBtn.classList.remove('hidden');
+        continueBtn.innerText = 'TIẾP TỤC VÀO ỨNG DỤNG';
+        return;
+    }
+
+    title.innerText = 'BẬT THÔNG BÁO TỪ CLB';
+    desc.innerText = 'Nhận ngay thông báo về trận đấu, thưởng sân, đóng quỹ và các hoạt động mới của CLB.';
+}
+
+
+async function confirmPushPermissionFromPrompt_() {
+
+    let btn = document.getElementById('pushPermissionPromptEnableBtn');
+    let note = document.getElementById('pushPermissionPromptNote');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG BẬT...';
+    }
+
+    let result = await enablePushNotifications({ silent: true });
+
+    if (result && result.status === 'enabled') {
+        closePushPermissionPrompt_();
+        return;
+    }
+
+    if (result && result.status === 'denied') {
+        renderPushPermissionPromptState_('denied');
+        return;
+    }
+
+    if (result && result.status === 'unsupported') {
+        renderPushPermissionPromptState_('unsupported');
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> THỬ BẬT LẠI';
+    }
+
+    if (note) {
+        note.innerText = 'Chưa bật được thông báo. Hãy kiểm tra mạng rồi thử lại.';
+        note.classList.remove('hidden');
+    }
+}
+
+
+function closePushPermissionPrompt_() {
+
+    let modal = document.getElementById('pushPermissionPromptModal');
+
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 }
 
