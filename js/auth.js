@@ -22,6 +22,195 @@ function roleLabel_(role) {
     return 'Thành Viên';
 }
 
+// ======================================================
+// GHI NHỚ ĐĂNG NHẬP (v2.0.3)
+// ======================================================
+//
+// Chỉ lưu cờ lựa chọn + username trong localStorage. Mật khẩu được
+// giao cho Password Manager của trình duyệt qua Credential Management
+// API; tuyệt đối không ghi mật khẩu dạng text vào localStorage.
+// Thuộc tính autocomplete trong index.html là lớp tương thích cho
+// Safari/iOS và các trình duyệt chưa hỗ trợ PasswordCredential.
+// ======================================================
+
+var REMEMBER_LOGIN_ENABLED_KEY_ = 'ttl.rememberLogin.enabled';
+var REMEMBER_LOGIN_USERNAME_KEY_ = 'ttl.rememberLogin.username';
+
+function isRememberLoginEnabled_() {
+
+    try {
+        return localStorage.getItem(REMEMBER_LOGIN_ENABLED_KEY_) === '1';
+    } catch (err) {
+        return false;
+    }
+}
+
+function clearRememberedLoginPreference_() {
+
+    try {
+        localStorage.removeItem(REMEMBER_LOGIN_ENABLED_KEY_);
+        localStorage.removeItem(REMEMBER_LOGIN_USERNAME_KEY_);
+    } catch (err) {
+        console.warn('CLEAR REMEMBER LOGIN ERROR:', err);
+    }
+}
+
+function handleRememberLoginChange_() {
+
+    let rememberInput = document.getElementById('rememberLogin');
+
+    if (!rememberInput || rememberInput.checked) return;
+
+    clearRememberedLoginPreference_();
+
+    // Không xóa mật khẩu khỏi Password Manager của người dùng, nhưng
+    // yêu cầu trình duyệt không tự cấp credential trong chế độ silent.
+    if (
+        navigator.credentials &&
+        typeof navigator.credentials.preventSilentAccess === 'function'
+    ) {
+        navigator.credentials.preventSilentAccess().catch(function(err) {
+            console.warn('PREVENT SILENT CREDENTIAL ACCESS ERROR:', err);
+        });
+    }
+}
+
+function resetLoginPasswordVisibility_() {
+
+    let passwordInput = document.getElementById('loginPass');
+    let toggleButton = document.getElementById('toggleLoginPassBtn');
+    let toggleIcon = document.getElementById('toggleLoginPassIcon');
+
+    if (passwordInput) passwordInput.type = 'password';
+
+    if (toggleButton) {
+        toggleButton.setAttribute('aria-label', 'Hiện mật khẩu');
+        toggleButton.setAttribute('title', 'Hiện mật khẩu');
+        toggleButton.setAttribute('aria-pressed', 'false');
+    }
+
+    if (toggleIcon) {
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+
+function toggleLoginPasswordVisibility_() {
+
+    let passwordInput = document.getElementById('loginPass');
+    let toggleButton = document.getElementById('toggleLoginPassBtn');
+    let toggleIcon = document.getElementById('toggleLoginPassIcon');
+
+    if (!passwordInput) return;
+
+    let willShow = passwordInput.type === 'password';
+    passwordInput.type = willShow ? 'text' : 'password';
+
+    if (toggleButton) {
+        toggleButton.setAttribute(
+            'aria-label',
+            willShow ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+        );
+        toggleButton.setAttribute(
+            'title',
+            willShow ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+        );
+        toggleButton.setAttribute('aria-pressed', willShow ? 'true' : 'false');
+    }
+
+    if (toggleIcon) {
+        toggleIcon.classList.toggle('fa-eye', !willShow);
+        toggleIcon.classList.toggle('fa-eye-slash', willShow);
+    }
+
+    passwordInput.focus();
+}
+
+async function restoreRememberedLogin_() {
+
+    let rememberInput = document.getElementById('rememberLogin');
+    let usernameInput = document.getElementById('loginUser');
+    let passwordInput = document.getElementById('loginPass');
+
+    if (!rememberInput || !usernameInput || !passwordInput) return;
+
+    let rememberEnabled = isRememberLoginEnabled_();
+    rememberInput.checked = rememberEnabled;
+
+    if (!rememberEnabled) return;
+
+    try {
+        let savedUsername = localStorage.getItem(REMEMBER_LOGIN_USERNAME_KEY_) || '';
+        if (!usernameInput.value) usernameInput.value = savedUsername;
+    } catch (err) {
+        console.warn('RESTORE REMEMBERED USERNAME ERROR:', err);
+    }
+
+    if (
+        !navigator.credentials ||
+        typeof navigator.credentials.get !== 'function'
+    ) {
+        return;
+    }
+
+    try {
+        let credential = await navigator.credentials.get({
+            password: true,
+            mediation: 'optional'
+        });
+
+        if (!credential || !credential.password) return;
+
+        // Không ghi đè nội dung nếu người dùng đã bắt đầu gõ trong
+        // lúc trình duyệt đang mở Password Manager.
+        if (!usernameInput.value) usernameInput.value = credential.id || '';
+        if (!passwordInput.value) passwordInput.value = credential.password;
+
+    } catch (err) {
+        console.warn('RESTORE BROWSER CREDENTIAL ERROR:', err);
+    }
+}
+
+function persistLoginPreference_(username, password) {
+
+    let rememberInput = document.getElementById('rememberLogin');
+
+    if (!rememberInput || !rememberInput.checked) {
+        clearRememberedLoginPreference_();
+        return;
+    }
+
+    try {
+        localStorage.setItem(REMEMBER_LOGIN_ENABLED_KEY_, '1');
+        localStorage.setItem(REMEMBER_LOGIN_USERNAME_KEY_, username);
+    } catch (err) {
+        console.warn('SAVE REMEMBERED USERNAME ERROR:', err);
+    }
+
+    if (
+        !window.PasswordCredential ||
+        !navigator.credentials ||
+        typeof navigator.credentials.store !== 'function'
+    ) {
+        return;
+    }
+
+    try {
+        let credential = new window.PasswordCredential({
+            id: username,
+            password: password,
+            name: username
+        });
+
+        navigator.credentials.store(credential).catch(function(err) {
+            console.warn('STORE BROWSER CREDENTIAL ERROR:', err);
+        });
+
+    } catch (err) {
+        console.warn('CREATE BROWSER CREDENTIAL ERROR:', err);
+    }
+}
+
 function showLoginScreen_() {
 
     let appScreen = document.getElementById('appScreen');
@@ -38,6 +227,9 @@ function showLoginScreen_() {
 
     let loginPass = document.getElementById('loginPass');
     if (loginPass) loginPass.value = '';
+
+    resetLoginPasswordVisibility_();
+    restoreRememberedLogin_();
 }
 
 function applySessionInfo_(data) {
@@ -164,7 +356,13 @@ async function handleLogin(e) {
             return;
         }
 
+        persistLoginPreference_(u, p);
         enterAppScreen_();
+
+        // Không giữ mật khẩu trong DOM sau khi đã đăng nhập. Lần mở
+        // sau Password Manager sẽ tự điền lại nếu người dùng đã chọn nhớ.
+        let loginPass = document.getElementById('loginPass');
+        if (loginPass) loginPass.value = '';
 
     } catch (err) {
 
@@ -250,6 +448,12 @@ async function forcePasswordChangeFlow_() {
                 alert(data.message || 'Không đổi được mật khẩu. Vui lòng thử lại.');
                 continue;
             }
+
+            let rememberedUsernameInput = document.getElementById('loginUser');
+            persistLoginPreference_(
+                rememberedUsernameInput ? rememberedUsernameInput.value.trim() : '',
+                pw1
+            );
 
             alert('Đã đổi mật khẩu thành công!\n\nVui lòng đăng nhập lại bằng mật khẩu mới.');
             showLoginScreen_();
