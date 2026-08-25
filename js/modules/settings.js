@@ -334,16 +334,13 @@ function saveSystemSettings(e) {
 
 
     function getLifetimeMemberStats_(
-        memberName
+        memberRef
     ) {
 
-        let key =
-            String(
-                memberName ||
-                ""
-            )
-            .trim()
-            .toLowerCase();
+        let identity =
+            resolveMemberIdentity_(
+                memberRef
+            );
 
 
         let stat =
@@ -354,14 +351,11 @@ function saveSystemSettings(e) {
             .find(
                 function(item) {
 
-                    return (
-                        String(
-                            item.name ||
-                            ""
-                        )
-                        .trim()
-                        .toLowerCase() ===
-                        key
+                    return recordBelongsToMember_(
+                        item,
+                        identity,
+                        "stt",
+                        "name"
                     );
                 }
             );
@@ -421,14 +415,23 @@ function saveSystemSettings(e) {
 
     calculateUserFinanceForMonth =
         function(
-            memberName,
+            memberRef,
             targetMonth,
             targetYear
         ) {
 
+            let memberIdentity =
+                resolveMemberIdentity_(
+                    memberRef
+                );
+
+
+            let memberName =
+                memberIdentity.name;
+
             let lifetime =
                 getLifetimeMemberStats_(
-                    memberName
+                    memberIdentity
                 );
 
 
@@ -484,18 +487,19 @@ function saveSystemSettings(e) {
             monthMatches.forEach(
                 function(match) {
 
+                    let participation =
+                        getMatchParticipationForMember_(
+                            match,
+                            memberIdentity
+                        );
+
+
                     let isV1 =
-                        match.p1_v1 ===
-                            memberName ||
-                        match.p2_v1 ===
-                            memberName;
+                        participation.isV1;
 
 
                     let isV2 =
-                        match.p1_v2 ===
-                            memberName ||
-                        match.p2_v2 ===
-                            memberName;
+                        participation.isV2;
 
 
                     if (
@@ -602,15 +606,7 @@ function saveSystemSettings(e) {
 
 
             let m =
-                members.find(
-                    function(item) {
-
-                        return (
-                            item.name ===
-                            memberName
-                        );
-                    }
-                ) ||
+                memberIdentity.member ||
                 {
                     noOld:
                         0
@@ -626,7 +622,7 @@ function saveSystemSettings(e) {
 
             let monthPaidAmount =
                 getUserGocPaidForMonth_(
-                    memberName,
+                    memberIdentity,
                     targetMonth,
                     targetYear
                 );
@@ -651,20 +647,12 @@ function saveSystemSettings(e) {
                             booking
                         ) {
 
-                            if (
-                                String(
-                                    booking.name ||
-                                    ""
-                                )
-                                .trim()
-                                .toLowerCase() !==
-                                String(
-                                    memberName ||
-                                    ""
-                                )
-                                .trim()
-                                .toLowerCase()
-                            ) {
+                            if (!recordBelongsToMember_(
+                                booking,
+                                memberIdentity,
+                                "memberStt",
+                                "name"
+                            )) {
 
                                 return sum;
                             }
@@ -687,7 +675,7 @@ function saveSystemSettings(e) {
 
                 monthRewardAmount =
                     getUserBookingRewardForMonth_(
-                        memberName,
+                        memberIdentity,
                         targetMonth,
                         targetYear
                     );
@@ -703,7 +691,7 @@ function saveSystemSettings(e) {
 
             let snapshot =
                 getMonthlyBalanceSnapshot_(
-                    memberName,
+                    memberIdentity,
                     targetMonth,
                     targetYear
                 );
@@ -850,10 +838,7 @@ function saveSystemSettings(e) {
                     Date.now(),
 
                 time:
-                    new Date()
-                        .toLocaleString(
-                            "vi-VN"
-                        ),
+                    formatVNDateTime_(),
 
                 p1_v1:
                     p1A,
@@ -1035,7 +1020,7 @@ function saveSystemSettings(e) {
                         Math.max(
                             0,
                             getUserGocPaidForMonth_(
-                                main,
+                                member,
                                 now.getMonth() +
                                     1,
                                 now.getFullYear()

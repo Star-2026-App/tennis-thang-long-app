@@ -6,24 +6,42 @@ function renderGamification() {
 
     let statsMap = {};
     if (members && members.length > 0) {
-        members.forEach(m => { statsMap[m.name] = { name: m.name, matches: 0, wins: 0 }; });
+        members.forEach(m => {
+            statsMap[getMemberIdentityKey_(m)] = {
+                stt: parseInt(m.stt) || 0,
+                name: m.name,
+                matches: 0,
+                wins: 0
+            };
+        });
     }
 
     matches.forEach(m => {
         let mTime = m.time || "";
-        let isThisMonth = mTime.includes(`/${curMonth}/${curYear}`) || mTime.includes(` ${curMonth}/${curYear}`);
+        let isThisMonth = isLogInMonth_(mTime, curMonth, curYear);
         if (!isThisMonth) return;
 
-        let players = [m.p1_v1, m.p2_v1, m.p1_v2, m.p2_v2];
-        players.forEach(p => {
-            if (!p) return;
-            if (!statsMap[p]) statsMap[p] = { name: p, matches: 0, wins: 0 };
-            statsMap[p].matches++;
+        let slots = ['p1_v1', 'p2_v1', 'p1_v2', 'p2_v2'];
+        slots.forEach(slot => {
+            let player = getMatchSlotIdentity_(m, slot);
+            if (!player.name) return;
+            let key = getMemberIdentityKey_(player);
+            if (!statsMap[key]) {
+                statsMap[key] = { stt: player.stt, name: player.name, matches: 0, wins: 0 };
+            }
+            statsMap[key].matches++;
         });
 
         if (m.scoreA !== m.scoreB) {
-            let winningTeam = m.scoreA > m.scoreB ? [m.p1_v1, m.p2_v1] : [m.p1_v2, m.p2_v2];
-            winningTeam.forEach(p => { if (p && statsMap[p]) statsMap[p].wins++; });
+            let winningSlots = m.scoreA > m.scoreB
+                ? ['p1_v1', 'p2_v1']
+                : ['p1_v2', 'p2_v2'];
+
+            winningSlots.forEach(slot => {
+                let player = getMatchSlotIdentity_(m, slot);
+                let key = getMemberIdentityKey_(player);
+                if (player.name && statsMap[key]) statsMap[key].wins++;
+            });
         }
     });
 
@@ -48,7 +66,7 @@ function copyReminderText() {
     let debtList = [];
     if (members && members.length > 0) {
         members.forEach(m => {
-            let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
+            let f = calculateUserFinanceForMonth(m, mSel, ySel);
             if (f.totalPay > 0) debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
         });
     }
@@ -83,11 +101,10 @@ function getCurrentQuyPeriod() {
 }
 
 
-function findQuyLogForMember(memberName, quarter, year) {
+function findQuyLogForMember(memberRef, quarter, year) {
     return (quyLogs || []).find(function(log) {
         return (
-            String(log.name || '').trim().toLowerCase() ===
-                String(memberName || '').trim().toLowerCase() &&
+            recordBelongsToMember_(log, memberRef) &&
 
             String(log.quarter || '').trim().toUpperCase() ===
                 String(quarter || '').trim().toUpperCase() &&
@@ -133,11 +150,11 @@ function handleDashboardSubmit() {
 
                 let duplicateReward = bookingLogs.find(b => {
                     return (
-                        b.name === main &&
+                        recordBelongsToMember_(b, m) &&
                         b.frame === "16h-18h" &&
                         (
                             NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT ||
-                            b.time.includes(new Date().toLocaleDateString('vi-VN'))
+                            b.time.includes(formatVNDateOnly_())
                         )
                     );
                 });
@@ -161,14 +178,9 @@ function handleDashboardSubmit() {
 
                 let userBookingsThisMonth = bookingLogs.filter(b => {
 
-                    if (b.name !== main) return false;
+                    if (!recordBelongsToMember_(b, m)) return false;
 
-                    let t = b.time || "";
-
-                    return (
-                        t.includes(`/${curMonth}/${curYear}`) ||
-                        t.includes(` ${curMonth}/${curYear}`)
-                    );
+                    return isLogInMonth_(b.time, curMonth, curYear);
                 });
 
 
@@ -185,12 +197,24 @@ function handleDashboardSubmit() {
                 }
 
 
+                // (v2.0 fix) Backend (BookingService.addBookingData) giờ CHỈ
+                // nhận `frameType` ("16h"/"18h") + `targetStt` - tự tính lại
+                // reward/frame/time/name phía server, KHÔNG còn tin số liệu
+                // client gửi lên (xem ghi chú đầu BookingService.txt). Thiếu
+                // `frameType` khiến server luôn báo "Khung giờ không hợp lệ."
+                // - đây chính là lỗi "thử nhiều lần vẫn không ghi nhận được
+                // thưởng đặt sân". Vẫn giữ đủ id/time/name/frame/reward để
+                // cache tạm (addBookingToLocalMonthCache_) và phần kiểm tra
+                // trùng/hiển thị ở trên tiếp tục hoạt động ngay - server sẽ
+                // bỏ qua các trường thừa này.
                 let newBooking = {
                     id: Date.now(),
-                    time: new Date().toLocaleString('vi-VN'),
+                    time: formatVNDateTime_(),
                     name: main,
                     frame: "16h-18h",
-                    reward: systemSettings.reward16h
+                    reward: systemSettings.reward16h,
+                    frameType: "16h",
+                    targetStt: m.stt
                 };
 
 
@@ -220,11 +244,11 @@ function handleDashboardSubmit() {
                 let duplicateReward = bookingLogs.find(b => {
 
                     return (
-                        b.name === main &&
+                        recordBelongsToMember_(b, m) &&
                         b.frame.includes("18h") &&
                         (
                             NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT ||
-                            b.time.includes(new Date().toLocaleDateString('vi-VN'))
+                            b.time.includes(formatVNDateOnly_())
                         )
                     );
                 });
@@ -257,12 +281,17 @@ function handleDashboardSubmit() {
                         : "18h-20h";
 
 
+                // (v2.0 fix) Cùng lý do như nhánh 16h ở trên - server tự
+                // xác định CVTT5 qua Script Property CVTT5_MEMBER_STT dựa
+                // trên targetStt, không dựa vào frame label client gửi.
                 let newBooking = {
                     id: Date.now(),
-                    time: new Date().toLocaleString('vi-VN'),
+                    time: formatVNDateTime_(),
                     name: main,
                     frame: frameLabel,
-                    reward: rewardAmount
+                    reward: rewardAmount,
+                    frameType: "18h",
+                    targetStt: m.stt
                 };
 
 
@@ -290,7 +319,7 @@ function handleDashboardSubmit() {
     // ==================================================
 
     let existingLog = findQuyLogForMember(
-        main,
+        m,
         period.quarter,
         period.year
     );
@@ -308,202 +337,27 @@ function handleDashboardSubmit() {
 
         () => {
 
-            // ==================================================
-            // 2. TẠO BẢN GHI TẠM TRÊN TRÌNH DUYỆT
-            // Backend vẫn là nơi quyết định dữ liệu chính thức
-            // ==================================================
-
-            let tempId = "PENDING_QUY_" + Date.now();
-
-            let tempLog = {
-                id: tempId,
-                time: new Date().toLocaleString('vi-VN'),
+            let newQuyLog = {
+                id: "QUY_" + Date.now(),
+                time: formatVNDateTime_(),
                 name: main,
+                memberStt: parseInt(m.stt) || 0,
                 quarter: period.quarter,
                 year: period.year,
                 amount: parseInt(systemSettings.quyAmount) || 0,
-                note: "Đang đồng bộ...",
-                pending: true
+                note: "Xác nhận đóng đủ quỹ " + period.quarter + "/" + period.year
             };
 
-
-            // ==================================================
-            // 3. CẬP NHẬT GIAO DIỆN NGAY
-            // ==================================================
-
-            quyLogs.push(tempLog);
-
-            renderDashboard();
-
-            if (typeof renderQuyTable === "function") {
-                renderQuyTable();
-            }
-
-            if (typeof renderCashbook === "function") {
-                renderCashbook();
-            }
-
-            showToast(
-                `Đang ghi nhận quỹ ${period.quarter}/${period.year}...`
+            enqueueAction(
+                "addQuyLog",
+                { quyLog: newQuyLog },
+                `Đã ghi nhận đóng quỹ ${period.quarter}/${period.year} thành công!`
             );
-
-
-            // ==================================================
-            // 4. BACKEND CHẠY PHÍA SAU
-            // ==================================================
-
-            fetch(GOOGLE_SCRIPT_URL, {
-
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-
-                body: JSON.stringify({
-                    action: "addQuyLog",
-                    quyLog: {
-                        name: main
-                    }
-                })
-            })
-
-            .then(res => res.json())
-
-            .then(data => {
-
-                // ==================================================
-                // BACKEND BÁO LỖI → HOÀN TÁC LOCAL
-                // ==================================================
-
-                if (data.status !== "SUCCESS") {
-
-                    quyLogs = (quyLogs || []).filter(function(item) {
-                        return String(item.id) !== String(tempId);
-                    });
-
-                    renderDashboard();
-
-                    if (typeof renderQuyTable === "function") {
-                        renderQuyTable();
-                    }
-
-                    if (typeof renderCashbook === "function") {
-                        renderCashbook();
-                    }
-
-
-                    let message =
-                        data.message ||
-                        "Không thể ghi nhận đóng quỹ.";
-
-                    message =
-                        message.replace(/^Error:\s*/i, "");
-
-
-                    // Nếu lỗi do dữ liệu local cũ nhưng Backend đã có bản ghi
-                    // thì tải lại Cloud để đồng bộ chính xác.
-                    if (
-                        message.toLowerCase().includes("đã xác nhận đóng quỹ")
-                    ) {
-                        alert(message);
-                        fetchCloudData(true);
-                        return;
-                    }
-
-                    alert(
-                        message +
-                        "\n\nGiao diện đã tự hoàn tác."
-                    );
-
-                    return;
-                }
-
-
-                // ==================================================
-                // 5. BACKEND THÀNH CÔNG
-                // Thay bản ghi tạm bằng bản ghi thật
-                // ==================================================
-
-                let newLog = data.result;
-
-                if (!newLog || !newLog.id) {
-
-                    // Trường hợp hiếm: Backend đã ghi nhưng không trả result
-                    // tải lại Cloud để đảm bảo dữ liệu chính xác
-                    fetchCloudData(true);
-                    return;
-                }
-
-
-                quyLogs = (quyLogs || []).filter(function(item) {
-                    return String(item.id) !== String(tempId);
-                });
-
-                // Tránh duplicate local
-                quyLogs = quyLogs.filter(function(item) {
-                    return !(
-                        String(item.name || '').trim().toLowerCase() ===
-                            String(newLog.name || '').trim().toLowerCase() &&
-
-                        String(item.quarter || '').toUpperCase() ===
-                            String(newLog.quarter || '').toUpperCase() &&
-
-                        parseInt(item.year) ===
-                            parseInt(newLog.year)
-                    );
-                });
-
-                quyLogs.push(newLog);
-
-
-                // Không cần render toàn bộ app
-                renderDashboard();
-
-                if (typeof renderQuyTable === "function") {
-                    renderQuyTable();
-                }
-
-                if (typeof renderCashbook === "function") {
-                    renderCashbook();
-                }
-
-
-                showToast(
-                    `Đã lưu quỹ ${newLog.quarter}/${newLog.year} thành công!`
-                );
-            })
-
-            .catch(() => {
-
-                // ==================================================
-                // MẤT MẠNG / BACKEND KHÔNG KẾT NỐI
-                // → HOÀN TÁC
-                // ==================================================
-
-                quyLogs = (quyLogs || []).filter(function(item) {
-                    return String(item.id) !== String(tempId);
-                });
-
-                renderDashboard();
-
-                if (typeof renderQuyTable === "function") {
-                    renderQuyTable();
-                }
-
-                if (typeof renderCashbook === "function") {
-                    renderCashbook();
-                }
-
-                alert(
-                    "Không thể kết nối hệ thống.\n\n" +
-                    "Xác nhận đóng quỹ đã được hoàn tác trên màn hình."
-                );
-            });
         }
     );
+
 }
-    
+
 }
 
 function renderDashboard() {
@@ -512,8 +366,8 @@ function renderDashboard() {
     if (!main && members.length > 0) main = members[0].name;
     if (!main) return;
 
-    let f = calculateUserFinance(main);
     let m = members.find(item => item.name === main) || members[0];
+    let f = calculateUserFinance(m);
 
     // ======================================================
     // KIỂM TRA QUỸ QUÝ HIỆN TẠI
@@ -522,7 +376,7 @@ function renderDashboard() {
     let period = getCurrentQuyPeriod();
 
     let hasPaidCurrentQuarter = !!findQuyLogForMember(
-        m.name,
+        m,
         period.quarter,
         period.year
     );
@@ -574,9 +428,8 @@ function renderDashboard() {
     let curMonth = document.getElementById('selectFinanceMonth').value;
     let curYear = document.getElementById('selectFinanceYear').value;
     let userBookingsThisMonth = bookingLogs.filter(b => {
-        if (b.name !== main) return false;
-        let t = b.time || "";
-        return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+        if (!recordBelongsToMember_(b, m)) return false;
+        return isLogInMonth_(b.time, curMonth, curYear);
     });
 
     let totalReward = userBookingsThisMonth.reduce((sum, b) => sum + parseInt(b.reward), 0);
@@ -588,40 +441,56 @@ function renderDashboard() {
     let matchBody = document.getElementById('userMatchHistoryBody');
     matchBody.innerHTML = '';
     let userMatchesThisMonth = matches.filter(match => {
-        let isUserIn = (match.p1_v1 === main || match.p2_v1 === main || match.p1_v2 === main || match.p2_v2 === main);
-        if (!isUserIn) return false;
-        let t = match.time || "";
-        return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+        let participation = getMatchParticipationForMember_(match, m);
+        if (!participation.isV1 && !participation.isV2) return false;
+        return isLogInMonth_(match.time, curMonth, curYear);
     });
 
     userMatchesThisMonth.forEach((mItem, idx) => {
-        let isV1 = (mItem.p1_v1 === main || mItem.p2_v1 === main);
-        let teammate = isV1 ? (mItem.p1_v1 === main ? mItem.p2_v1 : mItem.p1_v1) : (mItem.p1_v2 === main ? mItem.p2_v2 : mItem.p1_v2);
-        let opponents = isV1 ? (mItem.p1_v2 + " & " + mItem.p2_v2) : (mItem.p1_v1 + " & " + mItem.p2_v1);
+        let participation = getMatchParticipationForMember_(mItem, m);
+        let isV1 = participation.isV1;
+        let teammateSlot = participation.slot === 'p1_v1'
+            ? 'p2_v1'
+            : (participation.slot === 'p2_v1'
+                ? 'p1_v1'
+                : (participation.slot === 'p1_v2' ? 'p2_v2' : 'p1_v2'));
+        let teammate = getMatchPlayerDisplayName_(mItem, teammateSlot);
+        let opponents = isV1
+            ? (getMatchPlayerDisplayName_(mItem, 'p1_v2') + " & " + getMatchPlayerDisplayName_(mItem, 'p2_v2'))
+            : (getMatchPlayerDisplayName_(mItem, 'p1_v1') + " & " + getMatchPlayerDisplayName_(mItem, 'p2_v1'));
         
         let displayScore = isV1 ? `${mItem.scoreA}-${mItem.scoreB}` : `${mItem.scoreB}-${mItem.scoreA}`;
 
-        matchBody.innerHTML += `<tr class="border-b"><td class="p-2 text-center font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2 font-semibold text-slate-800">${teammate}</td><td class="p-2 font-semibold text-slate-800">${opponents}</td><td class="p-2 text-center font-bold text-emerald-800">${displayScore}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
+        // (v2.0 - điểm yếu #9): teammate/opponents lấy từ tên thành
+        // viên (dữ liệu người dùng có thể sửa qua "Sửa thành viên") -
+        // phải escape trước khi chèn HTML.
+        let esc_ = (typeof escapeHtml_ === 'function') ? escapeHtml_ : (s => String(s == null ? '' : s));
+
+        matchBody.innerHTML += `<tr class="border-b"><td class="p-2 text-center font-bold">${userMatchesThisMonth.length - idx}</td><td class="p-2 font-semibold text-slate-800">${esc_(teammate)}</td><td class="p-2 font-semibold text-slate-800">${esc_(opponents)}</td><td class="p-2 text-center font-bold text-emerald-800">${displayScore}</td><td class="p-2 text-right font-bold text-amber-800">${mItem.specialBet > 0 ? parseInt(mItem.specialBet).toLocaleString() + 'đ' : '-'}</td></tr>`;
     });
 
     let rewardBody = document.getElementById('userRewardHistoryBody');
     rewardBody.innerHTML = '';
     userBookingsThisMonth.forEach(b => {
-        rewardBody.innerHTML += `<tr class="border-b"><td class="p-1.5">${b.time}</td><td class="p-1.5 text-center font-bold text-amber-700">${b.frame}</td><td class="p-1.5 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td></tr>`;
+        rewardBody.innerHTML += `<tr class="border-b"><td class="p-1.5">${formatVNTimeForDisplay_(b.time)}</td><td class="p-1.5 text-center font-bold text-amber-700">${b.frame}</td><td class="p-1.5 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td></tr>`;
     });
 
     let gocBody = document.getElementById('userGocHistoryBody');
     gocBody.innerHTML = '';
-    let userGocs = gocLogs.filter(g => g.name === main);
+    let userGocs = gocLogs.filter(g => recordBelongsToMember_(g, m));
     if (userGocs.length === 0) {
         gocBody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-slate-400 italic">Chưa có lượt nộp</td></tr>`;
     } else {
         userGocs.forEach(g => {
+            // (v2.0 - điểm yếu #9): g.note là ghi chú tự do do người
+            // dùng nhập khi nộp tiền góc - phải escape.
+            let safeNote = (typeof escapeHtml_ === 'function') ? escapeHtml_(g.note || '-') : String(g.note || '-');
+
             gocBody.innerHTML += `
                 <tr class="border-b">
-                    <td class="p-1.5 text-slate-600">${g.time}</td>
+                    <td class="p-1.5 text-slate-600">${formatVNTimeForDisplay_(g.time)}</td>
                     <td class="p-1.5 text-right font-bold text-emerald-700">${parseInt(g.amount).toLocaleString()} đ</td>
-                    <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${g.note || '-'}</td>
+                    <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${safeNote}</td>
                 </tr>
             `;
         });
@@ -683,11 +552,11 @@ function renderDashboard() {
         });
     }
 
-    function lifetimeStats_(memberName) {
-        let key = String(memberName || "").trim().toLowerCase();
+    function lifetimeStats_(memberRef) {
+        let identity = resolveMemberIdentity_(memberRef);
 
         let stat = (window.memberStats || []).find(function (item) {
-            return String(item.name || "").trim().toLowerCase() === key;
+            return identityFieldsMatch_(item.stt, item.name, identity);
         });
 
         return {
@@ -698,7 +567,7 @@ function renderDashboard() {
         };
     }
 
-    function monthStats_(memberName, list) {
+    function monthStats_(memberRef, list) {
         let result = {
             total: 0,
             wins: 0,
@@ -707,13 +576,11 @@ function renderDashboard() {
         };
 
         (list || []).forEach(function (m) {
-            let isV1 =
-                m.p1_v1 === memberName ||
-                m.p2_v1 === memberName;
+            let participation =
+                getMatchParticipationForMember_(m, memberRef);
 
-            let isV2 =
-                m.p1_v2 === memberName ||
-                m.p2_v2 === memberName;
+            let isV1 = participation.isV1;
+            let isV2 = participation.isV2;
 
             if (!isV1 && !isV2) return;
 
@@ -974,6 +841,48 @@ function renderDashboard() {
                             Công thức: Dư/Nợ đầu kỳ + Góc cơ bản + Kèo đặc biệt - Đã nộp - Thưởng sân = Dư/Nợ cuối kỳ.
                         </div>
 
+                        <!-- (v2.0) 2 nút cho Admin/Owner, hiện tùy dấu của "còn cần
+                        đóng"/"đang dư" (KHÔNG dùng class admin-only chung - ẩn/hiện
+                        tự quản lý trong openDashboardFinanceDetailModal() vì còn phụ
+                        thuộc số tiền, không chỉ vai trò, xem hàm đó + markMemberFullyPaidByAdmin()/
+                        payOutMemberCreditByAdmin()). Mặc định ẩn để tránh nháy hình
+                        trước khi JS tính lại đúng trạng thái. -->
+                        <button type="button"
+                                id="dashboardFdMarkPaidBtn"
+                                onclick="markMemberFullyPaidByAdmin()"
+                                class="hidden w-full bg-emerald-700 hover:bg-emerald-800 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Xác nhận ĐÃ NỘP đủ (ghi hộ thành viên)
+                        </button>
+
+                        <!-- Thành viên đang DƯ (thưởng sân > tiền cần đóng) và CLB
+                        đã trả tiền dư đó bằng tiền mặt/CK cho họ - đưa Dư/Nợ về 0 +
+                        ghi 1 khoản CHI "Tiền thưởng đặt sân" vào Sổ Thu Chi, tránh
+                        Admin phải tự sửa tay Dư/Nợ ở Bảng Tổng Kết. -->
+                        <button type="button"
+                                id="dashboardFdPayoutBtn"
+                                onclick="payOutMemberCreditByAdmin()"
+                                class="hidden w-full bg-cyan-600 hover:bg-cyan-700 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                            Đã trả tiền (thành viên đang dư)
+                        </button>
+
+                        <!-- (v2.0) Nút "Hoàn tác" cho ĐÚNG lần "Đã trả tiền" gần nhất
+                        (payOutMemberCreditByAdmin()) - chỉ hiện khi "còn cần đóng" = 0
+                        VÀ hệ thống tìm thấy cặp dòng (GocLogsAdjustment ẩn + Cashbook
+                        "Tiền thưởng đặt sân") của ĐÚNG thành viên/tháng đang xem còn
+                        tồn tại (xem findLatestUndoablePayout_() + undoLatestPayoutForMember()
+                        bên dưới). Lý do cần nút riêng: xóa tay 1 trong 2 dòng đó thôi
+                        (vd chỉ xóa ở Sổ Thu Chi) sẽ để lại dữ liệu SAI - xem giải thích
+                        đã trao đổi với người vận hành CLB. -->
+                        <button type="button"
+                                id="dashboardFdUndoPayoutBtn"
+                                onclick="undoLatestPayoutForMember()"
+                                class="hidden w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            Hoàn tác lần "Đã trả tiền" gần nhất
+                        </button>
+
                         <button type="button"
                                 onclick="closeDashboardFinanceDetailModal()"
                                 class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black py-2.5 rounded-xl text-xs">
@@ -992,7 +901,7 @@ function renderDashboard() {
         ensureFinanceModal_();
     }
 
-    function updateQuarterStatus_(memberName) {
+    function updateQuarterStatus_(memberRef) {
         let badge = document.getElementById("dashboardQuyStatus");
         if (!badge) return;
 
@@ -1000,7 +909,7 @@ function renderDashboard() {
 
         let paid =
             !!findQuyLogForMember(
-                memberName,
+                memberRef,
                 p.quarter,
                 p.year
             );
@@ -1034,14 +943,20 @@ function renderDashboard() {
 
         if (!main) return;
 
+        let mainMember =
+            members.find(function(item) {
+                return normalizeMemberIdentityName_(item.name) ===
+                    normalizeMemberIdentityName_(main);
+            }) || members[0];
+
         let p = period_();
-        let life = lifetimeStats_(main);
+        let life = lifetimeStats_(mainMember);
         let monthList = monthMatches_();
-        let monthStat = monthStats_(main, monthList);
+        let monthStat = monthStats_(mainMember, monthList);
 
         let finance =
             calculateUserFinanceForMonth(
-                main,
+                mainMember,
                 p.month,
                 p.year
             );
@@ -1089,7 +1004,7 @@ function renderDashboard() {
                     );
         }
 
-        updateQuarterStatus_(main);
+        updateQuarterStatus_(mainMember);
 
         let qr = document.getElementById("dashQrImg");
 
@@ -1110,12 +1025,10 @@ function renderDashboard() {
         let userMatches =
             monthList
                 .filter(function (m) {
-                    return (
-                        m.p1_v1 === main ||
-                        m.p2_v1 === main ||
-                        m.p1_v2 === main ||
-                        m.p2_v2 === main
-                    );
+                    let participation =
+                        getMatchParticipationForMember_(m, mainMember);
+
+                    return participation.isV1 || participation.isV2;
                 })
                 .slice()
                 .sort(function (a, b) {
@@ -1130,27 +1043,24 @@ function renderDashboard() {
                     `<tr><td colspan="5" class="p-3 text-center text-slate-400 italic">Chưa có trận trong tháng ${p.month}/${p.year}</td></tr>`;
             } else {
                 userMatches.forEach(function (m, idx) {
-                    let isV1 =
-                        m.p1_v1 === main ||
-                        m.p2_v1 === main;
+                    let participation =
+                        getMatchParticipationForMember_(m, mainMember);
+
+                    let isV1 = participation.isV1;
+
+                    let teammateSlot = participation.slot === 'p1_v1'
+                        ? 'p2_v1'
+                        : (participation.slot === 'p2_v1'
+                            ? 'p1_v1'
+                            : (participation.slot === 'p1_v2' ? 'p2_v2' : 'p1_v2'));
 
                     let teammate =
-                        isV1
-                            ? (
-                                m.p1_v1 === main
-                                    ? m.p2_v1
-                                    : m.p1_v1
-                            )
-                            : (
-                                m.p1_v2 === main
-                                    ? m.p2_v2
-                                    : m.p1_v2
-                            );
+                        getMatchPlayerDisplayName_(m, teammateSlot);
 
                     let opponents =
                         isV1
-                            ? `${m.p1_v2} & ${m.p2_v2}`
-                            : `${m.p1_v1} & ${m.p2_v1}`;
+                            ? `${getMatchPlayerDisplayName_(m, 'p1_v2')} & ${getMatchPlayerDisplayName_(m, 'p2_v2')}`
+                            : `${getMatchPlayerDisplayName_(m, 'p1_v1')} & ${getMatchPlayerDisplayName_(m, 'p2_v1')}`;
 
                     let score =
                         isV1
@@ -1162,11 +1072,14 @@ function renderDashboard() {
                             ? parseInt(m.specialBet).toLocaleString("vi-VN") + "đ"
                             : "-";
 
+                    let escTeammate_ = (typeof escapeHtml_ === 'function') ? escapeHtml_(teammate) : String(teammate || '');
+                    let escOpponents_ = (typeof escapeHtml_ === 'function') ? escapeHtml_(opponents) : String(opponents || '');
+
                     matchBody.innerHTML += `
                         <tr class="border-b">
                             <td class="p-2 text-center font-bold">${userMatches.length - idx}</td>
-                            <td class="p-2 font-semibold text-slate-800">${teammate}</td>
-                            <td class="p-2 font-semibold text-slate-800">${opponents}</td>
+                            <td class="p-2 font-semibold text-slate-800">${escTeammate_}</td>
+                            <td class="p-2 font-semibold text-slate-800">${escOpponents_}</td>
                             <td class="p-2 text-center font-bold text-emerald-800">${score}</td>
                             <td class="p-2 text-right font-bold text-amber-800">${special}</td>
                         </tr>
@@ -1184,7 +1097,7 @@ function renderDashboard() {
         let userBookings =
             monthBookings_()
                 .filter(function (b) {
-                    return b.name === main;
+                    return recordBelongsToMember_(b, mainMember);
                 })
                 .slice()
                 .sort(function (a, b) {
@@ -1201,7 +1114,7 @@ function renderDashboard() {
                 userBookings.forEach(function (b) {
                     rewardBody.innerHTML += `
                         <tr class="border-b">
-                            <td class="p-1.5">${b.time}</td>
+                            <td class="p-1.5">${formatVNTimeForDisplay_(b.time)}</td>
                             <td class="p-1.5 text-center font-bold text-amber-700">${b.frame}</td>
                             <td class="p-1.5 text-right font-black text-emerald-700">${money_(b.reward)}</td>
                         </tr>
@@ -1220,7 +1133,7 @@ function renderDashboard() {
             (gocLogs || [])
                 .filter(function (g) {
                     return (
-                        g.name === main &&
+                        recordBelongsToMember_(g, mainMember) &&
                         (
                             typeof isLogInMonth_ !== "function" ||
                             isLogInMonth_(
@@ -1244,11 +1157,13 @@ function renderDashboard() {
                     `<tr><td colspan="3" class="p-3 text-center text-slate-400 italic">Chưa có lượt nộp trong tháng</td></tr>`;
             } else {
                 userGocs.forEach(function (g) {
+                    let safeNote_ = (typeof escapeHtml_ === 'function') ? escapeHtml_(g.note || "-") : String(g.note || "-");
+
                     gocBody.innerHTML += `
                         <tr class="border-b">
-                            <td class="p-1.5 text-slate-600">${g.time}</td>
+                            <td class="p-1.5 text-slate-600">${formatVNTimeForDisplay_(g.time)}</td>
                             <td class="p-1.5 text-right font-bold text-emerald-700">${money_(g.amount)}</td>
-                            <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${g.note || "-"}</td>
+                            <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${safeNote_}</td>
                         </tr>
                     `;
                 });
@@ -1296,7 +1211,7 @@ function renderDashboard() {
 
             let f =
                 calculateUserFinanceForMonth(
-                    main,
+                    resolveMemberIdentity_(main).member || main,
                     p.month,
                     p.year
                 );
@@ -1380,6 +1295,63 @@ function renderDashboard() {
                 modal.classList.remove("hidden");
                 modal.classList.add("flex");
             }
+
+            // (v2.0) 2 nút Admin/Owner: hiện đúng 1 trong 2 tùy dấu của
+            // "closing" - không dùng chung cơ chế admin-only/applyRolePermissions()
+            // vì còn phụ thuộc số tiền (vd: Admin nhưng thành viên không nợ/không
+            // dư thì KHÔNG hiện nút nào), nên tự tính ở đây mỗi lần mở modal.
+            let isAdminOrOwner =
+                currentUserRole === "admin" ||
+                currentUserRole === "owner";
+
+            let markPaidBtn =
+                document.getElementById(
+                    "dashboardFdMarkPaidBtn"
+                );
+
+            let payoutBtn =
+                document.getElementById(
+                    "dashboardFdPayoutBtn"
+                );
+
+            if (markPaidBtn) {
+                markPaidBtn.classList.toggle(
+                    "hidden",
+                    !(isAdminOrOwner && closing > 0)
+                );
+            }
+
+            if (payoutBtn) {
+                payoutBtn.classList.toggle(
+                    "hidden",
+                    !(isAdminOrOwner && closing < 0)
+                );
+            }
+
+            // (v2.0) Nút "Hoàn tác" - CHỈ hiện khi "còn cần đóng" đúng bằng 0
+            // VÀ tìm thấy dòng điều chỉnh/Cashbook của ĐÚNG lần trả tiền dư
+            // gần nhất cho thành viên/tháng đang xem (không chỉ dựa vào dấu
+            // của "closing" - nếu 0 vì lý do khác, vd nộp đủ bình thường,
+            // sẽ không tìm thấy gì và nút không hiện).
+            let undoPayoutBtn =
+                document.getElementById(
+                    "dashboardFdUndoPayoutBtn"
+                );
+
+            if (undoPayoutBtn) {
+                let undoablePayout =
+                    (isAdminOrOwner && closing === 0)
+                        ? findLatestUndoablePayout_(main, p.month, p.year)
+                        : null;
+
+                let hasSomethingToUndo =
+                    !!(undoablePayout && (undoablePayout.adjustment || undoablePayout.cashbook));
+
+                undoPayoutBtn.classList.toggle(
+                    "hidden",
+                    !hasSomethingToUndo
+                );
+            }
         };
 
     window.closeDashboardFinanceDetailModal =
@@ -1393,6 +1365,374 @@ function renderDashboard() {
 
             modal.classList.add("hidden");
             modal.classList.remove("flex");
+        };
+
+    // ==================================================
+    // (v2.0) ADMIN/OWNER GHI HỘ "ĐÃ NỘP ĐỦ TIỀN GÓC"
+    // ==================================================
+    // Lý do: nhiều thành viên (đặc biệt người lớn tuổi) chuyển khoản
+    // riêng đúng số tiền thông báo cho thủ quỹ (Nguyễn Anh Thi) nhưng
+    // không tự thao tác "Tự nhập tiền GÓC CK" trên app - Admin/Owner
+    // trước đây phải tự tính lại đúng số "còn cần đóng" rồi nhập tay.
+    // Nút này lấy ĐÚNG số tiền hệ thống đang tính cho thành viên đang
+    // xem (main = dashMainUser, tháng hiện tại) và ghi 1 LẦN xuống CẢ
+    // 2 nơi: GocLogs (để trừ vào "còn cần đóng" của thành viên - đúng
+    // vai trò hiện có của addGocLog) và Cashbook mục "Tiền góc thực
+    // thu" (để sổ thu chi thật của CLB phản ánh đúng khoản tiền mặt
+    // đã về tay thủ quỹ - trước giờ 2 sổ này hoàn toàn tách rời, addGocLog
+    // không tự động ghi Cashbook). Admin/Owner vẫn có thể chỉnh sửa/xóa
+    // lại 2 dòng này sau đó ở tab Nộp Tiền/Sổ Thu Chi như bình thường
+    // nếu ghi nhầm.
+    window.markMemberFullyPaidByAdmin =
+        function () {
+
+            if (currentUserRole !== "admin" && currentUserRole !== "owner") {
+                alert("Chỉ Admin hoặc Owner mới được dùng chức năng này.");
+                return;
+            }
+
+            if (!members || members.length === 0) {
+                members = defaultFallbackMembers;
+            }
+
+            let mainEl = document.getElementById("dashMainUser");
+            let main = mainEl && mainEl.value
+                ? mainEl.value
+                : (members[0] ? members[0].name : "");
+
+            if (!main) return;
+
+            let mainMember =
+                resolveMemberIdentity_(main).member ||
+                members[0];
+
+            let p = period_();
+            let f = calculateUserFinanceForMonth(mainMember, p.month, p.year);
+            let amountDue = parseInt(f.totalPay) || 0;
+
+            if (amountDue <= 0) {
+                alert(
+                    `Thành viên [${main}] hiện không còn khoản tiền góc nào cần đóng trong tháng ${p.month}/${p.year} (đã nộp đủ hoặc đang dư quỹ) - không cần ghi thêm.`
+                );
+                return;
+            }
+
+            showActionConfirm(
+                `Xác nhận thành viên [${main}] ĐÃ CHUYỂN KHOẢN đủ ${amountDue.toLocaleString('vi-VN')} đ cho tháng ${p.month}/${p.year}?\n\n` +
+                `Hệ thống sẽ tự ghi 1 dòng "Nộp tiền góc" và 1 dòng Cashbook (Tiền góc thực thu) đúng bằng số tiền này. ` +
+                `CHỈ xác nhận khi bạn chắc chắn tiền đã thực sự chuyển vào tài khoản thủ quỹ.`,
+                () => {
+
+                    let newGoc = {
+                        id: Date.now(),
+                        time: formatVNDateTime_(),
+                        name: main,
+                        memberStt: parseInt(mainMember.stt) || 0,
+                        amount: amountDue,
+                        note: `${loggedInMemberName || 'Admin/Owner'} xác nhận đã nộp đủ (chuyển khoản riêng cho thủ quỹ)`
+                    };
+
+                    enqueueAction(
+                        "addGocLog",
+                        { gocLog: newGoc },
+                        `Đã ghi nhận [${main}] nộp đủ tiền góc tháng ${p.month}/${p.year}!`
+                    );
+
+                    let newCashbook = {
+                        id: Date.now(),
+                        category: "Tiền góc thực thu",
+                        amount: amountDue,
+                        note: `${main} đã nộp đủ tháng ${p.month}/${p.year} (xác nhận qua nút "Đã nộp" - ${loggedInMemberName || 'Admin/Owner'})`,
+                        time: formatVNDateOnly_()
+                    };
+
+                    enqueueAction(
+                        "addCashbook",
+                        { cashbook: newCashbook },
+                        "Đã ghi nhận vào Sổ Thu Chi!"
+                    );
+
+                    closeDashboardFinanceDetailModal();
+
+                    if (typeof renderDashboard === "function") {
+                        renderDashboard();
+                    }
+                }
+            );
+        };
+
+    // ==================================================
+    // (v2.0) ADMIN/OWNER TRẢ TIỀN DƯ (THƯỞNG SÂN) BẰNG TIỀN MẶT
+    // ==================================================
+    // Trường hợp ngược lại với markMemberFullyPaidByAdmin(): thành
+    // viên có Thưởng sân tích lũy nhiều hơn số Góc cơ bản cần đóng
+    // ("closing" = f.totalPay ÂM, hiển thị "THÀNH VIÊN ĐANG DƯ"). Thay
+    // vì để khoản dư đó tiếp tục treo sang tháng sau, CLB trả thẳng
+    // bằng tiền mặt/CK cho thành viên - nút này:
+    // 1. Ghi 1 dòng addGocLogAdjustment (P2 - CHỈ Admin/Owner, cho phép
+    //    số âm, luôn ở kỳ hiện tại) với amount = ĐÚNG closing (số âm) để
+    //    trừ thẳng vào "Đã nộp" của tháng, đưa Dư/Nợ về CHÍNH XÁC 0 -
+    //    không dùng addGocLog thường vì action đó bắt buộc amount > 0
+    //    (addGocLogData: "Số tiền góc phải lớn hơn 0").
+    // 2. Ghi 1 khoản CHI vào Cashbook đúng mục có sẵn "Tiền thưởng đặt
+    //    sân" (nằm trong CASHBOOK_ALLOWED_CATEGORIES_ - Router đã cho
+    //    phép) bằng đúng số tiền dương đã trả - khoản này tự động hiện
+    //    trong "Lịch sử: Tiền thưởng đặt sân" ở tab Sổ Thu Chi vì UI đó
+    //    vốn lọc theo category, không cần sửa gì thêm ở tab Sổ Thu Chi.
+    window.payOutMemberCreditByAdmin =
+        function () {
+
+            if (currentUserRole !== "admin" && currentUserRole !== "owner") {
+                alert("Chỉ Admin hoặc Owner mới được dùng chức năng này.");
+                return;
+            }
+
+            if (!members || members.length === 0) {
+                members = defaultFallbackMembers;
+            }
+
+            let mainEl = document.getElementById("dashMainUser");
+            let main = mainEl && mainEl.value
+                ? mainEl.value
+                : (members[0] ? members[0].name : "");
+
+            if (!main) return;
+
+            let mainMember =
+                resolveMemberIdentity_(main).member ||
+                members[0];
+
+            let p = period_();
+            let f = calculateUserFinanceForMonth(mainMember, p.month, p.year);
+            let closing = parseInt(f.totalPay) || 0;
+
+            if (closing >= 0) {
+                alert(
+                    `Thành viên [${main}] hiện không có khoản tiền dư nào cần trả trong tháng ${p.month}/${p.year}.`
+                );
+                return;
+            }
+
+            let payoutAmount = Math.abs(closing);
+
+            showActionConfirm(
+                `Xác nhận CLB ĐÃ TRẢ ${payoutAmount.toLocaleString('vi-VN')} đ tiền dư (thưởng đặt sân) bằng tiền mặt/CK cho thành viên [${main}] - tháng ${p.month}/${p.year}?\n\n` +
+                `Dư/Nợ tháng này của thành viên sẽ về 0 đ, đồng thời hệ thống ghi 1 khoản CHI "Tiền thưởng đặt sân" vào Sổ Thu Chi. ` +
+                `CHỈ xác nhận khi bạn đã thực sự chi tiền cho thành viên.`,
+                () => {
+
+                    // (v2.0 fix) Thẻ đánh dấu bắt buộc phải xuất hiện NGUYÊN VẸN
+                    // trong "reason" (backend lưu note = "Điều chỉnh: " + reason) -
+                    // renderCashbook() (finance.js, tính "DƯ QUỸ HIỆN TẠI") sẽ dò
+                    // đúng chuỗi này để LOẠI TRỪ dòng điều chỉnh này khỏi tổng
+                    // "góc thực thu". Lý do: dòng tiền thật của khoản trả này ĐÃ
+                    // được ghi 1 lần ở khoản Cashbook "Tiền thưởng đặt sân" ngay
+                    // dưới đây rồi - nếu cộng thêm cả ở đây sẽ bị tính trùng 2 lần
+                    // trên quỹ thật của CLB (đúng lỗi thành viên phát hiện: dòng
+                    // GocLogs âm này KHÔNG phải tiền thật ra/vào quỹ, chỉ là điều
+                    // chỉnh Dư/Nợ riêng của thành viên).
+                    let doubleCountTag_ = "[ĐÃ GHI CASHBOOK]";
+
+                    // (v2.0) "Mã giao dịch" dùng ĐỂ GHÉP ĐÚNG CẶP 2 dòng (dòng
+                    // điều chỉnh Dư/Nợ ở GocLogs + dòng chi ở Cashbook) của CÙNG
+                    // 1 lần bấm "Đã trả tiền" - CHỈ dùng cho nút "Hoàn tác"
+                    // (undoLatestPayoutForMember() bên dưới) tìm lại đúng cặp cần
+                    // xóa, không dùng để tính toán tiền bạc gì. Không dùng
+                    // Date.now() thô (dài, khó đọc) - đổi sang cơ số 36 cho ngắn
+                    // gọn, viết hoa cho dễ nhìn trong sổ.
+                    let payoutTxnId_ =
+                        "HT" + Date.now().toString(36).toUpperCase();
+
+                    let adjustmentReason_ =
+                        `Trả tiền dư thưởng đặt sân bằng tiền mặt/CK - dòng tiền thật đã ghi ở Cashbook ${doubleCountTag_} (Mã: ${payoutTxnId_})`;
+
+                    let adjustment = {
+                        id: Date.now(),
+                        time: formatVNDateTime_(),
+                        name: main,
+                        memberStt: parseInt(mainMember.stt) || 0,
+                        // closing đang ÂM - ghi ĐÚNG giá trị này (không đổi dấu) để
+                        // trừ thẳng vào Đã nộp, đưa Dư/Nợ về đúng 0 (xem công thức
+                        // trong calculateUserFinanceForMonth: totalPay = ... - Đã nộp - Thưởng sân).
+                        amount: closing,
+                        reason: adjustmentReason_,
+                        // (v2.0 fix) addGocLogAdjustmentData ở backend lưu note =
+                        // "Điều chỉnh: " + reason và trả về đúng "note" đó, nhưng
+                        // cache tạm ở trình duyệt (enqueueAction) hiển thị NGAY object
+                        // này - nếu thiếu "note" thì renderGocLogsTab() hiện tạm chữ
+                        // "-" cho tới lần tải lại kế tiếp (bug đã gặp khi test). Set
+                        // sẵn "note" khớp đúng backend để hiện đúng ngay lập tức.
+                        note: "Điều chỉnh: " + adjustmentReason_
+                    };
+
+                    enqueueAction(
+                        "addGocLogAdjustment",
+                        { gocLog: adjustment },
+                        `Đã đưa Dư/Nợ của [${main}] về 0!`
+                    );
+
+                    let newCashbook = {
+                        id: Date.now(),
+                        category: "Tiền thưởng đặt sân",
+                        amount: payoutAmount,
+                        note: `Trả tiền dư thưởng đặt sân cho ${main} - Tháng ${p.month}/${p.year} (Mã: ${payoutTxnId_})`,
+                        time: formatVNDateOnly_()
+                    };
+
+                    enqueueAction(
+                        "addCashbook",
+                        { cashbook: newCashbook },
+                        "Đã ghi nhận khoản chi vào Sổ Thu Chi!"
+                    );
+
+                    closeDashboardFinanceDetailModal();
+
+                    if (typeof renderDashboard === "function") {
+                        renderDashboard();
+                    }
+                }
+            );
+        };
+
+    // ==================================================
+    // (v2.0) HOÀN TÁC LẦN "ĐÃ TRẢ TIỀN" GẦN NHẤT
+    // ==================================================
+    // Vì sao cần riêng 1 nút thay vì để Admin tự xóa tay: payOutMemberCreditByAdmin()
+    // ghi 2 dòng cho 1 sự kiện tiền thật duy nhất - (1) dòng điều chỉnh ÂM ở
+    // GocLogs (ẩn khỏi tab "Nộp Tiền" vì gắn thẻ GOC_ADJUSTMENT_HIDE_TAG_ -
+    // xem finance.js) và (2) dòng chi ở Cashbook mục "Tiền thưởng đặt sân".
+    // Nếu Admin chỉ xóa 1 trong 2 (vd chỉ xóa ở Sổ Thu Chi vì đó là chỗ DUY
+    // NHẤT nhìn thấy được trên giao diện) thì Dư/Nợ riêng của thành viên vẫn
+    // bị kẹt ở 0 mãi mãi (dòng GocLogs ẩn vẫn còn nguyên) - ĐÃ giải thích rõ
+    // nguyên lý này với người vận hành CLB. Nút này xóa ĐÚNG CẢ 2 dòng cùng lúc.
+    //
+    // findLatestUndoablePayout_(): tìm dòng GocLogsAdjustment MỚI NHẤT (id lớn
+    // nhất trong số các id sinh từ Date.now(), tức tăng dần theo thời gian) của
+    // ĐÚNG thành viên/tháng đang xem, có gắn thẻ ẩn; đọc "Mã: HTxxxx" trong note
+    // của nó rồi tìm dòng Cashbook mang ĐÚNG mã đó. Chỉ hỗ trợ hoàn tác lần GẦN
+    // NHẤT - nếu có nhiều lần trả tiền dư trong cùng tháng, hoàn tác xong 1 lần
+    // thì lần trước đó sẽ trở thành "gần nhất" tiếp theo, bấm lại nút để hoàn
+    // tác tiếp (không hoàn tác nhiều lần cùng lúc để tránh xóa nhầm).
+    function findLatestUndoablePayout_(memberName, month, year) {
+
+        let memberIdentity =
+            resolveMemberIdentity_(memberName);
+
+        let adjustmentRows =
+            (gocLogs || []).filter(function(g) {
+                return (
+                    recordBelongsToMember_(g, memberIdentity) &&
+                    typeof GOC_ADJUSTMENT_HIDE_TAG_ !== "undefined" &&
+                    String(g.note || '').indexOf(GOC_ADJUSTMENT_HIDE_TAG_) !== -1 &&
+                    typeof isLogInMonth_ === "function" &&
+                    isLogInMonth_(g.time, month, year)
+                );
+            });
+
+        if (adjustmentRows.length === 0) return null;
+
+        adjustmentRows.sort(function(a, b) {
+            return (parseInt(b.id) || 0) - (parseInt(a.id) || 0);
+        });
+
+        let latestAdjustment = adjustmentRows[0];
+
+        let maCode = null;
+        let codeMatch = String(latestAdjustment.note || '').match(/\(Mã: (HT[A-Z0-9]+)\)/);
+        if (codeMatch) maCode = codeMatch[1];
+
+        let matchingCashbook = null;
+
+        if (maCode) {
+            matchingCashbook =
+                (cashbookLogs || []).find(function(c) {
+                    return String(c.note || '').indexOf('(Mã: ' + maCode + ')') !== -1;
+                }) || null;
+        }
+
+        return {
+            adjustment: latestAdjustment,
+            cashbook: matchingCashbook,
+            maCode: maCode
+        };
+    }
+
+    window.undoLatestPayoutForMember =
+        function () {
+
+            if (currentUserRole !== "admin" && currentUserRole !== "owner") {
+                alert("Chỉ Admin hoặc Owner mới được dùng chức năng này.");
+                return;
+            }
+
+            if (!members || members.length === 0) {
+                members = defaultFallbackMembers;
+            }
+
+            let mainEl = document.getElementById("dashMainUser");
+            let main = mainEl && mainEl.value
+                ? mainEl.value
+                : (members[0] ? members[0].name : "");
+
+            if (!main) return;
+
+            let p = period_();
+            let found = findLatestUndoablePayout_(main, p.month, p.year);
+
+            if (!found || (!found.adjustment && !found.cashbook)) {
+                alert(
+                    `Không tìm thấy lần "Đã trả tiền" nào của [${main}] trong tháng ${p.month}/${p.year} để hoàn tác.`
+                );
+                return;
+            }
+
+            let amountForDisplay =
+                found.adjustment
+                    ? Math.abs(parseInt(found.adjustment.amount) || 0)
+                    : (found.cashbook ? (parseInt(found.cashbook.amount) || 0) : 0);
+
+            let amountText = amountForDisplay.toLocaleString('vi-VN') + ' đ';
+
+            let warningExtra = '';
+
+            if (found.adjustment && !found.cashbook) {
+                warningExtra =
+                    '\n\n(Lưu ý: không tìm thấy dòng Cashbook tương ứng - có thể đã bị xóa trước đó. Hệ thống sẽ chỉ hoàn tác dòng điều chỉnh Dư/Nợ.)';
+            } else if (!found.adjustment && found.cashbook) {
+                warningExtra =
+                    '\n\n(Lưu ý: không tìm thấy dòng điều chỉnh Dư/Nợ tương ứng - có thể đã bị xóa trước đó. Hệ thống sẽ chỉ hoàn tác dòng Cashbook.)';
+            }
+
+            showActionConfirm(
+                `Hoàn tác lần "Đã trả tiền" GẦN NHẤT cho [${main}] (${amountText}, tháng ${p.month}/${p.year})?\n\n` +
+                `Hệ thống sẽ xóa dòng điều chỉnh Dư/Nợ (đưa Dư/Nợ về lại đúng mức dư ${amountText} như trước khi trả) VÀ dòng chi tương ứng ở Sổ Thu Chi. ` +
+                `CHỈ xác nhận khi bạn đã thực sự lấy lại đúng khoản tiền này từ thành viên.` +
+                warningExtra,
+                () => {
+
+                    if (found.adjustment) {
+                        enqueueAction(
+                            "deleteItem",
+                            { sheetName: "GocLogs", id: found.adjustment.id },
+                            `Đã hoàn tác điều chỉnh Dư/Nợ của [${main}]!`
+                        );
+                    }
+
+                    if (found.cashbook) {
+                        enqueueAction(
+                            "deleteItem",
+                            { sheetName: "Cashbook", id: found.cashbook.id },
+                            "Đã xóa khoản chi tương ứng ở Sổ Thu Chi!"
+                        );
+                    }
+
+                    closeDashboardFinanceDetailModal();
+
+                    if (typeof renderDashboard === "function") {
+                        renderDashboard();
+                    }
+                }
+            );
         };
 
 })();
@@ -1456,7 +1796,7 @@ function renderDashboard() {
         reportButton.className =
             "bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition admin-only" +
             (
-                currentUserRole === "admin"
+                (currentUserRole === "admin" || currentUserRole === "owner")
                     ? ""
                     : " hidden"
             );
@@ -1472,11 +1812,11 @@ function renderDashboard() {
         function () {
 
             if (
-                currentUserRole !==
-                "admin"
+                currentUserRole !== "admin" &&
+                currentUserRole !== "owner"
             ) {
                 alert(
-                    "Chỉ Admin mới được tạo báo cáo tài chính tổng hợp."
+                    "Chỉ Admin hoặc Owner mới được tạo báo cáo tài chính tổng hợp."
                 );
                 return;
             }
@@ -1550,7 +1890,7 @@ function renderDashboard() {
 
                     let f =
                         calculateUserFinanceForMonth(
-                            member.name,
+                            member,
                             month,
                             year
                         );

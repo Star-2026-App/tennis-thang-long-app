@@ -3,16 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>CLB Tennis Thăng Long - Ver1.3</title>
+    <title>CLB Tennis Thăng Long - v2.0.8</title>
     <meta name="theme-color" content="#065f46">
     <meta name="application-name" content="Tennis Thăng Long">
-    
+
     <meta name="mobile-web-app-capable" content="yes">
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Tennis Thăng Long">
-    
+
+    <!-- v2.0 (P3 - điểm yếu #9): CSP. Giữ 'unsafe-inline'/'unsafe-eval' cho
+         script vì trang dùng Tailwind CDN (JIT runtime) và hàng trăm
+         onclick="..." nội tuyến có sẵn trong toàn bộ file - loại bỏ hết
+         là một refactor quá lớn cho lần sửa này. connect-src chỉ còn
+         'self' vì từ v2.0 trình duyệt không còn gọi thẳng Apps Script nữa,
+         mọi request đều đi qua route /api/* cùng origin (Vercel BFF). -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+        font-src 'self' https://cdnjs.cloudflare.com;
+        img-src 'self' data: https://img.vietqr.io;
+        connect-src 'self';
+        manifest-src 'self';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'none';
+    ">
+
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="/icons/tennis-thang-long.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -734,7 +753,7 @@
         <p class="font-bold text-sm">Đang tải dữ liệu Cloud...</p>
     </div>
 
-    <div id="appToast" class="fixed bottom-6 right-6 bg-slate-900/95 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-2xl z-[200] transition-all duration-300 transform translate-y-12 opacity-0 flex items-center gap-3 border border-slate-700">
+    <div id="appToast" class="pointer-events-none fixed bottom-6 right-6 bg-slate-900/95 text-white text-xs font-bold px-5 py-3 rounded-2xl shadow-2xl z-[200] transition-all duration-300 transform translate-y-12 opacity-0 flex items-center gap-3 border border-slate-700">
         <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
         <span id="toastMsg">Đã ghi nhận thành công!</span>
     </div>
@@ -745,19 +764,31 @@
             <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-3xl font-extrabold mx-auto shadow">🎾</div>
             <div>
                 <h1 class="text-xl font-black text-slate-800 uppercase">CLB TENNIS THĂNG LONG</h1>
-                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Phân Tích - Ver1.2</p>
+                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Phân Tích - Ver2.0.8</p>
             </div>
-            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
+            <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="on" class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tài khoản (Username):</label>
-                    <input type="text" id="loginUser" required placeholder="Ví dụ: Thanglong1 đến Thanglong37" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <input type="text" id="loginUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="Ví dụ: Thanglong1 đến Thanglong37" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu (Password):</label>
-                    <input type="password" id="loginPass" required placeholder="••••••••" class="w-full p-3 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <div class="relative">
+                        <input type="password" id="loginPass" name="password" autocomplete="current-password" required placeholder="••••••••" class="w-full p-3 pr-12 border rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600">
+                        <button type="button" id="toggleLoginPassBtn" onclick="toggleLoginPasswordVisibility_()" aria-label="Hiện mật khẩu" aria-pressed="false" title="Hiện mật khẩu" class="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-slate-500 hover:text-emerald-700 focus:outline-none focus:text-emerald-700">
+                            <i id="toggleLoginPassIcon" class="fa-solid fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition">
-                    ĐĂNG NHẬP HỆ THỐNG
+                <label class="flex items-start gap-2.5 cursor-pointer select-none text-sm text-slate-700">
+                    <input type="checkbox" id="rememberLogin" onchange="handleRememberLoginChange_()" class="mt-0.5 w-4 h-4 accent-emerald-700">
+                    <span>
+                        <span class="font-bold">Nhớ tài khoản và mật khẩu</span>
+                        <span class="block text-[11px] text-slate-500 mt-0.5">Chỉ sử dụng trên thiết bị cá nhân.</span>
+                    </span>
+                </label>
+                <button type="submit" id="loginSubmitBtn" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition disabled:opacity-70 disabled:cursor-not-allowed">
+                    <span id="loginSubmitBtnText">ĐĂNG NHẬP HỆ THỐNG</span>
                 </button>
             </form>
         </div>
@@ -774,42 +805,49 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button onclick="openTodayCourtsModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Các sân ngày hôm hôm nay">
+                    <button onclick="openTodayCourtsModal()" id="courtsTodayBtn" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Các sân ngày hôm hôm nay">
                         <i class="fa-solid fa-calendar-days text-sm"></i>
                     </button>
 
-                    <button onclick="openNotificationModal()" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Bảng Vàng Vinh Danh">
+                    <button onclick="openNotificationModal()" id="hallOfFameBtn" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Bảng Vàng Vinh Danh">
                         <i class="fa-solid fa-trophy text-sm"></i>
                     </button>
 
-                    <button type="button" onclick="refreshCloudData(this)" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Làm mới dữ liệu từ Google Cloud" aria-label="Làm mới dữ liệu từ Google Cloud">
+                    <button type="button" onclick="openNotificationCenterModal()" id="notifBellBtn" class="relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Thông báo">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                        <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center leading-none">0</span>
+                    </button>
+
+                    <button type="button" onclick="refreshCloudData(this)" class="hidden md:inline-flex relative bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-amber-300 shadow transition" title="Làm mới dữ liệu từ Google Cloud" aria-label="Làm mới dữ liệu từ Google Cloud">
                         <i class="fa-solid fa-rotate text-sm"></i>
                     </button>
 
-                    <button onclick="openUserProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản & Thoát">
+                    <button onclick="openUserProfileModal()" class="hidden md:inline-flex bg-emerald-700 hover:bg-emerald-600 p-2 rounded-full text-white shadow transition" title="Thông tin tài khoản & Thoát">
                         <i class="fa-solid fa-user-shield text-sm text-amber-300"></i>
                     </button>
                 </div>
             </div>
 
             <!-- MENU ĐIỀU HƯỚNG -->
-            <nav class="bg-emerald-900 text-emerald-100 px-3 py-1.5 border-t border-emerald-700/50 flex items-center justify-between">
+            <nav class="hidden md:flex bg-emerald-900 text-emerald-100 px-3 py-1.5 border-t border-emerald-700/50 items-center justify-between">
                 <div class="hidden md:flex flex-wrap gap-1 text-xs md:text-sm font-medium items-center w-full">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-amber-400 text-amber-300 font-bold flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> Tổng quan</button>
                     <button onclick="switchTab('matches')" id="btn-matches" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Ghi Trận</button>
                     <button onclick="switchTab('matchLog')" id="btn-matchLog" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Nhật Ký Trận</button>
                     <button onclick="switchTab('analytics')" id="btn-analytics" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> Phân tích</button>
                     <button onclick="switchTab('gocLogs')" id="btn-gocLogs" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-receipt"></i> Nộp Tiền</button>
-                    <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Tiền Góc</button>
+                    <button onclick="switchTab('finance')" id="btn-finance" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Bảng Tổng Kết</button>
                     <button onclick="switchTab('booking')" id="btn-booking" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-calendar-check"></i> Thưởng Sân</button>
                     <button onclick="switchTab('quy')" id="btn-quy" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Đóng Quỹ</button>
                     <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu Chi</button>
                     <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên</button>
                     <button onclick="switchTab('rules')" id="btn-rules" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
-                    <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 admin-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
+                    <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 owner-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
 
-                <div class="md:hidden flex items-center justify-between w-full">
+                <!-- Hàng hamburger cũ trên mobile đã được thay bằng bottom nav (xem #bottomNav cuối trang).
+                     Giữ nguyên #currentActiveTabLabel / #mobileHeaderUserDisplay trong DOM (ẩn) để không phá code JS đang tham chiếu tới. -->
+                <div class="hidden">
                     <button onclick="toggleMobileMenu()" class="bg-emerald-800 hover:bg-emerald-700 text-amber-300 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 shadow border border-emerald-700">
                         <i class="fa-solid fa-bars text-sm"></i> <span id="currentActiveTabLabel">Tổng quan</span>
                     </button>
@@ -823,17 +861,33 @@
                 <button onclick="switchTabMobile('matchLog', 'Nhật Ký Trận')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-list-check text-amber-300"></i> Nhật Ký Trận</button>
                 <button onclick="switchTabMobile('analytics', 'Phân tích')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart text-amber-300"></i> Phân tích</button>
                 <button onclick="switchTabMobile('gocLogs', 'Nộp Tiền')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-receipt text-amber-300"></i> Nộp Tiền</button>
-                <button onclick="switchTabMobile('finance', 'Tiền Góc')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-amber-300"></i> Tiền Góc</button>
+                <button onclick="switchTabMobile('finance', 'Bảng Tổng Kết')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-amber-300"></i> Bảng Tổng Kết</button>
                 <button onclick="switchTabMobile('booking', 'Thưởng Sân')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-amber-300"></i> Thưởng Sân</button>
                 <button onclick="switchTabMobile('quy', 'Đóng Quỹ')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-piggy-bank text-amber-300"></i> Đóng Quỹ</button>
                 <button onclick="switchTabMobile('cashbook', 'Sổ Thu Chi')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-amber-300"></i> Sổ Thu Chi</button>
                 <button onclick="switchTabMobile('members', 'Thành Viên')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-users text-amber-300"></i> Thành Viên</button>
                 <button onclick="switchTabMobile('rules', 'Quy định và thông báo')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
-                <button onclick="switchTabMobile('settings', 'Cài Đặt')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2 admin-only hidden"><i class="fa-solid fa-gears text-amber-300"></i> Cài Đặt</button>
+                <button onclick="switchTabMobile('settings', 'Cài Đặt')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2 owner-only hidden"><i class="fa-solid fa-gears text-amber-300"></i> Cài Đặt</button>
             </div>
         </header>
 
+        <!-- CHỈ BÁO KÉO-XUỐNG-ĐỂ-LÀM-MỚI (mobile) — nằm ngoài <main>, tự "đẩy" nội dung xuống khi cao lên, không dùng position:fixed để tránh án ngữ các nút khác (xem bài học từ lỗi #appToast). -->
+        <div id="ptrIndicator" class="md:hidden flex items-center justify-center gap-2 overflow-hidden" style="height:0px; transition:height .15s ease;">
+            <i id="ptrIcon" class="fa-solid fa-arrow-down text-emerald-700 text-xs"></i>
+            <span id="ptrText" class="text-[11px] font-bold text-emerald-700">Kéo xuống để làm mới</span>
+        </div>
+
         <main class="max-w-7xl mx-auto px-3 py-4 flex-grow w-full space-y-4">
+
+            <!-- PILL CON "TÀI CHÍNH" (mobile) — chỉ hiện khi đang ở 1 trong 4 tab con tài chính, xem syncBottomNavState() -->
+            <div id="financePillsBar" class="hidden md:hidden mb-1 -mt-1">
+                <div class="flex items-center gap-2 overflow-x-auto pb-1" style="scrollbar-width:none;">
+                    <button onclick="goFinanceTab('booking','Thưởng Sân')" id="fp-booking" class="fp-pill flex items-center gap-1.5 flex-shrink-0 px-3.5 py-2 rounded-full border text-xs font-bold"><i class="fa-solid fa-calendar-check"></i> Thưởng Sân</button>
+                    <button onclick="goFinanceTab('gocLogs','Nộp Tiền')" id="fp-gocLogs" class="fp-pill flex items-center gap-1.5 flex-shrink-0 px-3.5 py-2 rounded-full border text-xs font-bold"><i class="fa-solid fa-receipt"></i> Nộp Tiền</button>
+                    <button onclick="goFinanceTab('quy','Đóng Quỹ')" id="fp-quy" class="fp-pill flex items-center gap-1.5 flex-shrink-0 px-3.5 py-2 rounded-full border text-xs font-bold"><i class="fa-solid fa-piggy-bank"></i> Đóng Quỹ</button>
+                    <button onclick="goFinanceTab('finance','Bảng Tổng Kết')" id="fp-finance" class="fp-pill flex items-center gap-1.5 flex-shrink-0 px-3.5 py-2 rounded-full border text-xs font-bold"><i class="fa-solid fa-file-invoice-dollar"></i> Bảng Tổng Kết</button>
+                </div>
+            </div>
 
             <!-- TAB 1: TỔNG QUAN -->
             <section id="tab-dashboard" class="tab-content active space-y-4">
@@ -858,7 +912,8 @@
                         </div>
                     </div>
 
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <!-- Trên mobile, khối này được thay bằng nút nổi "Ghi nhận" ở bottom nav (dùng chung các input/hàm bên dưới, xem ghiNhanGo() trong ui.js). -->
+                    <div class="hidden md:block bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase mb-2">TÁC VỤ NHANH (*):</label>
                         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-700">
                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="actType" value="goc" checked class="w-3.5 h-3.5 text-emerald-600"> Kết quả trận góc</label>
@@ -1346,16 +1401,21 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="space-y-1.5 bg-slate-50 p-3 rounded-xl border text-xs">
                             <h3 class="font-bold text-[11px] text-slate-700 uppercase mb-2">DANH MỤC THU / CHI</h3>
-                            <button onclick="selectCategory('Tiền quỹ QUÝ')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">1. Tiền quỹ QUÝ</button>
-                            <button onclick="selectCategory('Tiền góc thực thu')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">2. Tiền góc thực thu</button>
-                            <button onclick="selectCategory('Tiền bán sân')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-50 hover:bg-emerald-100">3. Tiền bán sân</button>
-                            <button onclick="selectCategory('Tiền ủng hộ / Tài trợ')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-50 hover:bg-emerald-100">4. Tiền ủng hộ / Tài trợ</button>
-                            <hr class="my-1">
-                            <button onclick="selectCategory('Tiền app sân')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">5. Tiền app sân</button>
-                            <button onclick="selectCategory('Tiền mua bóng')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">6. Tiền mua bóng</button>
-                            <button onclick="selectCategory('Tiền thưởng đặt sân')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">7. Tiền thưởng đặt sân</button>
-                            <button onclick="selectCategory('Tiền chi liên hoan ăn nhậu')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">8. Tiền chi liên hoan ăn nhậu</button>
-                            <button onclick="selectCategory('Tiền chi khác (Hiếu, Hỷ,...)')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">9. Tiền chi khác (Hiếu, Hỷ,...)</button>
+                            <!-- Pill Thu/Chi: chỉ hiện trên mobile, lọc danh sách bên dưới qua data-cbgroup (xem setCashbookGroup() trong ui.js) -->
+                            <div class="flex md:hidden gap-2 pb-2 mb-1 border-b overflow-x-auto">
+                                <button type="button" onclick="setCashbookGroup('thu')" id="cbPillThu" class="cb-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold">Khoản Thu</button>
+                                <button type="button" onclick="setCashbookGroup('chi')" id="cbPillChi" class="cb-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold">Khoản Chi</button>
+                            </div>
+                            <button data-cbgroup="thu" onclick="selectCategory('Tiền quỹ QUÝ')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">1. Tiền quỹ QUÝ</button>
+                            <button data-cbgroup="thu" onclick="selectCategory('Tiền góc thực thu')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200">2. Tiền góc thực thu</button>
+                            <button data-cbgroup="thu" onclick="selectCategory('Tiền bán sân')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-50 hover:bg-emerald-100">3. Tiền bán sân</button>
+                            <button data-cbgroup="thu" onclick="selectCategory('Tiền ủng hộ / Tài trợ')" class="w-full text-left p-1.5 rounded font-bold bg-emerald-50 hover:bg-emerald-100">4. Tiền ủng hộ / Tài trợ</button>
+                            <hr data-cbgroup="thu" class="my-1">
+                            <button data-cbgroup="chi" onclick="selectCategory('Tiền app sân')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">5. Tiền app sân</button>
+                            <button data-cbgroup="chi" onclick="selectCategory('Tiền mua bóng')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">6. Tiền mua bóng</button>
+                            <button data-cbgroup="chi" onclick="selectCategory('Tiền thưởng đặt sân')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">7. Tiền thưởng đặt sân</button>
+                            <button data-cbgroup="chi" onclick="selectCategory('Tiền chi liên hoan ăn nhậu')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">8. Tiền chi liên hoan ăn nhậu</button>
+                            <button data-cbgroup="chi" onclick="selectCategory('Tiền chi khác (Hiếu, Hỷ,...)')" class="w-full text-left p-1.5 rounded font-bold bg-red-50 hover:bg-red-100">9. Tiền chi khác (Hiếu, Hỷ,...)</button>
                         </div>
 
                         <div class="md:col-span-2 bg-slate-50 p-3 rounded-xl border space-y-3">
@@ -1384,7 +1444,7 @@
                             <h2 class="text-base font-bold text-slate-800">DANH SÁCH THÀNH VIÊN CLB</h2>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                            <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1 owner-only hidden"><i class="fa-solid fa-file-excel"></i> Backup Excel</button>
                             <button onclick="openAddMemberModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow admin-only">+ Thêm</button>
                         </div>
                     </div>
@@ -1666,6 +1726,159 @@
             </section>
 
         </main>
+
+        <!-- ============================================================
+             BOTTOM NAV (MOBILE) — Tổng quan / Tài chính / Ghi nhận / Sổ thu chi / Thêm
+             ============================================================ -->
+        <nav id="bottomNav" class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-slate-200" style="box-shadow:0 -2px 10px rgba(15,23,42,0.08); padding-bottom:env(safe-area-inset-bottom,0px);">
+            <div class="grid grid-cols-5 items-end px-1 pt-1.5 pb-1">
+                <button type="button" onclick="switchTabMobile('dashboard','Tổng quan')" id="bn-dashboard" class="bn-item flex flex-col items-center gap-0.5 py-1">
+                    <i class="fa-solid fa-chart-pie text-lg"></i>
+                    <span class="text-[9.5px] font-bold">Tổng quan</span>
+                </button>
+                <button type="button" onclick="openFinanceHub()" id="bn-finance" class="bn-item flex flex-col items-center gap-0.5 py-1">
+                    <i class="fa-solid fa-wallet text-lg"></i>
+                    <span class="text-[9.5px] font-bold">Tài chính</span>
+                </button>
+                <button type="button" onclick="toggleGhiNhanSheet()" id="bn-ghinhan" class="flex flex-col items-center -mt-8">
+                    <span id="ghiNhanFabBtn" class="w-14 h-14 rounded-full bg-emerald-700 text-white flex items-center justify-center border-4 border-white" style="box-shadow:0 10px 18px -6px rgba(4,120,87,0.55);">
+                        <i id="ghiNhanFabIcon" class="fa-solid fa-pen-to-square text-xl"></i>
+                    </span>
+                    <span class="text-[9.5px] font-extrabold text-emerald-700 mt-0.5">Ghi nhận</span>
+                </button>
+                <button type="button" onclick="switchTabMobile('cashbook','Sổ thu chi')" id="bn-cashbook" class="bn-item flex flex-col items-center gap-0.5 py-1">
+                    <i class="fa-solid fa-book-bookmark text-lg"></i>
+                    <span class="text-[9.5px] font-bold">Sổ thu chi</span>
+                </button>
+                <button type="button" onclick="openMoreSheet()" id="bn-more" class="bn-item flex flex-col items-center gap-0.5 py-1">
+                    <i class="fa-solid fa-grip text-lg"></i>
+                    <span class="text-[9.5px] font-bold">Thêm</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- ============================================================
+             GHI NHẬN — bottom sheet nổi lên từ nút FAB
+             ============================================================ -->
+        <div id="ghiNhanOverlay" onclick="closeGhiNhanSheet()" class="md:hidden hidden fixed inset-0 bg-slate-900/55 z-40"></div>
+        <div id="ghiNhanSheet" class="md:hidden hidden fixed inset-x-0 z-50 flex flex-col items-center gap-2.5" style="bottom:126px;">
+            <button type="button" onclick="ghiNhanGo('match')" class="ghi-nhan-opt">
+                <span class="flex-1 text-left">Ghi trận</span>
+                <span class="ghi-nhan-opt-icon bg-emerald-50 text-emerald-700"><i class="fa-solid fa-pen-to-square"></i></span>
+            </button>
+            <button type="button" onclick="ghiNhanGo('dat16')" class="ghi-nhan-opt">
+                <span class="flex-1 text-left">Thưởng sân 16h</span>
+                <span class="ghi-nhan-opt-icon bg-indigo-50 text-indigo-700"><i class="fa-solid fa-calendar-check"></i></span>
+            </button>
+            <button type="button" onclick="ghiNhanGo('dat18')" class="ghi-nhan-opt">
+                <span class="flex-1 text-left">Thưởng sân 18h</span>
+                <span class="ghi-nhan-opt-icon bg-indigo-50 text-indigo-700"><i class="fa-solid fa-calendar-check"></i></span>
+            </button>
+            <button type="button" onclick="ghiNhanGo('quy')" class="ghi-nhan-opt">
+                <span class="flex-1 text-left">Đóng quỹ</span>
+                <span class="ghi-nhan-opt-icon bg-amber-50 text-amber-700"><i class="fa-solid fa-piggy-bank"></i></span>
+            </button>
+        </div>
+
+        <!-- ============================================================
+             THÊM — bottom sheet
+             ============================================================ -->
+        <div id="moreOverlay" onclick="closeMoreSheet()" class="md:hidden hidden fixed inset-0 bg-slate-900/55 z-40"></div>
+        <div id="moreSheet" class="md:hidden hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl" style="box-shadow:0 -10px 30px rgba(15,23,42,0.25); padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));">
+            <div class="w-10 h-1 rounded-full bg-slate-200 mx-auto mt-2.5 mb-1"></div>
+            <div class="px-4 pb-1 pt-1 font-extrabold text-sm text-slate-900">Thêm</div>
+            <div class="px-4 flex flex-col">
+                <button type="button" onclick="moreGo('matchLog','Nhật Ký Trận')" class="more-row">
+                    <span class="more-row-icon"><i class="fa-solid fa-list-check"></i></span>
+                    <span class="flex-1 text-left">Nhật Ký Trận</span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>
+                <button type="button" onclick="moreGo('members','Thành Viên')" class="more-row">
+                    <span class="more-row-icon"><i class="fa-solid fa-users"></i></span>
+                    <span class="flex-1 text-left">Thành Viên</span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>
+                <button type="button" onclick="moreGo('analytics','Phân tích')" class="more-row">
+                    <span class="more-row-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></span>
+                    <span class="flex-1 text-left">Phân tích</span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>
+                <button type="button" onclick="moreGo('rules','Quy định')" class="more-row">
+                    <span class="more-row-icon"><i class="fa-solid fa-bullhorn"></i></span>
+                    <span class="flex-1 text-left">Quy định</span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>
+                <button type="button" onclick="moreGo('settings','Cài Đặt')" class="more-row owner-only hidden">
+                    <span class="more-row-icon"><i class="fa-solid fa-gears"></i></span>
+                    <span class="flex-1 text-left">Cài Đặt</span>
+                    <span class="text-[9px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">OWNER</span>
+                </button>
+                <button type="button" onclick="replayOnboardingTour()" class="more-row">
+                    <span class="more-row-icon"><i class="fa-solid fa-circle-info"></i></span>
+                    <span class="flex-1 text-left">Xem hướng dẫn sử dụng</span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>
+                <button type="button" onclick="closeMoreSheet(); openUserProfileModal();" class="more-row">
+                    <span class="more-row-icon"><i class="fa-solid fa-user-shield"></i></span>
+                    <span class="flex-1 text-left">Tài khoản của tôi</span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>
+                <button type="button" onclick="logout()" class="more-row" style="color:#dc2626;">
+                    <span class="more-row-icon" style="background:#fef2f2; color:#dc2626;"><i class="fa-solid fa-right-from-bracket"></i></span>
+                    <span class="flex-1 text-left font-extrabold">Đăng xuất</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             ONBOARDING TOUR - bong bóng giới thiệu giao diện mới
+             (chỉ mobile). #onbClickBlocker chặn chạm ra ngoài, có 1 lỗ
+             clip-path đúng vị trí nút đang giới thiệu để nút đó vẫn bấm
+             được. #onbHighlightRing dùng box-shadow phủ tối toàn màn
+             hình TRỪ đúng vị trí nút (hiệu ứng spotlight), không cần vẽ
+             overlay tối riêng.
+             ========================================================== -->
+        <div id="onbClickBlocker" class="md:hidden hidden fixed inset-0 z-[9999]"></div>
+
+        <div id="onbHighlightRing" class="md:hidden hidden fixed z-[10000] pointer-events-none" style="box-shadow:0 0 0 9999px rgba(15,23,42,.75); transition:left .25s ease, top .25s ease, width .25s ease, height .25s ease, border-radius .25s ease;"></div>
+
+        <div id="onbTooltip" class="md:hidden hidden fixed z-[10001] bg-white rounded-2xl shadow-2xl p-4" style="width:260px; transition:left .25s ease, top .25s ease;">
+            <div class="flex items-center justify-between mb-2">
+                <span id="onbStepDots" class="flex gap-1"></span>
+                <button type="button" onclick="skipOnboardingTour()" class="text-slate-400 hover:text-slate-600 text-[11px] font-bold">Bỏ qua</button>
+            </div>
+            <h4 id="onbStepTitle" class="font-black text-slate-800 text-sm mb-1">Tổng quan</h4>
+            <p id="onbStepDesc" class="text-xs text-slate-600 leading-relaxed mb-3">Nội dung hướng dẫn.</p>
+            <button type="button" id="onbNextBtn" onclick="nextOnboardingStep()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-2 rounded-xl text-xs">Tiếp theo</button>
+        </div>
+    </div>
+
+    <!-- ==========================================================
+         YÊU CẦU BẬT THÔNG BÁO SAU HƯỚNG DẪN
+
+         Không có nút X và không đóng khi bấm ra ngoài: thành viên phải
+         bấm nút chính để trình duyệt hiện hộp Allow/Block. Nếu thiết bị
+         không hỗ trợ hoặc quyền đã bị chặn, nội dung sẽ đổi sang hướng
+         dẫn và cho phép tiếp tục để tránh khóa người dùng khỏi app.
+         ========================================================== -->
+    <div id="pushPermissionPromptModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm hidden items-center justify-center z-[10020] p-4" role="dialog" aria-modal="true" aria-labelledby="pushPermissionPromptTitle">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <h3 id="pushPermissionPromptTitle" class="font-black text-slate-900 text-base uppercase mt-4">BẬT THÔNG BÁO TỪ CLB</h3>
+            <p id="pushPermissionPromptDesc" class="text-xs text-slate-600 font-semibold leading-relaxed mt-2">Nhận ngay thông báo về trận đấu, thưởng sân, đóng quỹ và các hoạt động mới của CLB.</p>
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mt-4 text-left">
+                <p class="text-[11px] text-emerald-900 font-bold leading-relaxed"><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Hãy chọn <span class="font-black">Cho phép / Allow</span> khi điện thoại hoặc trình duyệt hỏi quyền thông báo.</p>
+            </div>
+            <p id="pushPermissionPromptNote" class="hidden text-[11px] text-red-600 font-bold mt-3"></p>
+            <button type="button" id="pushPermissionPromptEnableBtn" onclick="confirmPushPermissionFromPrompt_()" class="w-full bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 disabled:cursor-wait text-white font-black py-3.5 rounded-xl text-xs shadow-lg transition mt-5">
+                <i class="fa-solid fa-bell"></i> BẬT THÔNG BÁO NGAY
+            </button>
+            <button type="button" id="pushPermissionPromptContinueBtn" onclick="closePushPermissionPrompt_()" class="hidden w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold py-3 rounded-xl text-xs mt-5">
+                TIẾP TỤC VÀO ỨNG DỤNG
+            </button>
+        </div>
     </div>
 
     <!-- MODAL TRA CỨU CÁ NHÂN -->
@@ -1859,6 +2072,28 @@
         </div>
     </div>
 
+    <!-- TRUNG TÂM THÔNG BÁO (chuông 🔔) -->
+    <div id="notificationCenterModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[300] p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl flex flex-col" style="max-height:85dvh;">
+            <div class="flex items-center justify-between p-4 border-b border-slate-100">
+                <h3 class="font-black text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-bell text-emerald-700"></i> Thông báo</h3>
+                <button onclick="closeNotificationCenterModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="p-3 border-b border-slate-100">
+                <button type="button" id="pushToggleBtn" onclick="enablePushNotifications()" class="w-full flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold py-2.5 px-3 rounded-xl text-xs transition">
+                    <i class="fa-solid fa-bell"></i> <span class="flex-1 text-left">Bật thông báo đẩy</span>
+                </button>
+            </div>
+
+            <div id="notificationCenterList" class="overflow-y-auto flex-1"></div>
+
+            <div class="p-3 border-t border-slate-100">
+                <button type="button" onclick="clearAllNotifications()" class="w-full text-red-600 hover:bg-red-50 font-bold py-2 rounded-xl text-xs transition">Xoá tất cả thông báo</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL HIỂN THỊ TÊN KHI BẤM ICON THÀNH VIÊN + NÚT THOÁT AN TOÀN -->
     <div id="userProfileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-6 space-y-4 shadow-2xl text-center relative">
@@ -2028,6 +2263,8 @@
     <script src="js/modules/matches.js"></script>
     <script src="js/modules/dashboard.js"></script>
     <script src="js/modules/settings.js"></script>
+    <script src="js/modules/notifications.js"></script>
+    <script src="js/modules/onboarding.js"></script>
     <script src="js/init.js"></script>
     <script src="js/app.js"></script>
     <script>
@@ -2700,13 +2937,70 @@
                     button.querySelector('i')?.classList.add('fa-spin');
                 }
 
+                if (typeof window.showCloudLoading_ === 'function') {
+                    window.showCloudLoading_();
+                }
+
+                function finishRefresh_(success) {
+                    if (typeof window.hideCloudLoading_ === 'function') {
+                        window.hideCloudLoading_();
+                    }
+                    if (button) {
+                        button.dataset.refreshing = '';
+                        button.disabled = false;
+                        button.querySelector('i')?.classList.remove('fa-spin');
+                    }
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(
+                            success ? 'Đã cập nhật dữ liệu mới nhất!' : 'Không thể tải dữ liệu mới. Kiểm tra lại mạng.',
+                            success ? 'success' : 'warning'
+                        );
+                    }
+                }
+
                 try {
                     if ('serviceWorker' in navigator) {
                         const registrations = await navigator.serviceWorker.getRegistrations();
                         await Promise.allSettled(registrations.map(registration => registration.update()));
                     }
-                } finally {
-                    window.location.reload();
+                } catch (err) {
+                    console.warn('SERVICE WORKER UPDATE ERROR:', err);
+                }
+
+                // Làm mới dữ liệu nền (Members, Settings, tháng hiện tại...)
+                // KHÔNG reload cả trang — tránh cảm giác "phải logout mới thấy mới".
+                if (typeof window.fetchCloudData === 'function') {
+                    window.fetchCloudData(true, function() {
+
+                        // Nếu người dùng đang xem 1 tháng cụ thể (không phải tháng
+                        // hiện tại) ở tab Nhật Ký Trận / Thưởng Sân, ép tải lại đúng
+                        // tháng đó bỏ qua mọi cache cũ.
+                        try {
+                            let selected =
+                                typeof window.getSelectedMatchDateParts_ === 'function'
+                                    ? window.getSelectedMatchDateParts_()
+                                    : null;
+
+                            let now = new Date();
+                            let targetMonth = selected ? selected.month : (now.getMonth() + 1);
+                            let targetYear = selected ? selected.year : now.getFullYear();
+
+                            if (typeof window.fetchMonthData === 'function') {
+                                window.fetchMonthData(targetMonth, targetYear, false, function() {
+                                    finishRefresh_(true);
+                                }, true);
+                                return;
+                            }
+                        } catch (err) {
+                            console.warn('FORCE REFRESH MONTH DATA ERROR:', err);
+                        }
+
+                        finishRefresh_(true);
+                    }, function() {
+                        finishRefresh_(false);
+                    });
+                } else {
+                    finishRefresh_(false);
                 }
             };
 

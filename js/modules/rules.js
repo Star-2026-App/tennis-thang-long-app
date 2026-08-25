@@ -6,7 +6,7 @@ function addNewRule(e) {
 
     let newRule = {
         id: Date.now(),
-        time: new Date().toLocaleString('vi-VN'),
+        time: formatVNDateTime_(),
         title: title,
         content: content
     };
@@ -54,18 +54,30 @@ function renderRulesTab() {
     let combinedRules = rulesList.length > 0 ? rulesList : defaultRules;
     combinedRules.sort((a, b) => parseInt(b.id) - parseInt(a.id));
 
+    // (v2.0 - điểm yếu #9, stored XSS): title/content là dữ liệu do
+    // người dùng nhập (đăng thông báo/quy định) - PHẢI escape trước
+    // khi chèn vào innerHTML, nếu không 1 quy định có nội dung như
+    // <img src=x onerror=...> sẽ chạy trên máy MỌI thành viên khác
+    // xem tab này.
     combinedRules.forEach((r) => {
-        let deleteBtn = (currentUserRole === 'admin') ? `<button onclick="deleteRule(${r.id})" class="text-red-600 font-bold text-xs"><i class="fa-solid fa-trash"></i></button>` : '';
+        let safeTitle = (typeof escapeHtml_ === 'function') ? escapeHtml_(r.title) : String(r.title || '');
+        let safeContent = (typeof escapeHtml_ === 'function') ? escapeHtml_(r.content) : String(r.content || '');
+        let safeTime = (typeof escapeHtml_ === 'function') ? escapeHtml_(formatVNTimeForDisplay_(r.time)) : String(r.time || '');
+
+        let deleteBtn = (currentUserRole === 'admin' || currentUserRole === 'owner')
+            ? `<button onclick="deleteRule(${parseInt(r.id) || 0})" class="text-red-600 font-bold text-xs"><i class="fa-solid fa-trash"></i></button>`
+            : '';
+
         container.innerHTML += `
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
                 <div class="flex justify-between items-start">
-                    <h3 class="font-black text-emerald-900 text-xs md:text-sm flex items-center gap-1.5"><i class="fa-solid fa-circle-chevron-right text-emerald-600 text-xs"></i> ${r.title}</h3>
+                    <h3 class="font-black text-emerald-900 text-xs md:text-sm flex items-center gap-1.5"><i class="fa-solid fa-circle-chevron-right text-emerald-600 text-xs"></i> ${safeTitle}</h3>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded border">${r.time}</span>
+                        <span class="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded border">${safeTime}</span>
                         ${deleteBtn}
                     </div>
                 </div>
-                <p class="text-xs text-slate-700 whitespace-pre-line leading-relaxed pl-4">${r.content}</p>
+                <p class="text-xs text-slate-700 whitespace-pre-line leading-relaxed pl-4">${safeContent}</p>
             </div>
         `;
     });

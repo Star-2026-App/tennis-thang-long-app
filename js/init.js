@@ -78,6 +78,10 @@ function initApp() {
 
 
     safeRun_("applyRolePermissions", applyRolePermissions);
+
+    safeRun_("renderNotificationBadge", renderNotificationBadge);
+
+    safeRun_("updatePushToggleUi_", updatePushToggleUi_);
 }
 
 
@@ -245,9 +249,11 @@ function recalculateMemberPaidTotals() {
                 .filter(
                     function(g) {
 
-                        return (
-                            g.name ===
-                            m.name
+                        return recordBelongsToMember_(
+                            g,
+                            m,
+                            "memberStt",
+                            "name"
                         );
                     }
                 );
@@ -422,9 +428,11 @@ function populateSelectors() {
                 loggedInMemberName;
 
 
+            // (v2.0) Ma trận quyền: "Thao tác cá nhân" - Member chỉ xem
+            // được chính mình, Admin/Owner xem được mọi thành viên.
             if (
-                currentUserRole !==
-                "admin"
+                currentUserRole !== "admin" &&
+                currentUserRole !== "owner"
             ) {
 
                 dashSelect.disabled =

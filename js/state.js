@@ -1,5 +1,14 @@
+// ======================================================
+// v2.0: currentUserRole giờ có 3 giá trị THẬT do SERVER xác nhận
+// qua /api/auth/login hoặc /api/auth/session - 'owner' | 'admin' |
+// 'member'. Trình duyệt không còn tự suy ra role từ STT nữa (xem
+// auth.js - đã bỏ hoàn toàn logic "isSystemAdmin = stt===1||2||15").
+// loggedInMemberStt dùng làm khoá namespace localStorage/syncQueue
+// theo TỪNG actor (storage.js, api.js) - sửa điểm yếu #6/#11.
+// ======================================================
 let currentUserRole = "member";
 let loggedInMemberName = "";
+let loggedInMemberStt = 0;
 let openingBalance = 2656160;
 
 let systemSettings = {
@@ -23,6 +32,7 @@ let rulesList = [];
 
 let syncQueue = [];
 let isSyncing = false;
+let syncIntervalId = null;
 
 let financeSortField = 'stt';
 let financeSortAsc = true;

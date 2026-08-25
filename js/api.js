@@ -49,6 +49,83 @@ window.activeDataYear =
 
 
 // ======================================================
+// v2.0 - TRANSPORT DUY NHẤT TỚI BACKEND (Vercel BFF)
+// ======================================================
+//
+// TOÀN BỘ network call trong app (api.js, finance.js, matches.js,
+// notifications.js...) đi qua 2 hàm này. KHÔNG còn JSONP, KHÔNG
+// còn GOOGLE_SCRIPT_URL/API_TOKEN trong frontend - mọi request
+// đều same-origin (`credentials:'include'` để gửi kèm session
+// cookie HttpOnly).
+// ======================================================
+
+function generateIdempotencyKey_() {
+
+    if (
+        window.crypto &&
+        typeof crypto.randomUUID === "function"
+    ) {
+        return crypto.randomUUID();
+    }
+
+    return (
+        "idem-" + Date.now() + "-" +
+        Math.random().toString(36).slice(2)
+    );
+}
+
+// Gọi 1 action GHI qua POST /api/actions/write. Trả về Promise
+// resolve với JSON {status, result} hoặc {status:"ERROR", message}
+// - KHÔNG BAO GIỜ reject vì lỗi nghiệp vụ (chỉ reject khi mất
+// mạng/không parse được JSON), để nơi gọi tự phân biệt 2 loại lỗi
+// giống hệt hành vi JSONP cũ.
+function callBackendAction_(action, data, idempotencyKey) {
+
+    return fetch("/api/actions/write", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: action,
+            data: data || {},
+            idempotencyKey: idempotencyKey || generateIdempotencyKey_()
+        })
+    }).then(function(res) {
+        return res.json();
+    });
+}
+
+// Gọi 1 action ĐỌC qua GET /api/data/<đường dẫn tương ứng>. Trả về
+// Promise resolve với PHẦN "result" đã bóc vỏ (shape giống hệt
+// response Apps Script trả trực tiếp trước đây - có .status ở
+// gốc), để updateStateFromCloud()/các callback cũ không cần sửa gì.
+function callBackendRead_(path) {
+
+    return fetch(path, {
+        method: "GET",
+        credentials: "include"
+    }).then(function(res) {
+        return res.json().then(function(json) {
+            return { statusCode: res.status, json: json };
+        }).catch(function(err) {
+            err.statusCode = res.status;
+            throw err;
+        });
+    }).then(function(response) {
+
+        var json = response.json;
+
+        if (!json || json.status !== "SUCCESS") {
+            var readErr = new Error((json && json.message) || "Không tải được dữ liệu.");
+            readErr.statusCode = response.statusCode;
+            throw readErr;
+        }
+
+        return json.result;
+    });
+}
+
+// ======================================================
 // COMMON HELPERS
 // ======================================================
 
@@ -310,9 +387,64 @@ function getMonthBookingsCached_(
 // MEMBER STATS LOCAL
 // ======================================================
 
+function normalizeMemberStatsLocalByStt_(list) {
+
+    let byIdentity = {};
+
+    (Array.isArray(list) ? list : []).forEach(function(item) {
+
+        if (!item) return;
+
+        let stt = parseInt(item.stt) || 0;
+        let key = stt > 0
+            ? "stt:" + stt
+            : "name:" + normalizePhase3Name_(item.name);
+
+        if (!byIdentity[key]) {
+            let currentMember = stt > 0
+                ? (members || []).find(function(member) {
+                    return parseInt(member.stt) === stt;
+                })
+                : null;
+
+            byIdentity[key] = {
+                stt: stt,
+                name: currentMember ? currentMember.name : item.name,
+                wins: 0,
+                losses: 0,
+                draws: 0,
+                totalMatches: 0,
+                updatedAt: item.updatedAt || ""
+            };
+        }
+
+        let wins = parseInt(item.wins) || 0;
+        let losses = parseInt(item.losses) || 0;
+        let draws = parseInt(item.draws) || 0;
+
+        byIdentity[key].wins += wins;
+        byIdentity[key].losses += losses;
+        byIdentity[key].draws += draws;
+        byIdentity[key].totalMatches +=
+            parseInt(item.totalMatches) || (wins + losses + draws);
+    });
+
+    return Object.keys(byIdentity)
+        .map(function(key) { return byIdentity[key]; })
+        .sort(function(a, b) {
+            return (parseInt(a.stt) || 999999) -
+                (parseInt(b.stt) || 999999);
+        });
+}
+
+
 function getMemberStatLocal_(
-    memberName
+    memberName,
+    memberStt
 ) {
+
+    let stableStt =
+        parseInt(memberStt) || 0;
 
     let key =
         normalizePhase3Name_(
@@ -325,6 +457,13 @@ function getMemberStatLocal_(
     )
     .find(
         function(item) {
+
+            if (
+                stableStt > 0 &&
+                parseInt(item.stt) > 0
+            ) {
+                return parseInt(item.stt) === stableStt;
+            }
 
             return (
                 normalizePhase3Name_(
@@ -395,6 +534,7 @@ function applyMemberStatsMatchLocal_(
 
     function applyPlayer_(
         name,
+        stt,
         resultType
     ) {
 
@@ -410,7 +550,8 @@ function applyMemberStatsMatchLocal_(
 
         let stat =
             getMemberStatLocal_(
-                name
+                name,
+                stt
             );
 
 
@@ -485,14 +626,15 @@ function applyMemberStatsMatchLocal_(
 
 
     [
-        match.p1_v1,
-        match.p2_v1
+        { name: match.p1_v1, stt: match.p1_v1_stt },
+        { name: match.p2_v1, stt: match.p2_v1_stt }
     ]
     .forEach(
-        function(name) {
+        function(player) {
 
             applyPlayer_(
-                name,
+                player.name,
+                player.stt,
                 teamAResult
             );
         }
@@ -500,14 +642,15 @@ function applyMemberStatsMatchLocal_(
 
 
     [
-        match.p1_v2,
-        match.p2_v2
+        { name: match.p1_v2, stt: match.p1_v2_stt },
+        { name: match.p2_v2, stt: match.p2_v2_stt }
     ]
     .forEach(
-        function(name) {
+        function(player) {
 
             applyPlayer_(
-                name,
+                player.name,
+                player.stt,
                 teamBResult
             );
         }
@@ -853,6 +996,331 @@ function removeIdFromMonthCaches_(
 
 
 // ======================================================
+// v2.0.5 - ĐỒNG BỘ ID TẠM VỚI ID THẬT DO SERVER CẤP
+// ======================================================
+
+function getCreateActionRecordConfig_(actionName) {
+
+    let configs = {
+        addMatch: {
+            payloadKey: "match",
+            sheetName: "Matches",
+            collectionName: "matches",
+            updateAction: "updateMatch"
+        },
+        addGocLog: {
+            payloadKey: "gocLog",
+            sheetName: "GocLogs",
+            collectionName: "gocLogs",
+            updateAction: "updateGocLog"
+        },
+        addGocLogAdjustment: {
+            payloadKey: "gocLog",
+            sheetName: "GocLogs",
+            collectionName: "gocLogs",
+            updateAction: "updateGocLog"
+        },
+        addQuyLog: {
+            payloadKey: "quyLog",
+            sheetName: "QuyLogs",
+            collectionName: "quyLogs"
+        },
+        addBooking: {
+            payloadKey: "booking",
+            sheetName: "Bookings",
+            collectionName: "bookingLogs"
+        },
+        addCashbook: {
+            payloadKey: "cashbook",
+            sheetName: "Cashbook",
+            collectionName: "cashbookLogs"
+        },
+        addRule: {
+            payloadKey: "rule",
+            sheetName: "Rules",
+            collectionName: "rulesList"
+        }
+    };
+
+    return configs[actionName] || null;
+}
+
+
+function mergeRecordById_(collection, oldId, record) {
+
+    if (!Array.isArray(collection)) return 0;
+
+    let mergedCount = 0;
+
+    collection.forEach(function(item) {
+        if (item && String(item.id) === String(oldId)) {
+            Object.assign(item, record);
+            mergedCount++;
+        }
+    });
+
+    return mergedCount;
+}
+
+
+function hasQueuedDeleteForRecord_(config, id) {
+
+    return (syncQueue || []).some(function(queued, index) {
+        return index > 0 &&
+            queued &&
+            queued.action === "deleteItem" &&
+            queued.sheetName === config.sheetName &&
+            String(queued.id) === String(id);
+    });
+}
+
+
+function rewriteQueuedRecordReferences_(config, temporaryId, serverId) {
+
+    (syncQueue || []).forEach(function(queued, index) {
+
+        // syncQueue[0] là action create đang được xác nhận.
+        if (!queued || index === 0) return;
+
+        if (
+            queued.action === "deleteItem" &&
+            queued.sheetName === config.sheetName &&
+            String(queued.id) === String(temporaryId)
+        ) {
+            queued.id = serverId;
+        }
+
+        if (
+            config.updateAction &&
+            queued.action === config.updateAction &&
+            queued[config.payloadKey] &&
+            String(queued[config.payloadKey].id) === String(temporaryId)
+        ) {
+            queued[config.payloadKey].id = serverId;
+        }
+    });
+}
+
+
+function discardQueuedRecordDependencies_(config, temporaryId) {
+
+    syncQueue = (syncQueue || []).filter(function(queued, index) {
+
+        if (!queued || index === 0) return true;
+
+        let isDelete =
+            queued.action === "deleteItem" &&
+            queued.sheetName === config.sheetName &&
+            String(queued.id) === String(temporaryId);
+
+        let isUpdate =
+            config.updateAction &&
+            queued.action === config.updateAction &&
+            queued[config.payloadKey] &&
+            String(queued[config.payloadKey].id) === String(temporaryId);
+
+        return !isDelete && !isUpdate;
+    });
+}
+
+
+function overlayPendingRecordUpdates_(config, serverRecord) {
+
+    if (!config.updateAction) return serverRecord;
+
+    (syncQueue || []).forEach(function(queued, index) {
+        if (
+            index > 0 &&
+            queued &&
+            queued.action === config.updateAction &&
+            queued[config.payloadKey] &&
+            String(queued[config.payloadKey].id) === String(serverRecord.id)
+        ) {
+            Object.assign(serverRecord, queued[config.payloadKey]);
+        }
+    });
+
+    return serverRecord;
+}
+
+
+function reconcileCreatedRecordWithServer_(item, serverResult) {
+
+    let config =
+        getCreateActionRecordConfig_(item && item.action);
+
+    if (!config) return false;
+
+    let temporaryId =
+        item.__tempRecordId !== undefined &&
+        item.__tempRecordId !== null
+            ? item.__tempRecordId
+            : (
+                item[config.payloadKey] &&
+                item[config.payloadKey].id
+            );
+
+    if (
+        temporaryId === undefined ||
+        temporaryId === null ||
+        !serverResult ||
+        serverResult.id === undefined ||
+        serverResult.id === null
+    ) {
+        throw new Error(
+            "Backend không trả ID thật cho action " + item.action + "."
+        );
+    }
+
+    let serverId = serverResult.id;
+    let pendingDelete =
+        hasQueuedDeleteForRecord_(config, temporaryId);
+
+    // Phải đổi ID trong các action đang chờ TRƯỚC KHI processQueue
+    // gửi action kế tiếp. Đây là phần bảo đảm add -> edit/delete nhanh
+    // vẫn dùng đúng ID thật do Apps Script cấp.
+    rewriteQueuedRecordReferences_(
+        config,
+        temporaryId,
+        serverId
+    );
+
+    let localRecord =
+        overlayPendingRecordUpdates_(
+            config,
+            Object.assign({}, serverResult)
+        );
+
+    let mergedCount = 0;
+
+    if (config.collectionName === "matches") {
+        Object.keys(window.monthDataCache || {}).forEach(function(key) {
+            mergedCount += mergeRecordById_(
+                (window.monthDataCache[key] || {}).matches,
+                temporaryId,
+                localRecord
+            );
+        });
+        mergedCount += mergeRecordById_(matches, temporaryId, localRecord);
+
+        if (!mergedCount && !pendingDelete) {
+            addMatchToLocalMonthCache_(localRecord);
+        }
+    }
+
+    else if (config.collectionName === "bookingLogs") {
+        Object.keys(window.monthDataCache || {}).forEach(function(key) {
+            mergedCount += mergeRecordById_(
+                (window.monthDataCache[key] || {}).bookingLogs,
+                temporaryId,
+                localRecord
+            );
+        });
+        mergedCount += mergeRecordById_(bookingLogs, temporaryId, localRecord);
+
+        if (!mergedCount && !pendingDelete) {
+            addBookingToLocalMonthCache_(localRecord);
+        }
+    }
+
+    else if (config.collectionName === "gocLogs") {
+        mergedCount = mergeRecordById_(gocLogs, temporaryId, localRecord);
+        if (!mergedCount && !pendingDelete) gocLogs.unshift(localRecord);
+    }
+
+    else if (config.collectionName === "quyLogs") {
+        mergedCount = mergeRecordById_(quyLogs, temporaryId, localRecord);
+        if (!mergedCount && !pendingDelete) quyLogs.unshift(localRecord);
+    }
+
+    else if (config.collectionName === "cashbookLogs") {
+        mergedCount = mergeRecordById_(cashbookLogs, temporaryId, localRecord);
+        if (!mergedCount && !pendingDelete) cashbookLogs.unshift(localRecord);
+    }
+
+    else if (config.collectionName === "rulesList") {
+        mergedCount = mergeRecordById_(rulesList, temporaryId, localRecord);
+        if (!mergedCount && !pendingDelete) rulesList.unshift(localRecord);
+    }
+
+    return true;
+}
+
+
+function applyAuthoritativeUpdateResult_(actionName, serverResult) {
+
+    if (!serverResult || serverResult.id === undefined) return false;
+
+    if (actionName === "updateMatch") {
+        updateMatchInMonthCaches_(serverResult);
+        mergeRecordById_(matches, serverResult.id, serverResult);
+        return true;
+    }
+
+    if (actionName === "updateGocLog") {
+        mergeRecordById_(gocLogs, serverResult.id, serverResult);
+        return true;
+    }
+
+    return false;
+}
+
+
+function renderAfterServerReconciliation_(actionName) {
+
+    sortCollectionsByTime();
+
+    if (
+        actionName === "addMatch" ||
+        actionName === "updateMatch"
+    ) {
+        if (typeof renderAllMatchLog === "function") renderAllMatchLog();
+        if (typeof renderGamification === "function") renderGamification();
+        if (typeof renderDashboard === "function") renderDashboard();
+        if (typeof renderFinance === "function") renderFinance();
+    }
+
+    else if (
+        actionName === "addGocLog" ||
+        actionName === "addGocLogAdjustment" ||
+        actionName === "updateGocLog"
+    ) {
+        if (typeof recalculateMemberPaidTotals === "function") {
+            recalculateMemberPaidTotals();
+        }
+        if (typeof renderGocLogsTab === "function") renderGocLogsTab();
+        if (typeof renderDashboard === "function") renderDashboard();
+        if (typeof renderFinance === "function") renderFinance();
+        if (typeof renderCashbook === "function") renderCashbook();
+    }
+
+    else if (actionName === "addBooking") {
+        if (typeof renderBookingLogs === "function") renderBookingLogs();
+        if (typeof renderDashboard === "function") renderDashboard();
+        if (typeof renderFinance === "function") renderFinance();
+    }
+
+    else if (actionName === "addQuyLog") {
+        if (typeof renderQuyTable === "function") renderQuyTable();
+        if (typeof renderDashboard === "function") renderDashboard();
+        if (typeof renderCashbook === "function") renderCashbook();
+    }
+
+    else if (actionName === "addCashbook") {
+        if (typeof renderCashbook === "function") renderCashbook();
+    }
+
+    else if (actionName === "addRule") {
+        if (typeof renderRulesTab === "function") renderRulesTab();
+    }
+
+    if (typeof applyRolePermissions === "function") {
+        applyRolePermissions();
+    }
+}
+
+
+// ======================================================
 // ACTION QUEUE
 // ======================================================
 
@@ -948,6 +1416,41 @@ function enqueueAction(
     }
 
 
+    // ==================================================
+    // v2.0: gắn idempotencyKey (chống ghi trùng khi mất mạng
+    // sau commit), chủ sở hữu hàng đợi (chống 1 thiết bị gửi
+    // nhầm queue của người đăng nhập trước đó - điểm yếu #6),
+    // và câu thông báo thành công THẬT (chỉ hiển thị SAU KHI
+    // backend xác nhận - xem onQueueItemDone_ trong processQueue).
+    // ==================================================
+
+    payload.idempotencyKey =
+        payload.idempotencyKey ||
+        generateIdempotencyKey_();
+
+    payload.__ownerStt =
+        (typeof loggedInMemberStt !== "undefined" && loggedInMemberStt) || 0;
+
+    payload.__successMessage =
+        successMessage ||
+        "Đã ghi nhận thành công!";
+
+    // Lưu ID optimistic ở metadata của queue. ID này KHÔNG được gửi
+    // lên backend; nó chỉ dùng để thay toàn bộ tham chiếu cục bộ bằng
+    // response.result.id sau khi server commit thành công.
+    let createConfig =
+        getCreateActionRecordConfig_(actionName);
+
+    if (
+        createConfig &&
+        payload[createConfig.payloadKey] &&
+        payload[createConfig.payloadKey].id !== undefined &&
+        payload[createConfig.payloadKey].id !== null
+    ) {
+        payload.__tempRecordId =
+            payload[createConfig.payloadKey].id;
+    }
+
     syncQueue.push(
         payload
     );
@@ -1025,14 +1528,30 @@ function enqueueAction(
 
 
     else if (
-        actionName ===
-            "addGocLog" &&
+        (
+            actionName === "addGocLog" ||
+            actionName === "addGocLogAdjustment"
+        ) &&
         payload.gocLog
     ) {
 
-        // GocLogs tạm thời vẫn giữ toàn bộ lịch sử.
+        // GocLogs tạm thời vẫn giữ toàn bộ lịch sử. addGocLogAdjustment
+        // (v2.0) ghi cùng sheet GocLogs qua cùng khóa payload "gocLog",
+        // chỉ khác amount có thể âm - dùng chung 1 nhánh cache tạm này.
         gocLogs.unshift(
             payload.gocLog
+        );
+    }
+
+
+    else if (
+        actionName ===
+            "addQuyLog" &&
+        payload.quyLog
+    ) {
+
+        quyLogs.unshift(
+            payload.quyLog
         );
     }
 
@@ -1070,6 +1589,23 @@ function enqueueAction(
         rulesList.unshift(
             payload.rule
         );
+    }
+
+
+    else if (
+        actionName ===
+            "updateGocLog" &&
+        payload.gocLog
+    ) {
+
+        let currentGoc =
+            (gocLogs || []).find(function(item) {
+                return String(item.id) === String(payload.gocLog.id);
+            });
+
+        if (currentGoc) {
+            Object.assign(currentGoc, payload.gocLog);
+        }
     }
 
 
@@ -1219,6 +1755,8 @@ function enqueueAction(
 
     if (
         actionName === "addGocLog" ||
+        actionName === "addGocLogAdjustment" ||
+        actionName === "updateGocLog" ||
         (
             actionName ===
                 "deleteItem" &&
@@ -1477,11 +2015,20 @@ function enqueueAction(
     }
 
 
-    showToast(
-        successMessage ||
-        "Đã ghi nhận thành công!"
-    );
+    // ==================================================
+    // v2.0 (P3): KHÔNG báo "thành công" ở đây nữa - đây mới chỉ
+    // là đưa vào hàng đợi, CHƯA có xác nhận thật từ backend. Câu
+    // thông báo thành công thật (payload.__successMessage) chỉ
+    // hiển thị trong onQueueItemDone_ khi backend đã commit xong.
+    //
+    // Push notification cũng KHÔNG còn bắn từ trình duyệt ở đây
+    // (điểm yếu #8: v1.6 gọi maybeNotifyPush_ ngay khi enqueue,
+    // trước khi backend xác nhận, và tải cả danh sách subscription
+    // về máy). Từ v2.0, server (api/actions/write.js) tự bắn push
+    // SAU KHI Apps Script xác nhận commit.
+    // ==================================================
 
+    showToast("Đang đồng bộ...");
 
     processQueue();
 }
@@ -1495,9 +2042,42 @@ function processQueue() {
 
     if (
         isSyncing ||
-        syncQueue.length === 0 ||
-        !GOOGLE_SCRIPT_URL
+        syncQueue.length === 0
     ) {
+        return;
+    }
+
+
+    let item =
+        syncQueue[0];
+
+
+    // ==================================================
+    // v2.0 (điểm yếu #6): mỗi thiết bị chỉ được xử lý hàng đợi
+    // của CHÍNH actor đang đăng nhập. Nếu người dùng B đăng nhập
+    // trên thiết bị vừa đăng xuất người dùng A, các item còn sót
+    // của A (nếu storage.js chưa dọn kịp) sẽ bị BỎ QUA ở đây thay
+    // vì âm thầm gửi thay B.
+    // ==================================================
+
+    let currentOwnerStt =
+        (typeof loggedInMemberStt !== "undefined" && loggedInMemberStt) || 0;
+
+    if (
+        item.__ownerStt &&
+        currentOwnerStt &&
+        item.__ownerStt !== currentOwnerStt
+    ) {
+
+        console.warn(
+            "SYNC QUEUE: bỏ qua item không thuộc actor hiện tại.",
+            item
+        );
+
+        syncQueue.shift();
+        saveLocalData();
+
+        if (syncQueue.length > 0) processQueue();
         return;
     }
 
@@ -1506,71 +2086,200 @@ function processQueue() {
         true;
 
 
-    let item =
-        syncQueue[0];
+    function onQueueItemDone_(
+        success
+    ) {
 
+        syncQueue.shift();
 
-    fetch(
-        GOOGLE_SCRIPT_URL,
-        {
+        isSyncing =
+            false;
 
-            method:
-                "POST",
+        saveLocalData();
 
-            mode:
-                "no-cors",
+        savePhase3LocalState_();
 
-            headers: {
+        if (
+            syncQueue.length > 0
+        ) {
 
-                "Content-Type":
-                    "text/plain;charset=utf-8"
-            },
-
-            body:
-                JSON.stringify(
-                    item
-                )
+            processQueue();
         }
+    }
+
+
+    let action =
+        item.action;
+
+    let idempotencyKey =
+        item.idempotencyKey;
+
+    // data gửi lên = toàn bộ payload TRỪ các trường transport nội bộ
+    // (action/idempotencyKey/__ownerStt/__successMessage/
+    // __tempRecordId) - giữ
+    // nguyên shape { match: {...} } / { gocLog: {...} } ... mà
+    // Router.gs.txt đang mong đợi, không cần sửa các module gọi
+    // enqueueAction() ở nơi khác.
+    let data =
+        Object.assign({}, item);
+
+    delete data.action;
+    delete data.idempotencyKey;
+    delete data.__ownerStt;
+    delete data.__successMessage;
+    delete data.__tempRecordId;
+
+
+    callBackendAction_(
+        action,
+        data,
+        idempotencyKey
     )
 
-    .then(
-        function() {
+    .then(function(responseJson) {
 
-            syncQueue.shift();
+        if (
+            !responseJson ||
+            responseJson.status !== "SUCCESS"
+        ) {
 
-
-            isSyncing =
-                false;
-
-
-            saveLocalData();
-
-
-            savePhase3LocalState_();
-
-
-            if (
-                syncQueue.length > 0
-            ) {
-
-                processQueue();
-            }
-        }
-    )
-
-    .catch(
-        function(err) {
+            // Backend TỪ CHỐI GHI THẬT SỰ (lỗi nghiệp vụ) -> loại
+            // khỏi hàng đợi (thử lại cũng sẽ lỗi y hệt), báo rõ
+            // cho người dùng, và TẢI LẠI dữ liệu gốc từ server để
+            // thay thế trạng thái optimistic có thể đã sai (P3:
+            // "Rollback hoặc reload authoritative state khi backend
+            // từ chối" - chọn reload vì an toàn hơn viết rollback
+            // tay cho từng loại action).
+            let message =
+                (responseJson && responseJson.message)
+                    ? responseJson.message
+                    : "Không rõ nguyên nhân.";
 
             console.error(
-                "POST CLOUD NETWORK ERROR:",
-                err
+                "WRITE ACTION REJECTED:",
+                action,
+                message
             );
 
+            // Nếu action CREATE bị backend từ chối thì các edit/delete
+            // phụ thuộc ID tạm phía sau cũng không còn đối tượng hợp lệ
+            // để thực thi. Loại chúng cùng lúc trước khi chạy item kế.
+            let rejectedCreateConfig =
+                getCreateActionRecordConfig_(action);
 
-            isSyncing =
-                false;
+            if (rejectedCreateConfig) {
+                discardQueuedRecordDependencies_(
+                    rejectedCreateConfig,
+                    item.__tempRecordId !== undefined
+                        ? item.__tempRecordId
+                        : (
+                            item[rejectedCreateConfig.payloadKey] &&
+                            item[rejectedCreateConfig.payloadKey].id
+                        )
+                );
+            }
+
+            onQueueItemDone_(false);
+
+            alert(
+                "Một thao tác đã KHÔNG được lưu lên hệ thống:\n\n" +
+                message +
+                "\n\nDữ liệu sẽ được tải lại từ máy chủ để đảm bảo chính xác."
+            );
+
+            if (typeof fetchCloudData === "function") {
+                fetchCloudData(false);
+            }
+
+            return;
         }
-    );
+
+
+        // THÀNH CÔNG - ĐÃ XÁC NHẬN THẬT TỪ BACKEND. Với action tạo
+        // mới, phải thay ID optimistic bằng response.result.id và sửa
+        // luôn các update/delete đang chờ trước khi bỏ item khỏi queue.
+        try {
+            if (getCreateActionRecordConfig_(action)) {
+                reconcileCreatedRecordWithServer_(
+                    item,
+                    responseJson.result
+                );
+            } else {
+                applyAuthoritativeUpdateResult_(
+                    action,
+                    responseJson.result
+                );
+            }
+
+            // Re-render ngay để onclick/data-id trên DOM không còn giữ
+            // ID tạm sau khi server đã xác nhận thành công.
+            renderAfterServerReconciliation_(action);
+        } catch (reconcileErr) {
+            console.error(
+                "SERVER ID RECONCILIATION ERROR:",
+                reconcileErr
+            );
+
+            let failedConfig =
+                getCreateActionRecordConfig_(action);
+
+            if (failedConfig) {
+                discardQueuedRecordDependencies_(
+                    failedConfig,
+                    item.__tempRecordId !== undefined
+                        ? item.__tempRecordId
+                        : (
+                            item[failedConfig.payloadKey] &&
+                            item[failedConfig.payloadKey].id
+                        )
+                );
+            }
+
+            onQueueItemDone_(false);
+
+            alert(
+                "Bản ghi đã được lưu nhưng ứng dụng không nhận được ID thật từ máy chủ.\n\n" +
+                "Dữ liệu sẽ được tải lại để tránh sửa/xóa nhầm bản ghi."
+            );
+
+            if (typeof fetchCloudData === "function") {
+                fetchCloudData(false);
+            }
+
+            return;
+        }
+
+        showToast(
+            item.__successMessage ||
+            "Đã đồng bộ thành công!"
+        );
+
+        // Ghi vào lịch sử thông báo CỤC BỘ (chuông) của chính thiết
+        // bị này - việc gửi Web Push thật cho các thiết bị KHÁC đã
+        // do server tự làm (xem pushSender.js), không phải ở đây.
+        if (typeof maybeNotifyPush_ === "function") {
+
+            try {
+                maybeNotifyPush_(action, data);
+            } catch (err) {
+                console.warn("LOCAL NOTIF HOOK ERROR:", err);
+            }
+        }
+
+        onQueueItemDone_(true);
+    })
+
+    .catch(function(err) {
+
+        // Lỗi mạng/timeout -> GIỮ LẠI hàng đợi, sẽ tự thử lại ở
+        // lượt processQueue kế tiếp (setInterval trong auth.js).
+        console.error(
+            "WRITE ACTION NETWORK ERROR:",
+            err
+        );
+
+        isSyncing = false;
+    });
 }
 
 
@@ -1627,7 +2336,25 @@ function hideCloudLoading_() {
 
 
 // ======================================================
-// GENERIC JSONP
+// v2.0 - THAY THẾ JSONP CŨ (điểm yếu #1/#2/#8: JSONP để lộ
+// API_TOKEN + payload nguyên văn trong URL, ai xem DevTools/lịch
+// sử trình duyệt/log server trung gian cũng thấy được).
+//
+// Giữ NGUYÊN chữ ký hàm fetchJsonpPhase3_(params, showSpinner,
+// callback) vì matches.js và notifications.js gọi trực tiếp hàm
+// này - đổi nội bộ, không cần sửa các nơi gọi.
+//
+// Cách dịch params -> route mới:
+//   {action:'initialData'}                  -> GET /api/data/initial
+//   {action:'monthData', month, year}        -> GET /api/data/month
+//   {action:'analyticsData'}                 -> GET /api/data/analytics
+//   {payload: '<json 1 item trong syncQueue>'} -> xử lý qua
+//        processQueue()/callBackendAction_ (KHÔNG dùng nữa ở đây
+//        kể từ v2.0 - processQueue() giờ gọi callBackendAction_
+//        trực tiếp, xem phía trên).
+//   {action:'getPushSubscriptions'}          -> ĐÃ NGƯNG (điểm yếu
+//        #8): trình duyệt không bao giờ được phép tải danh sách
+//        subscription của người khác nữa - trả lỗi ngay.
 // ======================================================
 
 function fetchJsonpPhase3_(
@@ -1636,9 +2363,7 @@ function fetchJsonpPhase3_(
     callback
 ) {
 
-    if (!GOOGLE_SCRIPT_URL) {
-        return;
-    }
+    params = params || {};
 
 
     if (showSpinner) {
@@ -1647,256 +2372,103 @@ function fetchJsonpPhase3_(
     }
 
 
-    let callbackName =
-        "__thanglong_phase3_" +
-        Date.now() +
-        "_" +
-        Math.floor(
-            Math.random() *
-            100000
-        );
-
-
-    let script =
-        document.createElement(
-            "script"
-        );
-
-
-    let finished =
-        false;
-
-
-    let slowTimer =
-        null;
-
-
-    function removeScript_() {
-
-        if (
-            script &&
-            script.parentNode
-        ) {
-
-            script.parentNode
-                .removeChild(
-                    script
-                );
-        }
-    }
-
-
-    function finish_(
-        error,
-        data
-    ) {
-
-        if (finished) {
-            return;
-        }
-
-
-        finished =
-            true;
-
-
-        if (slowTimer) {
-
-            clearTimeout(
-                slowTimer
-            );
-        }
-
-
-        removeScript_();
-
+    function finish_(error, data) {
 
         if (showSpinner) {
 
             hideCloudLoading_();
         }
 
+        if (typeof callback === "function") {
 
-        if (
-            typeof callback ===
-            "function"
-        ) {
-
-            callback(
-                error,
-                data
-            );
+            callback(error, data);
         }
-
-
-        // Sau khi nhận response thật mới dọn callback.
-        setTimeout(
-            function() {
-
-                try {
-
-                    delete window[
-                        callbackName
-                    ];
-
-                } catch (e) {
-
-                    window[
-                        callbackName
-                    ] =
-                        undefined;
-                }
-            },
-            0
-        );
     }
 
 
-    window[
-        callbackName
-    ] = function(data) {
+    var action = params.action;
+    var readPath = null;
 
-        if (
-            !data
-        ) {
+    if (action === "initialData") {
 
-            finish_(
-                new Error(
-                    "Apps Script không trả dữ liệu."
-                ),
-                null
-            );
+        readPath = "/api/data/initial";
 
-            return;
+    } else if (action === "monthData") {
+
+        readPath =
+            "/api/data/month?month=" +
+            encodeURIComponent(params.month) +
+            "&year=" +
+            encodeURIComponent(params.year);
+
+    } else if (action === "analyticsData") {
+
+        readPath = "/api/data/analytics";
+
+    } else if (action === "monthCloseStatus") {
+
+        readPath =
+            "/api/data/month-close-status?month=" +
+            encodeURIComponent(params.month) +
+            "&year=" +
+            encodeURIComponent(params.year);
+
+    } else if (action === "getPushSubscriptions") {
+
+        // (v2.0) Đã loại bỏ vĩnh viễn - xem _lib/pushSender.js phía
+        // Vercel: trình duyệt không bao giờ còn thấy danh sách
+        // subscription nữa. Bất kỳ code cũ nào còn gọi tới đây sẽ
+        // nhận lỗi rõ ràng thay vì âm thầm thất bại.
+        finish_(
+            new Error(
+                "getPushSubscriptions đã ngưng dùng từ v2.0 - push chỉ gửi từ server."
+            ),
+            null
+        );
+        return;
+
+    } else if (params.payload !== undefined) {
+
+        // Đường ghi cũ (dùng bởi processQueue() phiên bản trước) -
+        // processQueue() v2.0 không còn gọi qua đây nữa (gọi thẳng
+        // callBackendAction_), giữ lại nhánh này chỉ để không vỡ
+        // nếu còn code nào khác lỡ gọi theo shape cũ.
+        try {
+
+            var item = JSON.parse(params.payload);
+            var data = Object.assign({}, item);
+
+            delete data.action;
+            delete data.idempotencyKey;
+            delete data.__ownerStt;
+            delete data.__successMessage;
+            delete data.__tempRecordId;
+
+            callBackendAction_(item.action, data, item.idempotencyKey)
+                .then(function(json) { finish_(null, json); })
+                .catch(function(err) { finish_(err, null); });
+
+        } catch (err) {
+
+            finish_(err, null);
         }
 
+        return;
 
-        finish_(
-            null,
-            data
-        );
-    };
+    } else {
 
-
-    script.onerror =
-        function() {
-
-            // Giữ callback an toàn để response muộn không gây ReferenceError.
-            window[
-                callbackName
-            ] = function() {};
+        finish_(new Error("Action không xác định: " + action), null);
+        return;
+    }
 
 
-            removeScript_();
-
-
-            if (showSpinner) {
-
-                hideCloudLoading_();
-            }
-
-
-            if (
-                !finished &&
-                typeof callback ===
-                    "function"
-            ) {
-
-                finished =
-                    true;
-
-
-                callback(
-                    new Error(
-                        "Không tải được Apps Script."
-                    ),
-                    null
-                );
-            }
-        };
-
-
-    // 15 giây chỉ báo chậm và ẩn spinner.
-    // Không xóa callback.
-    slowTimer =
-        setTimeout(
-            function() {
-
-                if (finished) {
-                    return;
-                }
-
-
-                if (showSpinner) {
-
-                    hideCloudLoading_();
-                }
-
-
-                console.warn(
-                    "PHASE3 JSONP SLOW - vẫn tiếp tục chờ dữ liệu..."
-                );
-            },
-            15000
-        );
-
-
-    let query =
-        Object.keys(
-            params || {}
-        )
-        .map(
-            function(key) {
-
-                return (
-                    encodeURIComponent(
-                        key
-                    ) +
-                    "=" +
-                    encodeURIComponent(
-                        params[
-                            key
-                        ]
-                    )
-                );
-            }
-        );
-
-
-    query.push(
-        "prefix=" +
-        encodeURIComponent(
-            callbackName
-        )
-    );
-
-
-    query.push(
-        "_=" +
-        Date.now()
-    );
-
-
-    let separator =
-        GOOGLE_SCRIPT_URL
-            .includes("?")
-                ? "&"
-                : "?";
-
-
-    script.src =
-        GOOGLE_SCRIPT_URL +
-        separator +
-        query.join("&");
-
-
-    script.async =
-        true;
-
-
-    document.head.appendChild(
-        script
-    );
+    callBackendRead_(readPath)
+        .then(function(result) {
+            finish_(null, result);
+        })
+        .catch(function(err) {
+            finish_(err, null);
+        });
 }
 
 
@@ -1906,58 +2478,97 @@ function fetchJsonpPhase3_(
 
 function fetchCloudData(
     showSpinner,
-    onSuccess
+    onSuccess,
+    onFailure
 ) {
 
-    fetchJsonpPhase3_(
-        {
-            action:
-                "initialData"
-        },
-        showSpinner,
-        function(
-            error,
-            data
-        ) {
+    var attempt = 0;
+    var maxAttempts = 2;
 
-            if (error) {
+    function isRetryableInitialError_(error) {
+        var statusCode = parseInt(error && error.statusCode) || 0;
+        return !statusCode || statusCode === 408 || statusCode === 429 || statusCode >= 500;
+    }
 
-                console.error(
-                    "INITIAL DATA ERROR:",
-                    error
-                );
+    function loadInitialData_() {
 
-                return;
-            }
+        attempt++;
 
+        fetchJsonpPhase3_(
+            {
+                action:
+                    "initialData"
+            },
+            showSpinner,
+            function(
+                error,
+                data
+            ) {
 
-            try {
+                if (error) {
 
-                updateStateFromCloud(
-                    data
-                );
+                    if (attempt < maxAttempts && isRetryableInitialError_(error)) {
+                        console.warn(
+                            "INITIAL DATA RETRY " + attempt + "/" + maxAttempts + ":",
+                            error
+                        );
 
+                        // Giữ trạng thái loading trong lúc chờ retry để màn
+                        // hình không hiện số 0 như thể đã tải xong.
+                        if (showSpinner) showCloudLoading_();
 
-                if (
-                    typeof onSuccess ===
-                    "function"
-                ) {
+                        setTimeout(loadInitialData_, 1200);
+                        return;
+                    }
 
-                    onSuccess(
-                        data
+                    console.error(
+                        "INITIAL DATA ERROR AFTER " + attempt + " ATTEMPT(S):",
+                        error
                     );
+
+                    if (typeof showToast === "function") {
+                        showToast("Chưa tải được dữ liệu. Vui lòng thử nút Làm mới.", "warning");
+                    }
+
+                    if (typeof onFailure === "function") {
+                        onFailure(error);
+                    }
+
+                    return;
                 }
 
+                try {
 
-            } catch (err) {
+                    updateStateFromCloud(
+                        data
+                    );
 
-                console.error(
-                    "UPDATE INITIAL STATE ERROR:",
-                    err
-                );
+                    if (
+                        typeof onSuccess ===
+                        "function"
+                    ) {
+
+                        onSuccess(
+                            data
+                        );
+                    }
+
+                } catch (err) {
+
+                    console.error(
+                        "UPDATE INITIAL STATE ERROR:",
+                        err
+                    );
+
+                    if (typeof onFailure === "function") {
+                        onFailure(err);
+                    }
+                }
             }
-        }
-    );
+        );
+    }
+
+    loadInitialData_();
 }
 
 
@@ -1984,8 +2595,20 @@ function updateStateFromCloud(
         data.members.length > 0
     ) {
 
+        // (v2.0 fix) Backend giờ trả về CẢ thành viên đã xóa mềm
+        // (IsActive=false) để các service khác tra cứu lịch sử theo
+        // STT (xem MemberService.txt). Nếu gán thẳng vào `members`
+        // không lọc, thành viên vừa xóa sẽ "sống lại" trên UI ngay
+        // lần fetchCloudData() kế tiếp (vd: sau khi thêm thành viên
+        // mới) dù server đã xóa đúng - trông như xóa không có tác
+        // dụng. Chỉ giữ thành viên đang hoạt động cho toàn bộ giao
+        // diện (danh sách, dropdown chọn người...); lịch sử trận đấu/
+        // sổ quỹ vẫn dùng tên/STT lưu sẵn trong chính bản ghi đó, KHÔNG
+        // tra cứu lại qua mảng `members` này nên không bị ảnh hưởng.
         members =
-            data.members;
+            data.members.filter(function(m) {
+                return m && m.isActive !== false;
+            });
     }
 
 
@@ -1996,7 +2619,9 @@ function updateStateFromCloud(
     ) {
 
         window.memberStats =
-            data.memberStats;
+            normalizeMemberStatsLocalByStt_(
+                data.memberStats
+            );
     }
 
 
@@ -2081,6 +2706,15 @@ function updateStateFromCloud(
                 systemSettings,
                 data.settings
             );
+    }
+
+
+    if (
+        data.ownerStt !== undefined
+    ) {
+
+        window.ownerStt =
+            parseInt(data.ownerStt) || 0;
     }
 
 
@@ -2454,10 +3088,13 @@ function fetchAnalyticsData(
 
 function savePhase3LocalState_() {
 
+    // (v2.0) Không đăng nhập -> không ghi (giống saveLocalData()).
+    if (!loggedInMemberStt) return;
+
     try {
 
         localStorage.setItem(
-            "clb_memberStats_phase3",
+            getActorStorageKey_("clb_memberStats_phase3"),
             JSON.stringify(
                 window.memberStats || []
             )
@@ -2465,7 +3102,7 @@ function savePhase3LocalState_() {
 
 
         localStorage.setItem(
-            "clb_activeMonth_phase3",
+            getActorStorageKey_("clb_activeMonth_phase3"),
             String(
                 window.activeDataMonth || 0
             )
@@ -2473,7 +3110,7 @@ function savePhase3LocalState_() {
 
 
         localStorage.setItem(
-            "clb_activeYear_phase3",
+            getActorStorageKey_("clb_activeYear_phase3"),
             String(
                 window.activeDataYear || 0
             )
@@ -2495,12 +3132,16 @@ function restorePhase3LocalState_(
     currentYear
 ) {
 
+    // (v2.0) Chưa đăng nhập -> không đọc gì (được gọi từ
+    // enterAppScreen_() trong auth.js, LUÔN SAU khi đã có actor).
+    if (!loggedInMemberStt) return;
+
     try {
 
         let storedStats =
             JSON.parse(
                 localStorage.getItem(
-                    "clb_memberStats_phase3"
+                    getActorStorageKey_("clb_memberStats_phase3")
                 ) ||
                 "[]"
             );
@@ -2513,14 +3154,16 @@ function restorePhase3LocalState_(
         ) {
 
             window.memberStats =
-                storedStats;
+                normalizeMemberStatsLocalByStt_(
+                    storedStats
+                );
         }
 
 
         let storedMonth =
             parseInt(
                 localStorage.getItem(
-                    "clb_activeMonth_phase3"
+                    getActorStorageKey_("clb_activeMonth_phase3")
                 )
             ) || 0;
 
@@ -2528,7 +3171,7 @@ function restorePhase3LocalState_(
         let storedYear =
             parseInt(
                 localStorage.getItem(
-                    "clb_activeYear_phase3"
+                    getActorStorageKey_("clb_activeYear_phase3")
                 )
             ) || 0;
 

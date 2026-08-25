@@ -1095,6 +1095,19 @@ function renderAllMatchLog() {
                 );
 
 
+            // (v2.0 - điểm yếu #9): tên VĐV là dữ liệu người dùng
+            // (tên thành viên) - escape trước khi chèn HTML.
+            let esc_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_
+                    : (s => String(s == null ? '' : s));
+
+            let p1v1Display = getMatchPlayerDisplayName_(m, 'p1_v1');
+            let p2v1Display = getMatchPlayerDisplayName_(m, 'p2_v1');
+            let p1v2Display = getMatchPlayerDisplayName_(m, 'p1_v2');
+            let p2v2Display = getMatchPlayerDisplayName_(m, 'p2_v2');
+
+
             tbody.innerHTML += `
 
                 <tr class="border-b hover:bg-slate-50">
@@ -1104,15 +1117,15 @@ function renderAllMatchLog() {
                     </td>
 
                     <td class="p-2.5 text-slate-600">
-                        ${m.time || "-"}
+                        ${m.time ? formatVNTimeForDisplay_(m.time) : "-"}
                     </td>
 
                     <td class="p-2.5 font-semibold text-slate-900">
-                        ${m.p1_v1} & ${m.p2_v1}
+                        ${esc_(p1v1Display)} & ${esc_(p2v1Display)}
                     </td>
 
                     <td class="p-2.5 font-semibold text-slate-900">
-                        ${m.p1_v2} & ${m.p2_v2}
+                        ${esc_(p1v2Display)} & ${esc_(p2v2Display)}
                     </td>
 
                     <td class="p-2.5 text-center font-black text-emerald-800">
@@ -1142,8 +1155,7 @@ function renderAllMatchLog() {
                         text-center
                         admin-only
                         ${
-                            currentUserRole ===
-                                "admin"
+                            (currentUserRole === "admin" || currentUserRole === "owner")
                                 ? ""
                                 : "hidden"
                         }
@@ -1280,7 +1292,9 @@ function openEditMatchModal(
     document.getElementById(
         "emMatchInfo"
     ).value =
-        `${m.time} | (${m.p1_v1}&${m.p2_v1}) vs (${m.p1_v2}&${m.p2_v2})`;
+        `${formatVNTimeForDisplay_(m.time)} | (` +
+        `${getMatchPlayerDisplayName_(m, 'p1_v1')}&${getMatchPlayerDisplayName_(m, 'p2_v1')}) vs (` +
+        `${getMatchPlayerDisplayName_(m, 'p1_v2')}&${getMatchPlayerDisplayName_(m, 'p2_v2')})`;
 
 
     document.getElementById(
@@ -1439,7 +1453,10 @@ function deleteMatch(
 
     let message =
         m
-            ? `Bạn có muốn xóa trận đấu (${m.p1_v1} & ${m.p2_v1}) vs (${m.p1_v2} & ${m.p2_v2}), tỉ số ${m.scoreA}-${m.scoreB} này không?`
+            ? `Bạn có muốn xóa trận đấu (` +
+              `${getMatchPlayerDisplayName_(m, 'p1_v1')} & ${getMatchPlayerDisplayName_(m, 'p2_v1')}) vs (` +
+              `${getMatchPlayerDisplayName_(m, 'p1_v2')} & ${getMatchPlayerDisplayName_(m, 'p2_v2')}), ` +
+              `tỉ số ${m.scoreA}-${m.scoreB} này không?`
             : "Bạn có chắc chắn muốn xóa trận đấu này không?";
 
     showActionConfirm(
@@ -1878,10 +1895,7 @@ function saveNewMatchData(
             Date.now(),
 
         time:
-            new Date()
-                .toLocaleString(
-                    "vi-VN"
-                ),
+            formatVNDateTime_(),
 
         p1_v1:
             p1A,

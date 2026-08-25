@@ -32,12 +32,251 @@ function isLogInMonth_(timeValue, targetMonth, targetYear) {
     );
 }
 
-function getUserGocPaidForMonth_(memberName, targetMonth, targetYear) {
+// (v2.0 fix - gói 1, mục 3+4) Định dạng ngày giờ CỐ ĐỊNH cho toàn app,
+// KHÔNG dùng new Date().toLocaleString('vi-VN')/toLocaleDateString('vi-VN')
+// nữa - 2 hàm đó phụ thuộc trình duyệt/thiết bị/phiên bản Chrome nên trả
+// về thứ tự trường VÀ cách đệm số 0 KHÁC NHAU tùy máy (đã xác nhận qua
+// dữ liệu thực tế: máy cũ ghi "08:34:47 17/8/2026" - giờ trước ngày sau,
+// tháng KHÔNG đệm 0; máy/bản Chrome mới ghi "24/08/2026 18:47:52" - ngày
+// trước giờ sau, tháng CÓ đệm 0). Chính sự khác biệt đệm số 0 này làm vỡ
+// các bộ lọc theo tháng kiểu string.includes(`/${thang}/${nam}`) ở
+// dashboard.js/booking.js (thiếu "0" nên không khớp chuỗi đã đệm).
+// Từ nay TẤT CẢ nơi tạo "time" mới trong app phải gọi 2 hàm dưới đây -
+// luôn ĐÚNG 1 định dạng, tự đệm số 0, không phụ thuộc trình duyệt/locale.
+function pad2_(n) {
+    n = parseInt(n) || 0;
+    return (n < 10 ? "0" : "") + n;
+}
+
+// "17/08/2026 08:34:47" - dùng cho các trường "time" đầy đủ ngày+giờ
+// (GocLogs, QuyLogs, Bookings, Matches, Rules, Notifications...).
+function formatVNDateTime_(date) {
+    let d = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+    return (
+        pad2_(d.getDate()) + "/" + pad2_(d.getMonth() + 1) + "/" + d.getFullYear() +
+        " " +
+        pad2_(d.getHours()) + ":" + pad2_(d.getMinutes()) + ":" + pad2_(d.getSeconds())
+    );
+}
+
+// "17/08/2026" - dùng cho các trường "time" chỉ cần ngày (Cashbook).
+function formatVNDateOnly_(date) {
+    let d = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+    return pad2_(d.getDate()) + "/" + pad2_(d.getMonth() + 1) + "/" + d.getFullYear();
+}
+
+// (v2.0 fix - theo yêu cầu 25/08/2026) HIỂN THỊ "time" luôn GIỜ:PHÚT:GIÂY
+// TRƯỚC, ngày/tháng/năm SAU - bất kể chuỗi "time" gốc (lấy từ Sheet, do
+// backend Apps Script ghi bằng nowDisplayTime_/Utilities.formatDate) lưu
+// theo thứ tự ngày trước hay dòng dữ liệu CŨ (trước khi backend chuẩn
+// hoá) lưu theo thứ tự giờ trước - hàm này tự tách riêng phần ngày
+// (bằng getDatePartsFromLogTime_ đã có) và phần giờ (regex riêng bên
+// dưới) rồi LUÔN ghép lại theo đúng 1 thứ tự cố định, không phụ thuộc
+// thứ tự/đệm số 0 của chuỗi gốc. CHỈ dùng cho HIỂN THỊ - không dùng hàm
+// này ở bất kỳ đâu tạo dữ liệu gửi lên server (đã có formatVNDateTime_/
+// formatVNDateOnly_ riêng cho việc đó).
+function formatVNTimeForDisplay_(value) {
+    let text = String(value == null ? "" : value).trim();
+    if (!text) return text;
+
+    let dateParts = getDatePartsFromLogTime_(text);
+    let timeMatch = text.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+
+    // Không tách được cả ngày lẫn giờ (dữ liệu lạ/rỗng) - giữ nguyên
+    // chuỗi gốc, tránh làm mất/méo dữ liệu chưa từng gặp.
+    if (!dateParts && !timeMatch) return text;
+
+    let datePart = dateParts
+        ? pad2_(dateParts.day) + "/" + pad2_(dateParts.month) + "/" + dateParts.year
+        : "";
+
+    let timePart = timeMatch
+        ? pad2_(timeMatch[1]) + ":" + timeMatch[2] + ":" + (timeMatch[3] || "00")
+        : "";
+
+    if (timePart && datePart) return timePart + " " + datePart;
+    return timePart || datePart;
+}
+
+// (v2.0 fix) "GOC_ADJUSTMENT_HIDE_TAG_": các dòng addGocLogAdjustment
+// (số ÂM) do payOutMemberCreditByAdmin() (dashboard.js) tạo ra khi CLB
+// trả tiền dư thưởng đặt sân cho thành viên - CHỈ để đưa Dư/Nợ RIÊNG
+// của thành viên đó về 0 (vẫn phải cộng đầy đủ ở getUserGocPaidForMonth_
+// bên dưới - KHÔNG lọc ở đó), KHÔNG phải tiền thật thành viên nộp vào.
+// Dòng tiền thật của khoản trả này đã ghi RIÊNG 1 lần ở Cashbook (mục
+// "Tiền thưởng đặt sân"). Theo góp ý của người vận hành CLB: những dòng
+// này không nên hiện/tính vào tab "Nộp Tiền" (dành cho tiền thành viên
+// NỘP VÀO) hay bất kỳ chỗ nào khác coi GocLogs là tiền thật đã về quỹ -
+// dùng getRealGocLogs_() ở TẤT CẢ các chỗ đó (renderGocLogsTab, tổng
+// quỹ, lịch sử "Tiền góc thực thu"...), thay vì đọc thẳng biến gocLogs.
+var GOC_ADJUSTMENT_HIDE_TAG_ = "[ĐÃ GHI CASHBOOK]";
+
+function getRealGocLogs_() {
+    return (gocLogs || []).filter(function(g) {
+        return String(g.note || '').indexOf(GOC_ADJUSTMENT_HIDE_TAG_) === -1;
+    });
+}
+
+// ======================================================
+// v2.0.6 - NHẬN DẠNG THÀNH VIÊN THEO STT
+// ======================================================
+// STT là khóa chính. Tên chỉ được dùng làm fallback cho dữ liệu legacy
+// thực sự chưa có STT. Nếu cả record và member đều có STT thì tuyệt đối
+// không fallback sang tên, tránh ghép nhầm hai người trùng tên.
+
+function normalizeMemberIdentityName_(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+
+function resolveMemberIdentity_(memberRef) {
+
+    if (memberRef && typeof memberRef === 'object') {
+        return {
+            stt: parseInt(memberRef.stt || memberRef.memberStt) || 0,
+            name: String(memberRef.name || '').trim(),
+            member: memberRef
+        };
+    }
+
+    let member = null;
+
+    if (typeof memberRef === 'number') {
+        member = (members || []).find(function(item) {
+            return parseInt(item.stt) === parseInt(memberRef);
+        }) || null;
+    } else {
+        let normalizedName = normalizeMemberIdentityName_(memberRef);
+        member = (members || []).find(function(item) {
+            return normalizeMemberIdentityName_(item.name) === normalizedName;
+        }) || null;
+    }
+
+    return {
+        stt: member ? (parseInt(member.stt) || 0) : 0,
+        name: member
+            ? String(member.name || '').trim()
+            : String(memberRef || '').trim(),
+        member: member
+    };
+}
+
+
+function getMemberIdentityKey_(memberRef) {
+
+    let identity = resolveMemberIdentity_(memberRef);
+
+    return identity.stt > 0
+        ? 'stt:' + identity.stt
+        : 'name:' + normalizeMemberIdentityName_(identity.name);
+}
+
+
+function identityFieldsMatch_(itemStt, itemName, memberRef) {
+
+    let identity = resolveMemberIdentity_(memberRef);
+    let recordStt = parseInt(itemStt) || 0;
+
+    if (recordStt > 0 && identity.stt > 0) {
+        return recordStt === identity.stt;
+    }
+
+    return (
+        normalizeMemberIdentityName_(itemName) ===
+        normalizeMemberIdentityName_(identity.name)
+    );
+}
+
+
+function recordBelongsToMember_(record, memberRef, sttField, nameField) {
+
+    if (!record) return false;
+
+    return identityFieldsMatch_(
+        record[sttField || 'memberStt'],
+        record[nameField || 'name'],
+        memberRef
+    );
+}
+
+
+function getMatchParticipationForMember_(match, memberRef) {
+
+    if (!match) {
+        return { isV1: false, isV2: false, slot: '' };
+    }
+
+    let slots = [
+        { slot: 'p1_v1', stt: match.p1_v1_stt, name: match.p1_v1, side: 'V1' },
+        { slot: 'p2_v1', stt: match.p2_v1_stt, name: match.p2_v1, side: 'V1' },
+        { slot: 'p1_v2', stt: match.p1_v2_stt, name: match.p1_v2, side: 'V2' },
+        { slot: 'p2_v2', stt: match.p2_v2_stt, name: match.p2_v2, side: 'V2' }
+    ];
+
+    let found = slots.find(function(item) {
+        return identityFieldsMatch_(item.stt, item.name, memberRef);
+    }) || null;
+
+    return {
+        isV1: !!found && found.side === 'V1',
+        isV2: !!found && found.side === 'V2',
+        slot: found ? found.slot : ''
+    };
+}
+
+
+function getCurrentMemberNameByStt_(stt, fallbackName) {
+
+    let memberStt = parseInt(stt) || 0;
+
+    if (memberStt > 0) {
+        let member = (members || []).find(function(item) {
+            return parseInt(item.stt) === memberStt;
+        });
+
+        if (member) return member.name;
+    }
+
+    return fallbackName || '';
+}
+
+
+function getMatchPlayerDisplayName_(match, slot) {
+
+    if (!match || !slot) return '';
+
+    return getCurrentMemberNameByStt_(
+        match[slot + '_stt'],
+        match[slot]
+    );
+}
+
+
+function getMatchSlotIdentity_(match, slot) {
+
+    if (!match || !slot) {
+        return { stt: 0, name: '', member: null };
+    }
+
+    let slotStt = parseInt(match[slot + '_stt']) || 0;
+
+    return slotStt > 0
+        ? resolveMemberIdentity_({
+            stt: slotStt,
+            name: getMatchPlayerDisplayName_(match, slot)
+        })
+        : resolveMemberIdentity_(match[slot]);
+}
+
+
+function getUserGocPaidForMonth_(memberRef, targetMonth, targetYear) {
+    // Cố ý dùng thẳng gocLogs (KHÔNG lọc qua getRealGocLogs_) - Dư/Nợ
+    // RIÊNG của từng thành viên bắt buộc phải thấy đủ dòng điều chỉnh
+    // này thì mới về đúng 0 sau khi được trả tiền dư.
     return (gocLogs || []).reduce(function(sum, log) {
 
         if (
-            String(log.name || '').trim().toLowerCase() ===
-                String(memberName || '').trim().toLowerCase() &&
+            recordBelongsToMember_(log, memberRef) &&
             isLogInMonth_(
                 log.time,
                 targetMonth,
@@ -53,13 +292,12 @@ function getUserGocPaidForMonth_(memberName, targetMonth, targetYear) {
     }, 0);
 }
 
-function getUserBookingRewardForMonth_(memberName, targetMonth, targetYear) {
+function getUserBookingRewardForMonth_(memberRef, targetMonth, targetYear) {
 
     return (bookingLogs || []).reduce(function(sum, booking) {
 
         if (
-            String(booking.name || '').trim().toLowerCase() ===
-                String(memberName || '').trim().toLowerCase() &&
+            recordBelongsToMember_(booking, memberRef) &&
             isLogInMonth_(
                 booking.time,
                 targetMonth,
@@ -80,7 +318,7 @@ function getUserBookingRewardForMonth_(memberName, targetMonth, targetYear) {
 // ======================================================
 
 function getMonthlyBalanceSnapshot_(
-    memberName,
+    memberRef,
     month,
     year
 ) {
@@ -89,13 +327,7 @@ function getMonthlyBalanceSnapshot_(
             .find(function(item) {
     
                 return (
-                    String(item.name || '')
-                        .trim()
-                        .toLowerCase() ===
-    
-                    String(memberName || '')
-                        .trim()
-                        .toLowerCase()
+                    recordBelongsToMember_(item, memberRef)
     
                     &&
     
@@ -416,6 +648,13 @@ function isMonthClosePeriodFuture_(
 // GET NHẸ - KIỂM TRA TRẠNG THÁI CHỐT THÁNG
 // ======================================================
 
+// ======================================================
+// v2.0 - thay JSONP (script tag + token trong URL) bằng
+// GET /api/data/month-close-status qua callBackendRead_ (fetch
+// same-origin, cookie session HttpOnly). Giữ NGUYÊN chữ ký hàm và
+// hành vi thử lại (retry) cho các nơi gọi khác không cần sửa.
+// ======================================================
+
 function fetchMonthCloseStatusLight_(
     month,
     year,
@@ -431,12 +670,6 @@ function fetchMonthCloseStatusLight_(
         parseInt(
             options.maxAttempts
         ) || 3;
-
-
-    let timeoutMs =
-        parseInt(
-            options.timeoutMs
-        ) || 10000;
 
 
     let retryDelayMs =
@@ -516,285 +749,44 @@ function fetchMonthCloseStatusLight_(
             return;
         }
 
-
         attempt++;
 
+        callBackendRead_(
+            '/api/data/month-close-status?month=' +
+            encodeURIComponent(month) +
+            '&year=' +
+            encodeURIComponent(year)
+        )
 
-        let callbackName =
-            '__thanglong_month_close_' +
-            Date.now() +
-            '_' +
-            Math.floor(
-                Math.random() * 100000
-            );
+        .then(function(data) {
 
-
-        let script =
-            document.createElement(
-                'script'
-            );
-
-
-        let timer = null;
-        let responded = false;
-        let retryStarted = false;
-
-
-        function removeScript_() {
-
-            if (
-                script &&
-                script.parentNode
-            ) {
-
-                script.parentNode
-                    .removeChild(
-                        script
-                    );
-            }
-        }
-
-
-        // QUAN TRỌNG:
-        // Không xóa callback chỉ vì timeout.
-        // Apps Script có thể đã chạy xong nhưng file JSONP về trình duyệt chậm.
-        // Nếu xóa callback sớm, response đến sau sẽ gây:
-        // ReferenceError: __thanglong_month_close_xxx is not defined.
-        window[
-            callbackName
-        ] = function(data) {
-
-            responded = true;
-
-
-            if (timer) {
-
-                clearTimeout(
-                    timer
-                );
-            }
-
-
-            removeScript_();
-
-
-            // Nếu một request khác đã kết thúc luồng trước,
-            // response đến muộn vẫn được hấp thụ an toàn,
-            // tuyệt đối không tạo ReferenceError.
             if (finished) {
 
                 try {
-                    applyValidResponse_(
-                        data
-                    );
+                    applyValidResponse_(data);
                 } catch (e) {
-                    console.warn(
-                        'LATE MONTH CLOSE STATUS RESPONSE:',
-                        e
-                    );
+                    console.warn('LATE MONTH CLOSE STATUS RESPONSE:', e);
                 }
 
                 return;
             }
 
+            applyValidResponse_(data);
+            finish_(null, data);
+        })
 
-            if (
-                !data ||
-                data.status !==
-                    'SUCCESS'
-            ) {
+        .catch(function(err) {
 
-                let message =
-                    data &&
-                    data.message
-                        ? data.message
-                        : 'Backend không trả trạng thái hợp lệ.';
+            if (finished) return;
 
+            if (attempt < maxAttempts) {
 
-                if (
-                    attempt <
-                    maxAttempts
-                ) {
-
-                    if (!retryStarted) {
-
-                        retryStarted = true;
-
-                        setTimeout(
-                            runAttempt_,
-                            retryDelayMs
-                        );
-                    }
-
-                    return;
-                }
-
-
-                finish_(
-                    new Error(
-                        message
-                    ),
-                    data || null
-                );
-
+                setTimeout(runAttempt_, retryDelayMs);
                 return;
             }
 
-
-            applyValidResponse_(
-                data
-            );
-
-
-            finish_(
-                null,
-                data
-            );
-        };
-
-
-        script.onerror =
-            function() {
-
-                if (timer) {
-
-                    clearTimeout(
-                        timer
-                    );
-                }
-
-
-                removeScript_();
-
-
-                // Giữ callback tồn tại như một hàm rỗng.
-                // Một số trình duyệt/proxy có thể phát sự kiện lỗi
-                // trước khi response JSONP muộn được xử lý.
-                window[
-                    callbackName
-                ] = function() {};
-
-
-                if (finished) {
-                    return;
-                }
-
-
-                if (
-                    attempt <
-                    maxAttempts
-                ) {
-
-                    if (!retryStarted) {
-
-                        retryStarted = true;
-
-                        setTimeout(
-                            runAttempt_,
-                            retryDelayMs
-                        );
-                    }
-
-                    return;
-                }
-
-
-                finish_(
-                    new Error(
-                        'Không tải được API trạng thái chốt tháng.'
-                    ),
-                    null
-                );
-            };
-
-
-        timer =
-            setTimeout(
-                function() {
-
-                    if (
-                        responded ||
-                        finished
-                    ) {
-                        return;
-                    }
-
-
-                    console.warn(
-                        'MONTH CLOSE STATUS SLOW - vẫn tiếp tục chờ dữ liệu...'
-                    );
-
-
-                    // Timeout chỉ là tín hiệu "chậm".
-                    // Không xóa script, không xóa callback.
-                    // Có thể tạo thêm một request dự phòng.
-                    if (
-                        attempt <
-                        maxAttempts
-                    ) {
-
-                        if (!retryStarted) {
-
-                            retryStarted = true;
-
-                            setTimeout(
-                                runAttempt_,
-                                retryDelayMs
-                            );
-                        }
-
-                        return;
-                    }
-
-
-                    // Hết số lần thử: báo cho thao tác hiện tại biết
-                    // là chưa xác minh được, nhưng callback vẫn sống.
-                    // Nếu JSONP đến muộn, nó sẽ được hấp thụ an toàn.
-                    finish_(
-                        new Error(
-                            'API trạng thái chốt tháng phản hồi quá chậm.'
-                        ),
-                        null
-                    );
-                },
-                timeoutMs
-            );
-
-
-        let separator =
-            GOOGLE_SCRIPT_URL
-                .includes('?')
-                    ? '&'
-                    : '?';
-
-
-        script.src =
-            GOOGLE_SCRIPT_URL +
-            separator +
-            'action=monthCloseStatus' +
-            '&month=' +
-            encodeURIComponent(
-                month
-            ) +
-            '&year=' +
-            encodeURIComponent(
-                year
-            ) +
-            '&prefix=' +
-            encodeURIComponent(
-                callbackName
-            ) +
-            '&_=' +
-            Date.now();
-
-
-        script.async =
-            true;
-
-
-        document.head.appendChild(
-            script
-        );
+            finish_(err, null);
+        });
     }
 
 
@@ -1056,10 +1048,16 @@ function pollMonthCloseStatus_(
 
 
 function calculateUserFinanceForMonth(
-    memberName,
+    memberRef,
     targetMonth,
     targetYear
 ) {
+
+    let identity =
+        resolveMemberIdentity_(memberRef);
+
+    let memberName =
+        identity.name;
 
     let totalWins = 0;
     let totalLosses = 0;
@@ -1080,13 +1078,14 @@ function calculateUserFinanceForMonth(
 
     (matches || []).forEach(function(match) {
 
-        let isV1 =
-            match.p1_v1 === memberName ||
-            match.p2_v1 === memberName;
+        let participation =
+            getMatchParticipationForMember_(
+                match,
+                identity
+            );
 
-        let isV2 =
-            match.p1_v2 === memberName ||
-            match.p2_v2 === memberName;
+        let isV1 = participation.isV1;
+        let isV2 = participation.isV2;
 
 
         if (!isV1 && !isV2) {
@@ -1176,8 +1175,9 @@ function calculateUserFinanceForMonth(
 
 
     let m =
+        identity.member ||
         members.find(function(item) {
-            return item.name === memberName;
+            return identityFieldsMatch_(item.stt, item.name, identity);
         }) || {
             noOld: 0
         };
@@ -1194,7 +1194,7 @@ function calculateUserFinanceForMonth(
     // chỉ tính đúng tháng/năm đang xem
     let monthPaidAmount =
         getUserGocPaidForMonth_(
-            memberName,
+            identity,
             targetMonth,
             targetYear
         );
@@ -1204,7 +1204,7 @@ function calculateUserFinanceForMonth(
     // chỉ tính đúng tháng/năm đang xem
     let monthRewardAmount =
         getUserBookingRewardForMonth_(
-            memberName,
+            identity,
             targetMonth,
             targetYear
         );
@@ -1235,7 +1235,7 @@ function calculateUserFinanceForMonth(
 
 let snapshot =
     getMonthlyBalanceSnapshot_(
-        memberName,
+        identity,
         targetMonth,
         targetYear
     );
@@ -1335,7 +1335,7 @@ if (snapshot) {
 }
 
 
-function calculateUserFinance(memberName) {
+function calculateUserFinance(memberRef) {
 
     let mSel =
         document.getElementById('selectFinanceMonth')
@@ -1350,7 +1350,7 @@ function calculateUserFinance(memberName) {
 
 
     return calculateUserFinanceForMonth(
-        memberName,
+        memberRef,
         mSel,
         ySel
     );
@@ -1363,6 +1363,10 @@ function submitUserPayment() {
         document.getElementById(
             'dashMainUser'
         ).value;
+
+
+    let memberIdentity =
+        resolveMemberIdentity_(main);
 
 
     let val =
@@ -1396,10 +1400,12 @@ function submitUserPayment() {
                 id: Date.now(),
 
                 time:
-                    new Date()
-                        .toLocaleString('vi-VN'),
+                    formatVNDateTime_(),
 
                 name: main,
+
+                memberStt:
+                    memberIdentity.stt,
 
                 amount: val,
 
@@ -1449,19 +1455,27 @@ function renderGocLogsTab() {
     tbody.innerHTML = '';
 
 
+    // (v2.0 fix) Tab "Nộp Tiền" chỉ dành cho tiền thành viên THỰC NỘP
+    // VÀO - các dòng điều chỉnh trả tiền dư thưởng đặt sân (tiền CHI RA,
+    // đã ghi riêng ở Cashbook) không nên hiện/tính vào đây, theo đúng
+    // góp ý của người vận hành CLB. Dùng getRealGocLogs_() thay vì đọc
+    // thẳng gocLogs (xem định nghĩa đầu file).
     let logsToDisplay =
-        (gocLogs || []).slice();
+        getRealGocLogs_();
 
 
     if (filterUser !== 'ALL') {
+
+        let filterMember =
+            resolveMemberIdentity_(filterUser);
 
         logsToDisplay =
             logsToDisplay.filter(
                 function(g) {
 
-                    return (
-                        g.name ===
-                        filterUser
+                    return recordBelongsToMember_(
+                        g,
+                        filterMember
                     );
                 }
             );
@@ -1513,11 +1527,30 @@ function renderGocLogsTab() {
             let amount =
                 parseInt(g.amount) || 0;
 
+            let displayName =
+                getCurrentMemberNameByStt_(
+                    g.memberStt,
+                    g.name
+                );
+
 
             let idArg =
                 JSON.stringify(
                     String(g.id)
                 );
+
+
+            // (v2.0 - điểm yếu #9): tên thành viên + ghi chú là dữ
+            // liệu người dùng nhập - escape trước khi chèn HTML.
+            let safeName_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_(displayName)
+                    : String(displayName || '');
+
+            let safeNote_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_(g.note || '-')
+                    : String(g.note || '-');
 
 
             tbody.innerHTML += `
@@ -1529,11 +1562,11 @@ function renderGocLogsTab() {
                     </td>
 
                     <td class="p-2.5 font-semibold text-slate-600">
-                        ${g.time}
+                        ${formatVNTimeForDisplay_(g.time)}
                     </td>
 
                     <td class="p-2.5 font-bold text-slate-900">
-                        ${g.name}
+                        ${safeName_}
                     </td>
 
                     <td class="
@@ -1548,13 +1581,13 @@ function renderGocLogsTab() {
                     </td>
 
                     <td class="p-2.5 text-slate-500">
-                        ${g.note || '-'}
+                        ${safeNote_}
                     </td>
 
                     <td class="
                         p-2.5 text-center admin-only
                         ${
-                            currentUserRole === 'admin'
+                            (currentUserRole === 'admin' || currentUserRole === 'owner')
                                 ? ''
                                 : 'hidden'
                         }
@@ -1724,7 +1757,7 @@ function renderFinance() {
 
                 let f =
                     calculateUserFinanceForMonth(
-                        m.name,
+                        m,
                         mSel,
                         ySel
                     );
@@ -1985,6 +2018,15 @@ function renderFinance() {
                     : '';
 
 
+            // (v2.0 - điểm yếu #9): tên thành viên - escape trước
+            // khi chèn HTML (bảng Tài chính hiển thị cho MỌI thành
+            // viên xem, rủi ro cao nhất nếu không escape).
+            let safeMemberName_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_(m.name)
+                    : String(m.name || '');
+
+
             tbody.innerHTML += `
 
                 <tr class="border-b hover:bg-slate-50">
@@ -1994,7 +2036,7 @@ function renderFinance() {
                     </td>
 
                     <td class="p-2 sticky-col font-bold text-slate-900 border-r">
-                        ${m.name}
+                        ${safeMemberName_}
                     </td>
 
                     <td class="p-2 text-center font-bold text-blue-600">
@@ -2096,7 +2138,7 @@ function renderFinance() {
                         </button>
 
                         ${
-                            currentUserRole === 'admin'
+                            (currentUserRole === 'admin' || currentUserRole === 'owner')
 
                                 ? (
                                     financeMonthCloseStatus === true
@@ -2177,8 +2219,8 @@ function renderFinance() {
 function openEditFinanceModal(idx) {
 
     if (
-        currentUserRole !==
-        'admin'
+        currentUserRole !== 'admin' &&
+        currentUserRole !== 'owner'
     ) {
         return;
     }
@@ -2437,6 +2479,22 @@ function closeEditFinanceModal() {
 }
 
 
+// ======================================================
+// v2.0 (sửa điểm yếu #5 - "Sửa nợ cũ" kiến trúc sai):
+//
+// v1.6 ghi ĐÈ TRỰC TIẾP member.noOld (cột Dư/Nợ Chuyển Kỳ, dùng
+// chung cho MỌI kỳ) bất kể đang xem tháng nào - có thể làm sai
+// lệch số dư mở đầu của một tháng CHƯA CHỐT khi admin sửa trong
+// lúc đang xem một tháng KHÁC.
+//
+// v2.0: KHÔNG còn ghi đè trực tiếp. Thay vào đó tạo 1 bản ghi
+// "điều chỉnh" (BalanceAdjustments) - CHỈ áp dụng cho kỳ hiện
+// đang mở (backend tự chặn nếu không phải kỳ mở, xem
+// BalanceAdjustmentService.gs.txt) - không bao giờ đụng tới lịch
+// sử các tháng đã chốt. Số dư hiển thị được tính lại từ server
+// sau khi tải lại dữ liệu, không suy đoán ở client nữa.
+// ======================================================
+
 function saveFinanceData(e) {
 
     e.preventDefault();
@@ -2466,7 +2524,7 @@ function saveFinanceData(e) {
     }
 
 
-    let newCarry =
+    let newValue =
         parseInt(
             document
                 .getElementById(
@@ -2476,94 +2534,63 @@ function saveFinanceData(e) {
         ) || 0;
 
 
-    let oldCarry =
+    let currentEffective =
         parseInt(
             member.noOld
         ) || 0;
 
 
-    let payloadMember = {
+    let delta =
+        newValue - currentEffective;
 
-        stt:
-            member.stt,
 
-        name:
-            member.name,
+    if (delta === 0) {
 
-        status:
-            member.status ||
-            "Đang tham gia",
+        closeEditFinanceModal();
+        return;
+    }
 
-        base:
-            parseFloat(
-                member.base
-            ) || 6.2,
 
-        noOld:
-            newCarry,
+    let reason =
+        (window.prompt(
+            "Nhập lý do điều chỉnh Dư/Nợ chuyển kỳ cho " +
+            member.name +
+            " (bắt buộc - sẽ được lưu vào lịch sử điều chỉnh, không sửa trực tiếp số dư gốc):",
+            ""
+        ) || "").trim();
 
-        role:
-            member.role ||
-            "member"
-    };
+
+    if (!reason) {
+
+        alert(
+            "Phải nhập lý do điều chỉnh. Đã huỷ thao tác."
+        );
+
+        return;
+    }
 
 
     closeEditFinanceModal();
 
-
-    // Optimistic UI
-    member.noOld =
-        newCarry;
-
-
-    renderFinance();
-
-
-    if (
-        typeof renderDashboard ===
-        "function"
-    ) {
-
-        renderDashboard();
-    }
-
-
     showToast(
-        "Đang cập nhật Dư/Nợ chuyển kỳ..."
+        "Đang gửi điều chỉnh Dư/Nợ chuyển kỳ..."
     );
 
 
-    fetch(
+    callBackendAction_(
 
-        GOOGLE_SCRIPT_URL,
+        "addBalanceAdjustment",
 
         {
+            adjustment: {
+                memberStt: member.stt,
+                amount: delta,
+                reason: reason
+            }
+        },
 
-            method:
-                "POST",
-
-            headers: {
-
-                "Content-Type":
-                    "text/plain;charset=utf-8"
-            },
-
-            body:
-                JSON.stringify({
-
-                    action:
-                        "updateSingleMember",
-
-                    member:
-                        payloadMember
-                })
-        }
+        generateIdempotencyKey_()
     )
-
-    .then(function(res) {
-
-        return res.json();
-    })
 
     .then(function(data) {
 
@@ -2572,85 +2599,37 @@ function saveFinanceData(e) {
             "SUCCESS"
         ) {
 
-            member.noOld =
-                oldCarry;
-
-
-            renderFinance();
-
-
-            if (
-                typeof renderDashboard ===
-                "function"
-            ) {
-
-                renderDashboard();
-            }
-
-
             alert(
-
                 (
                     data.message ||
-                    "Không thể cập nhật Dư/Nợ chuyển kỳ."
+                    "Không thể ghi điều chỉnh Dư/Nợ chuyển kỳ."
                 ) +
 
-                "\n\nDữ liệu đã được hoàn tác trên màn hình."
+                "\n\nKHÔNG có gì thay đổi (v2.0 không còn ghi đè " +
+                "trực tiếp số dư trên màn hình trước khi có xác " +
+                "nhận thật từ máy chủ)."
             );
-
 
             return;
         }
 
 
-        if (data.result) {
-
-            member.noOld =
-                parseInt(
-                    data.result.noOld
-                ) || 0;
-        }
-
-
-        renderFinance();
-
-
-        if (
-            typeof renderDashboard ===
-            "function"
-        ) {
-
-            renderDashboard();
-        }
-
-
         showToast(
-            "Đã cập nhật Dư/Nợ chuyển kỳ thành công!"
+            "Đã ghi điều chỉnh. Đang tải lại số dư mới nhất..."
         );
+
+
+        if (typeof fetchCloudData === "function") {
+
+            fetchCloudData(false);
+        }
     })
 
     .catch(function() {
 
-        member.noOld =
-            oldCarry;
-
-
-        renderFinance();
-
-
-        if (
-            typeof renderDashboard ===
-            "function"
-        ) {
-
-            renderDashboard();
-        }
-
-
         alert(
-
             "Không thể kết nối hệ thống.\n\n" +
-            "Dữ liệu Dư/Nợ đã được hoàn tác."
+            "Điều chỉnh CHƯA được ghi nhận, vui lòng thử lại."
         );
     });
 }
@@ -2992,19 +2971,12 @@ function renderQuyTable() {
 
                             return (
 
-                                String(
-                                    log.name || ''
-                                )
-                                .trim()
-                                .toLowerCase() ===
-
-                                String(
-                                    m.name || ''
-                                )
-                                .trim()
-                                .toLowerCase()
-
-                                &&
+                                recordBelongsToMember_(
+                                    log,
+                                    m,
+                                    "memberStt",
+                                    "name"
+                                ) &&
 
                                 String(
                                     log.quarter || ''
@@ -3062,8 +3034,7 @@ function renderQuyTable() {
 
 
             if (
-                currentUserRole ===
-                    'admin' &&
+                (currentUserRole === 'admin' || currentUserRole === 'owner') &&
                 quyLog
             ) {
 
@@ -3104,6 +3075,12 @@ function renderQuyTable() {
             }
 
 
+            let safeQuyMemberName_ =
+                (typeof escapeHtml_ === 'function')
+                    ? escapeHtml_(m.name)
+                    : String(m.name || '');
+
+
             tbody.innerHTML += `
 
                 <tr class="border-b hover:bg-slate-50">
@@ -3113,7 +3090,7 @@ function renderQuyTable() {
                     </td>
 
                     <td class="p-2.5 font-bold text-slate-900">
-                        ${m.name}
+                        ${safeQuyMemberName_}
                     </td>
 
                     <td class="p-2.5 text-center">
@@ -3175,8 +3152,7 @@ function renderQuyTable() {
                         text-center
                         admin-only
                         ${
-                            currentUserRole ===
-                            'admin'
+                            (currentUserRole === 'admin' || currentUserRole === 'owner')
                                 ? ''
                                 : 'hidden'
                         }
@@ -3197,12 +3173,12 @@ function renderQuyTable() {
 function deleteQuyLog(id) {
 
     if (
-        currentUserRole !==
-        'admin'
+        currentUserRole !== 'admin' &&
+        currentUserRole !== 'owner'
     ) {
 
         alert(
-            "Chỉ Admin mới được xóa xác nhận đóng quỹ."
+            "Chỉ Admin hoặc Owner mới được xóa xác nhận đóng quỹ."
         );
 
         return;
@@ -3266,222 +3242,16 @@ function deleteQuyLog(id) {
         `Xóa xác nhận đóng quỹ ${log.quarter}/${log.year} của [${log.name}]?`,
 
         () => {
-
-            let backupLog =
+            // v2.0.5: cùng FIFO queue với addQuyLog. Nếu người dùng
+            // vừa thêm rồi xóa ngay, ID tạm sẽ được thay bằng ID server
+            // trước khi lệnh deleteItem được gửi đi.
+            enqueueAction(
+                "deleteItem",
                 {
-                    ...log
-                };
-
-
-            quyLogs =
-                (quyLogs || [])
-                    .filter(
-                        function(item) {
-
-                            return (
-                                String(item.id) !==
-                                String(id)
-                            );
-                        }
-                    );
-
-
-            renderQuyTable();
-
-
-            if (
-                typeof renderDashboard ===
-                "function"
-            ) {
-
-                renderDashboard();
-            }
-
-
-            if (
-                typeof renderCashbook ===
-                "function"
-            ) {
-
-                renderCashbook();
-            }
-
-
-            showToast(
-
-                `Đang xóa xác nhận quỹ ${log.quarter}/${log.year}...`
-            );
-
-
-            fetch(
-
-                GOOGLE_SCRIPT_URL,
-
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "text/plain;charset=utf-8"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:
-                                "deleteItem",
-
-                            sheetName:
-                                "QuyLogs",
-
-                            id:
-                                log.id
-                        })
-                }
-            )
-
-            .then(
-                function(res) {
-
-                    return res.json();
-                }
-            )
-
-            .then(
-                function(data) {
-
-                    if (
-                        data.status !==
-                        "SUCCESS"
-                    ) {
-
-                        let exists =
-                            (quyLogs || [])
-                                .some(
-                                    function(item) {
-
-                                        return (
-                                            String(item.id) ===
-                                            String(backupLog.id)
-                                        );
-                                    }
-                                );
-
-
-                        if (!exists) {
-
-                            quyLogs.push(
-                                backupLog
-                            );
-                        }
-
-
-                        renderQuyTable();
-
-
-                        if (
-                            typeof renderDashboard ===
-                            "function"
-                        ) {
-
-                            renderDashboard();
-                        }
-
-
-                        if (
-                            typeof renderCashbook ===
-                            "function"
-                        ) {
-
-                            renderCashbook();
-                        }
-
-
-                        let message =
-                            data.message ||
-                            "Không thể xóa xác nhận đóng quỹ.";
-
-
-                        message =
-                            message.replace(
-                                /^Error:\s*/i,
-                                ""
-                            );
-
-
-                        alert(
-
-                            message +
-
-                            "\n\nDữ liệu đã được khôi phục trên màn hình."
-                        );
-
-
-                        return;
-                    }
-
-
-                    showToast(
-
-                        `Đã xóa quỹ ${log.quarter}/${log.year} của ${log.name}!`
-                    );
-                }
-            )
-
-            .catch(
-                function() {
-
-                    let exists =
-                        (quyLogs || [])
-                            .some(
-                                function(item) {
-
-                                    return (
-                                        String(item.id) ===
-                                        String(backupLog.id)
-                                    );
-                                }
-                            );
-
-
-                    if (!exists) {
-
-                        quyLogs.push(
-                            backupLog
-                        );
-                    }
-
-
-                    renderQuyTable();
-
-
-                    if (
-                        typeof renderDashboard ===
-                        "function"
-                    ) {
-
-                        renderDashboard();
-                    }
-
-
-                    if (
-                        typeof renderCashbook ===
-                        "function"
-                    ) {
-
-                        renderCashbook();
-                    }
-
-
-                    alert(
-
-                        "Không thể kết nối hệ thống.\n\n" +
-                        "Lệnh xóa đã được hoàn tác."
-                    );
-                }
+                    sheetName: "QuyLogs",
+                    id: log.id
+                },
+                `Đã xóa quỹ ${log.quarter}/${log.year} của ${log.name}!`
             );
         }
     );
@@ -3648,7 +3418,10 @@ function openEditGocLog(id) {
             'egMemberName'
         )
         .value =
-            g.name;
+            getCurrentMemberNameByStt_(
+                g.memberStt,
+                g.name
+            );
 
 
     document
@@ -3779,25 +3552,6 @@ function saveGocLogEdit(e) {
     }
 
 
-    let backup = {
-
-        id:
-            g.id,
-
-        time:
-            g.time,
-
-        name:
-            g.name,
-
-        amount:
-            g.amount,
-
-        note:
-            g.note
-    };
-
-
     let payload = {
 
         id:
@@ -3807,7 +3561,13 @@ function saveGocLogEdit(e) {
             g.time,
 
         name:
-            g.name,
+            getCurrentMemberNameByStt_(
+                g.memberStt,
+                g.name
+            ),
+
+        memberStt:
+            parseInt(g.memberStt) || 0,
 
         amount:
             newAmount,
@@ -3820,205 +3580,13 @@ function saveGocLogEdit(e) {
     closeEditGocLogModal();
 
 
-    // Optimistic UI
-    g.amount =
-        newAmount;
-
-
-    g.note =
-        newNote;
-
-
-    renderGocLogsTab();
-
-    renderFinance();
-
-
-    if (
-        typeof renderDashboard ===
-        "function"
-    ) {
-
-        renderDashboard();
-    }
-
-
-    if (
-        typeof renderCashbook ===
-        "function"
-    ) {
-
-        renderCashbook();
-    }
-
-
-    showToast(
-        "Đang cập nhật tiền góc..."
-    );
-
-
-    fetch(
-
-        GOOGLE_SCRIPT_URL,
-
-        {
-
-            method:
-                "POST",
-
-            headers: {
-
-                "Content-Type":
-                    "text/plain;charset=utf-8"
-            },
-
-            body:
-                JSON.stringify({
-
-                    action:
-                        "updateGocLog",
-
-                    gocLog:
-                        payload
-                })
-        }
-    )
-
-    .then(
-        function(res) {
-
-            return res.json();
-        }
-    )
-
-    .then(
-        function(data) {
-
-            if (
-                data.status !==
-                "SUCCESS"
-            ) {
-
-                Object.assign(
-                    g,
-                    backup
-                );
-
-
-                renderGocLogsTab();
-
-                renderFinance();
-
-
-                if (
-                    typeof renderDashboard ===
-                    "function"
-                ) {
-
-                    renderDashboard();
-                }
-
-
-                if (
-                    typeof renderCashbook ===
-                    "function"
-                ) {
-
-                    renderCashbook();
-                }
-
-
-                alert(
-
-                    (
-                        data.message ||
-                        "Không thể cập nhật tiền góc."
-                    ) +
-
-                    "\n\nDữ liệu đã được hoàn tác."
-                );
-
-
-                return;
-            }
-
-
-            if (data.result) {
-
-                Object.assign(
-                    g,
-                    data.result
-                );
-            }
-
-
-            renderGocLogsTab();
-
-            renderFinance();
-
-
-            if (
-                typeof renderDashboard ===
-                "function"
-            ) {
-
-                renderDashboard();
-            }
-
-
-            if (
-                typeof renderCashbook ===
-                "function"
-            ) {
-
-                renderCashbook();
-            }
-
-
-            showToast(
-                "Đã cập nhật tiền góc thành công!"
-            );
-        }
-    )
-
-    .catch(
-        function() {
-
-            Object.assign(
-                g,
-                backup
-            );
-
-
-            renderGocLogsTab();
-
-            renderFinance();
-
-
-            if (
-                typeof renderDashboard ===
-                "function"
-            ) {
-
-                renderDashboard();
-            }
-
-
-            if (
-                typeof renderCashbook ===
-                "function"
-            ) {
-
-                renderCashbook();
-            }
-
-
-            alert(
-
-                "Không thể kết nối hệ thống.\n\n" +
-                "Dữ liệu tiền góc đã được hoàn tác."
-            );
-        }
+    // v2.0.5: đưa update vào cùng FIFO queue với add/delete. Nếu bản
+    // ghi vừa tạo còn mang ID tạm, processQueue() sẽ thay bằng ID thật
+    // trước khi gửi update này lên backend.
+    enqueueAction(
+        "updateGocLog",
+        { gocLog: payload },
+        "Đã cập nhật tiền góc thành công!"
     );
 }
 
@@ -4034,7 +3602,7 @@ function deleteGocLog(id) {
 
     let message =
         g
-            ? `Bạn có muốn xóa lượt nộp góc [${g.name}], số tiền ${(parseInt(g.amount) || 0).toLocaleString('vi-VN')}đ này không?`
+            ? `Bạn có muốn xóa lượt nộp góc [${getCurrentMemberNameByStt_(g.memberStt, g.name)}], số tiền ${(parseInt(g.amount) || 0).toLocaleString('vi-VN')}đ này không?`
             : "Bạn có chắc chắn muốn xóa lượt nộp tiền góc này không?";
 
     showActionConfirm(
@@ -4160,6 +3728,12 @@ function selectCategory(cat) {
                     amount;
 
 
+                let safeLogName_ =
+                    (typeof escapeHtml_ === 'function')
+                        ? escapeHtml_(getCurrentMemberNameByStt_(log.memberStt, log.name))
+                        : String(getCurrentMemberNameByStt_(log.memberStt, log.name) || '');
+
+
                 tbody.innerHTML += `
 
                     <tr class="border-b">
@@ -4169,7 +3743,7 @@ function selectCategory(cat) {
                         </td>
 
                         <td class="p-1.5 font-bold">
-                            ${log.name}
+                            ${safeLogName_}
                         </td>
 
                         <td class="p-1.5 text-right font-bold text-emerald-700">
@@ -4192,7 +3766,11 @@ function selectCategory(cat) {
         'Tiền góc thực thu'
     ) {
 
-        (gocLogs || [])
+        // (v2.0 fix) Cùng lý do như renderGocLogsTab()/renderCashbook() -
+        // đây là view "gương" dựng từ GocLogs (không phải từ cashbookLogs
+        // thật), nên cũng phải loại các dòng điều chỉnh trả tiền dư ra để
+        // không hiện/tính trùng ở màn "Tiền góc thực thu" này.
+        getRealGocLogs_()
             .forEach(
                 function(g) {
 
@@ -4212,16 +3790,22 @@ function selectCategory(cat) {
                         amount;
 
 
+                    let safeGocName_ =
+                        (typeof escapeHtml_ === 'function')
+                            ? escapeHtml_(getCurrentMemberNameByStt_(g.memberStt, g.name))
+                            : String(getCurrentMemberNameByStt_(g.memberStt, g.name) || '');
+
+
                     tbody.innerHTML += `
 
                         <tr class="border-b">
 
                             <td class="p-1.5">
-                                ${g.time}
+                                ${formatVNTimeForDisplay_(g.time)}
                             </td>
 
                             <td class="p-1.5 font-bold">
-                                ${g.name}
+                                ${safeGocName_}
                             </td>
 
                             <td class="
@@ -4242,8 +3826,7 @@ function selectCategory(cat) {
                                 text-center
                                 admin-only
                                 ${
-                                    currentUserRole ===
-                                    'admin'
+                                    (currentUserRole === 'admin' || currentUserRole === 'owner')
                                         ? ''
                                         : 'hidden'
                                 }
@@ -4291,16 +3874,22 @@ function selectCategory(cat) {
                     ) || 0;
 
 
+                let safeCashNote_ =
+                    (typeof escapeHtml_ === 'function')
+                        ? escapeHtml_(c.note)
+                        : String(c.note || '');
+
+
                 tbody.innerHTML += `
 
                     <tr class="border-b">
 
                         <td class="p-1.5">
-                            ${c.time}
+                            ${formatVNTimeForDisplay_(c.time)}
                         </td>
 
                         <td class="p-1.5 font-bold">
-                            ${c.note}
+                            ${safeCashNote_}
                         </td>
 
                         <td class="p-1.5 text-right font-bold">
@@ -4321,8 +3910,7 @@ function selectCategory(cat) {
                             text-center
                             admin-only
                             ${
-                                currentUserRole ===
-                                'admin'
+                                (currentUserRole === 'admin' || currentUserRole === 'owner')
                                     ? ''
                                     : 'hidden'
                             }
@@ -4437,8 +4025,12 @@ function computeQuarterOpeningBalance_(quarterInfo) {
                 return sum + (parseInt(q.amount) || 0);
             }, 0);
 
+    // (v2.0 fix) Cùng lý do loại trừ như totalGocThu trong renderCashbook()
+    // ở trên - nếu không, "DƯ ĐẦU KỲ" của quý SAU sẽ tiếp tục tính trùng
+    // 2 lần các khoản trả tiền dư thưởng đặt sân đã ghi qua
+    // payOutMemberCreditByAdmin() (dashboard.js) mỗi khi sang quý mới.
     let gocBefore =
-        (gocLogs || [])
+        getRealGocLogs_()
             .filter(function(g) {
                 let d = parseVNDateOnly_(g.time);
                 return d && d < quarterInfo.startDate;
@@ -4514,8 +4106,18 @@ function renderCashbook() {
             );
 
 
+    // (v2.0 fix) "Dư Quỹ Hiện Tại" cộng NGUYÊN tổng GocLogs vào đây coi
+    // như tiền thật đã về quỹ - đúng với addGocLog/addGocLogAdjustment
+    // bình thường (điều chỉnh sổ sau khi chốt - P2). NHƯNG dòng điều
+    // chỉnh do payOutMemberCreditByAdmin() (dashboard.js) tạo ra khi trả
+    // tiền dư thưởng đặt sân cho thành viên KHÔNG phải tiền thật ra/vào
+    // quỹ - nó chỉ để đưa Dư/Nợ riêng của thành viên đó về 0, còn dòng
+    // tiền CHI thật đã được ghi RIÊNG 1 lần vào Cashbook mục "Tiền
+    // thưởng đặt sân" (tính trong totalChi ở dưới). Cộng luôn cả ở đây
+    // sẽ bị trừ trùng 2 lần trên quỹ thật (thành viên phát hiện) - loại
+    // trừ đúng các dòng có thẻ đánh dấu này ra khỏi tổng.
     let totalGocThu =
-        (gocLogs || [])
+        getRealGocLogs_()
             .reduce(
                 function(sum, g) {
 
@@ -4715,9 +4317,13 @@ function ensureMonthCloseAdminUI_() {
         );
 
 
+    // (v2.0 - theo đúng ma trận quyền của Chủ CLB): "Chốt tháng" cho
+    // phép CẢ Owner và Admin, không chỉ riêng Admin như bản cũ - nếu
+    // không sửa, Owner sẽ không bao giờ thấy nút này dù backend
+    // (Router.gs.txt: closeMonth cấp độ 2) đã cho phép cả hai.
     if (
-        currentUserRole !==
-        'admin'
+        currentUserRole !== 'admin' &&
+        currentUserRole !== 'owner'
     ) {
 
         if (oldButton) {
@@ -5242,13 +4848,16 @@ function buildMonthCloseClientPreview_(
 
                 let f =
                     calculateUserFinanceForMonth(
-                        member.name,
+                        member,
                         month,
                         year
                     );
 
 
                 let row = {
+
+                    stt:
+                        parseInt(member.stt) || 0,
 
                     name:
                         member.name,
@@ -5368,19 +4977,14 @@ function applyMonthCloseLocalSnapshot_(
                         function(item) {
 
                             return (
-                                String(
-                                    item.name || ''
-                                )
-                                .trim()
-                                .toLowerCase() ===
-
-                                String(
-                                    row.name || ''
-                                )
-                                .trim()
-                                .toLowerCase()
-
-                                &&
+                                identityFieldsMatch_(
+                                    item.memberStt,
+                                    item.name,
+                                    {
+                                        stt: row.stt,
+                                        name: row.name
+                                    }
+                                ) &&
 
                                 parseInt(
                                     item.month
@@ -5417,6 +5021,9 @@ function applyMonthCloseLocalSnapshot_(
                     name:
                         row.name,
 
+                    memberStt:
+                        parseInt(row.stt) || 0,
+
                     month:
                         preview.month,
 
@@ -5452,24 +5059,16 @@ function applyMonthCloseLocalSnapshot_(
 
             let member =
                 (members || [])
-                    .find(
-                        function(item) {
-
-                            return (
-                                String(
-                                    item.name || ''
-                                )
-                                .trim()
-                                .toLowerCase() ===
-
-                                String(
-                                    row.name || ''
-                                )
-                                .trim()
-                                .toLowerCase()
-                            );
-                        }
-                    );
+                    .find(function(item) {
+                        return identityFieldsMatch_(
+                            item.stt,
+                            item.name,
+                            {
+                                stt: row.stt,
+                                name: row.name
+                            }
+                        );
+                    });
 
 
             if (member) {
@@ -5622,8 +5221,8 @@ function showMonthClosePreviewModal_(
 function openMonthClosePreview_() {
 
     if (
-        currentUserRole !==
-        'admin'
+        currentUserRole !== 'admin' &&
+        currentUserRole !== 'owner'
     ) {
         return;
     }
@@ -6006,173 +5605,130 @@ function executeMonthClose_() {
             // POST CHỐT THÁNG
             // ==================================================
 
-            fetch(
-                GOOGLE_SCRIPT_URL,
-                {
+            // ==================================================
+            // POST CHỐT THÁNG (v2.0)
+            //
+            // Trước đây (v1.6): POST no-cors "bắn và quên" rồi PHẢI
+            // polling riêng để biết kết quả, và khi xác nhận xong lại
+            // áp dụng "preview" tự tính ở CLIENT (có thể lệch với
+            // dữ liệu thật) thay vì dữ liệu authoritative backend vừa
+            // trả về (điểm yếu #4, phần cuối).
+            //
+            // v2.0: gọi thẳng qua BFF, ĐỌC ĐƯỢC kết quả thật ngay
+            // trong 1 request - không cần polling nữa, và áp dụng
+            // TRỰC TIẾP data.result (đã có đủ month/year/rows/totals
+            // giống hệt shape "preview" cũ) làm snapshot chính thức.
+            // ==================================================
 
-                    method:
-                        'POST',
+            callBackendAction_(
 
-                    mode:
-                        'no-cors',
+                'closeMonth',
 
-                    headers: {
+                { monthClose: { month: month, year: year } },
 
-                        'Content-Type':
-                            'text/plain;charset=utf-8'
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:
-                                'closeMonth',
-
-                            monthClose: {
-
-                                month:
-                                    month,
-
-                                year:
-                                    year
-                            }
-                        })
-                }
+                generateIdempotencyKey_()
             )
 
             .then(
-                function() {
+                function(data) {
+
+                    if (
+                        data.status !==
+                        'SUCCESS'
+                    ) {
+
+                        resetConfirmButton_();
+
+                        setMonthCloseButtonState_(
+                            'error',
+                            month,
+                            year
+                        );
+
+                        alert(
+                            (data.message || 'Không thể chốt tháng.') +
+                            '\n\nChưa có gì được ghi nhận trên hệ thống.'
+                        );
+
+                        return;
+                    }
+
 
                     closeMonthCloseModal_();
 
 
+                    // Dùng ĐÚNG dữ liệu authoritative backend vừa trả
+                    // về (data.result: {month,year,rows,totals,...})
+                    // thay vì preview tự đoán ở client.
+                    applyMonthCloseLocalSnapshot_(
+                        data.result
+                    );
+
+
+                    if (
+                        !window.monthCloseStatusLastCheck
+                    ) {
+
+                        window.monthCloseStatusLastCheck =
+                            {};
+                    }
+
+
+                    window
+                        .monthCloseStatusLastCheck[
+                            getMonthCloseStatusKey_(
+                                month,
+                                year
+                            )
+                        ] = {
+
+                            time:
+                                Date.now(),
+
+                            closed:
+                                true
+                        };
+
+
+                    resetConfirmButton_();
+
                     setMonthCloseButtonState_(
-                        'checking',
+                        'closed',
                         month,
                         year
                     );
 
 
                     showToast(
-                        `Đã gửi lệnh chốt tháng ${month}/${year}. Đang xác nhận trên Cloud...`
+                        `Đã chốt tháng ${month}/${year} thành công!`
                     );
 
 
-                    // ==========================================
-                    // POLL API NHẸ CHO ĐẾN KHI BACKEND XÁC NHẬN
-                    // ==========================================
+                    if (
+                        typeof renderFinance ===
+                        'function'
+                    ) {
 
-                    pollMonthCloseStatus_(
-                        month,
-                        year,
-
-                        function(
-                            confirmed,
-                            result
-                        ) {
-
-                            resetConfirmButton_();
+                        renderFinance();
+                    }
 
 
-                            if (!confirmed) {
+                    if (
+                        typeof renderDashboard ===
+                        'function'
+                    ) {
 
-                                setMonthCloseButtonState_(
-                                    'error',
-                                    month,
-                                    year
-                                );
-
-
-                                alert(
-                                    "Đã gửi lệnh chốt nhưng chưa xác nhận được trạng thái trên Cloud.\n\n" +
-                                    "KHÔNG bấm chốt lại.\n" +
-                                    "Vui lòng kiểm tra sheet MonthlyBalances hoặc thử tải lại trang sau."
-                                );
-
-                                return;
-                            }
+                        renderDashboard();
+                    }
 
 
-                            // ==================================
-                            // BACKEND ĐÃ XÁC NHẬN THÁNG ĐÃ CHỐT
-                            // ==================================
+                    if (
+                        typeof renderCashbook ===
+                        'function'
+                    ) {
 
-                            applyMonthCloseLocalSnapshot_(
-                                preview
-                            );
-
-
-                            if (
-                                !window.monthCloseStatusLastCheck
-                            ) {
-
-                                window.monthCloseStatusLastCheck =
-                                    {};
-                            }
-
-
-                            window
-                                .monthCloseStatusLastCheck[
-                                    getMonthCloseStatusKey_(
-                                        month,
-                                        year
-                                    )
-                                ] = {
-
-                                    time:
-                                        Date.now(),
-
-                                    closed:
-                                        true
-                                };
-
-
-                            setMonthCloseButtonState_(
-                                'closed',
-                                month,
-                                year
-                            );
-
-
-                            showToast(
-                                `Đã chốt tháng ${month}/${year} thành công!`
-                            );
-
-
-                            if (
-                                typeof renderFinance ===
-                                'function'
-                            ) {
-
-                                renderFinance();
-                            }
-
-
-                            if (
-                                typeof renderDashboard ===
-                                'function'
-                            ) {
-
-                                renderDashboard();
-                            }
-
-
-                            if (
-                                typeof renderCashbook ===
-                                'function'
-                            ) {
-
-                                renderCashbook();
-                            }
-
-
-                            setMonthCloseButtonState_(
-                                'closed',
-                                month,
-                                year
-                            );
-                        }
-                    );
+                        renderCashbook();
+                    }
                 }
             )
 
@@ -6196,8 +5752,11 @@ function executeMonthClose_() {
 
 
                     alert(
-                        "Không thể gửi yêu cầu chốt tháng.\n\n" +
-                        "Chưa có xác nhận rằng Backend đã nhận lệnh."
+                        "Không thể kết nối hệ thống.\n\n" +
+                        "Nếu vừa mất mạng NGAY SAU KHI gửi lệnh, có thể " +
+                        "backend đã chốt thành công - vui lòng tải lại " +
+                        "trang để kiểm tra trước khi bấm chốt lại " +
+                        "(idempotencyKey đã gửi giúp chống chốt trùng)."
                     );
                 }
             );
