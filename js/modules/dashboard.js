@@ -11,7 +11,7 @@ function renderGamification() {
 
     matches.forEach(m => {
         let mTime = m.time || "";
-        let isThisMonth = mTime.includes(`/${curMonth}/${curYear}`) || mTime.includes(` ${curMonth}/${curYear}`);
+        let isThisMonth = isLogInMonth_(mTime, curMonth, curYear);
         if (!isThisMonth) return;
 
         let players = [m.p1_v1, m.p2_v1, m.p1_v2, m.p2_v2];
@@ -137,7 +137,7 @@ function handleDashboardSubmit() {
                         b.frame === "16h-18h" &&
                         (
                             NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT ||
-                            b.time.includes(new Date().toLocaleDateString('vi-VN'))
+                            b.time.includes(formatVNDateOnly_())
                         )
                     );
                 });
@@ -163,12 +163,7 @@ function handleDashboardSubmit() {
 
                     if (b.name !== main) return false;
 
-                    let t = b.time || "";
-
-                    return (
-                        t.includes(`/${curMonth}/${curYear}`) ||
-                        t.includes(` ${curMonth}/${curYear}`)
-                    );
+                    return isLogInMonth_(b.time, curMonth, curYear);
                 });
 
 
@@ -197,7 +192,7 @@ function handleDashboardSubmit() {
                 // bỏ qua các trường thừa này.
                 let newBooking = {
                     id: Date.now(),
-                    time: new Date().toLocaleString('vi-VN'),
+                    time: formatVNDateTime_(),
                     name: main,
                     frame: "16h-18h",
                     reward: systemSettings.reward16h,
@@ -236,7 +231,7 @@ function handleDashboardSubmit() {
                         b.frame.includes("18h") &&
                         (
                             NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT ||
-                            b.time.includes(new Date().toLocaleDateString('vi-VN'))
+                            b.time.includes(formatVNDateOnly_())
                         )
                     );
                 });
@@ -274,7 +269,7 @@ function handleDashboardSubmit() {
                 // trên targetStt, không dựa vào frame label client gửi.
                 let newBooking = {
                     id: Date.now(),
-                    time: new Date().toLocaleString('vi-VN'),
+                    time: formatVNDateTime_(),
                     name: main,
                     frame: frameLabel,
                     reward: rewardAmount,
@@ -327,7 +322,7 @@ function handleDashboardSubmit() {
 
             let newQuyLog = {
                 id: "QUY_" + Date.now(),
-                time: new Date().toLocaleString('vi-VN'),
+                time: formatVNDateTime_(),
                 name: main,
                 quarter: period.quarter,
                 year: period.year,
@@ -416,8 +411,7 @@ function renderDashboard() {
     let curYear = document.getElementById('selectFinanceYear').value;
     let userBookingsThisMonth = bookingLogs.filter(b => {
         if (b.name !== main) return false;
-        let t = b.time || "";
-        return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+        return isLogInMonth_(b.time, curMonth, curYear);
     });
 
     let totalReward = userBookingsThisMonth.reduce((sum, b) => sum + parseInt(b.reward), 0);
@@ -431,8 +425,7 @@ function renderDashboard() {
     let userMatchesThisMonth = matches.filter(match => {
         let isUserIn = (match.p1_v1 === main || match.p2_v1 === main || match.p1_v2 === main || match.p2_v2 === main);
         if (!isUserIn) return false;
-        let t = match.time || "";
-        return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+        return isLogInMonth_(match.time, curMonth, curYear);
     });
 
     userMatchesThisMonth.forEach((mItem, idx) => {
@@ -453,7 +446,7 @@ function renderDashboard() {
     let rewardBody = document.getElementById('userRewardHistoryBody');
     rewardBody.innerHTML = '';
     userBookingsThisMonth.forEach(b => {
-        rewardBody.innerHTML += `<tr class="border-b"><td class="p-1.5">${b.time}</td><td class="p-1.5 text-center font-bold text-amber-700">${b.frame}</td><td class="p-1.5 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td></tr>`;
+        rewardBody.innerHTML += `<tr class="border-b"><td class="p-1.5">${formatVNTimeForDisplay_(b.time)}</td><td class="p-1.5 text-center font-bold text-amber-700">${b.frame}</td><td class="p-1.5 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td></tr>`;
     });
 
     let gocBody = document.getElementById('userGocHistoryBody');
@@ -469,7 +462,7 @@ function renderDashboard() {
 
             gocBody.innerHTML += `
                 <tr class="border-b">
-                    <td class="p-1.5 text-slate-600">${g.time}</td>
+                    <td class="p-1.5 text-slate-600">${formatVNTimeForDisplay_(g.time)}</td>
                     <td class="p-1.5 text-right font-bold text-emerald-700">${parseInt(g.amount).toLocaleString()} đ</td>
                     <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${safeNote}</td>
                 </tr>
@@ -1096,7 +1089,7 @@ function renderDashboard() {
                 userBookings.forEach(function (b) {
                     rewardBody.innerHTML += `
                         <tr class="border-b">
-                            <td class="p-1.5">${b.time}</td>
+                            <td class="p-1.5">${formatVNTimeForDisplay_(b.time)}</td>
                             <td class="p-1.5 text-center font-bold text-amber-700">${b.frame}</td>
                             <td class="p-1.5 text-right font-black text-emerald-700">${money_(b.reward)}</td>
                         </tr>
@@ -1143,7 +1136,7 @@ function renderDashboard() {
 
                     gocBody.innerHTML += `
                         <tr class="border-b">
-                            <td class="p-1.5 text-slate-600">${g.time}</td>
+                            <td class="p-1.5 text-slate-600">${formatVNTimeForDisplay_(g.time)}</td>
                             <td class="p-1.5 text-right font-bold text-emerald-700">${money_(g.amount)}</td>
                             <td class="p-1.5 text-slate-500 truncate max-w-[90px]">${safeNote_}</td>
                         </tr>
@@ -1403,7 +1396,7 @@ function renderDashboard() {
 
                     let newGoc = {
                         id: Date.now(),
-                        time: new Date().toLocaleString('vi-VN'),
+                        time: formatVNDateTime_(),
                         name: main,
                         amount: amountDue,
                         note: `${loggedInMemberName || 'Admin/Owner'} xác nhận đã nộp đủ (chuyển khoản riêng cho thủ quỹ)`
@@ -1420,7 +1413,7 @@ function renderDashboard() {
                         category: "Tiền góc thực thu",
                         amount: amountDue,
                         note: `${main} đã nộp đủ tháng ${p.month}/${p.year} (xác nhận qua nút "Đã nộp" - ${loggedInMemberName || 'Admin/Owner'})`,
-                        time: new Date().toLocaleDateString('vi-VN')
+                        time: formatVNDateOnly_()
                     };
 
                     enqueueAction(
@@ -1521,7 +1514,7 @@ function renderDashboard() {
 
                     let adjustment = {
                         id: Date.now(),
-                        time: new Date().toLocaleString('vi-VN'),
+                        time: formatVNDateTime_(),
                         name: main,
                         // closing đang ÂM - ghi ĐÚNG giá trị này (không đổi dấu) để
                         // trừ thẳng vào Đã nộp, đưa Dư/Nợ về đúng 0 (xem công thức
@@ -1548,7 +1541,7 @@ function renderDashboard() {
                         category: "Tiền thưởng đặt sân",
                         amount: payoutAmount,
                         note: `Trả tiền dư thưởng đặt sân cho ${main} - Tháng ${p.month}/${p.year} (Mã: ${payoutTxnId_})`,
-                        time: new Date().toLocaleDateString('vi-VN')
+                        time: formatVNDateOnly_()
                     };
 
                     enqueueAction(

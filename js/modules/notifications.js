@@ -63,7 +63,7 @@ function addNotificationToHistory_(title, body) {
         id: 'n_' + Date.now() + '_' + Math.floor(Math.random() * 100000),
         title: title || 'Thông báo',
         body: body || '',
-        time: new Date().toLocaleString('vi-VN'),
+        time: formatVNDateTime_(),
         read: false
     });
 
@@ -156,7 +156,7 @@ function renderNotificationCenter() {
                 '<div class="flex-1 min-w-0">' +
                     '<p class="text-xs font-bold text-slate-800">' + escapeHtml_(n.title) + '</p>' +
                     '<p class="text-[11px] text-slate-500 mt-0.5">' + escapeHtml_(n.body) + '</p>' +
-                    '<p class="text-[10px] text-slate-300 mt-1">' + escapeHtml_(n.time) + '</p>' +
+                    '<p class="text-[10px] text-slate-300 mt-1">' + escapeHtml_(formatVNTimeForDisplay_(n.time)) + '</p>' +
                 '</div>' +
                 '<button type="button" onclick="deleteNotificationItem(\'' + n.id + '\')" class="text-slate-300 hover:text-red-500 flex-shrink-0 p-1">' +
                     '<i class="fa-solid fa-xmark text-xs"></i>' +

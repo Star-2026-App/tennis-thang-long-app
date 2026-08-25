@@ -11,6 +11,19 @@
 html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+
+    /* (v2.0 fix - gói 1, mục 2) Chặn cử chỉ "kéo để làm mới" (pull-to-
+       refresh) mặc định của Chrome trên Android: khi user kéo xuống ở
+       đỉnh trang, Android tự load lại TOÀN BỘ trang - làm mất phiên
+       (session) đang lưu trên bộ nhớ JS -> app hiện lại như vừa đăng
+       xuất/đăng nhập lại dù thực ra user chỉ đang thao tác kéo làm mới
+       thông thường (không xảy ra trên iPhone Safari/máy tính vì các
+       trình duyệt đó không có cử chỉ này). "contain" chỉ chặn việc
+       overscroll bị "tràn" ra ngoài trang (kích hoạt reload của trình
+       duyệt) - KHÔNG ảnh hưởng gì tới việc cuộn bình thường bên trong
+       app.
+    */
+    overscroll-behavior-y: contain;
 }
 
 body {
@@ -29,6 +42,8 @@ body {
 
     min-height: 100vh;
     min-height: 100dvh;
+
+    overscroll-behavior-y: contain;
 }
 
 

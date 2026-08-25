@@ -6,7 +6,7 @@ function addNewRule(e) {
 
     let newRule = {
         id: Date.now(),
-        time: new Date().toLocaleString('vi-VN'),
+        time: formatVNDateTime_(),
         title: title,
         content: content
     };
@@ -62,7 +62,7 @@ function renderRulesTab() {
     combinedRules.forEach((r) => {
         let safeTitle = (typeof escapeHtml_ === 'function') ? escapeHtml_(r.title) : String(r.title || '');
         let safeContent = (typeof escapeHtml_ === 'function') ? escapeHtml_(r.content) : String(r.content || '');
-        let safeTime = (typeof escapeHtml_ === 'function') ? escapeHtml_(r.time) : String(r.time || '');
+        let safeTime = (typeof escapeHtml_ === 'function') ? escapeHtml_(formatVNTimeForDisplay_(r.time)) : String(r.time || '');
 
         let deleteBtn = (currentUserRole === 'admin' || currentUserRole === 'owner')
             ? `<button onclick="deleteRule(${parseInt(r.id) || 0})" class="text-red-600 font-bold text-xs"><i class="fa-solid fa-trash"></i></button>`

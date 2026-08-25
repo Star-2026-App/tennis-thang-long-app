@@ -1112,7 +1112,7 @@ function renderAllMatchLog() {
                     </td>
 
                     <td class="p-2.5 text-slate-600">
-                        ${m.time || "-"}
+                        ${m.time ? formatVNTimeForDisplay_(m.time) : "-"}
                     </td>
 
                     <td class="p-2.5 font-semibold text-slate-900">
@@ -1287,7 +1287,7 @@ function openEditMatchModal(
     document.getElementById(
         "emMatchInfo"
     ).value =
-        `${m.time} | (${m.p1_v1}&${m.p2_v1}) vs (${m.p1_v2}&${m.p2_v2})`;
+        `${formatVNTimeForDisplay_(m.time)} | (${m.p1_v1}&${m.p2_v1}) vs (${m.p1_v2}&${m.p2_v2})`;
 
 
     document.getElementById(
@@ -1885,10 +1885,7 @@ function saveNewMatchData(
             Date.now(),
 
         time:
-            new Date()
-                .toLocaleString(
-                    "vi-VN"
-                ),
+            formatVNDateTime_(),
 
         p1_v1:
             p1A,

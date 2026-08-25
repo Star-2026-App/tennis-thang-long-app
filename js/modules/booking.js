@@ -6,8 +6,7 @@ function renderBookingLogs() {
     let curYear = document.getElementById('selectBookingYear').value;
 
     let currentMonthBookings = bookingLogs.filter(b => {
-        let t = b.time || "";
-        return t.includes(`/${curMonth}/${curYear}`) || t.includes(` ${curMonth}/${curYear}`);
+        return isLogInMonth_(b.time, curMonth, curYear);
     });
 
     currentMonthBookings.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
@@ -24,7 +23,7 @@ function renderBookingLogs() {
         tbody.innerHTML += `
             <tr class="border-b">
                 <td class="p-2.5 text-center font-bold">${stt}</td>
-                <td class="p-2.5">${b.time}</td>
+                <td class="p-2.5">${formatVNTimeForDisplay_(b.time)}</td>
                 <td class="p-2.5 font-bold">${esc_(b.name)}</td>
                 <td class="p-2.5 text-center font-bold text-amber-700">${b.frame}</td>
                 <td class="p-2.5 text-right font-black text-emerald-700">${parseInt(b.reward).toLocaleString()} đ</td>
@@ -57,12 +56,19 @@ function openTodayCourtsModal() {
 
     let yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    let yesterdayStr = yesterday.getDate() + "/" + (yesterday.getMonth() + 1);
-    let yesterdayFullStr = yesterday.toLocaleDateString('vi-VN');
+    let yDay = yesterday.getDate();
+    let yMonth = yesterday.getMonth() + 1;
+    let yYear = yesterday.getFullYear();
 
+    // (v2.0 fix - gói 1, mục 3+4) Trước đây so sánh bằng chuỗi con
+    // (yesterdayStr/yesterdayFullStr) - vỡ khi định dạng "time" lưu ở
+    // Sheet không đệm số 0 giống hệt kết quả toLocaleDateString() của
+    // trình duyệt hiện tại. Dùng getDatePartsFromLogTime_ (đã lấy ngày/
+    // tháng/năm bằng regex, không quan tâm đệm 0 hay thứ tự) để so sánh
+    // CHÍNH XÁC ngày/tháng/năm - an toàn với cả dữ liệu cũ lẫn mới.
     let yesterdayBookings = bookingLogs.filter(b => {
-        let t = b.time || "";
-        return t.includes(yesterdayStr) || t.includes(yesterdayFullStr);
+        let parts = getDatePartsFromLogTime_(b.time);
+        return !!parts && parts.day === yDay && parts.month === yMonth && parts.year === yYear;
     });
 
     if (yesterdayBookings.length === 0) {
@@ -75,7 +81,7 @@ function openTodayCourtsModal() {
                 <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between shadow-sm">
                     <div>
                         <h4 class="font-black text-xs text-slate-900">${esc_(b.name)}</h4>
-                        <p class="text-[10px] text-slate-500 mt-0.5">Thời gian đặt: ${b.time}</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Thời gian đặt: ${formatVNTimeForDisplay_(b.time)}</p>
                     </div>
                     <span class="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-3 py-1 rounded-xl shadow-sm">${b.frame}</span>
                 </div>

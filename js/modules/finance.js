@@ -32,6 +32,72 @@ function isLogInMonth_(timeValue, targetMonth, targetYear) {
     );
 }
 
+// (v2.0 fix - gói 1, mục 3+4) Định dạng ngày giờ CỐ ĐỊNH cho toàn app,
+// KHÔNG dùng new Date().toLocaleString('vi-VN')/toLocaleDateString('vi-VN')
+// nữa - 2 hàm đó phụ thuộc trình duyệt/thiết bị/phiên bản Chrome nên trả
+// về thứ tự trường VÀ cách đệm số 0 KHÁC NHAU tùy máy (đã xác nhận qua
+// dữ liệu thực tế: máy cũ ghi "08:34:47 17/8/2026" - giờ trước ngày sau,
+// tháng KHÔNG đệm 0; máy/bản Chrome mới ghi "24/08/2026 18:47:52" - ngày
+// trước giờ sau, tháng CÓ đệm 0). Chính sự khác biệt đệm số 0 này làm vỡ
+// các bộ lọc theo tháng kiểu string.includes(`/${thang}/${nam}`) ở
+// dashboard.js/booking.js (thiếu "0" nên không khớp chuỗi đã đệm).
+// Từ nay TẤT CẢ nơi tạo "time" mới trong app phải gọi 2 hàm dưới đây -
+// luôn ĐÚNG 1 định dạng, tự đệm số 0, không phụ thuộc trình duyệt/locale.
+function pad2_(n) {
+    n = parseInt(n) || 0;
+    return (n < 10 ? "0" : "") + n;
+}
+
+// "17/08/2026 08:34:47" - dùng cho các trường "time" đầy đủ ngày+giờ
+// (GocLogs, QuyLogs, Bookings, Matches, Rules, Notifications...).
+function formatVNDateTime_(date) {
+    let d = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+    return (
+        pad2_(d.getDate()) + "/" + pad2_(d.getMonth() + 1) + "/" + d.getFullYear() +
+        " " +
+        pad2_(d.getHours()) + ":" + pad2_(d.getMinutes()) + ":" + pad2_(d.getSeconds())
+    );
+}
+
+// "17/08/2026" - dùng cho các trường "time" chỉ cần ngày (Cashbook).
+function formatVNDateOnly_(date) {
+    let d = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+    return pad2_(d.getDate()) + "/" + pad2_(d.getMonth() + 1) + "/" + d.getFullYear();
+}
+
+// (v2.0 fix - theo yêu cầu 25/08/2026) HIỂN THỊ "time" luôn GIỜ:PHÚT:GIÂY
+// TRƯỚC, ngày/tháng/năm SAU - bất kể chuỗi "time" gốc (lấy từ Sheet, do
+// backend Apps Script ghi bằng nowDisplayTime_/Utilities.formatDate) lưu
+// theo thứ tự ngày trước hay dòng dữ liệu CŨ (trước khi backend chuẩn
+// hoá) lưu theo thứ tự giờ trước - hàm này tự tách riêng phần ngày
+// (bằng getDatePartsFromLogTime_ đã có) và phần giờ (regex riêng bên
+// dưới) rồi LUÔN ghép lại theo đúng 1 thứ tự cố định, không phụ thuộc
+// thứ tự/đệm số 0 của chuỗi gốc. CHỈ dùng cho HIỂN THỊ - không dùng hàm
+// này ở bất kỳ đâu tạo dữ liệu gửi lên server (đã có formatVNDateTime_/
+// formatVNDateOnly_ riêng cho việc đó).
+function formatVNTimeForDisplay_(value) {
+    let text = String(value == null ? "" : value).trim();
+    if (!text) return text;
+
+    let dateParts = getDatePartsFromLogTime_(text);
+    let timeMatch = text.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+
+    // Không tách được cả ngày lẫn giờ (dữ liệu lạ/rỗng) - giữ nguyên
+    // chuỗi gốc, tránh làm mất/méo dữ liệu chưa từng gặp.
+    if (!dateParts && !timeMatch) return text;
+
+    let datePart = dateParts
+        ? pad2_(dateParts.day) + "/" + pad2_(dateParts.month) + "/" + dateParts.year
+        : "";
+
+    let timePart = timeMatch
+        ? pad2_(timeMatch[1]) + ":" + timeMatch[2] + ":" + (timeMatch[3] || "00")
+        : "";
+
+    if (timePart && datePart) return timePart + " " + datePart;
+    return timePart || datePart;
+}
+
 // (v2.0 fix) "GOC_ADJUSTMENT_HIDE_TAG_": các dòng addGocLogAdjustment
 // (số ÂM) do payOutMemberCreditByAdmin() (dashboard.js) tạo ra khi CLB
 // trả tiền dư thưởng đặt sân cho thành viên - CHỈ để đưa Dư/Nợ RIÊNG
@@ -1178,8 +1244,7 @@ function submitUserPayment() {
                 id: Date.now(),
 
                 time:
-                    new Date()
-                        .toLocaleString('vi-VN'),
+                    formatVNDateTime_(),
 
                 name: main,
 
@@ -1329,7 +1394,7 @@ function renderGocLogsTab() {
                     </td>
 
                     <td class="p-2.5 font-semibold text-slate-600">
-                        ${g.time}
+                        ${formatVNTimeForDisplay_(g.time)}
                     </td>
 
                     <td class="p-2.5 font-bold text-slate-900">
@@ -3933,7 +3998,7 @@ function selectCategory(cat) {
                         <tr class="border-b">
 
                             <td class="p-1.5">
-                                ${g.time}
+                                ${formatVNTimeForDisplay_(g.time)}
                             </td>
 
                             <td class="p-1.5 font-bold">
@@ -4017,7 +4082,7 @@ function selectCategory(cat) {
                     <tr class="border-b">
 
                         <td class="p-1.5">
-                            ${c.time}
+                            ${formatVNTimeForDisplay_(c.time)}
                         </td>
 
                         <td class="p-1.5 font-bold">

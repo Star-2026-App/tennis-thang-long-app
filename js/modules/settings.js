@@ -850,10 +850,7 @@ function saveSystemSettings(e) {
                     Date.now(),
 
                 time:
-                    new Date()
-                        .toLocaleString(
-                            "vi-VN"
-                        ),
+                    formatVNDateTime_(),
 
                 p1_v1:
                     p1A,

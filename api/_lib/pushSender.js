@@ -62,6 +62,38 @@ function buildEventNotification_(action, result, actorName) {
         body: (actorName || "Một thành viên") + " vừa đóng quỹ."
       };
 
+    // (v2.0 fix - gói 1, mục 5a) TRƯỚC ĐÂY switch này thiếu 2 case dưới
+    // - nghĩa là mọi lần ghi trận đấu mới hoặc ghi nhận đóng tiền góc
+    // đều KHÔNG bắn push cho ai cả (write.js vẫn gọi notifyAfterCommit
+    // cho MỌI action thành công, chỉ là buildEventNotification_ trả về
+    // null cho 2 action này nên không có gì để gửi).
+    case "addMatch": {
+      var teamA = [result && result.p1_v1, result && result.p2_v1].filter(Boolean).join(" & ");
+      var teamB = [result && result.p1_v2, result && result.p2_v2].filter(Boolean).join(" & ");
+      return {
+        title: "Trận đấu mới",
+        body: "Đã ghi nhận trận " + teamA + " vs " + teamB +
+              " (" + (result && result.scoreA) + "-" + (result && result.scoreB) + ")."
+      };
+    }
+
+    case "addGocLog":
+      return {
+        title: "Tiền góc",
+        body: (result && result.name || actorName || "Một thành viên") +
+              " vừa đóng tiền góc " + vnd(result && result.amount) + "đ."
+      };
+
+    case "addGocLogAdjustment": {
+      var adjAmount = parseInt(result && result.amount) || 0;
+      return {
+        title: "Tiền góc - Điều chỉnh",
+        body: adjAmount < 0
+          ? "CLB đã trả " + vnd(Math.abs(adjAmount)) + "đ tiền dư cho " + (result && result.name || actorName) + "."
+          : "Đã điều chỉnh tiền góc " + vnd(adjAmount) + "đ cho " + (result && result.name || actorName) + "."
+      };
+    }
+
     case "addCashbook":
       return {
         title: "Sổ thu chi",
