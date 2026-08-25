@@ -117,15 +117,166 @@ function getRealGocLogs_() {
     });
 }
 
-function getUserGocPaidForMonth_(memberName, targetMonth, targetYear) {
+// ======================================================
+// v2.0.6 - NHẬN DẠNG THÀNH VIÊN THEO STT
+// ======================================================
+// STT là khóa chính. Tên chỉ được dùng làm fallback cho dữ liệu legacy
+// thực sự chưa có STT. Nếu cả record và member đều có STT thì tuyệt đối
+// không fallback sang tên, tránh ghép nhầm hai người trùng tên.
+
+function normalizeMemberIdentityName_(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+
+function resolveMemberIdentity_(memberRef) {
+
+    if (memberRef && typeof memberRef === 'object') {
+        return {
+            stt: parseInt(memberRef.stt || memberRef.memberStt) || 0,
+            name: String(memberRef.name || '').trim(),
+            member: memberRef
+        };
+    }
+
+    let member = null;
+
+    if (typeof memberRef === 'number') {
+        member = (members || []).find(function(item) {
+            return parseInt(item.stt) === parseInt(memberRef);
+        }) || null;
+    } else {
+        let normalizedName = normalizeMemberIdentityName_(memberRef);
+        member = (members || []).find(function(item) {
+            return normalizeMemberIdentityName_(item.name) === normalizedName;
+        }) || null;
+    }
+
+    return {
+        stt: member ? (parseInt(member.stt) || 0) : 0,
+        name: member
+            ? String(member.name || '').trim()
+            : String(memberRef || '').trim(),
+        member: member
+    };
+}
+
+
+function getMemberIdentityKey_(memberRef) {
+
+    let identity = resolveMemberIdentity_(memberRef);
+
+    return identity.stt > 0
+        ? 'stt:' + identity.stt
+        : 'name:' + normalizeMemberIdentityName_(identity.name);
+}
+
+
+function identityFieldsMatch_(itemStt, itemName, memberRef) {
+
+    let identity = resolveMemberIdentity_(memberRef);
+    let recordStt = parseInt(itemStt) || 0;
+
+    if (recordStt > 0 && identity.stt > 0) {
+        return recordStt === identity.stt;
+    }
+
+    return (
+        normalizeMemberIdentityName_(itemName) ===
+        normalizeMemberIdentityName_(identity.name)
+    );
+}
+
+
+function recordBelongsToMember_(record, memberRef, sttField, nameField) {
+
+    if (!record) return false;
+
+    return identityFieldsMatch_(
+        record[sttField || 'memberStt'],
+        record[nameField || 'name'],
+        memberRef
+    );
+}
+
+
+function getMatchParticipationForMember_(match, memberRef) {
+
+    if (!match) {
+        return { isV1: false, isV2: false, slot: '' };
+    }
+
+    let slots = [
+        { slot: 'p1_v1', stt: match.p1_v1_stt, name: match.p1_v1, side: 'V1' },
+        { slot: 'p2_v1', stt: match.p2_v1_stt, name: match.p2_v1, side: 'V1' },
+        { slot: 'p1_v2', stt: match.p1_v2_stt, name: match.p1_v2, side: 'V2' },
+        { slot: 'p2_v2', stt: match.p2_v2_stt, name: match.p2_v2, side: 'V2' }
+    ];
+
+    let found = slots.find(function(item) {
+        return identityFieldsMatch_(item.stt, item.name, memberRef);
+    }) || null;
+
+    return {
+        isV1: !!found && found.side === 'V1',
+        isV2: !!found && found.side === 'V2',
+        slot: found ? found.slot : ''
+    };
+}
+
+
+function getCurrentMemberNameByStt_(stt, fallbackName) {
+
+    let memberStt = parseInt(stt) || 0;
+
+    if (memberStt > 0) {
+        let member = (members || []).find(function(item) {
+            return parseInt(item.stt) === memberStt;
+        });
+
+        if (member) return member.name;
+    }
+
+    return fallbackName || '';
+}
+
+
+function getMatchPlayerDisplayName_(match, slot) {
+
+    if (!match || !slot) return '';
+
+    return getCurrentMemberNameByStt_(
+        match[slot + '_stt'],
+        match[slot]
+    );
+}
+
+
+function getMatchSlotIdentity_(match, slot) {
+
+    if (!match || !slot) {
+        return { stt: 0, name: '', member: null };
+    }
+
+    let slotStt = parseInt(match[slot + '_stt']) || 0;
+
+    return slotStt > 0
+        ? resolveMemberIdentity_({
+            stt: slotStt,
+            name: getMatchPlayerDisplayName_(match, slot)
+        })
+        : resolveMemberIdentity_(match[slot]);
+}
+
+
+function getUserGocPaidForMonth_(memberRef, targetMonth, targetYear) {
     // Cố ý dùng thẳng gocLogs (KHÔNG lọc qua getRealGocLogs_) - Dư/Nợ
     // RIÊNG của từng thành viên bắt buộc phải thấy đủ dòng điều chỉnh
     // này thì mới về đúng 0 sau khi được trả tiền dư.
     return (gocLogs || []).reduce(function(sum, log) {
 
         if (
-            String(log.name || '').trim().toLowerCase() ===
-                String(memberName || '').trim().toLowerCase() &&
+            recordBelongsToMember_(log, memberRef) &&
             isLogInMonth_(
                 log.time,
                 targetMonth,
@@ -141,13 +292,12 @@ function getUserGocPaidForMonth_(memberName, targetMonth, targetYear) {
     }, 0);
 }
 
-function getUserBookingRewardForMonth_(memberName, targetMonth, targetYear) {
+function getUserBookingRewardForMonth_(memberRef, targetMonth, targetYear) {
 
     return (bookingLogs || []).reduce(function(sum, booking) {
 
         if (
-            String(booking.name || '').trim().toLowerCase() ===
-                String(memberName || '').trim().toLowerCase() &&
+            recordBelongsToMember_(booking, memberRef) &&
             isLogInMonth_(
                 booking.time,
                 targetMonth,
@@ -168,7 +318,7 @@ function getUserBookingRewardForMonth_(memberName, targetMonth, targetYear) {
 // ======================================================
 
 function getMonthlyBalanceSnapshot_(
-    memberName,
+    memberRef,
     month,
     year
 ) {
@@ -177,13 +327,7 @@ function getMonthlyBalanceSnapshot_(
             .find(function(item) {
     
                 return (
-                    String(item.name || '')
-                        .trim()
-                        .toLowerCase() ===
-    
-                    String(memberName || '')
-                        .trim()
-                        .toLowerCase()
+                    recordBelongsToMember_(item, memberRef)
     
                     &&
     
@@ -904,10 +1048,16 @@ function pollMonthCloseStatus_(
 
 
 function calculateUserFinanceForMonth(
-    memberName,
+    memberRef,
     targetMonth,
     targetYear
 ) {
+
+    let identity =
+        resolveMemberIdentity_(memberRef);
+
+    let memberName =
+        identity.name;
 
     let totalWins = 0;
     let totalLosses = 0;
@@ -928,13 +1078,14 @@ function calculateUserFinanceForMonth(
 
     (matches || []).forEach(function(match) {
 
-        let isV1 =
-            match.p1_v1 === memberName ||
-            match.p2_v1 === memberName;
+        let participation =
+            getMatchParticipationForMember_(
+                match,
+                identity
+            );
 
-        let isV2 =
-            match.p1_v2 === memberName ||
-            match.p2_v2 === memberName;
+        let isV1 = participation.isV1;
+        let isV2 = participation.isV2;
 
 
         if (!isV1 && !isV2) {
@@ -1024,8 +1175,9 @@ function calculateUserFinanceForMonth(
 
 
     let m =
+        identity.member ||
         members.find(function(item) {
-            return item.name === memberName;
+            return identityFieldsMatch_(item.stt, item.name, identity);
         }) || {
             noOld: 0
         };
@@ -1042,7 +1194,7 @@ function calculateUserFinanceForMonth(
     // chỉ tính đúng tháng/năm đang xem
     let monthPaidAmount =
         getUserGocPaidForMonth_(
-            memberName,
+            identity,
             targetMonth,
             targetYear
         );
@@ -1052,7 +1204,7 @@ function calculateUserFinanceForMonth(
     // chỉ tính đúng tháng/năm đang xem
     let monthRewardAmount =
         getUserBookingRewardForMonth_(
-            memberName,
+            identity,
             targetMonth,
             targetYear
         );
@@ -1083,7 +1235,7 @@ function calculateUserFinanceForMonth(
 
 let snapshot =
     getMonthlyBalanceSnapshot_(
-        memberName,
+        identity,
         targetMonth,
         targetYear
     );
@@ -1183,7 +1335,7 @@ if (snapshot) {
 }
 
 
-function calculateUserFinance(memberName) {
+function calculateUserFinance(memberRef) {
 
     let mSel =
         document.getElementById('selectFinanceMonth')
@@ -1198,7 +1350,7 @@ function calculateUserFinance(memberName) {
 
 
     return calculateUserFinanceForMonth(
-        memberName,
+        memberRef,
         mSel,
         ySel
     );
@@ -1211,6 +1363,10 @@ function submitUserPayment() {
         document.getElementById(
             'dashMainUser'
         ).value;
+
+
+    let memberIdentity =
+        resolveMemberIdentity_(main);
 
 
     let val =
@@ -1247,6 +1403,9 @@ function submitUserPayment() {
                     formatVNDateTime_(),
 
                 name: main,
+
+                memberStt:
+                    memberIdentity.stt,
 
                 amount: val,
 
@@ -1307,13 +1466,16 @@ function renderGocLogsTab() {
 
     if (filterUser !== 'ALL') {
 
+        let filterMember =
+            resolveMemberIdentity_(filterUser);
+
         logsToDisplay =
             logsToDisplay.filter(
                 function(g) {
 
-                    return (
-                        g.name ===
-                        filterUser
+                    return recordBelongsToMember_(
+                        g,
+                        filterMember
                     );
                 }
             );
@@ -1589,7 +1751,7 @@ function renderFinance() {
 
                 let f =
                     calculateUserFinanceForMonth(
-                        m.name,
+                        m,
                         mSel,
                         ySel
                     );
@@ -2803,19 +2965,12 @@ function renderQuyTable() {
 
                             return (
 
-                                String(
-                                    log.name || ''
-                                )
-                                .trim()
-                                .toLowerCase() ===
-
-                                String(
-                                    m.name || ''
-                                )
-                                .trim()
-                                .toLowerCase()
-
-                                &&
+                                recordBelongsToMember_(
+                                    log,
+                                    m,
+                                    "memberStt",
+                                    "name"
+                                ) &&
 
                                 String(
                                     log.quarter || ''
@@ -4678,13 +4833,16 @@ function buildMonthCloseClientPreview_(
 
                 let f =
                     calculateUserFinanceForMonth(
-                        member.name,
+                        member,
                         month,
                         year
                     );
 
 
                 let row = {
+
+                    stt:
+                        parseInt(member.stt) || 0,
 
                     name:
                         member.name,
@@ -4804,19 +4962,14 @@ function applyMonthCloseLocalSnapshot_(
                         function(item) {
 
                             return (
-                                String(
-                                    item.name || ''
-                                )
-                                .trim()
-                                .toLowerCase() ===
-
-                                String(
-                                    row.name || ''
-                                )
-                                .trim()
-                                .toLowerCase()
-
-                                &&
+                                identityFieldsMatch_(
+                                    item.memberStt,
+                                    item.name,
+                                    {
+                                        stt: row.stt,
+                                        name: row.name
+                                    }
+                                ) &&
 
                                 parseInt(
                                     item.month
@@ -4853,6 +5006,9 @@ function applyMonthCloseLocalSnapshot_(
                     name:
                         row.name,
 
+                    memberStt:
+                        parseInt(row.stt) || 0,
+
                     month:
                         preview.month,
 
@@ -4888,24 +5044,16 @@ function applyMonthCloseLocalSnapshot_(
 
             let member =
                 (members || [])
-                    .find(
-                        function(item) {
-
-                            return (
-                                String(
-                                    item.name || ''
-                                )
-                                .trim()
-                                .toLowerCase() ===
-
-                                String(
-                                    row.name || ''
-                                )
-                                .trim()
-                                .toLowerCase()
-                            );
-                        }
-                    );
+                    .find(function(item) {
+                        return identityFieldsMatch_(
+                            item.stt,
+                            item.name,
+                            {
+                                stt: row.stt,
+                                name: row.name
+                            }
+                        );
+                    });
 
 
             if (member) {

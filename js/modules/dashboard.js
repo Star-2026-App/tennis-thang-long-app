@@ -6,7 +6,14 @@ function renderGamification() {
 
     let statsMap = {};
     if (members && members.length > 0) {
-        members.forEach(m => { statsMap[m.name] = { name: m.name, matches: 0, wins: 0 }; });
+        members.forEach(m => {
+            statsMap[getMemberIdentityKey_(m)] = {
+                stt: parseInt(m.stt) || 0,
+                name: m.name,
+                matches: 0,
+                wins: 0
+            };
+        });
     }
 
     matches.forEach(m => {
@@ -14,16 +21,27 @@ function renderGamification() {
         let isThisMonth = isLogInMonth_(mTime, curMonth, curYear);
         if (!isThisMonth) return;
 
-        let players = [m.p1_v1, m.p2_v1, m.p1_v2, m.p2_v2];
-        players.forEach(p => {
-            if (!p) return;
-            if (!statsMap[p]) statsMap[p] = { name: p, matches: 0, wins: 0 };
-            statsMap[p].matches++;
+        let slots = ['p1_v1', 'p2_v1', 'p1_v2', 'p2_v2'];
+        slots.forEach(slot => {
+            let player = getMatchSlotIdentity_(m, slot);
+            if (!player.name) return;
+            let key = getMemberIdentityKey_(player);
+            if (!statsMap[key]) {
+                statsMap[key] = { stt: player.stt, name: player.name, matches: 0, wins: 0 };
+            }
+            statsMap[key].matches++;
         });
 
         if (m.scoreA !== m.scoreB) {
-            let winningTeam = m.scoreA > m.scoreB ? [m.p1_v1, m.p2_v1] : [m.p1_v2, m.p2_v2];
-            winningTeam.forEach(p => { if (p && statsMap[p]) statsMap[p].wins++; });
+            let winningSlots = m.scoreA > m.scoreB
+                ? ['p1_v1', 'p2_v1']
+                : ['p1_v2', 'p2_v2'];
+
+            winningSlots.forEach(slot => {
+                let player = getMatchSlotIdentity_(m, slot);
+                let key = getMemberIdentityKey_(player);
+                if (player.name && statsMap[key]) statsMap[key].wins++;
+            });
         }
     });
 
@@ -48,7 +66,7 @@ function copyReminderText() {
     let debtList = [];
     if (members && members.length > 0) {
         members.forEach(m => {
-            let f = calculateUserFinanceForMonth(m.name, mSel, ySel);
+            let f = calculateUserFinanceForMonth(m, mSel, ySel);
             if (f.totalPay > 0) debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
         });
     }
@@ -83,11 +101,10 @@ function getCurrentQuyPeriod() {
 }
 
 
-function findQuyLogForMember(memberName, quarter, year) {
+function findQuyLogForMember(memberRef, quarter, year) {
     return (quyLogs || []).find(function(log) {
         return (
-            String(log.name || '').trim().toLowerCase() ===
-                String(memberName || '').trim().toLowerCase() &&
+            recordBelongsToMember_(log, memberRef) &&
 
             String(log.quarter || '').trim().toUpperCase() ===
                 String(quarter || '').trim().toUpperCase() &&
@@ -133,7 +150,7 @@ function handleDashboardSubmit() {
 
                 let duplicateReward = bookingLogs.find(b => {
                     return (
-                        b.name === main &&
+                        recordBelongsToMember_(b, m) &&
                         b.frame === "16h-18h" &&
                         (
                             NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT ||
@@ -161,7 +178,7 @@ function handleDashboardSubmit() {
 
                 let userBookingsThisMonth = bookingLogs.filter(b => {
 
-                    if (b.name !== main) return false;
+                    if (!recordBelongsToMember_(b, m)) return false;
 
                     return isLogInMonth_(b.time, curMonth, curYear);
                 });
@@ -227,7 +244,7 @@ function handleDashboardSubmit() {
                 let duplicateReward = bookingLogs.find(b => {
 
                     return (
-                        b.name === main &&
+                        recordBelongsToMember_(b, m) &&
                         b.frame.includes("18h") &&
                         (
                             NOW - new Date(b.id || 0).getTime() <= TIME_LIMIT ||
@@ -302,7 +319,7 @@ function handleDashboardSubmit() {
     // ==================================================
 
     let existingLog = findQuyLogForMember(
-        main,
+        m,
         period.quarter,
         period.year
     );
@@ -324,6 +341,7 @@ function handleDashboardSubmit() {
                 id: "QUY_" + Date.now(),
                 time: formatVNDateTime_(),
                 name: main,
+                memberStt: parseInt(m.stt) || 0,
                 quarter: period.quarter,
                 year: period.year,
                 amount: parseInt(systemSettings.quyAmount) || 0,
@@ -348,8 +366,8 @@ function renderDashboard() {
     if (!main && members.length > 0) main = members[0].name;
     if (!main) return;
 
-    let f = calculateUserFinance(main);
     let m = members.find(item => item.name === main) || members[0];
+    let f = calculateUserFinance(m);
 
     // ======================================================
     // KIỂM TRA QUỸ QUÝ HIỆN TẠI
@@ -358,7 +376,7 @@ function renderDashboard() {
     let period = getCurrentQuyPeriod();
 
     let hasPaidCurrentQuarter = !!findQuyLogForMember(
-        m.name,
+        m,
         period.quarter,
         period.year
     );
@@ -410,7 +428,7 @@ function renderDashboard() {
     let curMonth = document.getElementById('selectFinanceMonth').value;
     let curYear = document.getElementById('selectFinanceYear').value;
     let userBookingsThisMonth = bookingLogs.filter(b => {
-        if (b.name !== main) return false;
+        if (!recordBelongsToMember_(b, m)) return false;
         return isLogInMonth_(b.time, curMonth, curYear);
     });
 
@@ -423,15 +441,23 @@ function renderDashboard() {
     let matchBody = document.getElementById('userMatchHistoryBody');
     matchBody.innerHTML = '';
     let userMatchesThisMonth = matches.filter(match => {
-        let isUserIn = (match.p1_v1 === main || match.p2_v1 === main || match.p1_v2 === main || match.p2_v2 === main);
-        if (!isUserIn) return false;
+        let participation = getMatchParticipationForMember_(match, m);
+        if (!participation.isV1 && !participation.isV2) return false;
         return isLogInMonth_(match.time, curMonth, curYear);
     });
 
     userMatchesThisMonth.forEach((mItem, idx) => {
-        let isV1 = (mItem.p1_v1 === main || mItem.p2_v1 === main);
-        let teammate = isV1 ? (mItem.p1_v1 === main ? mItem.p2_v1 : mItem.p1_v1) : (mItem.p1_v2 === main ? mItem.p2_v2 : mItem.p1_v2);
-        let opponents = isV1 ? (mItem.p1_v2 + " & " + mItem.p2_v2) : (mItem.p1_v1 + " & " + mItem.p2_v1);
+        let participation = getMatchParticipationForMember_(mItem, m);
+        let isV1 = participation.isV1;
+        let teammateSlot = participation.slot === 'p1_v1'
+            ? 'p2_v1'
+            : (participation.slot === 'p2_v1'
+                ? 'p1_v1'
+                : (participation.slot === 'p1_v2' ? 'p2_v2' : 'p1_v2'));
+        let teammate = getMatchPlayerDisplayName_(mItem, teammateSlot);
+        let opponents = isV1
+            ? (getMatchPlayerDisplayName_(mItem, 'p1_v2') + " & " + getMatchPlayerDisplayName_(mItem, 'p2_v2'))
+            : (getMatchPlayerDisplayName_(mItem, 'p1_v1') + " & " + getMatchPlayerDisplayName_(mItem, 'p2_v1'));
         
         let displayScore = isV1 ? `${mItem.scoreA}-${mItem.scoreB}` : `${mItem.scoreB}-${mItem.scoreA}`;
 
@@ -451,7 +477,7 @@ function renderDashboard() {
 
     let gocBody = document.getElementById('userGocHistoryBody');
     gocBody.innerHTML = '';
-    let userGocs = gocLogs.filter(g => g.name === main);
+    let userGocs = gocLogs.filter(g => recordBelongsToMember_(g, m));
     if (userGocs.length === 0) {
         gocBody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-slate-400 italic">Chưa có lượt nộp</td></tr>`;
     } else {
@@ -526,11 +552,11 @@ function renderDashboard() {
         });
     }
 
-    function lifetimeStats_(memberName) {
-        let key = String(memberName || "").trim().toLowerCase();
+    function lifetimeStats_(memberRef) {
+        let identity = resolveMemberIdentity_(memberRef);
 
         let stat = (window.memberStats || []).find(function (item) {
-            return String(item.name || "").trim().toLowerCase() === key;
+            return identityFieldsMatch_(item.stt, item.name, identity);
         });
 
         return {
@@ -541,7 +567,7 @@ function renderDashboard() {
         };
     }
 
-    function monthStats_(memberName, list) {
+    function monthStats_(memberRef, list) {
         let result = {
             total: 0,
             wins: 0,
@@ -550,13 +576,11 @@ function renderDashboard() {
         };
 
         (list || []).forEach(function (m) {
-            let isV1 =
-                m.p1_v1 === memberName ||
-                m.p2_v1 === memberName;
+            let participation =
+                getMatchParticipationForMember_(m, memberRef);
 
-            let isV2 =
-                m.p1_v2 === memberName ||
-                m.p2_v2 === memberName;
+            let isV1 = participation.isV1;
+            let isV2 = participation.isV2;
 
             if (!isV1 && !isV2) return;
 
@@ -877,7 +901,7 @@ function renderDashboard() {
         ensureFinanceModal_();
     }
 
-    function updateQuarterStatus_(memberName) {
+    function updateQuarterStatus_(memberRef) {
         let badge = document.getElementById("dashboardQuyStatus");
         if (!badge) return;
 
@@ -885,7 +909,7 @@ function renderDashboard() {
 
         let paid =
             !!findQuyLogForMember(
-                memberName,
+                memberRef,
                 p.quarter,
                 p.year
             );
@@ -919,14 +943,20 @@ function renderDashboard() {
 
         if (!main) return;
 
+        let mainMember =
+            members.find(function(item) {
+                return normalizeMemberIdentityName_(item.name) ===
+                    normalizeMemberIdentityName_(main);
+            }) || members[0];
+
         let p = period_();
-        let life = lifetimeStats_(main);
+        let life = lifetimeStats_(mainMember);
         let monthList = monthMatches_();
-        let monthStat = monthStats_(main, monthList);
+        let monthStat = monthStats_(mainMember, monthList);
 
         let finance =
             calculateUserFinanceForMonth(
-                main,
+                mainMember,
                 p.month,
                 p.year
             );
@@ -974,7 +1004,7 @@ function renderDashboard() {
                     );
         }
 
-        updateQuarterStatus_(main);
+        updateQuarterStatus_(mainMember);
 
         let qr = document.getElementById("dashQrImg");
 
@@ -995,12 +1025,10 @@ function renderDashboard() {
         let userMatches =
             monthList
                 .filter(function (m) {
-                    return (
-                        m.p1_v1 === main ||
-                        m.p2_v1 === main ||
-                        m.p1_v2 === main ||
-                        m.p2_v2 === main
-                    );
+                    let participation =
+                        getMatchParticipationForMember_(m, mainMember);
+
+                    return participation.isV1 || participation.isV2;
                 })
                 .slice()
                 .sort(function (a, b) {
@@ -1015,27 +1043,24 @@ function renderDashboard() {
                     `<tr><td colspan="5" class="p-3 text-center text-slate-400 italic">Chưa có trận trong tháng ${p.month}/${p.year}</td></tr>`;
             } else {
                 userMatches.forEach(function (m, idx) {
-                    let isV1 =
-                        m.p1_v1 === main ||
-                        m.p2_v1 === main;
+                    let participation =
+                        getMatchParticipationForMember_(m, mainMember);
+
+                    let isV1 = participation.isV1;
+
+                    let teammateSlot = participation.slot === 'p1_v1'
+                        ? 'p2_v1'
+                        : (participation.slot === 'p2_v1'
+                            ? 'p1_v1'
+                            : (participation.slot === 'p1_v2' ? 'p2_v2' : 'p1_v2'));
 
                     let teammate =
-                        isV1
-                            ? (
-                                m.p1_v1 === main
-                                    ? m.p2_v1
-                                    : m.p1_v1
-                            )
-                            : (
-                                m.p1_v2 === main
-                                    ? m.p2_v2
-                                    : m.p1_v2
-                            );
+                        getMatchPlayerDisplayName_(m, teammateSlot);
 
                     let opponents =
                         isV1
-                            ? `${m.p1_v2} & ${m.p2_v2}`
-                            : `${m.p1_v1} & ${m.p2_v1}`;
+                            ? `${getMatchPlayerDisplayName_(m, 'p1_v2')} & ${getMatchPlayerDisplayName_(m, 'p2_v2')}`
+                            : `${getMatchPlayerDisplayName_(m, 'p1_v1')} & ${getMatchPlayerDisplayName_(m, 'p2_v1')}`;
 
                     let score =
                         isV1
@@ -1072,7 +1097,7 @@ function renderDashboard() {
         let userBookings =
             monthBookings_()
                 .filter(function (b) {
-                    return b.name === main;
+                    return recordBelongsToMember_(b, mainMember);
                 })
                 .slice()
                 .sort(function (a, b) {
@@ -1108,7 +1133,7 @@ function renderDashboard() {
             (gocLogs || [])
                 .filter(function (g) {
                     return (
-                        g.name === main &&
+                        recordBelongsToMember_(g, mainMember) &&
                         (
                             typeof isLogInMonth_ !== "function" ||
                             isLogInMonth_(
@@ -1186,7 +1211,7 @@ function renderDashboard() {
 
             let f =
                 calculateUserFinanceForMonth(
-                    main,
+                    resolveMemberIdentity_(main).member || main,
                     p.month,
                     p.year
                 );
@@ -1377,8 +1402,12 @@ function renderDashboard() {
 
             if (!main) return;
 
+            let mainMember =
+                resolveMemberIdentity_(main).member ||
+                members[0];
+
             let p = period_();
-            let f = calculateUserFinanceForMonth(main, p.month, p.year);
+            let f = calculateUserFinanceForMonth(mainMember, p.month, p.year);
             let amountDue = parseInt(f.totalPay) || 0;
 
             if (amountDue <= 0) {
@@ -1398,6 +1427,7 @@ function renderDashboard() {
                         id: Date.now(),
                         time: formatVNDateTime_(),
                         name: main,
+                        memberStt: parseInt(mainMember.stt) || 0,
                         amount: amountDue,
                         note: `${loggedInMemberName || 'Admin/Owner'} xác nhận đã nộp đủ (chuyển khoản riêng cho thủ quỹ)`
                     };
@@ -1468,8 +1498,12 @@ function renderDashboard() {
 
             if (!main) return;
 
+            let mainMember =
+                resolveMemberIdentity_(main).member ||
+                members[0];
+
             let p = period_();
-            let f = calculateUserFinanceForMonth(main, p.month, p.year);
+            let f = calculateUserFinanceForMonth(mainMember, p.month, p.year);
             let closing = parseInt(f.totalPay) || 0;
 
             if (closing >= 0) {
@@ -1516,6 +1550,7 @@ function renderDashboard() {
                         id: Date.now(),
                         time: formatVNDateTime_(),
                         name: main,
+                        memberStt: parseInt(mainMember.stt) || 0,
                         // closing đang ÂM - ghi ĐÚNG giá trị này (không đổi dấu) để
                         // trừ thẳng vào Đã nộp, đưa Dư/Nợ về đúng 0 (xem công thức
                         // trong calculateUserFinanceForMonth: totalPay = ... - Đã nộp - Thưởng sân).
@@ -1580,10 +1615,13 @@ function renderDashboard() {
     // tác tiếp (không hoàn tác nhiều lần cùng lúc để tránh xóa nhầm).
     function findLatestUndoablePayout_(memberName, month, year) {
 
+        let memberIdentity =
+            resolveMemberIdentity_(memberName);
+
         let adjustmentRows =
             (gocLogs || []).filter(function(g) {
                 return (
-                    g.name === memberName &&
+                    recordBelongsToMember_(g, memberIdentity) &&
                     typeof GOC_ADJUSTMENT_HIDE_TAG_ !== "undefined" &&
                     String(g.note || '').indexOf(GOC_ADJUSTMENT_HIDE_TAG_) !== -1 &&
                     typeof isLogInMonth_ === "function" &&
@@ -1852,7 +1890,7 @@ function renderDashboard() {
 
                     let f =
                         calculateUserFinanceForMonth(
-                            member.name,
+                            member,
                             month,
                             year
                         );

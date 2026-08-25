@@ -387,9 +387,64 @@ function getMonthBookingsCached_(
 // MEMBER STATS LOCAL
 // ======================================================
 
+function normalizeMemberStatsLocalByStt_(list) {
+
+    let byIdentity = {};
+
+    (Array.isArray(list) ? list : []).forEach(function(item) {
+
+        if (!item) return;
+
+        let stt = parseInt(item.stt) || 0;
+        let key = stt > 0
+            ? "stt:" + stt
+            : "name:" + normalizePhase3Name_(item.name);
+
+        if (!byIdentity[key]) {
+            let currentMember = stt > 0
+                ? (members || []).find(function(member) {
+                    return parseInt(member.stt) === stt;
+                })
+                : null;
+
+            byIdentity[key] = {
+                stt: stt,
+                name: currentMember ? currentMember.name : item.name,
+                wins: 0,
+                losses: 0,
+                draws: 0,
+                totalMatches: 0,
+                updatedAt: item.updatedAt || ""
+            };
+        }
+
+        let wins = parseInt(item.wins) || 0;
+        let losses = parseInt(item.losses) || 0;
+        let draws = parseInt(item.draws) || 0;
+
+        byIdentity[key].wins += wins;
+        byIdentity[key].losses += losses;
+        byIdentity[key].draws += draws;
+        byIdentity[key].totalMatches +=
+            parseInt(item.totalMatches) || (wins + losses + draws);
+    });
+
+    return Object.keys(byIdentity)
+        .map(function(key) { return byIdentity[key]; })
+        .sort(function(a, b) {
+            return (parseInt(a.stt) || 999999) -
+                (parseInt(b.stt) || 999999);
+        });
+}
+
+
 function getMemberStatLocal_(
-    memberName
+    memberName,
+    memberStt
 ) {
+
+    let stableStt =
+        parseInt(memberStt) || 0;
 
     let key =
         normalizePhase3Name_(
@@ -402,6 +457,13 @@ function getMemberStatLocal_(
     )
     .find(
         function(item) {
+
+            if (
+                stableStt > 0 &&
+                parseInt(item.stt) > 0
+            ) {
+                return parseInt(item.stt) === stableStt;
+            }
 
             return (
                 normalizePhase3Name_(
@@ -472,6 +534,7 @@ function applyMemberStatsMatchLocal_(
 
     function applyPlayer_(
         name,
+        stt,
         resultType
     ) {
 
@@ -487,7 +550,8 @@ function applyMemberStatsMatchLocal_(
 
         let stat =
             getMemberStatLocal_(
-                name
+                name,
+                stt
             );
 
 
@@ -562,14 +626,15 @@ function applyMemberStatsMatchLocal_(
 
 
     [
-        match.p1_v1,
-        match.p2_v1
+        { name: match.p1_v1, stt: match.p1_v1_stt },
+        { name: match.p2_v1, stt: match.p2_v1_stt }
     ]
     .forEach(
-        function(name) {
+        function(player) {
 
             applyPlayer_(
-                name,
+                player.name,
+                player.stt,
                 teamAResult
             );
         }
@@ -577,14 +642,15 @@ function applyMemberStatsMatchLocal_(
 
 
     [
-        match.p1_v2,
-        match.p2_v2
+        { name: match.p1_v2, stt: match.p1_v2_stt },
+        { name: match.p2_v2, stt: match.p2_v2_stt }
     ]
     .forEach(
-        function(name) {
+        function(player) {
 
             applyPlayer_(
-                name,
+                player.name,
+                player.stt,
                 teamBResult
             );
         }
@@ -2553,7 +2619,9 @@ function updateStateFromCloud(
     ) {
 
         window.memberStats =
-            data.memberStats;
+            normalizeMemberStatsLocalByStt_(
+                data.memberStats
+            );
     }
 
 
@@ -3086,7 +3154,9 @@ function restorePhase3LocalState_(
         ) {
 
             window.memberStats =
-                storedStats;
+                normalizeMemberStatsLocalByStt_(
+                    storedStats
+                );
         }
 
 

@@ -252,10 +252,22 @@ function saveMemberInfo(e) {
     e.preventDefault();
     let idx = parseInt(document.getElementById('editMemIdx').value);
     let m = members[idx];
+    let oldName = m.name;
 
     m.name = document.getElementById('editMemName').value.trim();
     m.base = parseFloat(document.getElementById('editMemBase').value) || 6.2;
     m.status = document.getElementById('editMemStatus').value;
+
+    // v2.0.6: MemberStats liên kết theo STT. Đổi luôn tên hiển thị
+    // của đúng dòng stats để giao diện không tạm tách tên cũ/tên mới
+    // trong lúc chờ backend xác nhận.
+    if (oldName !== m.name) {
+        let stat = (window.memberStats || []).find(function(item) {
+            return parseInt(item.stt) === parseInt(m.stt);
+        });
+
+        if (stat) stat.name = m.name;
+    }
 
     closeEditMemberModal();
     renderMemberList();

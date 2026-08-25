@@ -249,9 +249,11 @@ function recalculateMemberPaidTotals() {
                 .filter(
                     function(g) {
 
-                        return (
-                            g.name ===
-                            m.name
+                        return recordBelongsToMember_(
+                            g,
+                            m,
+                            "memberStt",
+                            "name"
                         );
                     }
                 );
