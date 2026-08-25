@@ -930,6 +930,331 @@ function removeIdFromMonthCaches_(
 
 
 // ======================================================
+// v2.0.5 - ĐỒNG BỘ ID TẠM VỚI ID THẬT DO SERVER CẤP
+// ======================================================
+
+function getCreateActionRecordConfig_(actionName) {
+
+    let configs = {
+        addMatch: {
+            payloadKey: "match",
+            sheetName: "Matches",
+            collectionName: "matches",
+            updateAction: "updateMatch"
+        },
+        addGocLog: {
+            payloadKey: "gocLog",
+            sheetName: "GocLogs",
+            collectionName: "gocLogs",
+            updateAction: "updateGocLog"
+        },
+        addGocLogAdjustment: {
+            payloadKey: "gocLog",
+            sheetName: "GocLogs",
+            collectionName: "gocLogs",
+            updateAction: "updateGocLog"
+        },
+        addQuyLog: {
+            payloadKey: "quyLog",
+            sheetName: "QuyLogs",
+            collectionName: "quyLogs"
+        },
+        addBooking: {
+            payloadKey: "booking",
+            sheetName: "Bookings",
+            collectionName: "bookingLogs"
+        },
+        addCashbook: {
+            payloadKey: "cashbook",
+            sheetName: "Cashbook",
+            collectionName: "cashbookLogs"
+        },
+        addRule: {
+            payloadKey: "rule",
+            sheetName: "Rules",
+            collectionName: "rulesList"
+        }
+    };
+
+    return configs[actionName] || null;
+}
+
+
+function mergeRecordById_(collection, oldId, record) {
+
+    if (!Array.isArray(collection)) return 0;
+
+    let mergedCount = 0;
+
+    collection.forEach(function(item) {
+        if (item && String(item.id) === String(oldId)) {
+            Object.assign(item, record);
+            mergedCount++;
+        }
+    });
+
+    return mergedCount;
+}
+
+
+function hasQueuedDeleteForRecord_(config, id) {
+
+    return (syncQueue || []).some(function(queued, index) {
+        return index > 0 &&
+            queued &&
+            queued.action === "deleteItem" &&
+            queued.sheetName === config.sheetName &&
+            String(queued.id) === String(id);
+    });
+}
+
+
+function rewriteQueuedRecordReferences_(config, temporaryId, serverId) {
+
+    (syncQueue || []).forEach(function(queued, index) {
+
+        // syncQueue[0] là action create đang được xác nhận.
+        if (!queued || index === 0) return;
+
+        if (
+            queued.action === "deleteItem" &&
+            queued.sheetName === config.sheetName &&
+            String(queued.id) === String(temporaryId)
+        ) {
+            queued.id = serverId;
+        }
+
+        if (
+            config.updateAction &&
+            queued.action === config.updateAction &&
+            queued[config.payloadKey] &&
+            String(queued[config.payloadKey].id) === String(temporaryId)
+        ) {
+            queued[config.payloadKey].id = serverId;
+        }
+    });
+}
+
+
+function discardQueuedRecordDependencies_(config, temporaryId) {
+
+    syncQueue = (syncQueue || []).filter(function(queued, index) {
+
+        if (!queued || index === 0) return true;
+
+        let isDelete =
+            queued.action === "deleteItem" &&
+            queued.sheetName === config.sheetName &&
+            String(queued.id) === String(temporaryId);
+
+        let isUpdate =
+            config.updateAction &&
+            queued.action === config.updateAction &&
+            queued[config.payloadKey] &&
+            String(queued[config.payloadKey].id) === String(temporaryId);
+
+        return !isDelete && !isUpdate;
+    });
+}
+
+
+function overlayPendingRecordUpdates_(config, serverRecord) {
+
+    if (!config.updateAction) return serverRecord;
+
+    (syncQueue || []).forEach(function(queued, index) {
+        if (
+            index > 0 &&
+            queued &&
+            queued.action === config.updateAction &&
+            queued[config.payloadKey] &&
+            String(queued[config.payloadKey].id) === String(serverRecord.id)
+        ) {
+            Object.assign(serverRecord, queued[config.payloadKey]);
+        }
+    });
+
+    return serverRecord;
+}
+
+
+function reconcileCreatedRecordWithServer_(item, serverResult) {
+
+    let config =
+        getCreateActionRecordConfig_(item && item.action);
+
+    if (!config) return false;
+
+    let temporaryId =
+        item.__tempRecordId !== undefined &&
+        item.__tempRecordId !== null
+            ? item.__tempRecordId
+            : (
+                item[config.payloadKey] &&
+                item[config.payloadKey].id
+            );
+
+    if (
+        temporaryId === undefined ||
+        temporaryId === null ||
+        !serverResult ||
+        serverResult.id === undefined ||
+        serverResult.id === null
+    ) {
+        throw new Error(
+            "Backend không trả ID thật cho action " + item.action + "."
+        );
+    }
+
+    let serverId = serverResult.id;
+    let pendingDelete =
+        hasQueuedDeleteForRecord_(config, temporaryId);
+
+    // Phải đổi ID trong các action đang chờ TRƯỚC KHI processQueue
+    // gửi action kế tiếp. Đây là phần bảo đảm add -> edit/delete nhanh
+    // vẫn dùng đúng ID thật do Apps Script cấp.
+    rewriteQueuedRecordReferences_(
+        config,
+        temporaryId,
+        serverId
+    );
+
+    let localRecord =
+        overlayPendingRecordUpdates_(
+            config,
+            Object.assign({}, serverResult)
+        );
+
+    let mergedCount = 0;
+
+    if (config.collectionName === "matches") {
+        Object.keys(window.monthDataCache || {}).forEach(function(key) {
+            mergedCount += mergeRecordById_(
+                (window.monthDataCache[key] || {}).matches,
+                temporaryId,
+                localRecord
+            );
+        });
+        mergedCount += mergeRecordById_(matches, temporaryId, localRecord);
+
+        if (!mergedCount && !pendingDelete) {
+            addMatchToLocalMonthCache_(localRecord);
+        }
+    }
+
+    else if (config.collectionName === "bookingLogs") {
+        Object.keys(window.monthDataCache || {}).forEach(function(key) {
+            mergedCount += mergeRecordById_(
+                (window.monthDataCache[key] || {}).bookingLogs,
+                temporaryId,
+                localRecord
+            );
+        });
+        mergedCount += mergeRecordById_(bookingLogs, temporaryId, localRecord);
+
+        if (!mergedCount && !pendingDelete) {
+            addBookingToLocalMonthCache_(localRecord);
+        }
+    }
+
+    else if (config.collectionName === "gocLogs") {
+        mergedCount = mergeRecordById_(gocLogs, temporaryId, localRecord);
+        if (!mergedCount && !pendingDelete) gocLogs.unshift(localRecord);
+    }
+
+    else if (config.collectionName === "quyLogs") {
+        mergedCount = mergeRecordById_(quyLogs, temporaryId, localRecord);
+        if (!mergedCount && !pendingDelete) quyLogs.unshift(localRecord);
+    }
+
+    else if (config.collectionName === "cashbookLogs") {
+        mergedCount = mergeRecordById_(cashbookLogs, temporaryId, localRecord);
+        if (!mergedCount && !pendingDelete) cashbookLogs.unshift(localRecord);
+    }
+
+    else if (config.collectionName === "rulesList") {
+        mergedCount = mergeRecordById_(rulesList, temporaryId, localRecord);
+        if (!mergedCount && !pendingDelete) rulesList.unshift(localRecord);
+    }
+
+    return true;
+}
+
+
+function applyAuthoritativeUpdateResult_(actionName, serverResult) {
+
+    if (!serverResult || serverResult.id === undefined) return false;
+
+    if (actionName === "updateMatch") {
+        updateMatchInMonthCaches_(serverResult);
+        mergeRecordById_(matches, serverResult.id, serverResult);
+        return true;
+    }
+
+    if (actionName === "updateGocLog") {
+        mergeRecordById_(gocLogs, serverResult.id, serverResult);
+        return true;
+    }
+
+    return false;
+}
+
+
+function renderAfterServerReconciliation_(actionName) {
+
+    sortCollectionsByTime();
+
+    if (
+        actionName === "addMatch" ||
+        actionName === "updateMatch"
+    ) {
+        if (typeof renderAllMatchLog === "function") renderAllMatchLog();
+        if (typeof renderGamification === "function") renderGamification();
+        if (typeof renderDashboard === "function") renderDashboard();
+        if (typeof renderFinance === "function") renderFinance();
+    }
+
+    else if (
+        actionName === "addGocLog" ||
+        actionName === "addGocLogAdjustment" ||
+        actionName === "updateGocLog"
+    ) {
+        if (typeof recalculateMemberPaidTotals === "function") {
+            recalculateMemberPaidTotals();
+        }
+        if (typeof renderGocLogsTab === "function") renderGocLogsTab();
+        if (typeof renderDashboard === "function") renderDashboard();
+        if (typeof renderFinance === "function") renderFinance();
+        if (typeof renderCashbook === "function") renderCashbook();
+    }
+
+    else if (actionName === "addBooking") {
+        if (typeof renderBookingLogs === "function") renderBookingLogs();
+        if (typeof renderDashboard === "function") renderDashboard();
+        if (typeof renderFinance === "function") renderFinance();
+    }
+
+    else if (actionName === "addQuyLog") {
+        if (typeof renderQuyTable === "function") renderQuyTable();
+        if (typeof renderDashboard === "function") renderDashboard();
+        if (typeof renderCashbook === "function") renderCashbook();
+    }
+
+    else if (actionName === "addCashbook") {
+        if (typeof renderCashbook === "function") renderCashbook();
+    }
+
+    else if (actionName === "addRule") {
+        if (typeof renderRulesTab === "function") renderRulesTab();
+    }
+
+    if (typeof applyRolePermissions === "function") {
+        applyRolePermissions();
+    }
+}
+
+
+// ======================================================
 // ACTION QUEUE
 // ======================================================
 
@@ -1043,6 +1368,22 @@ function enqueueAction(
     payload.__successMessage =
         successMessage ||
         "Đã ghi nhận thành công!";
+
+    // Lưu ID optimistic ở metadata của queue. ID này KHÔNG được gửi
+    // lên backend; nó chỉ dùng để thay toàn bộ tham chiếu cục bộ bằng
+    // response.result.id sau khi server commit thành công.
+    let createConfig =
+        getCreateActionRecordConfig_(actionName);
+
+    if (
+        createConfig &&
+        payload[createConfig.payloadKey] &&
+        payload[createConfig.payloadKey].id !== undefined &&
+        payload[createConfig.payloadKey].id !== null
+    ) {
+        payload.__tempRecordId =
+            payload[createConfig.payloadKey].id;
+    }
 
     syncQueue.push(
         payload
@@ -1182,6 +1523,23 @@ function enqueueAction(
         rulesList.unshift(
             payload.rule
         );
+    }
+
+
+    else if (
+        actionName ===
+            "updateGocLog" &&
+        payload.gocLog
+    ) {
+
+        let currentGoc =
+            (gocLogs || []).find(function(item) {
+                return String(item.id) === String(payload.gocLog.id);
+            });
+
+        if (currentGoc) {
+            Object.assign(currentGoc, payload.gocLog);
+        }
     }
 
 
@@ -1332,6 +1690,7 @@ function enqueueAction(
     if (
         actionName === "addGocLog" ||
         actionName === "addGocLogAdjustment" ||
+        actionName === "updateGocLog" ||
         (
             actionName ===
                 "deleteItem" &&
@@ -1690,7 +2049,8 @@ function processQueue() {
         item.idempotencyKey;
 
     // data gửi lên = toàn bộ payload TRỪ các trường transport nội bộ
-    // (action/idempotencyKey/__ownerStt/__successMessage) - giữ
+    // (action/idempotencyKey/__ownerStt/__successMessage/
+    // __tempRecordId) - giữ
     // nguyên shape { match: {...} } / { gocLog: {...} } ... mà
     // Router.gs.txt đang mong đợi, không cần sửa các module gọi
     // enqueueAction() ở nơi khác.
@@ -1701,6 +2061,7 @@ function processQueue() {
     delete data.idempotencyKey;
     delete data.__ownerStt;
     delete data.__successMessage;
+    delete data.__tempRecordId;
 
 
     callBackendAction_(
@@ -1734,6 +2095,24 @@ function processQueue() {
                 message
             );
 
+            // Nếu action CREATE bị backend từ chối thì các edit/delete
+            // phụ thuộc ID tạm phía sau cũng không còn đối tượng hợp lệ
+            // để thực thi. Loại chúng cùng lúc trước khi chạy item kế.
+            let rejectedCreateConfig =
+                getCreateActionRecordConfig_(action);
+
+            if (rejectedCreateConfig) {
+                discardQueuedRecordDependencies_(
+                    rejectedCreateConfig,
+                    item.__tempRecordId !== undefined
+                        ? item.__tempRecordId
+                        : (
+                            item[rejectedCreateConfig.payloadKey] &&
+                            item[rejectedCreateConfig.payloadKey].id
+                        )
+                );
+            }
+
             onQueueItemDone_(false);
 
             alert(
@@ -1750,7 +2129,60 @@ function processQueue() {
         }
 
 
-        // THÀNH CÔNG - ĐÃ XÁC NHẬN THẬT TỪ BACKEND
+        // THÀNH CÔNG - ĐÃ XÁC NHẬN THẬT TỪ BACKEND. Với action tạo
+        // mới, phải thay ID optimistic bằng response.result.id và sửa
+        // luôn các update/delete đang chờ trước khi bỏ item khỏi queue.
+        try {
+            if (getCreateActionRecordConfig_(action)) {
+                reconcileCreatedRecordWithServer_(
+                    item,
+                    responseJson.result
+                );
+            } else {
+                applyAuthoritativeUpdateResult_(
+                    action,
+                    responseJson.result
+                );
+            }
+
+            // Re-render ngay để onclick/data-id trên DOM không còn giữ
+            // ID tạm sau khi server đã xác nhận thành công.
+            renderAfterServerReconciliation_(action);
+        } catch (reconcileErr) {
+            console.error(
+                "SERVER ID RECONCILIATION ERROR:",
+                reconcileErr
+            );
+
+            let failedConfig =
+                getCreateActionRecordConfig_(action);
+
+            if (failedConfig) {
+                discardQueuedRecordDependencies_(
+                    failedConfig,
+                    item.__tempRecordId !== undefined
+                        ? item.__tempRecordId
+                        : (
+                            item[failedConfig.payloadKey] &&
+                            item[failedConfig.payloadKey].id
+                        )
+                );
+            }
+
+            onQueueItemDone_(false);
+
+            alert(
+                "Bản ghi đã được lưu nhưng ứng dụng không nhận được ID thật từ máy chủ.\n\n" +
+                "Dữ liệu sẽ được tải lại để tránh sửa/xóa nhầm bản ghi."
+            );
+
+            if (typeof fetchCloudData === "function") {
+                fetchCloudData(false);
+            }
+
+            return;
+        }
+
         showToast(
             item.__successMessage ||
             "Đã đồng bộ thành công!"
@@ -1944,6 +2376,7 @@ function fetchJsonpPhase3_(
             delete data.idempotencyKey;
             delete data.__ownerStt;
             delete data.__successMessage;
+            delete data.__tempRecordId;
 
             callBackendAction_(item.action, data, item.idempotencyKey)
                 .then(function(json) { finish_(null, json); })
