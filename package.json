@@ -1,7 +1,7 @@
 {
   "name": "tennis-thang-long-app",
   "private": true,
-  "version": "2.0.8",
+  "version": "2.0.9",
   "scripts": {
     "test": "node tests/server-id-reconciliation.test.js && node tests/member-stt-finance.test.js && node tests/push-onboarding-prompt.test.js && node ../tests/backend-member-stats-stt.test.js && node ../tests/historical-member-identity-migration.test.js"
   },

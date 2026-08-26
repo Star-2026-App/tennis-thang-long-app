@@ -609,10 +609,10 @@ function maybeNotifyPush_(actionName, payload) {
             'Có 1 trận đấu mới vừa được ghi nhận hôm nay.'
         );
 
-    } else if (actionName === 'addRule' && payload.rule) {
+    } else if ((actionName === 'addRule' || actionName === 'updateRule') && payload.rule) {
 
         triggerClubPushNotification(
-            'Quy định mới',
+            actionName === 'addRule' ? 'Thông báo mới' : 'Thông báo được cập nhật',
             payload.rule.title || 'Có thông báo/quy định mới từ CLB.'
         );
     }

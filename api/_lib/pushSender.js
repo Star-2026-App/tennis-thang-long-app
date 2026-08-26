@@ -107,10 +107,18 @@ function buildEventNotification_(action, result, actorName) {
       };
 
     case "addRule":
+    case "updateRule": {
+      var ruleTitle = String(result && result.title || "Thông báo từ CLB").slice(0, 120);
+      var ruleText = String(result && result.contentText || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 180);
+
       return {
-        title: "Quy định mới",
-        body: "CLB vừa cập nhật quy định mới. Xem chi tiết trong mục Quy định."
+        title: action === "addRule" ? "Thông báo mới" : "Thông báo được cập nhật",
+        body: ruleTitle + (ruleText ? ": " + ruleText : ". Mở ứng dụng để xem chi tiết.")
       };
+    }
 
     default:
       return null; // action này không cần bắn push

@@ -34,7 +34,7 @@ var CLIENT_WRITE_ACTIONS_ = [
   "addQuyLog",
   "addBooking",
   "addCashbook",
-  "addRule",
+  "addRule", "updateRule",
   "deleteItem",
   "addMember", "updateSingleMember", "deleteMember", "restoreMember",
   "addBalanceAdjustment",

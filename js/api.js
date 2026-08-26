@@ -1038,7 +1038,8 @@ function getCreateActionRecordConfig_(actionName) {
         addRule: {
             payloadKey: "rule",
             sheetName: "Rules",
-            collectionName: "rulesList"
+            collectionName: "rulesList",
+            updateAction: "updateRule"
         }
     };
 
@@ -1262,6 +1263,11 @@ function applyAuthoritativeUpdateResult_(actionName, serverResult) {
         return true;
     }
 
+    if (actionName === "updateRule") {
+        mergeRecordById_(rulesList, serverResult.id, serverResult);
+        return true;
+    }
+
     return false;
 }
 
@@ -1310,7 +1316,7 @@ function renderAfterServerReconciliation_(actionName) {
         if (typeof renderCashbook === "function") renderCashbook();
     }
 
-    else if (actionName === "addRule") {
+    else if (actionName === "addRule" || actionName === "updateRule") {
         if (typeof renderRulesTab === "function") renderRulesTab();
     }
 
@@ -1589,6 +1595,23 @@ function enqueueAction(
         rulesList.unshift(
             payload.rule
         );
+    }
+
+
+    else if (
+        actionName ===
+            "updateRule" &&
+        payload.rule
+    ) {
+
+        let currentRule =
+            (rulesList || []).find(function(item) {
+                return String(item.id) === String(payload.rule.id);
+            });
+
+        if (currentRule) {
+            Object.assign(currentRule, payload.rule);
+        }
     }
 
 
@@ -1921,6 +1944,8 @@ function enqueueAction(
     else if (
         actionName ===
             "addRule" ||
+        actionName ===
+            "updateRule" ||
         (
             actionName ===
                 "deleteItem" &&
