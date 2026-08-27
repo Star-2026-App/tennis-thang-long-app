@@ -11,6 +11,8 @@ var cupPairDraft_ = null;
 var cupPairDraftManual_ = false;
 var cupBusy_ = false;
 var cupRefreshTimer_ = null;
+var cupBottomNavHookInstalled_ = false;
+var cupOriginalSyncBottomNavState_ = null;
 
 function cupIsManager_() {
     return currentUserRole === "admin" || currentUserRole === "owner";
@@ -114,6 +116,87 @@ function syncCupNavVisibility() {
     if (!visible && activeTab && activeTab.classList.contains("active") && typeof switchTab === "function") {
         switchTab("dashboard");
     }
+
+    installCupBottomNavHook_();
+    syncCupMobilePriority_(cup, visible);
+}
+
+function ensureCupMobilePriorityElements_() {
+    var cashbookBottom = document.getElementById("bn-cashbook");
+    var cupBottom = document.getElementById("bn-cup");
+
+    if (cashbookBottom && !cupBottom) {
+        cupBottom = document.createElement("button");
+        cupBottom.type = "button";
+        cupBottom.id = "bn-cup";
+        cupBottom.className = "bn-item hidden flex flex-col items-center gap-0.5 py-1";
+        cupBottom.setAttribute("onclick", "switchTabMobile('cup','Giải đấu CUP')");
+        cupBottom.innerHTML = '<i class="fa-solid fa-trophy text-lg"></i><span class="text-[9.5px] font-bold">CUP</span>';
+        cashbookBottom.insertAdjacentElement("afterend", cupBottom);
+    }
+
+    var cupMore = document.querySelector("#moreSheet button[onclick*=\"moreGo('cup'\"]");
+    var cashbookMore = document.getElementById("more-cashbook-cup-active");
+
+    if (cupMore && !cashbookMore) {
+        cashbookMore = document.createElement("button");
+        cashbookMore.type = "button";
+        cashbookMore.id = "more-cashbook-cup-active";
+        cashbookMore.className = "more-row hidden";
+        cashbookMore.setAttribute("onclick", "moreGo('cashbook','Sổ thu chi')");
+        cashbookMore.innerHTML = '<span class="more-row-icon"><i class="fa-solid fa-book-bookmark"></i></span><span class="flex-1 text-left">Sổ thu chi</span><i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>';
+        cupMore.insertAdjacentElement("beforebegin", cashbookMore);
+    }
+
+    return {
+        cashbookBottom: cashbookBottom,
+        cupBottom: cupBottom,
+        cupMore: cupMore,
+        cashbookMore: cashbookMore
+    };
+}
+
+function syncCupMobilePriority_(cup, cupVisible) {
+    var elements = ensureCupMobilePriorityElements_();
+    var cupActive = cup && cup.enabled === true;
+
+    if (elements.cashbookBottom) {
+        elements.cashbookBottom.classList.toggle("hidden", cupActive);
+    }
+    if (elements.cupBottom) {
+        elements.cupBottom.classList.toggle("hidden", !cupActive);
+    }
+    if (elements.cashbookMore) {
+        elements.cashbookMore.classList.toggle("hidden", !cupActive);
+    }
+    if (elements.cupMore) {
+        // CUP đang chạy đã có nút ưu tiên ở thanh dưới. Khi reset,
+        // CUP trở lại mục Thêm nhưng chỉ Admin/Owner nhìn thấy để
+        // có thể cấu hình giải tiếp theo.
+        elements.cupMore.classList.toggle("hidden", cupActive || !cupVisible);
+    }
+}
+
+function installCupBottomNavHook_() {
+    if (cupBottomNavHookInstalled_ || typeof syncBottomNavState !== "function") return;
+
+    cupOriginalSyncBottomNavState_ = syncBottomNavState;
+    syncBottomNavState = function(tabId) {
+        cupOriginalSyncBottomNavState_(tabId);
+
+        var cup = cupCurrent_();
+        if (!cup.enabled) return;
+
+        if (tabId === "cup") {
+            var cupButton = document.getElementById("bn-cup");
+            if (cupButton) cupButton.classList.add("active");
+        } else if (tabId === "cashbook") {
+            var moreButton = document.getElementById("bn-more");
+            if (moreButton) moreButton.classList.add("active");
+        }
+    };
+
+    cupBottomNavHookInstalled_ = true;
 }
 
 function ensureCupAutoRefresh_() {
