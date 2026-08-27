@@ -1,6 +1,6 @@
 // ======================================================
 // CLB TENNIS THĂNG LONG - SERVICE WORKER
-// v2.0.9
+// v2.1.0 CUP TEST
 //
 // - Không cache dữ liệu tài chính/API.
 // - Không cache HTML/JS/CSS (network-only cho mọi GET cùng origin),
@@ -10,7 +10,7 @@
 // ======================================================
 
 const SERVICE_WORKER_VERSION =
-    'tennis-thang-long-pwa-v2.0.9';
+    'tennis-thang-long-pwa-v2.1.0-cup-test';
 
 
 self.addEventListener(

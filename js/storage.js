@@ -48,7 +48,7 @@ function sortCollectionsByTime() {
 var CLB_ACTOR_STORAGE_BASES_ = [
     "clb_members", "clb_matches", "clb_bookingLogs", "clb_cashbookLogs",
     "clb_gocLogs", "clb_quyLogs", "clb_rulesList", "clb_openingBalance",
-    "clb_settings"
+    "clb_settings", "clb_cupData"
 ];
 
 function saveLocalData() {
@@ -68,6 +68,7 @@ function saveLocalData() {
     localStorage.setItem(getActorStorageKey_('clb_gocLogs'), JSON.stringify(gocLogs));
     localStorage.setItem(getActorStorageKey_('clb_quyLogs'), JSON.stringify(quyLogs));
     localStorage.setItem(getActorStorageKey_('clb_rulesList'), JSON.stringify(rulesList));
+    localStorage.setItem(getActorStorageKey_('clb_cupData'), JSON.stringify(cupData));
     localStorage.setItem(getActorStorageKey_('clb_openingBalance'), openingBalance);
     localStorage.setItem(getActorStorageKey_('clb_settings'), JSON.stringify(systemSettings));
 
@@ -87,6 +88,7 @@ function loadLocalData() {
         gocLogs = [];
         quyLogs = [];
         rulesList = [];
+        cupData = null;
         syncQueue = [];
         return;
     }
@@ -98,6 +100,7 @@ function loadLocalData() {
     gocLogs = JSON.parse(localStorage.getItem(getActorStorageKey_('clb_gocLogs'))) || [];
     quyLogs = JSON.parse(localStorage.getItem(getActorStorageKey_('clb_quyLogs'))) || [];
     rulesList = JSON.parse(localStorage.getItem(getActorStorageKey_('clb_rulesList'))) || [];
+    cupData = JSON.parse(localStorage.getItem(getActorStorageKey_('clb_cupData'))) || null;
 
     let storedBal = localStorage.getItem(getActorStorageKey_('clb_openingBalance'));
     if (storedBal !== null) openingBalance = parseFloat(storedBal);

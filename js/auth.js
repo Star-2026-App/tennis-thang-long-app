@@ -562,6 +562,7 @@ async function logout() {
     gocLogs = [];
     quyLogs = [];
     rulesList = [];
+    cupData = null;
     syncQueue = [];
 
     if (typeof switchTab === 'function') {
@@ -585,4 +586,8 @@ function applyRolePermissions() {
         if (currentUserRole === 'owner') el.classList.remove('hidden');
         else el.classList.add('hidden');
     });
+
+    if (typeof syncCupNavVisibility === 'function') {
+        syncCupNavVisibility();
+    }
 }

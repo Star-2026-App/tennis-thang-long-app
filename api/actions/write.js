@@ -35,6 +35,7 @@ var CLIENT_WRITE_ACTIONS_ = [
   "addBooking",
   "addCashbook",
   "addRule", "updateRule",
+  "submitCupResult", "saveCupData", "drawCupTieBreak", "resetCupData",
   "deleteItem",
   "addMember", "updateSingleMember", "deleteMember", "restoreMember",
   "addBalanceAdjustment",

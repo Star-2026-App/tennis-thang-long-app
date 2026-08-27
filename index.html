@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>CLB Tennis Thăng Long - v2.0.9</title>
+    <title>CLB Tennis Thăng Long - v2.1.0 CUP TEST</title>
     <meta name="theme-color" content="#065f46">
     <meta name="application-name" content="Tennis Thăng Long">
 
@@ -767,7 +767,7 @@
             <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-3xl font-extrabold mx-auto shadow">🎾</div>
             <div>
                 <h1 class="text-xl font-black text-slate-800 uppercase">CLB TENNIS THĂNG LONG</h1>
-                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Phân Tích - Ver2.0.9</p>
+                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Phân Tích - Ver2.1.0 CUP TEST</p>
             </div>
             <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="on" class="space-y-4 text-left">
                 <div>
@@ -844,6 +844,7 @@
                     <button onclick="switchTab('quy')" id="btn-quy" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Đóng Quỹ</button>
                     <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu Chi</button>
                     <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên</button>
+                    <button onclick="switchTab('cup')" id="btn-cup" class="tab-btn cup-nav-entry hidden px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-300"></i> CUP</button>
                     <button onclick="switchTab('rules')" id="btn-rules" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
                     <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 owner-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
@@ -869,6 +870,7 @@
                 <button onclick="switchTabMobile('quy', 'Đóng Quỹ')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-piggy-bank text-amber-300"></i> Đóng Quỹ</button>
                 <button onclick="switchTabMobile('cashbook', 'Sổ Thu Chi')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-amber-300"></i> Sổ Thu Chi</button>
                 <button onclick="switchTabMobile('members', 'Thành Viên')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-users text-amber-300"></i> Thành Viên</button>
+                <button onclick="switchTabMobile('cup', 'Giải đấu CUP')" class="cup-nav-entry hidden w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-trophy text-amber-300"></i> Giải đấu CUP</button>
                 <button onclick="switchTabMobile('rules', 'Quy định và thông báo')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
                 <button onclick="switchTabMobile('settings', 'Cài Đặt')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2 owner-only hidden"><i class="fa-solid fa-gears text-amber-300"></i> Cài Đặt</button>
             </div>
@@ -1555,6 +1557,10 @@
             </section>
 
            <!-- TAB 11: CÀI ĐẶT -->
+            <section id="tab-cup" class="tab-content space-y-4">
+                <div id="cupRoot"></div>
+            </section>
+
             <section id="tab-settings" class="tab-content space-y-4">
             
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-xl mx-auto">
@@ -1865,6 +1871,11 @@
                 <button type="button" onclick="moreGo('analytics','Phân tích')" class="more-row">
                     <span class="more-row-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></span>
                     <span class="flex-1 text-left">Phân tích</span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>
+                <button type="button" onclick="moreGo('cup','Giải đấu CUP')" class="more-row cup-nav-entry hidden">
+                    <span class="more-row-icon"><i class="fa-solid fa-trophy"></i></span>
+                    <span class="flex-1 text-left">Giải đấu CUP</span>
                     <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
                 </button>
                 <button type="button" onclick="moreGo('rules','Quy định')" class="more-row">
@@ -2341,6 +2352,7 @@
     <script src="js/modules/analytics.js"></script>
     <script src="js/modules/members.js"></script>
     <script src="js/modules/rules.js"></script>
+    <script src="js/modules/cup.js"></script>
     <script src="js/modules/booking.js"></script>
     <script src="js/modules/finance.js"></script>
     <script src="js/modules/matches.js"></script>

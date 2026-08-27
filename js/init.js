@@ -68,6 +68,10 @@ function initApp() {
 
     safeRun_("renderRulesTab", renderRulesTab);
 
+    safeRun_("renderCupTab", function() {
+        if (typeof renderCupTab === "function") renderCupTab();
+    });
+
 
     // ==================================================
     // PHÂN TÍCH KHÔNG RENDER KHI MỞ APP

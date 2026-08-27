@@ -140,6 +140,13 @@ function switchTab(tabId) {
         renderAnalyticsTab();
     }
 
+    if (
+        tabId === 'cup' &&
+        typeof renderCupTab === 'function'
+    ) {
+        renderCupTab();
+    }
+
 
     if (
         typeof syncBottomNavState ===

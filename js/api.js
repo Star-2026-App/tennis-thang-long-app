@@ -2710,6 +2710,10 @@ function updateStateFromCloud(
             data.rules;
     }
 
+    if (data.cupData && typeof data.cupData === "object") {
+        cupData = data.cupData;
+    }
+
 
     if (
         data.openingBalance !==

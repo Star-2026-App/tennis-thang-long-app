@@ -29,6 +29,7 @@ let cashbookLogs = [];
 let gocLogs = [];
 let quyLogs = [];
 let rulesList = [];
+let cupData = null;
 
 let syncQueue = [];
 let isSyncing = false;

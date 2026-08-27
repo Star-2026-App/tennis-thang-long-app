@@ -46,6 +46,11 @@ module.exports = async function handler(req, res) {
         return http.sendJson(res, 200, { status: "SUCCESS", result: analyticsResult });
       }
 
+      case "cup": {
+        var cupResult = await appsScript.callBusinessAction(sessionId, "cupData", {});
+        return http.sendJson(res, 200, { status: "SUCCESS", result: cupResult });
+      }
+
       case "month-close-status": {
         var mcsMonth = parseInt(req.query && req.query.month);
         var mcsYear = parseInt(req.query && req.query.year);
