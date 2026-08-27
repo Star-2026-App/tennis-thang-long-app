@@ -543,8 +543,11 @@ html {
     .cup-next-match .cup-stage-chip { grid-column: 2; justify-self: start; }
     .cup-next-teams { display: grid; grid-template-columns: minmax(0, 1fr) 1rem minmax(0, 1fr); }
     .cup-next-teams span:first-child { text-align: right; }
-    .cup-member-tools { align-items: stretch; flex-direction: column; }
-    .cup-selection-count { text-align: center; }
+    .cup-member-tools { align-items: center; flex-direction: row; justify-content: flex-start; gap: .42rem; }
+    .cup-search { flex: 1 1 11rem; min-width: 0; max-width: 13rem; }
+    .cup-search i { left: .62rem; font-size: .66rem; }
+    .cup-search input { min-height: 2.1rem; padding: .43rem .5rem .43rem 1.72rem; border-radius: .65rem; font-size: .68rem; }
+    .cup-selection-count { flex: 0 0 auto; padding: .43rem .55rem; font-size: .62rem; white-space: nowrap; text-align: center; }
     .cup-member-grid { grid-template-columns: minmax(0, 1fr); }
     .cup-member-item { padding: .58rem; }
     .cup-pair-grid { grid-template-columns: minmax(0, 1fr); }
