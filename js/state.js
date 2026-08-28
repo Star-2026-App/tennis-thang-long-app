@@ -30,6 +30,7 @@ let gocLogs = [];
 let quyLogs = [];
 let rulesList = [];
 let cupData = null;
+let dataRevision = 0;
 
 let syncQueue = [];
 let isSyncing = false;

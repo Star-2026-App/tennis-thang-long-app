@@ -16,6 +16,7 @@ function sendError(res, err) {
   if (err && err.isConfigError) statusCode = 500;
   else if (err && err.isTimeoutError) statusCode = 504;
   else if (err && err.isUpstreamError) statusCode = 502;
+  else if (err && err.isRetryableAppError) statusCode = 503;
   else if (err && /Unauthorized/i.test(err.message || "")) statusCode = 401;
   else if (err && err.isAppError) statusCode = 400;
 

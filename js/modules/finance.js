@@ -2577,7 +2577,7 @@ function saveFinanceData(e) {
     );
 
 
-    callBackendAction_(
+    callBackendActionWithRetry_(
 
         "addBalanceAdjustment",
 
@@ -2589,7 +2589,8 @@ function saveFinanceData(e) {
             }
         },
 
-        generateIdempotencyKey_()
+        generateIdempotencyKey_(),
+        3
     )
 
     .then(function(data) {
@@ -5620,13 +5621,14 @@ function executeMonthClose_() {
             // giống hệt shape "preview" cũ) làm snapshot chính thức.
             // ==================================================
 
-            callBackendAction_(
+            callBackendActionWithRetry_(
 
                 'closeMonth',
 
                 { monthClose: { month: month, year: year } },
 
-                generateIdempotencyKey_()
+                generateIdempotencyKey_(),
+                3
             )
 
             .then(

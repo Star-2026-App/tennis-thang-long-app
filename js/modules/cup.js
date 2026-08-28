@@ -1,5 +1,5 @@
 // ======================================================
-// CUP TOURNAMENT UI - V2.1.0 TEST
+// CUP TOURNAMENT UI - V2.1.1 PERFORMANCE TEST
 // ======================================================
 // CUP chỉ dùng cupData/CupTournament. Không ghi Matches, GocLogs,
 // MemberStats hay bất kỳ dữ liệu tài chính thường ngày nào.
@@ -203,9 +203,28 @@ function ensureCupAutoRefresh_() {
     if (cupRefreshTimer_) return;
     cupRefreshTimer_ = setInterval(function() {
         var tab = document.getElementById("tab-cup");
-        if (!tab || !tab.classList.contains("active") || !navigator.onLine || cupBusy_) return;
-        fetchCupData(false, true).catch(function() {});
-    }, 30000);
+        if (document.visibilityState !== "visible" || !tab || !tab.classList.contains("active") || !navigator.onLine || cupBusy_) return;
+
+        // Poll chỉ lấy summary/version rất nhỏ; chỉ tải toàn bộ CUP
+        // khi version thật sự thay đổi.
+        callBackendRead_("/api/data/cup-version")
+            .then(function(summary) {
+                var currentVersion = parseInt(cupData && cupData.version) || 0;
+                var serverVersion = parseInt(summary && summary.version) || 0;
+                if (!cupData || cupData.summaryOnly === true || serverVersion !== currentVersion) {
+                    return fetchCupData(false, true);
+                }
+                return null;
+            })
+            .catch(function() {});
+    }, 60000);
+}
+
+function activateCupTab_() {
+    renderCupTab();
+    if (!cupData || cupData.summaryOnly === true) {
+        fetchCupData(true, true).catch(function() {});
+    }
 }
 
 function fetchCupData(showSpinner, silent) {
@@ -215,6 +234,7 @@ function fetchCupData(showSpinner, silent) {
         .then(function(result) {
             var oldVersion = parseInt(cupData && cupData.version) || 0;
             cupData = result || cupDefaultClient_();
+            cupData.summaryOnly = false;
             if ((parseInt(cupData.version) || 0) !== oldVersion) {
                 cupParticipantDraft_ = null;
                 cupPairDraft_ = null;
@@ -246,13 +266,15 @@ function cupCallWrite_(action, data, successMessage) {
     cupBusy_ = true;
     renderCupBusyState_();
 
-    return callBackendAction_(action, data, generateIdempotencyKey_())
+    var idempotencyKey = generateIdempotencyKey_();
+    return callBackendActionWithRetry_(action, data, idempotencyKey, 3)
         .then(function(json) {
             if (!json || json.status !== "SUCCESS") {
                 throw new Error((json && json.message) || "Thao tác CUP không thành công.");
             }
 
             cupData = json.result || cupDefaultClient_();
+            cupData.summaryOnly = false;
             cupParticipantDraft_ = null;
             cupPairDraft_ = null;
             cupPairDraftManual_ = false;
@@ -340,8 +362,8 @@ function renderCupTab() {
             '<div class="cup-status ' + status.cls + '"><span class="cup-status-dot"></span>' + status.text + '</div>' +
         '</div>' +
         '<div class="cup-metrics">' +
-            cupMetricHtml_("fa-user-check", (cup.participants || []).length + "/" + expectedPlayers, "Người đăng ký") +
-            cupMetricHtml_("fa-people-group", (cup.pairs || []).length + "/" + (expectedPlayers / 2), "Cặp thi đấu") +
+            cupMetricHtml_("fa-user-check", (cup.summaryOnly ? (parseInt(cup.participantCount) || 0) : (cup.participants || []).length) + "/" + expectedPlayers, "Người đăng ký") +
+            cupMetricHtml_("fa-people-group", (cup.summaryOnly ? (parseInt(cup.pairCount) || 0) : (cup.pairs || []).length) + "/" + (expectedPlayers / 2), "Cặp thi đấu") +
             cupMetricHtml_("fa-circle-check", completed.groupCompleted + "/" + completed.groupTotal, "Trận vòng bảng") +
             cupMetricHtml_("fa-flag-checkered", completed.allCompleted + "/" + completed.allTotal, "Tổng trận xong") +
         '</div>' +
@@ -360,6 +382,10 @@ function cupMetricHtml_(icon, value, label) {
 }
 
 function renderCupPane_(cup) {
+    if (cup.summaryOnly === true) {
+        return '<div class="cup-empty"><i class="fa-solid fa-spinner fa-spin"></i><h3>Đang tải chi tiết CUP</h3><p>Ứng dụng chỉ tải bảng đấu và lịch khi bạn mở mục này.</p></div>';
+    }
+
     if (!cup.enabled && !cupIsManager_()) {
         return '<div class="cup-empty"><i class="fa-solid fa-trophy"></i><h3>Chưa có giải CUP đang hoạt động</h3><p>Khi Ban tổ chức kích hoạt giải, thông tin sẽ xuất hiện tại đây.</p></div>';
     }

@@ -1,15 +1,17 @@
 {
   "name": "tennis-thang-long-app",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.1.1",
   "scripts": {
-    "test": "node tests/server-id-reconciliation.test.js && node tests/member-stt-finance.test.js && node tests/push-onboarding-prompt.test.js && node ../tests/backend-member-stats-stt.test.js && node ../tests/historical-member-identity-migration.test.js",
-    "test:cup": "node ../tests/cup-logic.test.js && node ../tests/cup-frontend.test.js"
+    "test": "node Tests/performance-regression.test.js && node Tests/cup-logic.test.js && node Tests/cup-frontend.test.js",
+    "test:cup": "node Tests/cup-logic.test.js && node Tests/cup-frontend.test.js",
+    "test:performance": "node Tests/performance-regression.test.js"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@vercel/functions": "^3.9.5",
     "web-push": "^3.6.7",
     "bcryptjs": "^2.4.3"
   }

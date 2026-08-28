@@ -25,6 +25,16 @@ function isLoginRateLimitError_(err) {
   );
 }
 
+async function callSystemActionWithLockRetry_(action, data, options) {
+  try {
+    return await appsScript.callSystemAction(action, data, options);
+  } catch (err) {
+    if (!err || !err.isRetryableAppError) throw err;
+    await new Promise(function(resolve) { setTimeout(resolve, 600); });
+    return appsScript.callSystemAction(action, data, options);
+  }
+}
+
 module.exports = async function handler(req, res) {
   var action = req.query && req.query.action;
 
@@ -84,7 +94,7 @@ module.exports = async function handler(req, res) {
       try {
         // Tối ưu: 1 lượt Apps Script thay cho 2 lượt tuần tự
         // authCheckLoginRateLimit -> authLookupMemberByUsername.
-        prepared = await appsScript.callSystemAction("authPrepareLogin", {
+        prepared = await callSystemActionWithLockRetry_("authPrepareLogin", {
           key: rateLimitKey,
           username: username
         }, { timeoutMs: LOGIN_UPSTREAM_TIMEOUT_MS });
@@ -150,7 +160,7 @@ module.exports = async function handler(req, res) {
 
       // Tối ưu: 1 lượt Apps Script thay cho 2 lượt tuần tự
       // authResetLoginAttempts -> authCreateSession.
-      await appsScript.callSystemAction("authCompleteLogin", {
+      await callSystemActionWithLockRetry_("authCompleteLogin", {
         key: rateLimitKey,
         sessionId: sessionId2,
         stt: member.stt,

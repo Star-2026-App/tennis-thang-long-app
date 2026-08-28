@@ -142,9 +142,9 @@ function switchTab(tabId) {
 
     if (
         tabId === 'cup' &&
-        typeof renderCupTab === 'function'
+        typeof activateCupTab_ === 'function'
     ) {
-        renderCupTab();
+        activateCupTab_();
     }
 
 

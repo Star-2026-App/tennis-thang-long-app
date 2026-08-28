@@ -109,6 +109,7 @@ async function postToAppsScript_(payload, options) {
   if (!body || body.status !== "SUCCESS") {
     var appErr = new Error((body && body.message) || "Thao tác thất bại.");
     appErr.isAppError = true;
+    appErr.isRetryableAppError = /hệ thống đang xử lý|yêu cầu khác|tạm thời bận|vui lòng thử lại/i.test(appErr.message);
     throw appErr;
   }
 

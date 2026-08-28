@@ -265,14 +265,18 @@ async function checkExistingSession_() {
 
     try {
 
+        let now = new Date();
+
         let result = await fetchAuthJsonWithTimeout_(
-            '/api/auth/session',
+            '/api/data/bootstrap?month=' + (now.getMonth() + 1) + '&year=' + now.getFullYear(),
             { credentials: 'include' },
             AUTH_SESSION_TIMEOUT_MS_
         );
-        let data = result.data;
+        let envelope = result.data;
+        let bootstrap = envelope && envelope.status === 'SUCCESS' ? envelope.result : null;
+        let data = bootstrap && bootstrap.session;
 
-        if (data && data.authenticated) {
+        if (result.response.ok && data) {
 
             applySessionInfo_(data);
 
@@ -282,7 +286,7 @@ async function checkExistingSession_() {
                 return;
             }
 
-            enterAppScreen_();
+            enterAppScreen_(bootstrap.initialData);
             return;
         }
 
@@ -472,7 +476,7 @@ async function forcePasswordChangeFlow_() {
 // tải dữ liệu cục bộ/cloud, thay cho app.js cũ tải vô điều kiện.
 // ======================================================
 
-function enterAppScreen_() {
+function enterAppScreen_(bootstrapInitialData) {
 
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('appScreen').classList.remove('hidden');
@@ -511,7 +515,11 @@ function enterAppScreen_() {
         if (currentUserRole === 'member') dashSelect.disabled = true;
     }
 
-    fetchCloudData(true);
+    if (bootstrapInitialData) {
+        updateStateFromCloud(bootstrapInitialData);
+    } else {
+        fetchCloudData(true);
+    }
 
     if (syncIntervalId) {
         clearInterval(syncIntervalId);
@@ -563,6 +571,7 @@ async function logout() {
     quyLogs = [];
     rulesList = [];
     cupData = null;
+    dataRevision = 0;
     syncQueue = [];
 
     if (typeof switchTab === 'function') {

@@ -26,12 +26,42 @@ module.exports = async function handler(req, res) {
 
     switch (type) {
 
+      case "bootstrap": {
+        // Xác minh session + tải initialData trong một lượt Apps Script,
+        // thay cho chuỗi /auth/session rồi /data/initial trước đây.
+        var bootstrapMonth = parseInt(req.query && req.query.month);
+        var bootstrapYear = parseInt(req.query && req.query.year);
+        var bootstrapResult = await appsScript.callBusinessAction(
+          sessionId,
+          "bootstrapData",
+          { month: bootstrapMonth, year: bootstrapYear }
+        );
+        return http.sendJson(res, 200, { status: "SUCCESS", result: bootstrapResult });
+      }
+
       case "initial": {
         // Thay cho việc frontend gọi thẳng Apps Script action "initialData".
         // Yêu cầu session hợp lệ - KHÔNG còn cách nào tải dữ liệu CLB mà
         // không đăng nhập (sửa điểm yếu #11).
         var initialResult = await appsScript.callBusinessAction(sessionId, "initialData", {});
         return http.sendJson(res, 200, { status: "SUCCESS", result: initialResult });
+      }
+
+      case "sync": {
+        var syncMonth = parseInt(req.query && req.query.month);
+        var syncYear = parseInt(req.query && req.query.year);
+        var revision = parseInt(req.query && req.query.revision) || 0;
+        var syncResult = await appsScript.callBusinessAction(
+          sessionId,
+          "syncData",
+          {
+            month: syncMonth,
+            year: syncYear,
+            dataRevision: revision,
+            forceReload: String(req.query && req.query.force || "") === "1"
+          }
+        );
+        return http.sendJson(res, 200, { status: "SUCCESS", result: syncResult });
       }
 
       case "month": {
@@ -49,6 +79,11 @@ module.exports = async function handler(req, res) {
       case "cup": {
         var cupResult = await appsScript.callBusinessAction(sessionId, "cupData", {});
         return http.sendJson(res, 200, { status: "SUCCESS", result: cupResult });
+      }
+
+      case "cup-version": {
+        var cupSummary = await appsScript.callBusinessAction(sessionId, "cupSummary", {});
+        return http.sendJson(res, 200, { status: "SUCCESS", result: cupSummary });
       }
 
       case "month-close-status": {

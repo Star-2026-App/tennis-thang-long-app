@@ -21,6 +21,7 @@
 // ======================================================
 
 const bcrypt = require("bcryptjs");
+const { waitUntil } = require("@vercel/functions");
 const http = require("../_lib/http");
 const appsScript = require("../_lib/appsScript");
 const pushSender = require("../_lib/pushSender");
@@ -83,9 +84,12 @@ module.exports = async function handler(req, res) {
 
     var result = await appsScript.callBusinessAction(sessionId, action, data, idempotencyKey);
 
-    // Bắn push SAU KHI đã có xác nhận commit thật từ Apps Script -
-    // không còn "báo thành công ngay khi enqueue" như v1.6 (P3).
-    await pushSender.notifyAfterCommit(action, result, data && (data.name || data.memberName));
+    // Trả kết quả ghi ngay sau commit. Push tiếp tục ở background
+    // trong vòng đời Vercel Function, không còn cộng thêm một lượt
+    // đọc subscriptions + gửi tới mọi máy vào độ trễ của người ghi.
+    waitUntil(
+      pushSender.notifyAfterCommit(action, result, data && (data.name || data.memberName))
+    );
 
     return http.sendJson(res, 200, { status: "SUCCESS", result: result });
 

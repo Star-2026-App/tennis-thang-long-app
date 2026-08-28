@@ -175,10 +175,11 @@ async function resetMemberPasswordPrompt(idx) {
     showToast("Đang đặt lại mật khẩu...");
 
     try {
-        let res = await callBackendAction_(
+        let res = await callBackendActionWithRetry_(
             "resetMemberPassword",
             { targetStt: m.stt, newPassword: newPassword },
-            (typeof generateIdempotencyKey_ === 'function') ? generateIdempotencyKey_() : ("resetpw-" + Date.now())
+            (typeof generateIdempotencyKey_ === 'function') ? generateIdempotencyKey_() : ("resetpw-" + Date.now()),
+            3
         );
 
         if (!res || res.status !== "SUCCESS") {

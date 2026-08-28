@@ -74,14 +74,66 @@ function generateIdempotencyKey_() {
     );
 }
 
-// Gọi 1 action GHI qua POST /api/actions/write. Trả về Promise
-// resolve với JSON {status, result} hoặc {status:"ERROR", message}
-// - KHÔNG BAO GIỜ reject vì lỗi nghiệp vụ (chỉ reject khi mất
-// mạng/không parse được JSON), để nơi gọi tự phân biệt 2 loại lỗi
-// giống hệt hành vi JSONP cũ.
-function callBackendAction_(action, data, idempotencyKey) {
+var API_READ_TIMEOUT_MS_ = 18000;
+var API_WRITE_TIMEOUT_MS_ = 30000;
 
-    return fetch("/api/actions/write", {
+function apiError_(message, statusCode, retryable, cause) {
+    var err = new Error(message || "Không thể kết nối hệ thống.");
+    err.statusCode = parseInt(statusCode) || 0;
+    err.isRetryable = retryable === true;
+    err.cause = cause;
+    return err;
+}
+
+function apiFetchJson_(url, options, timeoutMs) {
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, timeoutMs);
+    var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
+
+    return fetch(url, requestOptions)
+        .then(function(res) {
+            return res.text().then(function(text) {
+                var json;
+                try {
+                    json = text ? JSON.parse(text) : null;
+                } catch (parseErr) {
+                    throw apiError_(
+                        "Máy chủ trả về phản hồi không hợp lệ.",
+                        res.status,
+                        res.ok || res.status >= 500 || res.status === 0,
+                        parseErr
+                    );
+                }
+                return { statusCode: res.status, ok: res.ok, json: json };
+            });
+        })
+        .catch(function(err) {
+            if (err && err.isRetryable !== undefined) throw err;
+            if (controller.signal.aborted || (err && err.name === "AbortError")) {
+                var timeoutErr = apiError_(
+                    "Máy chủ phản hồi quá chậm. Ứng dụng sẽ tự thử lại.",
+                    408,
+                    true,
+                    err
+                );
+                timeoutErr.name = "TimeoutError";
+                throw timeoutErr;
+            }
+            throw apiError_("Không kết nối được máy chủ. Ứng dụng sẽ tự thử lại.", 0, true, err);
+        })
+        .finally(function() { clearTimeout(timeoutId); });
+}
+
+function isRetryableHttpStatus_(statusCode) {
+    statusCode = parseInt(statusCode) || 0;
+    return !statusCode || statusCode === 408 || statusCode === 425 ||
+        statusCode === 429 || statusCode >= 500;
+}
+
+// Lỗi nghiệp vụ 4xx được resolve để UI báo đúng và loại khỏi queue;
+// lỗi mạng/timeout/429/5xx bị reject để queue giữ nguyên idempotencyKey.
+function callBackendAction_(action, data, idempotencyKey) {
+    return apiFetchJson_("/api/actions/write", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -90,9 +142,42 @@ function callBackendAction_(action, data, idempotencyKey) {
             data: data || {},
             idempotencyKey: idempotencyKey || generateIdempotencyKey_()
         })
-    }).then(function(res) {
-        return res.json();
+    }, API_WRITE_TIMEOUT_MS_).then(function(response) {
+        if (response.statusCode === 401) {
+            var authErr = apiError_(
+                (response.json && response.json.message) || "Phiên đăng nhập đã hết hạn.",
+                401,
+                false
+            );
+            authErr.isAuthError = true;
+            throw authErr;
+        }
+        if (!response.ok && isRetryableHttpStatus_(response.statusCode)) {
+            throw apiError_(
+                (response.json && response.json.message) || "Máy chủ tạm thời bận.",
+                response.statusCode,
+                true
+            );
+        }
+        return response.json;
     });
+}
+
+function callBackendActionWithRetry_(action, data, idempotencyKey, maxAttempts) {
+    var key = idempotencyKey || generateIdempotencyKey_();
+    var attempt = 0;
+    var limit = Math.max(1, parseInt(maxAttempts) || 3);
+
+    function send_() {
+        attempt++;
+        return callBackendAction_(action, data, key).catch(function(err) {
+            if (!err || !err.isRetryable || attempt >= limit) throw err;
+            var delay = Math.min(5000, 700 * Math.pow(2, attempt - 1)) + Math.floor(Math.random() * 250);
+            return new Promise(function(resolve) { setTimeout(resolve, delay); }).then(send_);
+        });
+    }
+
+    return send_();
 }
 
 // Gọi 1 action ĐỌC qua GET /api/data/<đường dẫn tương ứng>. Trả về
@@ -100,25 +185,19 @@ function callBackendAction_(action, data, idempotencyKey) {
 // response Apps Script trả trực tiếp trước đây - có .status ở
 // gốc), để updateStateFromCloud()/các callback cũ không cần sửa gì.
 function callBackendRead_(path) {
-
-    return fetch(path, {
+    return apiFetchJson_(path, {
         method: "GET",
         credentials: "include"
-    }).then(function(res) {
-        return res.json().then(function(json) {
-            return { statusCode: res.status, json: json };
-        }).catch(function(err) {
-            err.statusCode = res.status;
-            throw err;
-        });
-    }).then(function(response) {
+    }, API_READ_TIMEOUT_MS_).then(function(response) {
 
         var json = response.json;
 
-        if (!json || json.status !== "SUCCESS") {
-            var readErr = new Error((json && json.message) || "Không tải được dữ liệu.");
-            readErr.statusCode = response.statusCode;
-            throw readErr;
+        if (!response.ok || !json || json.status !== "SUCCESS") {
+            throw apiError_(
+                (json && json.message) || "Không tải được dữ liệu.",
+                response.statusCode,
+                isRetryableHttpStatus_(response.statusCode)
+            );
         }
 
         return json.result;
@@ -2076,6 +2155,10 @@ function processQueue() {
     let item =
         syncQueue[0];
 
+    if (parseInt(item.__nextAttemptAt) > Date.now()) {
+        return;
+    }
+
 
     // ==================================================
     // v2.0 (điểm yếu #6): mỗi thiết bị chỉ được xử lý hàng đợi
@@ -2153,6 +2236,8 @@ function processQueue() {
     delete data.__ownerStt;
     delete data.__successMessage;
     delete data.__tempRecordId;
+    delete data.__retryCount;
+    delete data.__nextAttemptAt;
 
 
     callBackendAction_(
@@ -2296,14 +2381,32 @@ function processQueue() {
 
     .catch(function(err) {
 
-        // Lỗi mạng/timeout -> GIỮ LẠI hàng đợi, sẽ tự thử lại ở
-        // lượt processQueue kế tiếp (setInterval trong auth.js).
+        // Lỗi transport -> GIỮ NGUYÊN item và idempotencyKey. Backoff
+        // tăng dần giúp tránh dồn request khi Apps Script cold-start
+        // hoặc Vercel/Google đang tạm quá tải.
         console.error(
-            "WRITE ACTION NETWORK ERROR:",
+            "WRITE ACTION TRANSPORT ERROR:",
             err
         );
 
+        item.__retryCount = (parseInt(item.__retryCount) || 0) + 1;
+        var delays = [2000, 5000, 10000, 20000, 30000, 60000];
+        var retryDelay = err && err.isAuthError
+            ? 60000
+            : delays[Math.min(item.__retryCount - 1, delays.length - 1)];
+        item.__nextAttemptAt = Date.now() + retryDelay + Math.floor(Math.random() * 500);
         isSyncing = false;
+        saveLocalData();
+
+        if (typeof showToast === "function" && (item.__retryCount === 1 || item.__retryCount === 3)) {
+            showToast(err && err.isAuthError
+                ? "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại; dữ liệu chờ vẫn được giữ."
+                : "Kết nối chưa ổn định. Dữ liệu đã được giữ và sẽ tự gửi lại.");
+        }
+
+        if (err && err.isAuthError && typeof showLoginScreen_ === "function") {
+            showLoginScreen_();
+        }
     });
 }
 
@@ -2501,99 +2604,65 @@ function fetchJsonpPhase3_(
 // INITIAL CLOUD DATA
 // ======================================================
 
+var initialDataPromise_ = null;
+
 function fetchCloudData(
     showSpinner,
     onSuccess,
-    onFailure
+    onFailure,
+    forceReload
 ) {
+    if (showSpinner && typeof showCloudLoading_ === "function") showCloudLoading_();
 
-    var attempt = 0;
-    var maxAttempts = 2;
+    if (!initialDataPromise_) {
+        var now = new Date();
+        var path = "/api/data/sync?month=" + (now.getMonth() + 1) +
+            "&year=" + now.getFullYear() +
+            "&revision=" + (forceReload === true ? 0 : (parseInt(dataRevision) || 0)) +
+            "&force=" + (forceReload === true ? "1" : "0");
+        var attempt = 0;
 
-    function isRetryableInitialError_(error) {
-        var statusCode = parseInt(error && error.statusCode) || 0;
-        return !statusCode || statusCode === 408 || statusCode === 429 || statusCode >= 500;
+        function load_() {
+            attempt++;
+            return callBackendRead_(path).catch(function(err) {
+                if (!err || !err.isRetryable || attempt >= 2) throw err;
+                var delay = 900 + Math.floor(Math.random() * 350);
+                return new Promise(function(resolve) { setTimeout(resolve, delay); }).then(load_);
+            });
+        }
+
+        initialDataPromise_ = load_()
+            .then(function(data) {
+                if (data && data.notModified === true) {
+                    dataRevision = parseInt(data.dataRevision) || dataRevision;
+                    saveLocalData();
+                } else {
+                    updateStateFromCloud(data);
+                }
+                return data;
+            })
+            .catch(function(err) {
+                console.error("INITIAL DATA ERROR:", err);
+                if (typeof showToast === "function") {
+                    showToast("Chưa tải được dữ liệu. Dữ liệu trên máy vẫn được giữ; hãy thử Làm mới.");
+                }
+                throw err;
+            })
+            .finally(function() { initialDataPromise_ = null; });
     }
 
-    function loadInitialData_() {
-
-        attempt++;
-
-        fetchJsonpPhase3_(
-            {
-                action:
-                    "initialData"
-            },
-            showSpinner,
-            function(
-                error,
-                data
-            ) {
-
-                if (error) {
-
-                    if (attempt < maxAttempts && isRetryableInitialError_(error)) {
-                        console.warn(
-                            "INITIAL DATA RETRY " + attempt + "/" + maxAttempts + ":",
-                            error
-                        );
-
-                        // Giữ trạng thái loading trong lúc chờ retry để màn
-                        // hình không hiện số 0 như thể đã tải xong.
-                        if (showSpinner) showCloudLoading_();
-
-                        setTimeout(loadInitialData_, 1200);
-                        return;
-                    }
-
-                    console.error(
-                        "INITIAL DATA ERROR AFTER " + attempt + " ATTEMPT(S):",
-                        error
-                    );
-
-                    if (typeof showToast === "function") {
-                        showToast("Chưa tải được dữ liệu. Vui lòng thử nút Làm mới.", "warning");
-                    }
-
-                    if (typeof onFailure === "function") {
-                        onFailure(error);
-                    }
-
-                    return;
-                }
-
-                try {
-
-                    updateStateFromCloud(
-                        data
-                    );
-
-                    if (
-                        typeof onSuccess ===
-                        "function"
-                    ) {
-
-                        onSuccess(
-                            data
-                        );
-                    }
-
-                } catch (err) {
-
-                    console.error(
-                        "UPDATE INITIAL STATE ERROR:",
-                        err
-                    );
-
-                    if (typeof onFailure === "function") {
-                        onFailure(err);
-                    }
-                }
-            }
-        );
-    }
-
-    loadInitialData_();
+    return initialDataPromise_
+        .then(function(data) {
+            if (typeof onSuccess === "function") onSuccess(data);
+            return data;
+        })
+        .catch(function(err) {
+            if (typeof onFailure === "function") onFailure(err);
+            return null;
+        })
+        .finally(function() {
+            if (showSpinner && typeof hideCloudLoading_ === "function") hideCloudLoading_();
+        });
 }
 
 
@@ -2612,6 +2681,10 @@ function updateStateFromCloud(
         );
 
         return;
+    }
+
+    if (data.dataRevision !== undefined) {
+        dataRevision = parseInt(data.dataRevision) || 0;
     }
 
 
