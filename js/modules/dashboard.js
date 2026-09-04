@@ -66,6 +66,10 @@ function copyReminderText() {
     let debtList = [];
     if (members && members.length > 0) {
         members.forEach(m => {
+            // (v2.1.2 FIX) Bỏ "Khách mời"/"Khách mời N" - khách vãng lai
+            // không thu được tiền, nhắc nợ những tài khoản này không có
+            // ý nghĩa (mỗi buổi là người thật khác nhau).
+            if (isPhase3GuestName_(m.name)) return;
             let f = calculateUserFinanceForMonth(m, mSel, ySel);
             if (f.totalPay > 0) debtList.push(`- ${m.name}: ${f.totalPay.toLocaleString()} đ`);
         });
@@ -84,6 +88,47 @@ function copyReminderText() {
 
     navigator.clipboard.writeText(text).then(() => {
         showToast("Đã sao chép nội dung tin nhắn nhắc nợ vào bộ nhớ tạm!");
+    }).catch(err => { alert("Không thể tự động sao chép. Vui lòng thử lại!"); });
+}
+
+// ======================================================
+// (v2.1.2) NHẮC NỢ THÁNG CŨ - CHỈ DƯ/NỢ CHUYỂN KỲ (carryBalance)
+// ======================================================
+//
+// Khác với copyReminderText() ở trên (lấy f.totalPay = TỔNG phải
+// đóng, gồm CẢ nợ cũ lẫn phát sinh tháng đang xem - dễ gây hiểu lầm
+// khi CLB đã nhắc nợ cũ nhiều lần rồi mà số vẫn tăng do cộng thêm
+// phát sinh mới), hàm này CHỈ lấy đúng f.carryBalance ("Dư/Nợ chuyển
+// kỳ" - nợ tồn từ các tháng trước, KHÔNG gồm góc/kèo/thưởng phát sinh
+// của tháng đang xem) và chỉ liệt kê carryBalance > 0 (âm nghĩa là
+// thành viên đang dư tiền, không phải nợ).
+function copyOldDebtReminderText() {
+    let mSel = document.getElementById('selectFinanceMonth').value;
+    let ySel = document.getElementById('selectFinanceYear').value;
+
+    let debtList = [];
+    if (members && members.length > 0) {
+        members.forEach(m => {
+            if (isPhase3GuestName_(m.name)) return;
+            let f = calculateUserFinanceForMonth(m, mSel, ySel);
+            let oldDebt = parseInt(f.carryBalance) || 0;
+            if (oldDebt > 0) debtList.push(`- ${m.name}: ${oldDebt.toLocaleString()} đ`);
+        });
+    }
+
+    let text = `🎾 CLB TENNIS THĂNG LONG - NHẮC NỢ TỒN CÁC THÁNG TRƯỚC (tính đến ${mSel}/${ySel}) 🎾\n`;
+    text += `Thân gửi anh em, đây là danh sách nợ TỒN TỪ CÁC THÁNG TRƯỚC (chưa gồm phát sinh góc/kèo/thưởng của tháng ${mSel}):\n\n`;
+    if (debtList.length === 0) text += `Tuyệt vời! Hiện tại không còn ai nợ tồn từ các tháng trước.\n`;
+    else text += debtList.join('\n') + `\n\n`;
+
+    text += `👉 Anh em chuyển khoản về:\n`;
+    text += `- Ngân hàng: ${systemSettings.bankId} (${systemSettings.bankAccount})\n`;
+    text += `- Chủ TK: ${systemSettings.accountName}\n`;
+    text += `- Nội dung CK: Nop tien goc <Tên của bạn>\n`;
+    text += `Trân trọng cảm ơn anh em! 🙏`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        showToast("Đã sao chép nội dung nhắc nợ tháng cũ vào bộ nhớ tạm!");
     }).catch(err => { alert("Không thể tự động sao chép. Vui lòng thử lại!"); });
 }
 
@@ -1957,6 +2002,13 @@ function renderDashboard() {
 
             text +=
                 `Tổng số thành viên: ${summary.memberCount}\n`;
+
+            // (v2.1.2) Số dư quỹ hiện tại - lấy từ tổng quỹ tính
+            // sẵn server-side (computeCashbookAggregates_ ở
+            // CashbookService.txt), KHÔNG phụ thuộc tháng đang xem
+            // vì đây là số dư quỹ CLB thực tế tại thời điểm hiện tại.
+            text +=
+                `Số dư quỹ hiện tại: ${moneyA9_(parseInt(cashbookRunningBalance) || 0)}\n`;
 
             text +=
                 `Dư/Nợ đầu kỳ: ${moneyA9_(summary.opening)}\n`;

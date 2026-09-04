@@ -57,6 +57,64 @@ function buildSystemClaim_() {
   return { claimJson: claimJsonString, signature: signClaim_(claimJsonString) };
 }
 
+// ======================================================
+// (v2.1.2) Apps Script Web App đôi khi trả về redirect
+// (301/302) sang URL nội dung thật (script.googleusercontent.com)
+// thay vì trả kết quả trực tiếp - không phải lúc nào cũng xảy ra,
+// tùy trạng thái deploy/cold-start của Google, nên lỗi này xuất
+// hiện NGẮT QUÃNG, khó đoán.
+//
+// Theo đúng chuẩn kỹ thuật của fetch() (WHATWG Fetch spec), khi gặp
+// redirect 301/302 cho 1 request KHÔNG PHẢI GET/HEAD, fetch() mặc
+// định (redirect:"follow") sẽ TỰ ĐỘNG đổi phương thức của lượt gọi
+// tiếp theo từ POST -> GET và XÓA LUÔN body - đây là hành vi "đúng
+// chuẩn" của trình duyệt nhưng gây hại khi gọi Apps Script: lượt gọi
+// thứ 2 (đã bị đổi thành GET) chạm phải doGet() của Apps Script và
+// bị từ chối ngay với "GET không được hỗ trợ..." (xem Code.gs.txt
+// doGet()) - lỗi này từng làm treo màn hình đăng nhập / rơi mất dữ
+// liệu ở nhiều action khác nhau tùy đúng lúc nào Google trả redirect.
+//
+// SỬA: tự bắt redirect (redirect:"manual") và tự lặp lại ĐÚNG POST +
+// ĐÚNG body gốc tới Location mới, thay vì để fetch() tự ý đổi thành
+// GET. Giới hạn tối đa 3 lần theo redirect để tránh vòng lặp vô hạn
+// nếu Google trả redirect bất thường.
+// ======================================================
+
+var MAX_REDIRECTS_ = 3;
+
+async function fetchFollowingPostRedirects_(url, requestInit, signal) {
+  var currentUrl = url;
+
+  for (var hop = 0; hop <= MAX_REDIRECTS_; hop++) {
+    var res = await fetch(currentUrl, Object.assign({}, requestInit, {
+      redirect: "manual",
+      signal: signal
+    }));
+
+    var isRedirect = res.status === 301 || res.status === 302 || res.status === 303 ||
+      res.status === 307 || res.status === 308;
+
+    if (!isRedirect) {
+      return res;
+    }
+
+    var location = res.headers.get("location");
+
+    if (!location) {
+      // Redirect nhưng không có Location - không còn cách nào theo
+      // tiếp, trả nguyên response redirect để lớp trên báo lỗi rõ ràng
+      // thay vì treo.
+      return res;
+    }
+
+    // Giữ NGUYÊN phương thức POST + body gốc (requestInit đã có sẵn) -
+    // đây chính là điểm khác biệt với hành vi mặc định của fetch().
+    currentUrl = new URL(location, currentUrl).toString();
+  }
+
+  throw new Error("Quá nhiều lượt chuyển hướng (redirect) khi gọi máy chủ dữ liệu.");
+}
+
 async function postToAppsScript_(payload, options) {
   options = options || {};
   var timeoutMs = parseInt(options.timeoutMs, 10) || env.appsScriptTimeoutMs();
@@ -66,12 +124,11 @@ async function postToAppsScript_(payload, options) {
   var text;
 
   try {
-    res = await fetch(env.appsScriptUrl(), {
+    res = await fetchFollowingPostRedirects_(env.appsScriptUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    });
+      body: JSON.stringify(payload)
+    }, controller.signal);
 
     // Giữ AbortController hoạt động cả khi đang đọc response body;
     // nếu Google mở kết nối nhưng treo không trả hết dữ liệu thì request

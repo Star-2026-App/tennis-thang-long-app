@@ -135,6 +135,64 @@ function onFinanceMonthYearChange() {
     }
 
 
+    // (v2.1.2) Đồng bộ luôn 2 select mới của Tab "Nộp Tiền" / "Sổ
+    // Thu Chi" - cả 4 tab dùng chung 1 "tháng dữ liệu đang hoạt động".
+    if (
+        document.getElementById(
+            "selectGocMonth"
+        )
+    ) {
+
+        document
+            .getElementById(
+                "selectGocMonth"
+            )
+            .value = m;
+    }
+
+
+    if (
+        document.getElementById(
+            "selectGocYear"
+        )
+    ) {
+
+        document
+            .getElementById(
+                "selectGocYear"
+            )
+            .value = y;
+    }
+
+
+    if (
+        document.getElementById(
+            "selectCashbookMonth"
+        )
+    ) {
+
+        document
+            .getElementById(
+                "selectCashbookMonth"
+            )
+            .value = m;
+    }
+
+
+    if (
+        document.getElementById(
+            "selectCashbookYear"
+        )
+    ) {
+
+        document
+            .getElementById(
+                "selectCashbookYear"
+            )
+            .value = y;
+    }
+
+
     // ==================================================
     // PHASE 3:
     // Nếu tháng đã có trong cache -> đổi ngay.
@@ -215,6 +273,64 @@ function onBookingMonthYearChangePhase3() {
     }
 
 
+    // (v2.1.2) Đồng bộ luôn 2 select mới của Tab "Nộp Tiền" / "Sổ
+    // Thu Chi".
+    if (
+        document.getElementById(
+            "selectGocMonth"
+        )
+    ) {
+
+        document
+            .getElementById(
+                "selectGocMonth"
+            )
+            .value = m;
+    }
+
+
+    if (
+        document.getElementById(
+            "selectGocYear"
+        )
+    ) {
+
+        document
+            .getElementById(
+                "selectGocYear"
+            )
+            .value = y;
+    }
+
+
+    if (
+        document.getElementById(
+            "selectCashbookMonth"
+        )
+    ) {
+
+        document
+            .getElementById(
+                "selectCashbookMonth"
+            )
+            .value = m;
+    }
+
+
+    if (
+        document.getElementById(
+            "selectCashbookYear"
+        )
+    ) {
+
+        document
+            .getElementById(
+                "selectCashbookYear"
+            )
+            .value = y;
+    }
+
+
     if (
         typeof fetchMonthData ===
         "function"
@@ -232,6 +348,180 @@ function onBookingMonthYearChangePhase3() {
 
 
     renderBookingLogs();
+}
+
+
+// ======================================================
+// GOC MONTH/YEAR CHANGE (v2.1.2)
+//
+// Tab "Nộp Tiền" - dùng chung 1 "tháng dữ liệu đang hoạt động"
+// với Finance/Booking/Cashbook để tránh global gocLogs bị lệch kỳ.
+// ======================================================
+
+function onGocMonthYearChangePhase3() {
+
+    let m =
+        document
+            .getElementById(
+                "selectGocMonth"
+            )
+            .value;
+
+
+    let y =
+        document
+            .getElementById(
+                "selectGocYear"
+            )
+            .value;
+
+
+    [
+        "selectFinanceMonth",
+        "selectBookingMonth",
+        "selectCashbookMonth"
+    ].forEach(
+        function(id) {
+
+            let el =
+                document.getElementById(
+                    id
+                );
+
+
+            if (el) {
+
+                el.value = m;
+            }
+        }
+    );
+
+
+    [
+        "selectFinanceYear",
+        "selectBookingYear",
+        "selectCashbookYear"
+    ].forEach(
+        function(id) {
+
+            let el =
+                document.getElementById(
+                    id
+                );
+
+
+            if (el) {
+
+                el.value = y;
+            }
+        }
+    );
+
+
+    if (
+        typeof fetchMonthData ===
+        "function"
+    ) {
+
+        fetchMonthData(
+            m,
+            y,
+            true
+        );
+
+
+        return;
+    }
+
+
+    renderGocLogsTab();
+}
+
+
+// ======================================================
+// CASHBOOK MONTH/YEAR CHANGE (v2.1.2)
+//
+// Tab "Sổ Thu Chi" - dùng chung 1 "tháng dữ liệu đang hoạt động"
+// với Finance/Booking/Goc để tránh global cashbookLogs bị lệch kỳ.
+// ======================================================
+
+function onCashbookMonthYearChangePhase3() {
+
+    let m =
+        document
+            .getElementById(
+                "selectCashbookMonth"
+            )
+            .value;
+
+
+    let y =
+        document
+            .getElementById(
+                "selectCashbookYear"
+            )
+            .value;
+
+
+    [
+        "selectFinanceMonth",
+        "selectBookingMonth",
+        "selectGocMonth"
+    ].forEach(
+        function(id) {
+
+            let el =
+                document.getElementById(
+                    id
+                );
+
+
+            if (el) {
+
+                el.value = m;
+            }
+        }
+    );
+
+
+    [
+        "selectFinanceYear",
+        "selectBookingYear",
+        "selectGocYear"
+    ].forEach(
+        function(id) {
+
+            let el =
+                document.getElementById(
+                    id
+                );
+
+
+            if (el) {
+
+                el.value = y;
+            }
+        }
+    );
+
+
+    if (
+        typeof fetchMonthData ===
+        "function"
+    ) {
+
+        fetchMonthData(
+            m,
+            y,
+            true
+        );
+
+
+        return;
+    }
+
+
+    renderCashbook();
 }
 
 

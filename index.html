@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>CLB Tennis Thăng Long - v2.1.1 PERFORMANCE TEST</title>
+    <title>CLB Tennis Thăng Long - v2.1.2</title>
     <meta name="theme-color" content="#065f46">
     <meta name="application-name" content="Tennis Thăng Long">
 
@@ -767,7 +767,7 @@
             <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-3xl font-extrabold mx-auto shadow">🎾</div>
             <div>
                 <h1 class="text-xl font-black text-slate-800 uppercase">CLB TENNIS THĂNG LONG</h1>
-                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Phân Tích - Ver2.1.1 PERFORMANCE TEST</p>
+                <p class="text-xs text-slate-500">Hệ Thống Quản Lý & Phân Tích - Ver2.1.2</p>
             </div>
             <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="on" class="space-y-4 text-left">
                 <div>
@@ -1207,7 +1207,18 @@
                         <div>
                             <h2 class="text-base font-bold text-slate-800 uppercase flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i> NHẬT KÝ NỘP TIỀN GÓC</h2>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- (v2.1.2) Tải theo tháng đang xem, giống Tab "Thưởng Sân" - giảm tải khi CLB chạy lâu ngày. -->
+                            <div class="flex gap-2 items-center">
+                                <select id="selectGocMonth" onchange="renderGocLogsTab()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                    <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option><option value="4">Tháng 4</option>
+                                    <option value="5">Tháng 5</option><option value="6">Tháng 6</option><option value="7">Tháng 7</option><option value="8" selected>Tháng 8</option>
+                                    <option value="9">Tháng 9</option><option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
+                                </select>
+                                <select id="selectGocYear" onchange="renderGocLogsTab()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
+                                    <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option><option value="2036">2036</option>
+                                </select>
+                            </div>
                             <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-right">
                                 <span class="text-[9px] font-bold text-emerald-800 block uppercase">Tổng thu:</span>
                                 <div id="totalGocCollectedDisplay" class="text-sm font-black text-emerald-700">0 đ</div>
@@ -1247,6 +1258,8 @@
                         </div>
                         <div class="flex flex-wrap gap-2 items-center">
                             <button onclick="copyReminderText()" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition"><i class="fa-solid fa-copy"></i> Sao chép nhắc nợ Zalo</button>
+
+                            <button onclick="copyOldDebtReminderText()" title="Chỉ nhắc nợ tồn từ các tháng trước, không gồm phát sinh tháng đang xem" class="bg-orange-700 hover:bg-orange-800 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition"><i class="fa-solid fa-clock-rotate-left"></i> Nhắc nợ tháng cũ</button>
 
                             <div class="flex gap-2 items-center">
                                 <select id="selectFinanceMonth" onchange="onFinanceMonthYearChange()" class="bg-emerald-50 border border-emerald-300 font-extrabold text-xs text-emerald-900 rounded-xl p-2 outline-none">
@@ -1369,7 +1382,37 @@
                         <div>
                             <h2 class="text-base font-bold text-slate-800">SỔ THU - CHI CLB TENNIS THĂNG LONG</h2>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- (v2.1.2) Tải theo tháng đang xem, giống Tab "Thưởng Sân" - giảm tải khi CLB chạy lâu ngày. -->
+                            <div class="flex gap-2 items-center">
+                                <select id="selectCashbookMonth" onchange="renderCashbook()" class="bg-purple-50 border border-purple-300 font-extrabold text-xs text-purple-900 rounded-xl p-2 outline-none">
+                                    <option value="1">Tháng 1</option>
+                                    <option value="2">Tháng 2</option>
+                                    <option value="3">Tháng 3</option>
+                                    <option value="4">Tháng 4</option>
+                                    <option value="5">Tháng 5</option>
+                                    <option value="6">Tháng 6</option>
+                                    <option value="7">Tháng 7</option>
+                                    <option value="8" selected>Tháng 8</option>
+                                    <option value="9">Tháng 9</option>
+                                    <option value="10">Tháng 10</option>
+                                    <option value="11">Tháng 11</option>
+                                    <option value="12">Tháng 12</option>
+                                </select>
+                                <select id="selectCashbookYear" onchange="renderCashbook()" class="bg-purple-50 border border-purple-300 font-extrabold text-xs text-purple-900 rounded-xl p-2 outline-none">
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                    <option value="2029">2029</option>
+                                    <option value="2030">2030</option>
+                                    <option value="2031">2031</option>
+                                    <option value="2032">2032</option>
+                                    <option value="2033">2033</option>
+                                    <option value="2034">2034</option>
+                                    <option value="2035">2035</option>
+                                    <option value="2036">2036</option>
+                                </select>
+                            </div>
                             <div class="bg-amber-50 p-2 rounded-xl border border-amber-300 text-right text-xs">
                                 <span id="openingBalanceLabel" class="font-bold text-amber-900 block text-[9px]">DƯ ĐẦU KỲ:</span>
                                 <span id="openingBalanceDisplay" class="font-black text-slate-900 text-xs">2.656.160 đ</span>
@@ -1722,11 +1765,44 @@
             
             
                         <!-- ============================== -->
+                        <!-- (v2.1.2) TỰ ĐỘNG CHỐT THÁNG -->
+                        <!-- ============================== -->
+
+                        <div class="border-t pt-4">
+
+                            <label class="flex items-start gap-2.5 cursor-pointer">
+
+                                <input
+                                    type="checkbox"
+                                    id="stAutoCloseMonth"
+                                    class="mt-1 w-4 h-4"
+                                >
+
+                                <span>
+                                    <span class="font-black text-slate-700 block">
+                                        Tự động chốt tháng khi sang tháng mới
+                                    </span>
+
+                                    <span class="text-[10px] text-slate-500 block mt-0.5">
+                                        Khi bật, hệ thống tự chốt tháng trước đó ngay khi đã sang
+                                        tháng mới (không cần bấm Chốt tháng thủ công ở Bảng Tổng
+                                        Kết). Dữ liệu ghi bù sau khi đã sang tháng mới sẽ được
+                                        tính vào tháng ghi nhận (tháng mới), không lùi về tháng
+                                        đã chốt.
+                                    </span>
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                        <!-- ============================== -->
                         <!-- NGÂN HÀNG -->
                         <!-- ============================== -->
-            
+
                         <div class="border-t pt-4">
-            
+
                             <div class="font-black text-slate-700 uppercase mb-3">
                                 Thông tin tài khoản nhận tiền
                             </div>

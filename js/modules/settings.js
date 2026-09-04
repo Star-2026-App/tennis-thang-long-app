@@ -52,6 +52,26 @@ function populateSettingsForm() {
     setVal_('stAccountName', systemSettings.accountName || "");
 
 
+    // ==================================================
+    // (v2.1.2) TỰ ĐỘNG CHỐT THÁNG
+    // ==================================================
+
+    let autoCloseEl =
+        document.getElementById('stAutoCloseMonth');
+
+    if (autoCloseEl) {
+        // Mặc định BẬT nếu backend cũ chưa từng gửi field này
+        // (VD vừa nâng cấp lên v2.1.2, Settings sheet chưa có dòng
+        // AUTO_CLOSE_MONTH_ENABLED).
+        autoCloseEl.checked =
+            systemSettings.autoCloseMonthEnabled !== false;
+    } else {
+        console.warn(
+            "populateSettingsForm: không tìm thấy #stAutoCloseMonth"
+        );
+    }
+
+
     let qrUrl =
         `https://img.vietqr.io/image/` +
         `${systemSettings.bankId}-` +
@@ -230,6 +250,19 @@ function saveSystemSettings(e) {
                     .value
                     .trim()
                     .toUpperCase();
+
+
+            // ==========================================
+            // (v2.1.2) TỰ ĐỘNG CHỐT THÁNG
+            // ==========================================
+
+            let autoCloseEl =
+                document.getElementById('stAutoCloseMonth');
+
+            systemSettings.autoCloseMonthEnabled =
+                autoCloseEl
+                    ? autoCloseEl.checked === true
+                    : (systemSettings.autoCloseMonthEnabled !== false);
 
 
             // ==========================================

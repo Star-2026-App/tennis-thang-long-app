@@ -117,6 +117,141 @@ window.addEventListener(
 
 
         // ==============================================
+        // (v2.1.2) GOC + CASHBOOK SELECTORS - tải theo tháng đang
+        // xem, giống Booking/Finance ở trên (Tab "Nộp Tiền" và
+        // "Sổ Thu Chi" trước đây tải toàn bộ lịch sử không điều
+        // kiện, gây chậm khi CLB chạy lâu ngày).
+        // ==============================================
+
+        if (
+            document.getElementById(
+                "selectGocMonth"
+            )
+        ) {
+
+            document
+                .getElementById(
+                    "selectGocMonth"
+                )
+                .value =
+                    curMonth;
+        }
+
+
+        if (
+            document.getElementById(
+                "selectGocYear"
+            )
+        ) {
+
+            document
+                .getElementById(
+                    "selectGocYear"
+                )
+                .value =
+                    curYear;
+        }
+
+
+        if (
+            document.getElementById(
+                "selectCashbookMonth"
+            )
+        ) {
+
+            document
+                .getElementById(
+                    "selectCashbookMonth"
+                )
+                .value =
+                    curMonth;
+        }
+
+
+        if (
+            document.getElementById(
+                "selectCashbookYear"
+            )
+        ) {
+
+            document
+                .getElementById(
+                    "selectCashbookYear"
+                )
+                .value =
+                    curYear;
+        }
+
+
+        let gocMonthEl =
+            document.getElementById(
+                "selectGocMonth"
+            );
+
+
+        let gocYearEl =
+            document.getElementById(
+                "selectGocYear"
+            );
+
+
+        if (
+            gocMonthEl &&
+            typeof onGocMonthYearChangePhase3 ===
+                "function"
+        ) {
+
+            gocMonthEl.onchange =
+                onGocMonthYearChangePhase3;
+        }
+
+
+        if (
+            gocYearEl &&
+            typeof onGocMonthYearChangePhase3 ===
+                "function"
+        ) {
+
+            gocYearEl.onchange =
+                onGocMonthYearChangePhase3;
+        }
+
+
+        let cashbookMonthEl =
+            document.getElementById(
+                "selectCashbookMonth"
+            );
+
+
+        let cashbookYearEl =
+            document.getElementById(
+                "selectCashbookYear"
+            );
+
+
+        if (
+            cashbookMonthEl &&
+            typeof onCashbookMonthYearChangePhase3 ===
+                "function"
+        ) {
+
+            cashbookMonthEl.onchange =
+                onCashbookMonthYearChangePhase3;
+        }
+
+
+        if (
+            cashbookYearEl &&
+            typeof onCashbookMonthYearChangePhase3 ===
+                "function"
+        ) {
+
+            cashbookYearEl.onchange =
+                onCashbookMonthYearChangePhase3;
+        }
+
+
+        // ==============================================
         // v2.0 (sửa điểm yếu #11): KHÔNG còn loadLocalData()/
         // fetchCloudData() vô điều kiện ở đây. Trước đây app.js
         // tải toàn bộ dữ liệu CLB (kể cả tài chính) ngay khi mở

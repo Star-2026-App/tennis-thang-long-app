@@ -48,7 +48,7 @@ function sortCollectionsByTime() {
 var CLB_ACTOR_STORAGE_BASES_ = [
     "clb_members", "clb_matches", "clb_bookingLogs", "clb_cashbookLogs",
     "clb_gocLogs", "clb_quyLogs", "clb_rulesList", "clb_openingBalance",
-    "clb_settings", "clb_cupData", "clb_dataRevision"
+    "clb_settings", "clb_cupData", "clb_dataRevision", "clb_balanceAdjustments"
 ];
 
 function saveLocalData() {
@@ -72,6 +72,7 @@ function saveLocalData() {
     localStorage.setItem(getActorStorageKey_('clb_openingBalance'), openingBalance);
     localStorage.setItem(getActorStorageKey_('clb_settings'), JSON.stringify(systemSettings));
     localStorage.setItem(getActorStorageKey_('clb_dataRevision'), String(parseInt(dataRevision) || 0));
+    localStorage.setItem(getActorStorageKey_('clb_balanceAdjustments'), JSON.stringify(balanceAdjustments));
 
     // syncQueue: khoá riêng, KHÔNG nằm trong CLB_ACTOR_STORAGE_BASES_
     // vì không bị xoá khi logout (xem clearFinancialLocalDataForActor_).
@@ -91,6 +92,7 @@ function loadLocalData() {
         rulesList = [];
         cupData = null;
         dataRevision = 0;
+        balanceAdjustments = [];
         syncQueue = [];
         return;
     }
@@ -104,6 +106,7 @@ function loadLocalData() {
     rulesList = JSON.parse(localStorage.getItem(getActorStorageKey_('clb_rulesList'))) || [];
     cupData = JSON.parse(localStorage.getItem(getActorStorageKey_('clb_cupData'))) || null;
     dataRevision = parseInt(localStorage.getItem(getActorStorageKey_('clb_dataRevision'))) || 0;
+    balanceAdjustments = JSON.parse(localStorage.getItem(getActorStorageKey_('clb_balanceAdjustments'))) || [];
 
     let storedBal = localStorage.getItem(getActorStorageKey_('clb_openingBalance'));
     if (storedBal !== null) openingBalance = parseFloat(storedBal);

@@ -231,6 +231,13 @@ function normalizePhase3Name_(value) {
 }
 
 
+// (v2.1.2) Hàm này giờ là quy ước DÙNG CHUNG cho toàn frontend để nhận
+// diện "Khách mời"/"Khách mời N" (khách vãng lai, không thu tiền, mỗi
+// buổi là 1 người thật khác nhau) - không chỉ riêng cache Phase 3 nữa.
+// Dùng ở: renderFinance() (Bảng Tổng Kết), copyReminderText()/
+// copyOldDebtReminderText() (nhắc nợ Zalo) ở dashboard.js, và phần lọc
+// cặp đấu Vinh Danh ở analytics.js. Giữ tên cũ để không phải sửa các
+// chỗ đã dùng trước đây.
 function isPhase3GuestName_(value) {
 
     let name =
@@ -338,6 +345,23 @@ function setCachedMonthData_(
                 ? data.bookingLogs.slice()
                 : [],
 
+        // (v2.1.2) "Nộp Tiền"/"Sổ Thu Chi" giờ tải lazy theo tháng
+        // giống matches/bookingLogs - xem getInitialData_()/
+        // getMonthDataLight_() ở Code.gs.txt.
+        gocLogs:
+            Array.isArray(
+                data && data.gocLogs
+            )
+                ? data.gocLogs.slice()
+                : [],
+
+        cashbookLogs:
+            Array.isArray(
+                data && data.cashbookLogs
+            )
+                ? data.cashbookLogs.slice()
+                : [],
+
         loadedAt:
             Date.now()
     };
@@ -372,6 +396,16 @@ function activateCachedMonthData_(
 
     bookingLogs =
         cached.bookingLogs;
+
+
+    gocLogs =
+        cached.gocLogs ||
+        [];
+
+
+    cashbookLogs =
+        cached.cashbookLogs ||
+        [];
 
 
     window.activeDataMonth =
@@ -455,6 +489,83 @@ function getMonthBookingsCached_(
     ) {
 
         return bookingLogs || [];
+    }
+
+
+    return [];
+}
+
+
+// (v2.1.2) Mirror của getMonthMatchesCached_/getMonthBookingsCached_
+// cho gocLogs/cashbookLogs - dùng ở getUserGocPaidForMonth_() (finance.js)
+// để tính đúng "tiền góc đã nộp"/"thưởng đặt sân" của MỘT tháng cụ thể
+// (VD tháng hiện tại thật ở Dashboard) ngay cả khi tháng đang ACTIVE
+// trên tab Bảng Tổng Kết/Nộp Tiền là 1 tháng khác (admin đang xem lại
+// tháng cũ) - tránh đọc nhầm biến global gocLogs/cashbookLogs của
+// tháng khác đang được load.
+function getMonthGocLogsCached_(
+    month,
+    year
+) {
+
+    let cached =
+        getCachedMonthData_(
+            month,
+            year
+        );
+
+
+    if (cached) {
+
+        return cached.gocLogs || [];
+    }
+
+
+    if (
+        parseInt(
+            window.activeDataMonth
+        ) === parseInt(month) &&
+        parseInt(
+            window.activeDataYear
+        ) === parseInt(year)
+    ) {
+
+        return gocLogs || [];
+    }
+
+
+    return [];
+}
+
+
+function getMonthCashbookLogsCached_(
+    month,
+    year
+) {
+
+    let cached =
+        getCachedMonthData_(
+            month,
+            year
+        );
+
+
+    if (cached) {
+
+        return cached.cashbookLogs || [];
+    }
+
+
+    if (
+        parseInt(
+            window.activeDataMonth
+        ) === parseInt(month) &&
+        parseInt(
+            window.activeDataYear
+        ) === parseInt(year)
+    ) {
+
+        return cashbookLogs || [];
     }
 
 
@@ -899,6 +1010,135 @@ function addBookingToLocalMonthCache_(
 }
 
 
+// (v2.1.2) Mirror của addMatchToLocalMonthCache_/addBookingToLocalMonthCache_
+// cho gocLogs/cashbookLogs - gọi khi thêm mới "Nộp tiền"/"Sổ thu chi"
+// (optimistic update trước khi server xác nhận).
+function addGocLogToLocalMonthCache_(
+    gocLog
+) {
+
+    let cache =
+        getOrCreateCacheForItemTime_(
+            gocLog &&
+            gocLog.time
+        );
+
+
+    if (!cache) {
+        return;
+    }
+
+
+    if (
+        !Array.isArray(
+            cache.gocLogs
+        )
+    ) {
+        cache.gocLogs = [];
+    }
+
+
+    let exists =
+        cache.gocLogs
+        .some(
+            function(item) {
+
+                return (
+                    String(item.id) ===
+                    String(gocLog.id)
+                );
+            }
+        );
+
+
+    if (!exists) {
+
+        cache.gocLogs.unshift(
+            gocLog
+        );
+    }
+
+
+    if (
+        cache.month ===
+            parseInt(
+                window.activeDataMonth
+            ) &&
+        cache.year ===
+            parseInt(
+                window.activeDataYear
+            )
+    ) {
+
+        gocLogs =
+            cache.gocLogs;
+    }
+}
+
+
+function addCashbookToLocalMonthCache_(
+    cashbookItem
+) {
+
+    let cache =
+        getOrCreateCacheForItemTime_(
+            cashbookItem &&
+            cashbookItem.time
+        );
+
+
+    if (!cache) {
+        return;
+    }
+
+
+    if (
+        !Array.isArray(
+            cache.cashbookLogs
+        )
+    ) {
+        cache.cashbookLogs = [];
+    }
+
+
+    let exists =
+        cache.cashbookLogs
+        .some(
+            function(item) {
+
+                return (
+                    String(item.id) ===
+                    String(cashbookItem.id)
+                );
+            }
+        );
+
+
+    if (!exists) {
+
+        cache.cashbookLogs.unshift(
+            cashbookItem
+        );
+    }
+
+
+    if (
+        cache.month ===
+            parseInt(
+                window.activeDataMonth
+            ) &&
+        cache.year ===
+            parseInt(
+                window.activeDataYear
+            )
+    ) {
+
+        cashbookLogs =
+            cache.cashbookLogs;
+    }
+}
+
+
 function findMatchInMonthCaches_(
     id
 ) {
@@ -1070,6 +1310,16 @@ function removeIdFromMonthCaches_(
 
         bookingLogs =
             active.bookingLogs;
+
+
+        gocLogs =
+            active.gocLogs ||
+            [];
+
+
+        cashbookLogs =
+            active.cashbookLogs ||
+            [];
     }
 }
 
@@ -1304,8 +1554,22 @@ function reconcileCreatedRecordWithServer_(item, serverResult) {
     }
 
     else if (config.collectionName === "gocLogs") {
-        mergedCount = mergeRecordById_(gocLogs, temporaryId, localRecord);
-        if (!mergedCount && !pendingDelete) gocLogs.unshift(localRecord);
+        // (v2.1.2) gocLogs giờ tải lazy theo tháng, giống matches/
+        // bookingLogs - phải merge qua TẤT CẢ tháng đã cache + dùng
+        // addGocLogToLocalMonthCache_() thay vì unshift thẳng vào
+        // biến global (biến global chỉ đại diện đúng THÁNG ĐANG XEM).
+        Object.keys(window.monthDataCache || {}).forEach(function(key) {
+            mergedCount += mergeRecordById_(
+                (window.monthDataCache[key] || {}).gocLogs,
+                temporaryId,
+                localRecord
+            );
+        });
+        mergedCount += mergeRecordById_(gocLogs, temporaryId, localRecord);
+
+        if (!mergedCount && !pendingDelete) {
+            addGocLogToLocalMonthCache_(localRecord);
+        }
     }
 
     else if (config.collectionName === "quyLogs") {
@@ -1314,8 +1578,20 @@ function reconcileCreatedRecordWithServer_(item, serverResult) {
     }
 
     else if (config.collectionName === "cashbookLogs") {
-        mergedCount = mergeRecordById_(cashbookLogs, temporaryId, localRecord);
-        if (!mergedCount && !pendingDelete) cashbookLogs.unshift(localRecord);
+        // (v2.1.2) cashbookLogs cũng tải lazy theo tháng - xem giải
+        // thích ở nhánh "gocLogs" ngay phía trên.
+        Object.keys(window.monthDataCache || {}).forEach(function(key) {
+            mergedCount += mergeRecordById_(
+                (window.monthDataCache[key] || {}).cashbookLogs,
+                temporaryId,
+                localRecord
+            );
+        });
+        mergedCount += mergeRecordById_(cashbookLogs, temporaryId, localRecord);
+
+        if (!mergedCount && !pendingDelete) {
+            addCashbookToLocalMonthCache_(localRecord);
+        }
     }
 
     else if (config.collectionName === "rulesList") {
@@ -1338,6 +1614,19 @@ function applyAuthoritativeUpdateResult_(actionName, serverResult) {
     }
 
     if (actionName === "updateGocLog") {
+        // (v2.1.2) gocLogs giờ tải lazy theo tháng - phải cập nhật cả
+        // bản sao đang nằm trong window.monthDataCache (nếu có), không
+        // chỉ biến global đang active. Thiếu bước này thì sau khi sửa
+        // xong, quay lại xem đúng tháng đó lần nữa (dùng cache, không
+        // gọi lại server) sẽ thấy bản CHƯA sửa - giống hệt lý do
+        // updateMatchInMonthCaches_() tồn tại cho updateMatch.
+        Object.keys(window.monthDataCache || {}).forEach(function(key) {
+            let cache = window.monthDataCache[key];
+            let item = (cache.gocLogs || []).find(function(g) {
+                return String(g.id) === String(serverResult.id);
+            });
+            if (item) Object.assign(item, serverResult);
+        });
         mergeRecordById_(gocLogs, serverResult.id, serverResult);
         return true;
     }
@@ -1778,15 +2067,13 @@ function enqueueAction(
             "Cashbook"
         ) {
 
-            cashbookLogs =
-                cashbookLogs.filter(
-                    function(x) {
-
-                        return (
-                            x.id != id
-                        );
-                    }
-                );
+            // (v2.1.2) cashbookLogs giờ tải lazy theo tháng - phải xoá
+            // khỏi ĐÚNG tháng đang lưu trong window.monthDataCache,
+            // không chỉ khỏi biến global (chỉ đại diện tháng đang xem).
+            removeIdFromMonthCaches_(
+                "cashbookLogs",
+                id
+            );
         }
 
 
@@ -1795,15 +2082,12 @@ function enqueueAction(
             "GocLogs"
         ) {
 
-            gocLogs =
-                gocLogs.filter(
-                    function(x) {
-
-                        return (
-                            x.id != id
-                        );
-                    }
-                );
+            // (v2.1.2) gocLogs giờ tải lazy theo tháng - xem giải
+            // thích ở nhánh "Cashbook" phía trên.
+            removeIdFromMonthCaches_(
+                "gocLogs",
+                id
+            );
         }
 
 
@@ -2788,6 +3072,21 @@ function updateStateFromCloud(
     }
 
 
+    // (v2.1.2 FIX) Trước đây field này bị bỏ qua hoàn toàn - khiến
+    // "Sửa Dư/Nợ" (addBalanceAdjustment) lưu đúng xuống server nhưng
+    // không hiện lên UI cho tới khi tháng được chốt. Xem
+    // calculateUserFinanceForMonth() ở finance.js.
+    if (
+        Array.isArray(
+            data.balanceAdjustments
+        )
+    ) {
+
+        balanceAdjustments =
+            data.balanceAdjustments;
+    }
+
+
     if (
         data.openingBalance !==
         undefined
@@ -2845,7 +3144,13 @@ function updateStateFromCloud(
                     data.matches || [],
 
                 bookingLogs:
-                    data.bookingLogs || []
+                    data.bookingLogs || [],
+
+                gocLogs:
+                    data.gocLogs || [],
+
+                cashbookLogs:
+                    data.cashbookLogs || []
             }
         );
 
@@ -2854,6 +3159,33 @@ function updateStateFromCloud(
             loadedMonth,
             loadedYear
         );
+    }
+
+
+    // (v2.1.2) Tổng quỹ tính sẵn server-side, KHÔNG phụ thuộc tháng
+    // đang xem - xem computeCashbookAggregates_() (CashbookService.txt).
+    if (
+        data.cashbookRunningBalance !== undefined
+    ) {
+
+        cashbookRunningBalance =
+            parseInt(data.cashbookRunningBalance) || 0;
+    }
+
+    if (
+        data.quarterOpeningBalance !== undefined
+    ) {
+
+        quarterOpeningBalance =
+            parseInt(data.quarterOpeningBalance) || 0;
+    }
+
+    if (
+        data.quarterLabel !== undefined
+    ) {
+
+        quarterLabel =
+            data.quarterLabel || "";
     }
 
 
@@ -2991,7 +3323,13 @@ function fetchMonthData(
                         data.matches || [],
 
                     bookingLogs:
-                        data.bookingLogs || []
+                        data.bookingLogs || [],
+
+                    gocLogs:
+                        data.gocLogs || [],
+
+                    cashbookLogs:
+                        data.cashbookLogs || []
                 }
             );
 
@@ -3078,6 +3416,27 @@ function renderMonthDependentViews_() {
     ) {
 
         renderBookingLogs();
+    }
+
+
+    // (v2.1.2) "Nộp Tiền"/"Sổ Thu Chi" giờ cũng phụ thuộc tháng đang
+    // xem (gocLogs/cashbookLogs tải lazy) - phải render lại mỗi khi
+    // đổi tháng, giống matches/bookingLogs ở trên.
+    if (
+        typeof renderGocLogsTab ===
+        "function"
+    ) {
+
+        renderGocLogsTab();
+    }
+
+
+    if (
+        typeof renderCashbook ===
+        "function"
+    ) {
+
+        renderCashbook();
     }
 
 
@@ -3297,7 +3656,13 @@ function restorePhase3LocalState_(
                         matches || [],
 
                     bookingLogs:
-                        bookingLogs || []
+                        bookingLogs || [],
+
+                    gocLogs:
+                        gocLogs || [],
+
+                    cashbookLogs:
+                        cashbookLogs || []
                 }
             );
 
@@ -3316,6 +3681,14 @@ function restorePhase3LocalState_(
 
 
             bookingLogs =
+                [];
+
+
+            gocLogs =
+                [];
+
+
+            cashbookLogs =
                 [];
 
 

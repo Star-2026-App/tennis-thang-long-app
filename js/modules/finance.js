@@ -273,7 +273,20 @@ function getUserGocPaidForMonth_(memberRef, targetMonth, targetYear) {
     // Cố ý dùng thẳng gocLogs (KHÔNG lọc qua getRealGocLogs_) - Dư/Nợ
     // RIÊNG của từng thành viên bắt buộc phải thấy đủ dòng điều chỉnh
     // này thì mới về đúng 0 sau khi được trả tiền dư.
-    return (gocLogs || []).reduce(function(sum, log) {
+    //
+    // (v2.1.2) gocLogs giờ chỉ tải đúng tháng ĐANG XEM (lazy load,
+    // giống matches/bookingLogs) - nếu targetMonth/targetYear KHÁC
+    // tháng đang active (VD ô "Tài chính tháng hiện tại" ở Dashboard
+    // luôn muốn đúng tháng thật hôm nay, kể cả khi Admin đang xem lại
+    // 1 tháng cũ ở tab khác), đọc thẳng biến global gocLogs sẽ SAI
+    // tháng. Dùng getMonthGocLogsCached_() để luôn lấy đúng dữ liệu
+    // của targetMonth/targetYear, dù có đang active hay không.
+    let source =
+        typeof getMonthGocLogsCached_ === "function"
+            ? getMonthGocLogsCached_(targetMonth, targetYear)
+            : (gocLogs || []);
+
+    return (source || []).reduce(function(sum, log) {
 
         if (
             recordBelongsToMember_(log, memberRef) &&
@@ -294,7 +307,16 @@ function getUserGocPaidForMonth_(memberRef, targetMonth, targetYear) {
 
 function getUserBookingRewardForMonth_(memberRef, targetMonth, targetYear) {
 
-    return (bookingLogs || []).reduce(function(sum, booking) {
+    // (v2.1.2) Cùng lý do dùng getMonthGocLogsCached_() ở
+    // getUserGocPaidForMonth_() phía trên - bookingLogs đã tải lazy
+    // theo tháng từ trước, nhưng hàm này trước đây vẫn đọc thẳng biến
+    // global nên có thể sai khi targetMonth khác tháng đang active.
+    let source =
+        typeof getMonthBookingsCached_ === "function"
+            ? getMonthBookingsCached_(targetMonth, targetYear)
+            : (bookingLogs || []);
+
+    return (source || []).reduce(function(sum, booking) {
 
         if (
             recordBelongsToMember_(booking, memberRef) &&
@@ -1216,6 +1238,43 @@ function calculateUserFinanceForMonth(
         parseInt(m.noOld) || 0;
 
 
+    // ======================================================
+    // (v2.1.2 FIX) CỘNG CÁC ĐIỀU CHỈNH DƯ/NỢ CỦA KỲ ĐANG XEM
+    //
+    // "Sửa Dư/Nợ" ở Sổ Thu Chi tạo 1 bản ghi BalanceAdjustments áp
+    // đúng vào kỳ đang mở (xem BalanceAdjustmentService.gs.txt) -
+    // NHƯNG trước bản vá này, frontend chưa từng đọc field
+    // balanceAdjustments server gửi về, nên Dư/Nợ hiển thị của kỳ
+    // CHƯA CHỐT không hề đổi dù điều chỉnh đã lưu đúng phía server
+    // (chỉ có tác dụng SAU KHI tháng được chốt, vì closeMonthData
+    // tính lại từ đầu có cộng điều chỉnh - xem
+    // calculateMemberMonthForClose_). Nếu tháng đang xem ĐÃ CHỐT,
+    // giá trị dưới đây sẽ bị ghi đè bởi snapshot.openingBalance ở
+    // nhánh "if (snapshot)" phía dưới nên không tính trùng.
+    // ======================================================
+
+    let pendingAdjustmentTotal =
+        (balanceAdjustments || []).reduce(
+            function(sum, item) {
+
+                let matchesMember =
+                    parseInt(item.memberStt) > 0 &&
+                    parseInt(item.memberStt) === identity.stt;
+
+                let matchesPeriod =
+                    parseInt(item.month) === parseInt(targetMonth) &&
+                    parseInt(item.year) === parseInt(targetYear);
+
+                return matchesMember && matchesPeriod
+                    ? sum + (parseInt(item.amount) || 0)
+                    : sum;
+            },
+            0
+        );
+
+    carryBalance += pendingAdjustmentTotal;
+
+
     // =============================================
     // CÔNG THỨC TÀI CHÍNH CHÍNH
     //
@@ -1751,8 +1810,18 @@ function renderFinance() {
     }
 
 
+    // (v2.1.2 FIX) "Khách mời"/"Khách mời N" là tài khoản dùng chung cho
+    // khách vãng lai, mỗi buổi là 1 người thật khác nhau nên không có ý
+    // nghĩa hiển thị Dư/Nợ và không thu được tiền từ họ - loại khỏi
+    // Bảng Tổng Kết, đồng bộ với quy ước isPhase3GuestName_() đã dùng ở
+    // MemberStatsService.gs.txt (Tab Phân Tích) và copyFinanceReportText()
+    // (Báo cáo tài chính).
     let dataList =
-        members.map(
+        members
+            .filter(function(m) {
+                return !isPhase3GuestName_(m.name);
+            })
+            .map(
             function(m, originalIdx) {
 
                 let f =
@@ -2570,6 +2639,83 @@ function saveFinanceData(e) {
     }
 
 
+    // ======================================================
+    // (v2.1.2 FIX) Chặn gửi trùng "Sửa Dư/Nợ"
+    //
+    // Trước bản vá này, modal đóng ngay lập tức và chỉ có 1 toast
+    // thoáng qua để báo đã gửi - nếu người dùng không để ý thấy toast
+    // (hoặc trước đây số dư hiển thị không cập nhật do thiếu
+    // balanceAdjustments ở frontend - đã vá riêng), họ tưởng thao tác
+    // chưa thành công và mở lại modal để sửa lần 2 với cùng số tiền,
+    // tạo 2 dòng BalanceAdjustments giống hệt nhau bị cộng dồn sai.
+    //
+    // 2 lớp chặn:
+    // 1) isSubmittingBalanceAdjustment_ - chặn bấm gửi 2 lần liên tiếp
+    //    khi request trước còn đang xử lý.
+    // 2) Nếu vừa gửi đúng cùng thành viên + cùng số tiền điều chỉnh
+    //    trong vòng 3 phút gần nhất, hỏi lại rõ ràng trước khi cho gửi
+    //    tiếp (phòng trường hợp cố ý muốn điều chỉnh thêm 1 lần nữa).
+    // ======================================================
+
+    if (window.isSubmittingBalanceAdjustment_) {
+
+        alert(
+            "Hệ thống đang xử lý 1 điều chỉnh Dư/Nợ khác, vui lòng đợi rồi thử lại."
+        );
+
+        return;
+    }
+
+    if (!Array.isArray(window.recentBalanceAdjustmentSubmits_)) {
+        window.recentBalanceAdjustmentSubmits_ = [];
+    }
+
+    let nowTs = Date.now();
+    let DUPLICATE_GUARD_WINDOW_MS = 3 * 60 * 1000;
+
+    window.recentBalanceAdjustmentSubmits_ =
+        window.recentBalanceAdjustmentSubmits_.filter(function(item) {
+            return (nowTs - item.at) < DUPLICATE_GUARD_WINDOW_MS;
+        });
+
+    let possibleDuplicate =
+        window.recentBalanceAdjustmentSubmits_.find(function(item) {
+            return (
+                item.memberStt === member.stt &&
+                item.amount === delta
+            );
+        });
+
+    if (possibleDuplicate) {
+
+        let secondsAgo =
+            Math.round((nowTs - possibleDuplicate.at) / 1000);
+
+        let confirmDuplicate =
+            confirm(
+                "⚠️ Bạn vừa gửi 1 điều chỉnh Dư/Nợ GIỐNG HỆT (cùng " +
+                member.name + ", cùng số tiền " +
+                delta.toLocaleString('vi-VN') + " đ) cách đây " +
+                secondsAgo + " giây.\n\n" +
+                "Nếu lần trước đã thành công (kiểm tra số Dư/Nợ hiện " +
+                "tại của " + member.name + " trước khi gửi tiếp), gửi " +
+                "thêm lần này sẽ CỘNG DỒN thêm 1 lần nữa.\n\n" +
+                "Bạn có chắc chắn vẫn muốn gửi tiếp không?"
+            );
+
+        if (!confirmDuplicate) {
+            return;
+        }
+    }
+
+    window.recentBalanceAdjustmentSubmits_.push({
+        memberStt: member.stt,
+        amount: delta,
+        at: nowTs
+    });
+
+    window.isSubmittingBalanceAdjustment_ = true;
+
     closeEditFinanceModal();
 
     showToast(
@@ -2595,6 +2741,8 @@ function saveFinanceData(e) {
 
     .then(function(data) {
 
+        window.isSubmittingBalanceAdjustment_ = false;
+
         if (
             data.status !==
             "SUCCESS"
@@ -2615,6 +2763,17 @@ function saveFinanceData(e) {
         }
 
 
+        // (v2.1.2 FIX) Xác nhận rõ ràng, không tự biến mất như toast -
+        // để người dùng chắc chắn đã ghi thành công, không mở lại form
+        // sửa 1 lần nữa vì tưởng chưa lưu được.
+        alert(
+            "✅ Đã ghi điều chỉnh Dư/Nợ chuyển kỳ cho " + member.name +
+            ": " + (delta > 0 ? "+" : "") + delta.toLocaleString('vi-VN') +
+            " đ.\n\nLý do: " + reason +
+            "\n\nHệ thống đang tải lại số Dư/Nợ mới nhất."
+        );
+
+
         showToast(
             "Đã ghi điều chỉnh. Đang tải lại số dư mới nhất..."
         );
@@ -2627,6 +2786,8 @@ function saveFinanceData(e) {
     })
 
     .catch(function() {
+
+        window.isSubmittingBalanceAdjustment_ = false;
 
         alert(
             "Không thể kết nối hệ thống.\n\n" +
@@ -3988,6 +4149,14 @@ function parseVNDateOnly_(text) {
 }
 
 
+// (v2.1.2) KHÔNG CÒN ĐƯỢC GỌI từ renderCashbook() nữa - từ bản này
+// gocLogs/cashbookLogs chỉ tải đúng THÁNG ĐANG XEM (lazy load) nên 2
+// hàm này (dựa vào cộng dồn TOÀN BỘ lịch sử phía trình duyệt) sẽ cho
+// kết quả SAI nếu bị gọi lại. "Dư Quỹ Hiện Tại"/"Dư Đầu Kỳ" giờ lấy từ
+// server qua cashbookRunningBalance/quarterOpeningBalance/quarterLabel
+// (computeCashbookAggregates_() ở CashbookService.txt - PHẢI giữ đúng
+// hệt công thức ở 2 hàm này nếu có sửa sau này). Giữ lại định nghĩa
+// cũ chỉ để tham khảo công thức gốc, không xoá, không gọi lại.
 function getCurrentQuarterInfo_() {
 
     let now = new Date();
@@ -4081,192 +4250,32 @@ function computeQuarterOpeningBalance_(quarterInfo) {
 
 function renderCashbook() {
 
-    let quarterInfo =
-        getCurrentQuarterInfo_();
-
-    let quarterOpeningBalance =
-        computeQuarterOpeningBalance_(
-            quarterInfo
-        );
-
-    let totalQuyThu =
-        (quyLogs || [])
-            .reduce(
-                function(sum, log) {
-
-                    return (
-                        sum +
-                        (
-                            parseInt(
-                                log.amount
-                            ) || 0
-                        )
-                    );
-                },
-                0
-            );
-
-
-    // (v2.0 fix) "Dư Quỹ Hiện Tại" cộng NGUYÊN tổng GocLogs vào đây coi
-    // như tiền thật đã về quỹ - đúng với addGocLog/addGocLogAdjustment
-    // bình thường (điều chỉnh sổ sau khi chốt - P2). NHƯNG dòng điều
-    // chỉnh do payOutMemberCreditByAdmin() (dashboard.js) tạo ra khi trả
-    // tiền dư thưởng đặt sân cho thành viên KHÔNG phải tiền thật ra/vào
-    // quỹ - nó chỉ để đưa Dư/Nợ riêng của thành viên đó về 0, còn dòng
-    // tiền CHI thật đã được ghi RIÊNG 1 lần vào Cashbook mục "Tiền
-    // thưởng đặt sân" (tính trong totalChi ở dưới). Cộng luôn cả ở đây
-    // sẽ bị trừ trùng 2 lần trên quỹ thật (thành viên phát hiện) - loại
-    // trừ đúng các dòng có thẻ đánh dấu này ra khỏi tổng.
-    let totalGocThu =
-        getRealGocLogs_()
-            .reduce(
-                function(sum, g) {
-
-                    return (
-                        sum +
-                        (
-                            parseInt(
-                                g.amount
-                            ) || 0
-                        )
-                    );
-                },
-                0
-            );
-
-
-    let banSan =
-        (cashbookLogs || [])
-            .filter(
-                function(c) {
-
-                    return (
-                        c.category ===
-                        "Tiền bán sân"
-                    );
-                }
-            )
-            .reduce(
-                function(s, c) {
-
-                    return (
-                        s +
-                        (
-                            parseInt(
-                                c.amount
-                            ) || 0
-                        )
-                    );
-                },
-                0
-            );
-
-
-    let ungHo =
-        (cashbookLogs || [])
-            .filter(
-                function(c) {
-
-                    return (
-                        c.category ===
-                        "Tiền ủng hộ / Tài trợ"
-                    );
-                }
-            )
-            .reduce(
-                function(s, c) {
-
-                    return (
-                        s +
-                        (
-                            parseInt(
-                                c.amount
-                            ) || 0
-                        )
-                    );
-                },
-                0
-            );
-
-
-    let totalChi =
-        (cashbookLogs || [])
-            .filter(
-                function(c) {
-
-                    let cat =
-                        String(
-                            c.category || ''
-                        );
-
-
-                    return (
-
-                        cat.includes(
-                            "Tiền app"
-                        )
-
-                        ||
-
-                        cat.includes(
-                            "mua bóng"
-                        )
-
-                        ||
-
-                        cat.includes(
-                            "thưởng"
-                        )
-
-                        ||
-
-                        cat.includes(
-                            "liên hoan"
-                        )
-
-                        ||
-
-                        cat.includes(
-                            "chi khác"
-                        )
-                    );
-                }
-            )
-            .reduce(
-                function(s, c) {
-
-                    return (
-                        s +
-                        (
-                            parseInt(
-                                c.amount
-                            ) || 0
-                        )
-                    );
-                },
-                0
-            );
-
-
-    let totalThu =
-        totalQuyThu +
-        totalGocThu +
-        banSan +
-        ungHo;
-
-
-    let balance =
-        openingBalance +
-        totalThu -
-        totalChi;
-
+    // ======================================================
+    // (v2.1.2 FIX) "Dư Quỹ Hiện Tại"/"Dư Đầu Kỳ" giờ lấy từ server
+    // (cashbookRunningBalance/quarterOpeningBalance/quarterLabel -
+    // computeCashbookAggregates_() ở CashbookService.txt), KHÔNG còn
+    // cộng dồn từ quyLogs/gocLogs/cashbookLogs phía trình duyệt nữa.
+    //
+    // Lý do: gocLogs/cashbookLogs giờ chỉ tải đúng THÁNG ĐANG XEM
+    // (lazy load, giống matches/bookingLogs - xem getInitialData_() ở
+    // Code.gs.txt) để giảm tải cho CLB chạy lâu ngày. Nếu vẫn cộng dồn
+    // ở đây như cũ, số dư sẽ SAI (thiếu các tháng không tải). Server
+    // tính đúng công thức CŨ HỆT (openingBalance + tổng thu - tổng
+    // chi TOÀN BỘ lịch sử) rồi chỉ gửi về vài con số, không phải từng
+    // dòng - giữ đúng số dư tuyệt đối mà không cần tải lại lịch sử.
+    //
+    // getCurrentQuarterInfo_()/computeQuarterOpeningBalance_() phía
+    // trên KHÔNG còn được gọi ở đây nữa (chỉ còn tính đúng nếu
+    // gocLogs/cashbookLogs đủ TOÀN BỘ lịch sử, điều không còn đúng từ
+    // bản này) - giữ lại định nghĩa cũ chỉ để tham khảo, KHÔNG dùng.
+    // ======================================================
 
     document
         .getElementById(
             'cashbookBalance'
         )
         .innerText =
-            balance
+            (parseInt(cashbookRunningBalance) || 0)
                 .toLocaleString(
                     'vi-VN'
                 ) +
@@ -4278,7 +4287,7 @@ function renderCashbook() {
             'openingBalanceDisplay'
         )
         .innerText =
-            quarterOpeningBalance
+            (parseInt(quarterOpeningBalance) || 0)
                 .toLocaleString(
                     'vi-VN'
                 ) +
@@ -4293,10 +4302,8 @@ function renderCashbook() {
     if (openingLabelEl) {
 
         openingLabelEl.innerText =
-            "DƯ ĐẦU KỲ (Q" +
-            quarterInfo.quarterNum +
-            "/" +
-            quarterInfo.year +
+            "DƯ ĐẦU KỲ (" +
+            (quarterLabel || "---") +
             "):";
     }
 
@@ -4390,6 +4397,38 @@ function ensureMonthCloseAdminUI_() {
         yearSelect.insertAdjacentElement(
             'afterend',
             oldButton
+        );
+    }
+
+
+    // (v2.1.2) Ghi chú tĩnh nhắc khung giờ được phép chốt tháng thủ
+    // công - đặt 1 lần, không cần đồng hồ đếm ngược phía trình duyệt
+    // (nguồn xác nhận thật vẫn là giờ server, xem isManualCloseWindowOpen_
+    // ở MonthlyBalanceService.txt) - tránh lệch giờ máy người dùng gây
+    // hiểu lầm.
+    if (
+        !document.getElementById(
+            'monthCloseWindowHint'
+        )
+    ) {
+
+        let hintEl =
+            document.createElement(
+                'p'
+            );
+
+        hintEl.id =
+            'monthCloseWindowHint';
+
+        hintEl.className =
+            'text-[10px] text-slate-400 mt-1 basis-full';
+
+        hintEl.innerText =
+            'Chỉ chốt tháng thủ công được từ 21h00 ngày cuối tháng đến 8h30 sáng hôm sau. Ngoài khung giờ này hệ thống sẽ tự động chốt nếu quên.';
+
+        oldButton.insertAdjacentElement(
+            'afterend',
+            hintEl
         );
     }
 

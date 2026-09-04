@@ -1,9 +1,9 @@
 // ======================================================
 // CLB TENNIS THĂNG LONG - SERVICE WORKER
-// v2.1.1 PERFORMANCE TEST
+// v2.1.2
 // ======================================================
 
-const SERVICE_WORKER_VERSION = 'tennis-thang-long-pwa-v2.1.1-performance-test';
+const SERVICE_WORKER_VERSION = 'tennis-thang-long-pwa-v2.1.2';
 const APP_SHELL_CACHE = SERVICE_WORKER_VERSION + '-shell';
 const APP_SHELL = [
     './', './index.html', './manifest.json', './css/main.css',

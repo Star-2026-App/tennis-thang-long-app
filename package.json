@@ -1,11 +1,11 @@
 {
   "name": "tennis-thang-long-app",
   "private": true,
-  "version": "2.1.1",
+  "version": "2.1.2",
   "scripts": {
-    "test": "node Tests/performance-regression.test.js && node Tests/cup-logic.test.js && node Tests/cup-frontend.test.js",
-    "test:cup": "node Tests/cup-logic.test.js && node Tests/cup-frontend.test.js",
-    "test:performance": "node Tests/performance-regression.test.js"
+    "test": "node ../Tests/performance-regression.test.js && node ../Tests/cup-logic.test.js && node ../Tests/cup-frontend.test.js",
+    "test:cup": "node ../Tests/cup-logic.test.js && node ../Tests/cup-frontend.test.js",
+    "test:performance": "node ../Tests/performance-regression.test.js"
   },
   "engines": {
     "node": ">=18.0.0"

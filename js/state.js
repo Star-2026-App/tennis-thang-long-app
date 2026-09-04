@@ -32,6 +32,23 @@ let rulesList = [];
 let cupData = null;
 let dataRevision = 0;
 
+// (v2.1.2 FIX) Server đã gửi field này từ lâu (getInitialData_ ở
+// Code.gs.txt) nhưng frontend chưa từng đọc/lưu - khiến "Sửa Dư/Nợ"
+// (addBalanceAdjustment) lưu đúng xuống sheet BalanceAdjustments
+// nhưng KHÔNG hề ảnh hưởng số Dư/Nợ hiển thị của kỳ đang mở (chỉ có
+// tác dụng khi tháng đó ĐÃ CHỐT, vì closeMonthData tính lại từ đầu).
+// Xem calculateUserFinanceForMonth() ở finance.js.
+let balanceAdjustments = [];
+
+// (v2.1.2) Tổng quỹ tính sẵn server-side (computeCashbookAggregates_ ở
+// CashbookService.txt) - KHÔNG phụ thuộc tháng đang xem, vì gocLogs/
+// cashbookLogs giờ chỉ tải đúng tháng đang xem (giống matches/
+// bookingLogs) nên không thể tự cộng dồn đúng ở trình duyệt nữa. Xem
+// renderCashbook() ở finance.js.
+let cashbookRunningBalance = 0;
+let quarterOpeningBalance = 0;
+let quarterLabel = "";
+
 let syncQueue = [];
 let isSyncing = false;
 let syncIntervalId = null;

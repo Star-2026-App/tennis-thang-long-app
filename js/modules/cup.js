@@ -1,5 +1,5 @@
 // ======================================================
-// CUP TOURNAMENT UI - V2.1.1 PERFORMANCE TEST
+// CUP TOURNAMENT UI - V2.1.2
 // ======================================================
 // CUP chỉ dùng cupData/CupTournament. Không ghi Matches, GocLogs,
 // MemberStats hay bất kỳ dữ liệu tài chính thường ngày nào.

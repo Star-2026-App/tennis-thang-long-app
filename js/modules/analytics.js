@@ -294,6 +294,10 @@ function renderBestDuosTable() {
     );
 
 
+    // (v2.1.2 FIX) Ẩn cặp đấu có ÍT NHẤT 1 người là "Khách mời"/
+    // "Khách mời N" (tài khoản khách vãng lai dùng chung, mỗi buổi là
+    // 1 người thật khác nhau) - vinh danh 1 cặp cố định không có ý
+    // nghĩa trong trường hợp này.
     let duosArr =
         Object
             .values(
@@ -303,7 +307,9 @@ function renderBestDuosTable() {
                 function(d) {
 
                     return (
-                        d.total >= 3
+                        d.total >= 3 &&
+                        !isPhase3GuestName_(d.p1) &&
+                        !isPhase3GuestName_(d.p2)
                     );
                 }
             );
