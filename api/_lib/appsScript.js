@@ -158,6 +158,23 @@ async function postToAppsScript_(payload, options) {
   try {
     body = JSON.parse(text);
   } catch (err) {
+    // (DEBUG tạm thời 04/09/2026) Ghi lại nội dung thô Apps Script trả
+    // về khi không parse được thành JSON - xem trong Vercel Logs để
+    // tìm đúng nguyên nhân (trang lỗi HTML của Google, phản hồi bị cắt
+    // ngang do quá chậm, v.v.). Không đổi hành vi/response thật cho
+    // người dùng - vẫn ném đúng lỗi như cũ. XÓA dòng console.error này
+    // sau khi đã xác định xong nguyên nhân, tránh log rác lâu dài.
+    try {
+      console.error(
+        "[appsScript.js DEBUG] JSON.parse thất bại. status=" + (res && res.status) +
+        " content-type=" + (res && res.headers && res.headers.get("content-type")) +
+        " length=" + (text ? text.length : 0) +
+        " raw(0-1500)=" + String(text || "").slice(0, 1500)
+      );
+    } catch (logErr) {
+      // Không để lỗi ghi log làm hỏng luồng chính.
+    }
+
     var parseErr = new Error("Máy chủ dữ liệu trả về phản hồi không hợp lệ.");
     parseErr.isUpstreamError = true;
     throw parseErr;
