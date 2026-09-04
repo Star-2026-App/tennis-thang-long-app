@@ -4401,38 +4401,6 @@ function ensureMonthCloseAdminUI_() {
     }
 
 
-    // (v2.1.2) Ghi chú tĩnh nhắc khung giờ được phép chốt tháng thủ
-    // công - đặt 1 lần, không cần đồng hồ đếm ngược phía trình duyệt
-    // (nguồn xác nhận thật vẫn là giờ server, xem isManualCloseWindowOpen_
-    // ở MonthlyBalanceService.txt) - tránh lệch giờ máy người dùng gây
-    // hiểu lầm.
-    if (
-        !document.getElementById(
-            'monthCloseWindowHint'
-        )
-    ) {
-
-        let hintEl =
-            document.createElement(
-                'p'
-            );
-
-        hintEl.id =
-            'monthCloseWindowHint';
-
-        hintEl.className =
-            'text-[10px] text-slate-400 mt-1 basis-full';
-
-        hintEl.innerText =
-            'Chỉ chốt tháng thủ công được từ 21h00 ngày cuối tháng đến 8h30 sáng hôm sau. Ngoài khung giờ này hệ thống sẽ tự động chốt nếu quên.';
-
-        oldButton.insertAdjacentElement(
-            'afterend',
-            hintEl
-        );
-    }
-
-
     let localStatus =
         getMonthCloseStatusLocal_(
             month,
