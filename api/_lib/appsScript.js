@@ -84,9 +84,11 @@ var MAX_REDIRECTS_ = 3;
 
 async function fetchFollowingPostRedirects_(url, requestInit, signal) {
   var currentUrl = url;
+  var currentInit = requestInit;
+  var originalOrigin = new URL(url).origin;
 
   for (var hop = 0; hop <= MAX_REDIRECTS_; hop++) {
-    var res = await fetch(currentUrl, Object.assign({}, requestInit, {
+    var res = await fetch(currentUrl, Object.assign({}, currentInit, {
       redirect: "manual",
       signal: signal
     }));
@@ -107,9 +109,25 @@ async function fetchFollowingPostRedirects_(url, requestInit, signal) {
       return res;
     }
 
-    // Giữ NGUYÊN phương thức POST + body gốc (requestInit đã có sẵn) -
-    // đây chính là điểm khác biệt với hành vi mặc định của fetch().
-    currentUrl = new URL(location, currentUrl).toString();
+    var nextUrl = new URL(location, currentUrl);
+
+    // (v2.1.2 FIX 04/09/2026) Apps Script Web App có 2 KIỂU redirect
+    // khác nhau, cần xử lý khác nhau:
+    // 1) Redirect CÙNG domain (script.google.com) - phải giữ NGUYÊN
+    //    POST + body gốc, nếu không sẽ chạm doGet() và bị từ chối
+    //    "GET không được hỗ trợ..." (lỗi đã vá trước đó).
+    // 2) Redirect SANG domain khác (script.googleusercontent.com) -
+    //    đây là cơ chế PHÂN PHỐI NỘI DUNG chuẩn của Apps Script (script
+    //    đã CHẠY XONG ở bước 1, bước này chỉ lấy về kết quả có sẵn,
+    //    không thực thi lại). Bước này PHẢI dùng GET, không gửi lại
+    //    body - gửi nhầm POST ở đây khiến Google trả về nội dung
+    //    KHÔNG parse được thành JSON (nguyên nhân gây "Máy chủ dữ liệu
+    //    trả về phản hồi không hợp lệ" phát hiện ngày 04/09/2026).
+    if (nextUrl.origin !== originalOrigin) {
+      currentInit = { method: "GET" };
+    }
+
+    currentUrl = nextUrl.toString();
   }
 
   throw new Error("Quá nhiều lượt chuyển hướng (redirect) khi gọi máy chủ dữ liệu.");
