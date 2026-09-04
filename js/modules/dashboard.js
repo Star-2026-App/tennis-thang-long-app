@@ -25,6 +25,12 @@ function renderGamification() {
         slots.forEach(slot => {
             let player = getMatchSlotIdentity_(m, slot);
             if (!player.name) return;
+            // (v2.1.2 FIX 04/09/2026) Bỏ "Khách mời" khỏi Bảng Vàng Vinh
+            // Danh (Vua Cày Sân/Vua Thắng Trận/Vua Tỷ Lệ Thắng) - khách
+            // vãng lai không phải thành viên, không có ý nghĩa để vinh
+            // danh (cùng quy ước isPhase3GuestName_ đã dùng ở
+            // renderBestDuosTable()/copyReminderText()).
+            if (isPhase3GuestName_(player.name)) return;
             let key = getMemberIdentityKey_(player);
             if (!statsMap[key]) {
                 statsMap[key] = { stt: player.stt, name: player.name, matches: 0, wins: 0 };
@@ -112,7 +118,13 @@ function copyOldDebtReminderText() {
             if (isPhase3GuestName_(m.name)) return;
             let f = calculateUserFinanceForMonth(m, mSel, ySel);
             let oldDebt = parseInt(f.carryBalance) || 0;
-            if (oldDebt > 0) debtList.push(`- ${m.name}: ${oldDebt.toLocaleString()} đ`);
+            // (v2.1.2 FIX 04/09/2026) Chỉ nhắc khi dư nợ cũ VẪN CÒN sau
+            // khi trừ tiền đã thực nộp trong tháng đang xem - sau khi
+            // chốt tháng, nhiều thành viên nộp đúng bằng (hoặc nhiều
+            // hơn) số nợ cũ của mình ngay trong tháng mới nên coi như
+            // đã hết nợ, không cần liệt kê ra nhắc lại.
+            let monthPaid = parseInt(f.monthPaidAmount) || 0;
+            if (oldDebt > 0 && oldDebt > monthPaid) debtList.push(`- ${m.name}: ${oldDebt.toLocaleString()} đ`);
         });
     }
 

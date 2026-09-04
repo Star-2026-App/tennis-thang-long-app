@@ -15,7 +15,13 @@
 //   VAPID_PRIVATE_KEY             - khoá riêng Web Push
 //   VAPID_CONTACT_EMAIL           - (tuỳ chọn) mailto:...
 //   APPS_SCRIPT_TIMEOUT_MS         - (tuỳ chọn) timeout mỗi lượt gọi
-//                                    Apps Script; mặc định 25000ms
+//                                    Apps Script; mặc định 40000ms
+//                                    (v2.1.2 FIX 04/09/2026 - xem ghi
+//                                    chú tại appsScriptTimeoutMs bên
+//                                    dưới: tăng từ 25000ms vì mỗi lượt
+//                                    gọi giờ luôn tốn thêm 1 chặng
+//                                    round-trip mạng cho redirect
+//                                    script.googleusercontent.com)
 // ======================================================
 
 function required_(name) {
@@ -45,7 +51,16 @@ module.exports = {
   vapidPublicKey: function () { return process.env.VAPID_PUBLIC_KEY || ""; },
   vapidPrivateKey: function () { return process.env.VAPID_PRIVATE_KEY || ""; },
   vapidContactEmail: function () { return process.env.VAPID_CONTACT_EMAIL || "mailto:admin@example.com"; },
-  appsScriptTimeoutMs: function () { return optionalInt_("APPS_SCRIPT_TIMEOUT_MS", 25000, 5000, 30000); },
+  // (v2.1.2 FIX 04/09/2026) Nâng mặc định 25000ms -> 40000ms và trần
+  // cho phép 30000ms -> 45000ms. Log Apps Script Executions thực tế
+  // cho thấy bản thân script CHƯA BAO GIỜ chạy quá ~15s (không phải
+  // lỗi code chậm), nhưng từ khi vá lỗi redirect 502 (04/09/2026),
+  // mỗi lượt gọi ghi (action cần lock) luôn tốn thêm 1 chặng round-
+  // trip mạng riêng để lấy nội dung ở script.googleusercontent.com -
+  // cộng dồn độ trễ mạng của cả 2 chặng vào cùng 15s thực thi thỉnh
+  // thoảng vượt ngưỡng 25s cũ dù script không hề chậm. Vẫn giữ dưới
+  // ngưỡng cứng ~60s của trình duyệt.
+  appsScriptTimeoutMs: function () { return optionalInt_("APPS_SCRIPT_TIMEOUT_MS", 40000, 5000, 45000); },
   cookieName: "tlt_session",
   sessionTtlHours: 12
 };

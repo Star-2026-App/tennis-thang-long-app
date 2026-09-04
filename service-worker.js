@@ -81,6 +81,19 @@ self.addEventListener('notificationclick', function(event) {
     );
 });
 
+// (v2.1.2 FIX 04/09/2026) 2 domain CDN app đang dùng thật (xem CSP +
+// <link>/<script> ở index.html: Font Awesome, XLSX, Quill,
+// DOMPurify) - cho phép Service Worker cache lại các file NÀY, không
+// cache domain lạ nào khác lỡ xuất hiện sau này.
+var ALLOWED_CDN_ORIGINS_ = [
+    'https://cdnjs.cloudflare.com',
+    'https://cdn.jsdelivr.net'
+];
+
+function isAllowedCdnOrigin_(origin) {
+    return ALLOWED_CDN_ORIGINS_.indexOf(origin) !== -1;
+}
+
 function cacheSuccessfulResponse_(request, response) {
     if (!response || !response.ok || response.type === 'opaque') return response;
     caches.open(APP_SHELL_CACHE).then(function(cache) {
@@ -112,17 +125,27 @@ self.addEventListener('fetch', function(event) {
 
     var requestUrl = new URL(request.url);
 
+    var isSameOrigin = requestUrl.origin === self.location.origin;
+
     // API luôn network-only; không bao giờ cache dữ liệu CLB/tài chính.
-    if (requestUrl.origin !== self.location.origin || requestUrl.pathname.indexOf('/api/') === 0) {
+    if (isSameOrigin && requestUrl.pathname.indexOf('/api/') === 0) {
         return;
     }
 
-    if (request.mode === 'navigate') {
+    // Domain khác app: chỉ can thiệp (để cache lại) đúng các CDN đã
+    // cho phép ở trên - domain lạ nào khác để trình duyệt tự xử lý
+    // bình thường, Service Worker không đụng vào.
+    if (!isSameOrigin && !isAllowedCdnOrigin_(requestUrl.origin)) {
+        return;
+    }
+
+    if (isSameOrigin && request.mode === 'navigate') {
         event.respondWith(navigationNetworkFirst_(request));
         return;
     }
 
-    // Static: hiển thị cache ngay, đồng thời cập nhật ở background.
+    // Static (nội bộ + CDN đã cho phép): hiển thị cache ngay, đồng
+    // thời cập nhật ở background.
     event.respondWith(
         caches.match(request).then(function(cached) {
             var network = fetch(request)

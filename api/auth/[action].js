@@ -16,7 +16,17 @@ const GENERIC_FAIL_MESSAGE = "Sai tên đăng nhập hoặc mật khẩu.";
 // Baseline thực tế của Apps Script từng lên gần 13 giây; 15 giây chỉ
 // có 2 giây dự phòng nên dễ ngắt nhầm khi cold-start. Cho mỗi phase
 // login tối đa 25 giây, vẫn ngắn hơn ngưỡng trình duyệt 60 giây.
-const LOGIN_UPSTREAM_TIMEOUT_MS = 25000;
+//
+// (v2.1.2 FIX 04/09/2026) Nâng 25000ms -> 40000ms: xác nhận qua log
+// Apps Script Executions rằng bản thân script không hề chạy quá
+// ~15s (không phải lỗi code/logic chậm), nhưng từ khi vá lỗi redirect
+// 502 hôm 04/09/2026, mỗi lượt gọi ghi (authCompleteLogin) luôn phát
+// sinh thêm 1 chặng round-trip mạng riêng để lấy nội dung ở
+// script.googleusercontent.com - cộng dồn độ trễ mạng của cả 2 chặng
+// vào cùng thời gian thực thi (có lúc tới 15s) khiến thỉnh thoảng
+// vượt ngưỡng 25s cũ dù chẳng có gì thật sự chậm. 40 giây vẫn ngắn
+// hơn nhiều ngưỡng trình duyệt ~60 giây.
+const LOGIN_UPSTREAM_TIMEOUT_MS = 40000;
 
 function isLoginRateLimitError_(err) {
   return !!(

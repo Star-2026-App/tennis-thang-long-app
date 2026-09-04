@@ -35,11 +35,22 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="/icons/tennis-thang-long.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css">
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <!-- (v2.1.2 FIX 04/09/2026) Thêm crossorigin="anonymous" cho các
+         CDN dưới đây: bắt buộc để Service Worker (service-worker.js)
+         cache lại được các file này - thiếu thuộc tính này, trình
+         duyệt tải theo kiểu "no-cors" khiến Service Worker chỉ nhận
+         được phản hồi "opaque" (không xác minh được thành công/thất
+         bại) nên chủ động KHÔNG cache, phải tải mới hoàn toàn qua
+         mạng mỗi lần mở app - mạng di động yếu lúc mở app là mất
+         icon/thư viện dù các phần khác của app vẫn chạy bình thường
+         (JS nội bộ đã cache sẵn). Cả cdnjs.cloudflare.com lẫn
+         cdn.jsdelivr.net đều hỗ trợ CORS công khai nên an toàn khi
+         thêm thuộc tính này. -->
+    <link rel="stylesheet" crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css">
+    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
     <link rel="stylesheet" href="css/main.css">
     <style id="iphone-responsive-ui">
         /* Responsive UI v1.3 - tối ưu bảng dữ liệu cho iPhone */
@@ -1254,7 +1265,7 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 pb-3 border-b gap-3">
                         <div>
-                            <h2 class="text-base md:text-lg font-bold text-slate-800">TỔNG KẾT TIỀN GÓC VÀ THỐNG KÊ THÁNG</h2>
+                            <h2 class="text-base md:text-lg font-bold text-slate-800">TỔNG KẾT TIỀN GÓC</h2>
                         </div>
                         <div class="flex flex-wrap gap-2 items-center">
                             <button onclick="copyReminderText()" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition"><i class="fa-solid fa-copy"></i> Sao chép nhắc nợ Zalo</button>

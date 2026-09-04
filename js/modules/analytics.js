@@ -527,11 +527,32 @@ function renderRivalsAnalytics() {
             ]
             .filter(Boolean);
 
+            // (v2.1.2 FIX 04/09/2026) Loại "Khách mời" khỏi Duyên Nợ/
+            // Cạ Sức/Khắc Tinh - khách vãng lai không phải đối tượng
+            // "duyên nợ"/"khắc tinh" cố định giữa các thành viên thật
+            // (cùng quy ước isPhase3GuestName_ đã dùng ở
+            // renderBestDuosTable()).
+            let teamAReal =
+                teamA.filter(function(p) {
+                    return !isPhase3GuestName_(p);
+                });
+
+            let teamBReal =
+                teamB.filter(function(p) {
+                    return !isPhase3GuestName_(p);
+                });
+
+            let bothTeamsReal_ =
+                teamAReal.length === teamA.length &&
+                teamBReal.length === teamB.length;
+
 
             if (
                 teamA.length > 0 &&
                 teamB.length > 0
             ) {
+
+              if (bothTeamsReal_) {
 
                 let teamASortedStr =
                     [
@@ -591,11 +612,13 @@ function renderRivalsAnalytics() {
                 ]
                 .count++;
 
+              }
 
-                teamA.forEach(
+
+                teamAReal.forEach(
                     function(a) {
 
-                        teamB.forEach(
+                        teamBReal.forEach(
                             function(b) {
 
                                 let k1 =
@@ -1681,7 +1704,12 @@ function openTop5PersonalModalReady_() {
                     );
 
 
-                if (partner) {
+                if (
+                    partner &&
+                    !isPhase3GuestName_(
+                        partner
+                    )
+                ) {
 
                     if (
                         !partnerMap[
@@ -1726,6 +1754,16 @@ function openTop5PersonalModalReady_() {
 
                 teamB.forEach(
                     function(opp) {
+
+                        if (
+                            isPhase3GuestName_(
+                                opp
+                            )
+                        ) {
+
+                            return;
+                        }
+
 
                         if (
                             !rivalMap[
@@ -1785,7 +1823,12 @@ function openTop5PersonalModalReady_() {
                     );
 
 
-                if (partner) {
+                if (
+                    partner &&
+                    !isPhase3GuestName_(
+                        partner
+                    )
+                ) {
 
                     if (
                         !partnerMap[
@@ -1830,6 +1873,16 @@ function openTop5PersonalModalReady_() {
 
                 teamA.forEach(
                     function(opp) {
+
+                        if (
+                            isPhase3GuestName_(
+                                opp
+                            )
+                        ) {
+
+                            return;
+                        }
+
 
                         if (
                             !rivalMap[
