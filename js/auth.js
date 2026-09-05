@@ -599,4 +599,12 @@ function applyRolePermissions() {
     if (typeof syncCupNavVisibility === 'function') {
         syncCupNavVisibility();
     }
+
+    // (module mới 05/09/2026) ĐIỂM PHONG ĐỘ - đúng chỗ syncCupNavVisibility()
+    // đang được gọi, để tự động chạy lại sau MỌI lần dữ liệu/quyền thay đổi
+    // (đăng nhập, bootstrap/sync, lưu Cài Đặt...) mà không cần thêm móc riêng
+    // ở từng nơi.
+    if (typeof perfSyncNavVisibility_ === 'function') {
+        perfSyncNavVisibility_();
+    }
 }

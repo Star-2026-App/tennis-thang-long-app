@@ -147,6 +147,13 @@ function switchTab(tabId) {
         activateCupTab_();
     }
 
+    if (
+        tabId === 'perf' &&
+        typeof activatePerfTab_ === 'function'
+    ) {
+        activatePerfTab_();
+    }
+
 
     if (
         typeof syncBottomNavState ===

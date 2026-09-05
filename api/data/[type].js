@@ -86,6 +86,20 @@ module.exports = async function handler(req, res) {
         return http.sendJson(res, 200, { status: "SUCCESS", result: cupSummary });
       }
 
+      // ĐIỂM PHONG ĐỘ (module mới 05/09/2026) - gộp chung vào route [type].js
+      // giống mọi route đọc khác (giới hạn 12 Serverless Functions gói Hobby).
+      case "performance": {
+        var perfScope = String(req.query && req.query.scope || "history");
+        var perfTargetStt = parseInt(req.query && req.query.targetStt) || 0;
+        var perfAction = perfScope === "summary" ? "perfGetCurrentForm" : "perfGetHistory";
+        var perfResult = await appsScript.callBusinessAction(
+          sessionId,
+          perfAction,
+          { targetStt: perfTargetStt }
+        );
+        return http.sendJson(res, 200, { status: "SUCCESS", result: perfResult });
+      }
+
       case "month-close-status": {
         var mcsMonth = parseInt(req.query && req.query.month);
         var mcsYear = parseInt(req.query && req.query.year);
