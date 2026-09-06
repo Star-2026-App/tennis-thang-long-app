@@ -1628,13 +1628,30 @@
                     <span id="perf-base-value">--</span>
                     <select id="perf-base-month-select" class="cup-btn cup-btn-ghost text-xs"></select>
                 </div>
+                <!-- (mới 06/09/2026 - yêu cầu Star mục 2) "Theo ngày"/"Theo tuần" chỉ dành
+                     cho Owner trên bản Desktop -> gắn class perf-owner-only-granularity +
+                     hidden mặc định; performance.js (perfApplyGranularityVisibility_) sẽ tự
+                     gỡ "hidden" nếu đủ điều kiện. "Theo tháng" luôn hiện với mọi người. -->
                 <div class="flex gap-2">
-                    <button type="button" onclick="perfSetGranularity('day')" class="cup-btn cup-btn-ghost">Theo ngày</button>
-                    <button type="button" onclick="perfSetGranularity('week')" class="cup-btn cup-btn-ghost">Theo tuần</button>
-                    <button type="button" onclick="perfSetGranularity('month')" class="cup-btn cup-btn-ghost">Theo tháng</button>
+                    <button type="button" onclick="perfSetGranularity('day')" data-granularity="day" class="cup-btn cup-btn-ghost perf-granularity-btn perf-owner-only-granularity hidden">Theo ngày</button>
+                    <button type="button" onclick="perfSetGranularity('week')" data-granularity="week" class="cup-btn cup-btn-ghost perf-granularity-btn perf-owner-only-granularity hidden">Theo tuần</button>
+                    <button type="button" onclick="perfSetGranularity('month')" data-granularity="month" class="cup-btn cup-btn-ghost perf-granularity-btn">Theo tháng</button>
                 </div>
                 <div style="position:relative; height:300px;">
                     <canvas id="perf-chart-canvas"></canvas>
+                </div>
+                <!-- (mới 06/09/2026 - nội dung đã chốt với Star) Ghi chú cách tính, để
+                     user tự đọc hiểu, không cần giải thích thêm. -->
+                <div class="text-xs text-slate-500 leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-3">
+                    <p class="font-semibold text-slate-600 mb-1">Cách tính Điểm phong độ:</p>
+                    <ul class="list-disc pl-4 space-y-0.5">
+                        <li>Điểm Base: trình độ hiện tại của mỗi người, dùng làm mốc so kèo trước mỗi trận.</li>
+                        <li>Mỗi trận: so tổng trình độ 2 đội để tính tỷ số kỳ vọng theo phương pháp Elo.</li>
+                        <li>Thắng/thua đậm hơn kỳ vọng → cộng/trừ 1 lượng điểm phong độ nhỏ cho cả 2 người cùng đội.</li>
+                        <li>Điểm cộng/trừ từng trận cộng dồn trong tháng, nhưng tối đa ±0,05 điểm/tháng.</li>
+                        <li>Điểm Base giữ nguyên suốt tháng, đầu tháng sau mới chính thức cập nhật từ phần tích lũy đó.</li>
+                        <li>"Theo tháng": Điểm Base chính thức đã chốt qua từng tháng.</li>
+                    </ul>
                 </div>
             </section>
 
