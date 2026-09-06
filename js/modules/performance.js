@@ -124,6 +124,15 @@ function perfRenderMemberSelector_() {
     return;
   }
 
+  // (fix 06/09/2026) Phòng trường hợp hàm này được gọi từ applyRolePermissions()
+  // (js/auth.js) TRƯỚC KHI activatePerfTab_() từng chạy lần nào trong phiên này
+  // (tức PerfModuleState_.targetStt vẫn đang ở giá trị mặc định 0) — mặc định
+  // về đúng STT người đang đăng nhập, để dropdown dựng lần đầu đã chọn sẵn
+  // đúng chính mình thay vì không chọn gì.
+  if (!PerfModuleState_.targetStt && loggedInMemberStt) {
+    PerfModuleState_.targetStt = loggedInMemberStt;
+  }
+
   var activeMembers = (members || []).filter(function (m) { return m && m.isActive !== false; });
 
   var options = activeMembers.map(function (m) {
