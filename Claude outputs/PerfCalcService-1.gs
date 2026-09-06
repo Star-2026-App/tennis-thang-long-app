@@ -19,6 +19,13 @@
 var PERF_DEFAULT_BASE_LEVEL_ = 6.2;      // fallback khi không tra được Level 1 người chơi
 var PERF_MONTHLY_CAP_ = 0.05;            // biên độ ±0.05 điểm/tháng (mục Bước 4 yêu cầu gốc)
 var PERF_STEP_K_ = 0.0012;               // hệ số K của yêu cầu gốc (Bước 3)
+// (mở rộng 06/09/2026 - yêu cầu Star) Điểm Base/displayLevel hiển thị 3 chữ số
+// sau dấu phẩy (trước đây chỉ 2 -> nhiều tháng deltа nhỏ bị làm tròn mất, nhìn
+// như "không đổi"). Dùng chung 1 hằng số để PerfCalcService.txt (job tháng) và
+// PerfBackfillService.txt (backfill) LUÔN làm tròn giống hệt nhau — nếu lệch
+// độ chính xác giữa 2 nơi, dữ liệu backfill (tháng cũ) và dữ liệu job tháng
+// (tháng mới) sẽ không đồng nhất trên cùng 1 biểu đồ.
+var PERF_DISPLAY_PRECISION_ = 1000;      // 1000 = làm tròn 3 chữ số thập phân
 var PERF_DEFAULT_SENSITIVITY_S_ = 1.06;  // fallback nếu Settings chưa có dòng "PerfSensitivityS"
                                           // (giá trị đã hiệu chỉnh bằng hồi quy thật trên 129
                                           // trận sạch, xem PHONGDO_MODULE_PHAN_TICH_KIENTRUC.md
@@ -372,7 +379,7 @@ function perfRecalculateMonth_(ss, yearMonth) {
       accum[entry.key].sumRaw += entry.step;
 
       var clampedSoFar = Math.max(-PERF_MONTHLY_CAP_, Math.min(PERF_MONTHLY_CAP_, accum[entry.key].sumRaw));
-      var displayLevel = Math.round((entry.rec.base + clampedSoFar) * 100) / 100;
+      var displayLevel = Math.round((entry.rec.base + clampedSoFar) * PERF_DISPLAY_PRECISION_) / PERF_DISPLAY_PRECISION_;
 
       historyRows.push([
         Utilities.getUuid(),
@@ -405,7 +412,7 @@ function perfRecalculateMonth_(ss, yearMonth) {
       var entry = accum[key];
       var baseBefore = entry.member.base;
       var clampedDelta = Math.max(-PERF_MONTHLY_CAP_, Math.min(PERF_MONTHLY_CAP_, entry.sumRaw));
-      var baseAfter = Math.round((baseBefore + clampedDelta) * 100) / 100;
+      var baseAfter = Math.round((baseBefore + clampedDelta) * PERF_DISPLAY_PRECISION_) / PERF_DISPLAY_PRECISION_;
 
       closeRows.push([
         entry.member.name, yearMonth, baseBefore,

@@ -198,13 +198,13 @@ function perfRenderBaseSelector_() {
   select.innerHTML = options.join('');
   select.value = 'current';
 
-  valueEl.textContent = PerfModuleState_.currentBase != null ? PerfModuleState_.currentBase : '--';
+  valueEl.textContent = perfFormatBaseValue_(PerfModuleState_.currentBase);
 
   // Gán onchange (không addEventListener) để tránh cộng dồn listener mỗi lần
   // perfRenderBaseSelector_ được gọi lại (đổi thành viên xem, tải lại...).
   select.onchange = function () {
     if (select.value === 'current') {
-      valueEl.textContent = PerfModuleState_.currentBase != null ? PerfModuleState_.currentBase : '--';
+      valueEl.textContent = perfFormatBaseValue_(PerfModuleState_.currentBase);
       return;
     }
     // (fix 06/09/2026 - theo đúng ngữ nghĩa Star chốt): "Điểm Base của tháng X"
@@ -213,8 +213,21 @@ function perfRenderBaseSelector_() {
     // giá trị đã trở thành Điểm Base của tháng KẾ TIẾP, không phải của chính
     // tháng X).
     var found = PerfModuleState_.monthlyBase.filter(function (m) { return m.yearMonth === select.value; })[0];
-    valueEl.textContent = found ? found.baseBefore : '--';
+    valueEl.textContent = found ? perfFormatBaseValue_(found.baseBefore) : '--';
   };
+}
+
+/**
+ * (mới 06/09/2026 - yêu cầu Star) Định dạng Điểm Base hiển thị LUÔN đúng 3
+ * chữ số sau dấu phẩy (ví dụ 6,252) — trước đây hiển thị số thô nên số 0 ở
+ * cuối bị JS tự cắt (6.40 -> hiện "6.4"), và dấu phân cách thập phân là "."
+ * kiểu Mỹ thay vì "," quen thuộc với người Việt. Backend đã làm tròn đúng 3
+ * chữ số khi ghi (PERF_DISPLAY_PRECISION_, PerfCalcService.txt) — hàm này chỉ
+ * lo phần HIỂN THỊ, không đổi giá trị thật.
+ */
+function perfFormatBaseValue_(value) {
+  if (value == null || isNaN(value)) return '--';
+  return Number(value).toFixed(3).replace('.', ',');
 }
 
 /**
@@ -334,7 +347,8 @@ function perfAggregateHistory_(history, granularity) {
   return order.map(function (key) {
     var values = groups[key];
     var avg = values.reduce(function (a, b) { return a + b; }, 0) / values.length;
-    return { label: key, value: Math.round(avg * 100) / 100 };
+    // (mở rộng 06/09/2026) 3 chữ số thập phân, khớp PERF_DISPLAY_PRECISION_ backend.
+    return { label: key, value: Math.round(avg * 1000) / 1000 };
   });
 }
 

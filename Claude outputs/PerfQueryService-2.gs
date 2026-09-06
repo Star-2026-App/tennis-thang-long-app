@@ -193,7 +193,11 @@ function perfGetMonthlyBase(ss, actor, data) {
       targetName = String(membersValues[m][PERF_COL_MEMBER_NAME_]).trim();
       var baseRaw = membersValues[m][PERF_COL_MEMBER_BASE_];
       var parsedBase = typeof baseRaw === 'number' ? baseRaw : parseFloat(String(baseRaw).replace(',', '.'));
-      currentBase = isNaN(parsedBase) ? null : parsedBase;
+      // (mở rộng 06/09/2026) Làm tròn phòng thủ về đúng 3 chữ số thập phân
+      // (PERF_DISPLAY_PRECISION_, PerfCalcService.txt) — Base ghi ra sheet đã
+      // đúng độ chính xác này rồi, nhưng làm tròn lại ở đây để chặn sai số dấu
+      // phẩy động kiểu 6.2999999999999998 lọt ra ngoài UI.
+      currentBase = isNaN(parsedBase) ? null : Math.round(parsedBase * PERF_DISPLAY_PRECISION_) / PERF_DISPLAY_PRECISION_;
       break;
     }
   }
