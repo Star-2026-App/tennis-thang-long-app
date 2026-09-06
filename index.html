@@ -856,6 +856,7 @@
                     <button onclick="switchTab('cashbook')" id="btn-cashbook" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> Sổ Thu Chi</button>
                     <button onclick="switchTab('members')" id="btn-members" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Thành Viên</button>
                     <button onclick="switchTab('cup')" id="btn-cup" class="tab-btn cup-nav-entry hidden px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-trophy text-amber-300"></i> CUP</button>
+                    <button onclick="switchTab('perf')" id="btn-perf" class="tab-btn perf-nav-entry hidden px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-chart-line text-amber-300"></i> Phong Độ</button>
                     <button onclick="switchTab('rules')" id="btn-rules" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
                     <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg border-b-2 border-transparent hover:bg-emerald-800 flex items-center gap-1.5 owner-only hidden"><i class="fa-solid fa-gears"></i> Cài Đặt</button>
                 </div>
@@ -882,6 +883,7 @@
                 <button onclick="switchTabMobile('cashbook', 'Sổ Thu Chi')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-amber-300"></i> Sổ Thu Chi</button>
                 <button onclick="switchTabMobile('members', 'Thành Viên')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-users text-amber-300"></i> Thành Viên</button>
                 <button onclick="switchTabMobile('cup', 'Giải đấu CUP')" class="cup-nav-entry hidden w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-trophy text-amber-300"></i> Giải đấu CUP</button>
+                <button onclick="switchTabMobile('perf', 'Phong Độ')" class="perf-nav-entry hidden w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-chart-line text-amber-300"></i> Phong Độ</button>
                 <button onclick="switchTabMobile('rules', 'Quy định và thông báo')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-amber-300"></i> Quy định và thông báo</button>
                 <button onclick="switchTabMobile('settings', 'Cài Đặt')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-800 flex items-center gap-2 owner-only hidden"><i class="fa-solid fa-gears text-amber-300"></i> Cài Đặt</button>
             </div>
@@ -1615,6 +1617,44 @@
                 <div id="cupRoot"></div>
             </section>
 
+           <!-- TAB: ĐIỂM PHONG ĐỘ (module mới 05/09/2026) -->
+            <section id="tab-perf" class="tab-content space-y-4">
+                <div id="perf-member-selector" class="flex items-center gap-2"></div>
+                <div id="perf-loading" style="display:none">Đang tải...</div>
+                <div id="perf-error" style="display:none; color:red"></div>
+                <!-- (mới 06/09/2026) Điểm Base hiện tại + chọn xem Điểm Base của tháng khác -->
+                <div id="perf-base-panel" class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <span>Điểm Base:</span>
+                    <span id="perf-base-value">--</span>
+                    <select id="perf-base-month-select" class="cup-btn cup-btn-ghost text-xs"></select>
+                </div>
+                <!-- (mới 06/09/2026 - yêu cầu Star mục 2) "Theo ngày"/"Theo tuần" chỉ dành
+                     cho Owner trên bản Desktop -> gắn class perf-owner-only-granularity +
+                     hidden mặc định; performance.js (perfApplyGranularityVisibility_) sẽ tự
+                     gỡ "hidden" nếu đủ điều kiện. "Theo tháng" luôn hiện với mọi người. -->
+                <div class="flex gap-2">
+                    <button type="button" onclick="perfSetGranularity('day')" data-granularity="day" class="cup-btn cup-btn-ghost perf-granularity-btn perf-owner-only-granularity hidden">Theo ngày</button>
+                    <button type="button" onclick="perfSetGranularity('week')" data-granularity="week" class="cup-btn cup-btn-ghost perf-granularity-btn perf-owner-only-granularity hidden">Theo tuần</button>
+                    <button type="button" onclick="perfSetGranularity('month')" data-granularity="month" class="cup-btn cup-btn-ghost perf-granularity-btn">Theo tháng</button>
+                </div>
+                <div style="position:relative; height:300px;">
+                    <canvas id="perf-chart-canvas"></canvas>
+                </div>
+                <!-- (mới 06/09/2026 - nội dung đã chốt với Star) Ghi chú cách tính, để
+                     user tự đọc hiểu, không cần giải thích thêm. -->
+                <div class="text-xs text-slate-500 leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-3">
+                    <p class="font-semibold text-slate-600 mb-1">Cách tính Điểm phong độ:</p>
+                    <ul class="list-disc pl-4 space-y-0.5">
+                        <li>Điểm Base: trình độ hiện tại của mỗi người, dùng làm mốc so kèo trước mỗi trận.</li>
+                        <li>Mỗi trận: so tổng trình độ 2 đội để tính tỷ số kỳ vọng theo phương pháp Elo.</li>
+                        <li>Thắng/thua đậm hơn kỳ vọng → cộng/trừ 1 lượng điểm phong độ nhỏ cho cả 2 người cùng đội.</li>
+                        <li>Điểm cộng/trừ từng trận cộng dồn trong tháng, nhưng tối đa ±0,05 điểm/tháng.</li>
+                        <li>Điểm Base giữ nguyên suốt tháng, đầu tháng sau mới chính thức cập nhật từ phần tích lũy đó.</li>
+                        <li>"Theo tháng": Điểm Base chính thức đã chốt qua từng tháng.</li>
+                    </ul>
+                </div>
+            </section>
+
             <section id="tab-settings" class="tab-content space-y-4">
             
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-xl mx-auto">
@@ -1809,6 +1849,36 @@
 
 
                         <!-- ============================== -->
+                        <!-- (module mới 05/09/2026) ĐIỂM PHONG ĐỘ -->
+                        <!-- ============================== -->
+
+                        <div class="border-t pt-4">
+
+                            <label class="flex items-start gap-2.5 cursor-pointer">
+
+                                <input
+                                    type="checkbox"
+                                    id="stPerfModuleEnabled"
+                                    class="mt-1 w-4 h-4"
+                                >
+
+                                <span>
+                                    <span class="font-black text-slate-700 block">
+                                        Bật module "Điểm Phong độ"
+                                    </span>
+
+                                    <span class="text-[10px] text-slate-500 block mt-0.5">
+                                        Khi bật, tab "Phong Độ" xuất hiện trên menu và hệ thống tự
+                                        cập nhật Điểm Base theo kết quả trận hàng tháng.
+                                    </span>
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                        <!-- ============================== -->
                         <!-- NGÂN HÀNG -->
                         <!-- ============================== -->
 
@@ -1963,6 +2033,11 @@
                 <button type="button" onclick="moreGo('cup','Giải đấu CUP')" class="more-row cup-nav-entry hidden">
                     <span class="more-row-icon"><i class="fa-solid fa-trophy"></i></span>
                     <span class="flex-1 text-left">Giải đấu CUP</span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>
+                <button type="button" onclick="moreGo('perf','Phong Độ')" class="more-row perf-nav-entry hidden">
+                    <span class="more-row-icon"><i class="fa-solid fa-chart-line"></i></span>
+                    <span class="flex-1 text-left">Phong Độ</span>
                     <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
                 </button>
                 <button type="button" onclick="moreGo('rules','Quy định')" class="more-row">
@@ -2440,6 +2515,8 @@
     <script src="js/modules/members.js"></script>
     <script src="js/modules/rules.js"></script>
     <script src="js/modules/cup.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js" crossorigin="anonymous"></script>
+    <script src="js/modules/performance.js"></script>
     <script src="js/modules/booking.js"></script>
     <script src="js/modules/finance.js"></script>
     <script src="js/modules/matches.js"></script>

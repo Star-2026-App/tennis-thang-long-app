@@ -72,6 +72,23 @@ function populateSettingsForm() {
     }
 
 
+    // ==========================================
+    // (module mới 05/09/2026) ĐIỂM PHONG ĐỘ
+    // ==========================================
+
+    let perfEnabledEl =
+        document.getElementById('stPerfModuleEnabled');
+
+    if (perfEnabledEl) {
+        perfEnabledEl.checked =
+            systemSettings.performanceModuleEnabled === true;
+    } else {
+        console.warn(
+            "populateSettingsForm: không tìm thấy #stPerfModuleEnabled"
+        );
+    }
+
+
     let qrUrl =
         `https://img.vietqr.io/image/` +
         `${systemSettings.bankId}-` +
@@ -263,6 +280,19 @@ function saveSystemSettings(e) {
                 autoCloseEl
                     ? autoCloseEl.checked === true
                     : (systemSettings.autoCloseMonthEnabled !== false);
+
+
+            // ==========================================
+            // (module mới 05/09/2026) ĐIỂM PHONG ĐỘ
+            // ==========================================
+
+            let perfEnabledEl2 =
+                document.getElementById('stPerfModuleEnabled');
+
+            systemSettings.performanceModuleEnabled =
+                perfEnabledEl2
+                    ? perfEnabledEl2.checked === true
+                    : (systemSettings.performanceModuleEnabled === true);
 
 
             // ==========================================
