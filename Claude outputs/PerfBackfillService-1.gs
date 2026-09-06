@@ -42,6 +42,15 @@ function perfGetOrCreateHistoryStagingSheet_(ss) {
   } else if (sheet.getLastRow() > 1) {
     sheet.getRange(2, 1, sheet.getLastRow() - 1, PERF_HISTORY_HEADERS_.length).clearContent();
   }
+  // (fix 06/09/2026 - phát hiện qua test thật, chart "Theo tháng" hiện ISO
+  // string) Y HỆT lý do đã ghi ở perfForceYearMonthColumnsPlainText_
+  // (PerfSetupService.txt): nếu không ép cột YearMonth (F) này về Plain Text
+  // TRƯỚC khi ghi, Google Sheets tự đoán chuỗi "08/2026" là ngày tháng và âm
+  // thầm chuyển thành Date ngay khi setValues() ghi vào — sheet staging này bị
+  // bỏ sót bước ép định dạng đó khi mới tạo (PerformanceHistory/
+  // PerformanceMonthlyClose thật đã được ép từ setupPerformanceModuleSheets(),
+  // nhưng sheet staging tạm này được tạo sau, ở đây, nên cần tự ép riêng).
+  sheet.getRange(2, 6, Math.max(sheet.getMaxRows() - 1, 1), 1).setNumberFormat('@');
   return sheet;
 }
 

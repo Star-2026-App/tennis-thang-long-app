@@ -22,10 +22,15 @@
 var PerfModuleState_ = {
   initialized: false,
   targetStt: 0,           // STT thành viên đang xem (mặc định = chính mình)
-  granularity: 'day',     // 'day' | 'week' | 'month'
+  // (mở rộng 06/09/2026 - theo yêu cầu Star) Mặc định 'month' — dùng luôn dữ
+  // liệu nhẹ perfGetMonthlyBase (đã tải cho ô "Điểm Base") để vẽ, KHÔNG cần
+  // tải lịch sử chi tiết từng trận. Chỉ khi người dùng chủ động bấm "Theo
+  // ngày"/"Theo tuần" mới tải rawHistory (đầy đủ, nặng hơn) — xem perfSetGranularity.
+  granularity: 'month',   // 'day' | 'week' | 'month'
   rawHistory: [],         // [{matchId, date, yearMonth, deltaStep, displayLevel}, ...]
+  rawHistoryLoadedForStt: 0, // STT đã tải rawHistory gần nhất (0 = chưa tải cho ai) — tránh tải lại thừa
   chartInstance: null,
-  // (mới 06/09/2026) Điểm Base hiện tại + Điểm Base đã chốt theo từng tháng
+  // Điểm Base hiện tại + Điểm Base đã chốt theo từng tháng
   currentBase: null,      // number|null — Điểm Base thật đang có trong Members
   monthlyBase: []         // [{yearMonth, baseBefore, baseAfter}, ...] tăng dần theo thời gian
 };
@@ -44,7 +49,10 @@ function activatePerfTab_() {
     PerfModuleState_.targetStt = loggedInMemberStt || 0;
     perfRenderMemberSelector_();
   }
-  perfLoadAndRenderChart_();
+  // (mở rộng 06/09/2026) CHỈ tải perfGetMonthlyBase (nhẹ) lúc mở tab — đủ để
+  // vẽ chart mặc định "Theo tháng" luôn (xem perfLoadMonthlyBase_). Lịch sử
+  // chi tiết từng trận (rawHistory, nặng hơn) chỉ tải khi người dùng chủ động
+  // bấm "Theo ngày"/"Theo tuần" — xem perfSetGranularity.
   perfLoadMonthlyBase_();
 }
 
@@ -79,38 +87,24 @@ function perfRenderMemberSelector_() {
 
   document.getElementById('perf-member-select').addEventListener('change', function (e) {
     PerfModuleState_.targetStt = parseInt(e.target.value) || 0;
-    perfLoadAndRenderChart_();
-    perfLoadMonthlyBase_();
+    // (mở rộng 06/09/2026) Đổi thành viên -> rawHistory (nếu có) là của người
+    // CŨ, không còn dùng được -> đánh dấu chưa tải để lần tới cần tới "Theo
+    // ngày"/"Theo tuần" sẽ tự tải lại đúng người mới (xem perfSetGranularity).
+    PerfModuleState_.rawHistory = [];
+    PerfModuleState_.rawHistoryLoadedForStt = 0;
+    perfLoadMonthlyBase_(); // nhẹ — luôn tải, phục vụ cả ô "Điểm Base" lẫn chart "Theo tháng"
+    if (PerfModuleState_.granularity !== 'month') {
+      perfSetGranularity(PerfModuleState_.granularity); // đang xem ngày/tuần -> tải lại rawHistory cho đúng người mới
+    }
   });
-}
-
-/**
- * Tải lịch sử phong độ của PerfModuleState_.targetStt và vẽ lại chart. Tách
- * riêng khỏi activatePerfTab_() để nút đổi thành viên đều gọi lại được.
- */
-function perfLoadAndRenderChart_() {
-  if (!PerfModuleState_.targetStt) return;
-
-  perfShowError_(''); // xoá lỗi cũ (nếu có) trước lượt tải mới
-  perfShowLoadingState_(true);
-
-  callBackendRead_('/api/data/performance?scope=history&targetStt=' + PerfModuleState_.targetStt)
-    .then(function (result) {
-      PerfModuleState_.rawHistory = (result && result.history) || [];
-      perfShowLoadingState_(false);
-      perfRenderChart_();
-    })
-    .catch(function (err) {
-      perfShowLoadingState_(false);
-      perfShowError_((err && err.message) || 'Không tải được dữ liệu phong độ.');
-    });
 }
 
 /**
  * (mới 06/09/2026) Tải Điểm Base hiện tại + Điểm Base đã chốt theo từng tháng
  * của PerfModuleState_.targetStt, đổ vào ô "Điểm Base" + dropdown chọn tháng.
- * Tách riêng khỏi perfLoadAndRenderChart_ vì đây là API riêng (scope=monthlyBase),
- * không ảnh hưởng gì tới biểu đồ đường.
+ * Đây cũng là NGUỒN DỮ LIỆU cho chart khi granularity='month' (nhẹ hơn nhiều
+ * so với tải lịch sử chi tiết từng trận) — nên sau khi tải xong, nếu đang ở
+ * chế độ "Theo tháng" thì vẽ lại chart luôn từ đây, không cần rawHistory.
  */
 function perfLoadMonthlyBase_() {
   if (!PerfModuleState_.targetStt) return;
@@ -122,6 +116,9 @@ function perfLoadMonthlyBase_() {
       PerfModuleState_.currentBase = (result && result.currentBase != null) ? result.currentBase : null;
       PerfModuleState_.monthlyBase = (result && result.months) || [];
       perfRenderBaseSelector_();
+      if (PerfModuleState_.granularity === 'month') {
+        perfRenderChart_();
+      }
     })
     .catch(function (err) {
       // Không dùng perfShowError_ chung với chart — lỗi ở đây không nghiêm
@@ -164,19 +161,58 @@ function perfRenderBaseSelector_() {
   };
 }
 
-/** Đổi granularity (ngày/tuần/tháng) — chỉ tính lại ở trình duyệt, không gọi lại API. */
+/**
+ * Đổi granularity (ngày/tuần/tháng).
+ *
+ * (mở rộng 06/09/2026 - theo yêu cầu Star, giảm tải dữ liệu mặc định):
+ * 'month' luôn vẽ được ngay từ PerfModuleState_.monthlyBase đã có sẵn (nhẹ,
+ * tải từ lúc mở tab) — KHÔNG gọi API. 'day'/'week' cần lịch sử chi tiết từng
+ * trận (rawHistory, nặng hơn — quét toàn bộ PerformanceHistory của thành
+ * viên) — CHỈ tải khi người dùng thật sự bấm sang 1 trong 2 chế độ này, và
+ * chỉ tải nếu chưa có sẵn đúng cho thành viên đang xem
+ * (rawHistoryLoadedForStt) — tránh gọi lại API thừa khi bấm qua lại "Theo
+ * ngày" <-> "Theo tuần" nhiều lần.
+ */
 function perfSetGranularity(granularity) {
   PerfModuleState_.granularity = granularity;
-  perfRenderChart_();
+
+  if (granularity === 'month') {
+    perfRenderChart_();
+    return;
+  }
+
+  if (PerfModuleState_.rawHistoryLoadedForStt === PerfModuleState_.targetStt) {
+    perfRenderChart_();
+    return;
+  }
+
+  perfShowError_(''); // xoá lỗi cũ (nếu có) trước lượt tải mới
+  perfShowLoadingState_(true);
+
+  callBackendRead_('/api/data/performance?scope=history&targetStt=' + PerfModuleState_.targetStt)
+    .then(function (result) {
+      PerfModuleState_.rawHistory = (result && result.history) || [];
+      PerfModuleState_.rawHistoryLoadedForStt = PerfModuleState_.targetStt;
+      perfShowLoadingState_(false);
+      perfRenderChart_();
+    })
+    .catch(function (err) {
+      perfShowLoadingState_(false);
+      perfShowError_((err && err.message) || 'Không tải được dữ liệu phong độ.');
+    });
 }
 
 /**
- * Gộp dữ liệu thô theo granularity đã chọn, rồi vẽ bằng Chart.js.
+ * Vẽ chart bằng Chart.js. 'month' lấy thẳng từ monthlyBase (Điểm Base đã
+ * CHỐT mỗi tháng — xem perfLoadMonthlyBase_); 'day'/'week' gộp từ rawHistory
+ * (lịch sử chi tiết từng trận) qua perfAggregateHistory_.
  * 'day': mỗi trận 1 điểm (dùng đúng displayLevel tại thời điểm đó).
- * 'week'/'month': trung bình cộng displayLevel của các trận trong kỳ.
+ * 'week': trung bình cộng displayLevel của các trận trong tuần.
  */
 function perfRenderChart_() {
-  var points = perfAggregateHistory_(PerfModuleState_.rawHistory, PerfModuleState_.granularity);
+  var points = PerfModuleState_.granularity === 'month'
+    ? PerfModuleState_.monthlyBase.map(function (m) { return { label: m.yearMonth, value: m.baseAfter }; })
+    : perfAggregateHistory_(PerfModuleState_.rawHistory, PerfModuleState_.granularity);
   var canvas = document.getElementById('perf-chart-canvas');
   if (!canvas || typeof Chart === 'undefined') return; // Chart.js chưa tải xong/chưa có canvas -> bỏ qua
 
@@ -215,8 +251,11 @@ function perfRenderChart_() {
 }
 
 /**
+ * Gộp rawHistory theo granularity — chỉ dùng cho 'day'/'week' (từ 06/09/2026,
+ * 'month' lấy thẳng từ monthlyBase trong perfRenderChart_, không qua đây nữa).
+ *
  * @param {Array<Object>} history [{date, displayLevel, yearMonth}, ...] đã sắp theo thời gian
- * @param {string} granularity 'day' | 'week' | 'month'
+ * @param {string} granularity 'day' | 'week'
  * @return {Array<{label:string, value:number}>}
  */
 function perfAggregateHistory_(history, granularity) {
@@ -225,10 +264,11 @@ function perfAggregateHistory_(history, granularity) {
     return history.map(function (h) { return { label: h.date, value: h.displayLevel }; });
   }
 
+  // granularity === 'week'
   var groups = {}; // key -> [displayLevel, ...]
   var order = [];
   history.forEach(function (h) {
-    var key = granularity === 'month' ? h.yearMonth : perfWeekKeyOf_(h.date);
+    var key = perfWeekKeyOf_(h.date);
     if (!groups[key]) { groups[key] = []; order.push(key); }
     groups[key].push(h.displayLevel);
   });

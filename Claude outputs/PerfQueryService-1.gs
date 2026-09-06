@@ -52,7 +52,10 @@ function perfGetHistory(ss, actor, data) {
         matchId: row[3],
         date: perfFormatHistoryDate_(row[4]),
         _sortTs: perfHistoryDateTimestamp_(row[4]),
-        yearMonth: row[5],
+        // (fix 06/09/2026 - phát hiện qua test thật) cùng lỗi Google Sheets tự
+        // đoán "MM/yyyy" thành Date như perfNormalizeYearMonth_ đã xử lý ở nơi
+        // khác — áp dụng luôn ở đây để chart "Theo tháng" không hiện ISO string.
+        yearMonth: perfNormalizeYearMonth_(row[5]),
         deltaStep: row[6],
         displayLevel: row[8]
       });
