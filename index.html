@@ -1622,6 +1622,12 @@
                 <div id="perf-member-selector" class="flex items-center gap-2"></div>
                 <div id="perf-loading" style="display:none">Đang tải...</div>
                 <div id="perf-error" style="display:none; color:red"></div>
+                <!-- (mới 06/09/2026) Điểm Base hiện tại + chọn xem Điểm Base của tháng khác -->
+                <div id="perf-base-panel" class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <span>Điểm Base:</span>
+                    <span id="perf-base-value">--</span>
+                    <select id="perf-base-month-select" class="cup-btn cup-btn-ghost text-xs"></select>
+                </div>
                 <div class="flex gap-2">
                     <button type="button" onclick="perfSetGranularity('day')" class="cup-btn cup-btn-ghost">Theo ngày</button>
                     <button type="button" onclick="perfSetGranularity('week')" class="cup-btn cup-btn-ghost">Theo tuần</button>
